@@ -29,7 +29,9 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
- * Builder class for creating Bindings.
+ * A builder class for constructing Binding objects with various properties.
+ * The builder allows setting attributes such as type, value, mutability, and others
+ * to define a Binding in a fluent API manner.
  *
  * @author Max Arulananthan
  * @since 1.0
