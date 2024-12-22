@@ -27,8 +27,11 @@ import org.rulii.model.UnrulyException;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -47,6 +50,8 @@ public class FieldBindingLoader<T> extends AbstractBindingLoader<Field, T> {
 
     private static final Log logger = LogFactory.getLog(FieldBindingLoader.class);
 
+    private static final Map<Class<?>, List<Field>> CLASS_FIELD_CACHE = new ConcurrentHashMap<>();
+
     public FieldBindingLoader() {
         super();
         setFilter(field -> !field.isSynthetic() && !Modifier.isStatic(field.getModifiers()));
@@ -61,17 +66,11 @@ public class FieldBindingLoader<T> extends AbstractBindingLoader<Field, T> {
         logger.info("Loading Class [" + bean.getClass().getName() + "] Field(s) into Bindings.");
 
         Class<?> type = bean.getClass();
-        Set<String> names = new HashSet<>();
+        List<Field> fields = getClassFields(type);
 
-        ReflectionUtils.doWithFields(type, field -> {
-            if (getFilter() != null && !getFilter().test(field)) return;
-            // In case its overridden field
-            String bindingName = getItemName(field);
-
-            if (names.contains(bindingName)) return;
-            names.add(bindingName);
-
-            ReflectionUtils.makeAccessible(field);
+        for (Field field : fields) {
+            // Check the filter
+            if (!getFilter().test(field)) continue;
 
             Supplier<T> getter = () -> {
                 try {
@@ -96,12 +95,23 @@ public class FieldBindingLoader<T> extends AbstractBindingLoader<Field, T> {
                     .type(field.getGenericType())
                     .delegate(getter, setter)
                     .build());
-        });
+        }
     }
 
     @Override
     protected String getItemName(Field item) {
         Assert.notNull(item, "item cannot be null.");
         return item.getName();
+    }
+
+    private List<Field> getClassFields(Class<?> type) {
+        return CLASS_FIELD_CACHE.computeIfAbsent(type, (Class<?> c) -> {
+            Map<String, Field> fields = new LinkedHashMap<>();
+            ReflectionUtils.doWithFields(type, field -> {
+                ReflectionUtils.makeAccessible(field);
+                fields.put(field.getName(), field);
+            });
+            return new LinkedList<Field>(fields.values());
+        });
     }
 }
