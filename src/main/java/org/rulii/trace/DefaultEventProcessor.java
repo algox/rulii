@@ -18,7 +18,7 @@
 
 package org.rulii.trace;
 
-import org.rulii.lang.Runnable;
+import org.rulii.model.Runnable;
 import org.rulii.lib.spring.util.Assert;
 
 import java.util.LinkedList;

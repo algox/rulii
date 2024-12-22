@@ -18,7 +18,7 @@
 
 package org.rulii.registry;
 
-import org.rulii.lang.Runnable;
+import org.rulii.model.Runnable;
 
 /**
  * The MutableRegistry interface represents a registry that allows registration of Runnable objects.
@@ -29,7 +29,7 @@ import org.rulii.lang.Runnable;
 public interface MutableRuleRegistry extends RuleRegistry {
 
     /**
-     * Registers a {@link org.rulii.lang.Runnable} runnable in the rule registry.
+     * Registers a {@link org.rulii.model.Runnable} runnable in the rule registry.
      *
      * @param runnable the runnable to register
      */

@@ -22,9 +22,9 @@ import org.rulii.bind.NamedScope;
 import org.rulii.bind.PromiscuousBinder;
 import org.rulii.bind.ReservedBindings;
 import org.rulii.context.RuleContext;
-import org.rulii.lang.action.Action;
-import org.rulii.lang.condition.Condition;
-import org.rulii.lang.function.Function;
+import org.rulii.model.action.Action;
+import org.rulii.model.condition.Condition;
+import org.rulii.model.function.Function;
 import org.rulii.lib.apache.commons.logging.Log;
 import org.rulii.lib.apache.commons.logging.LogFactory;
 import org.rulii.lib.spring.util.Assert;
@@ -169,6 +169,7 @@ public class RulingFamily<T> implements RuleSet<T> {
                 .type(RuleSet.class)
                 .value(this)
                 .build());
+
         bindings.promiscuousBind(Binding.builder().with(ReservedBindings.RULE_SET_STATUS.getName())
                 .type(RuleSetExecutionStatus.class)
                 .value(ruleResultSet)

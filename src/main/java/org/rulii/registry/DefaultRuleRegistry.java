@@ -18,7 +18,7 @@
 
 package org.rulii.registry;
 
-import org.rulii.lang.Runnable;
+import org.rulii.model.Runnable;
 import org.rulii.lib.apache.commons.logging.Log;
 import org.rulii.lib.apache.commons.logging.LogFactory;
 import org.rulii.lib.spring.util.Assert;

@@ -18,7 +18,7 @@
 package org.rulii.ruleset;
 
 import org.rulii.bind.match.MatchByTypeMatchingStrategy;
-import org.rulii.lang.condition.Condition;
+import org.rulii.model.condition.Condition;
 import org.rulii.context.RuleContext;
 import org.rulii.rule.Rule;
 

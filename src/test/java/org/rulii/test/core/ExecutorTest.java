@@ -23,13 +23,13 @@ import org.rulii.bind.Bindings;
 import org.rulii.bind.match.BindingMatchingStrategy;
 import org.rulii.bind.match.ParameterResolver;
 import org.rulii.context.RuleContext;
-import org.rulii.lang.condition.Condition;
+import org.rulii.model.condition.Condition;
 import org.rulii.rule.Rule;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.rulii.lang.condition.Conditions.condition;
+import static org.rulii.model.condition.Conditions.condition;
 
 /**
  * Tests for Condition/Action execution.

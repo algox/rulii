@@ -19,18 +19,16 @@ package org.rulii.test.action;
 
 import org.rulii.bind.Binding;
 import org.rulii.bind.Bindings;
-import org.rulii.bind.InvalidBindingException;
 import org.rulii.context.RuleContext;
-import org.rulii.lang.ParameterMismatchException;
-import org.rulii.lang.action.Action;
+import org.rulii.model.action.Action;
 import org.rulii.model.UnrulyException;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.math.BigDecimal;
 
-import static org.rulii.lang.action.Actions.action;
-import static org.rulii.lang.condition.Conditions.condition;
+import static org.rulii.model.action.Actions.action;
+import static org.rulii.model.condition.Conditions.condition;
 /**
  * CompositeAction related tests.
  *

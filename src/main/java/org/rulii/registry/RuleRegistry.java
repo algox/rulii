@@ -18,7 +18,7 @@
 
 package org.rulii.registry;
 
-import org.rulii.lang.Runnable;
+import org.rulii.model.Runnable;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.rule.Rule;
 import org.rulii.ruleset.RuleSet;
@@ -26,7 +26,6 @@ import org.rulii.ruleset.RuleSet;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 /**
  * RuleRegistry defines the interface for managing rules and rule sets.

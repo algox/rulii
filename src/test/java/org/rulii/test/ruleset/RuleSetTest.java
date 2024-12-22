@@ -19,8 +19,8 @@ package org.rulii.test.ruleset;
 
 import org.rulii.bind.Binding;
 import org.rulii.bind.Bindings;
-import org.rulii.lang.condition.Condition;
-import org.rulii.lang.condition.Conditions;
+import org.rulii.model.condition.Condition;
+import org.rulii.model.condition.Conditions;
 import org.rulii.rule.Rule;
 import org.rulii.ruleset.RuleSet;
 import org.junit.Assert;
@@ -28,8 +28,8 @@ import org.junit.Test;
 
 import java.math.BigDecimal;
 
-import static org.rulii.lang.action.Actions.action;
-import static org.rulii.lang.condition.Conditions.condition;
+import static org.rulii.model.action.Actions.action;
+import static org.rulii.model.condition.Conditions.condition;
 
 /**
  * Tests for RuleSets.

@@ -19,8 +19,8 @@ package org.rulii.rule;
 
 import org.rulii.annotation.*;
 import org.rulii.annotation.Rule;
-import org.rulii.lang.action.Action;
-import org.rulii.lang.condition.Condition;
+import org.rulii.model.action.Action;
+import org.rulii.model.condition.Condition;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.UnrulyException;
 import org.rulii.util.Ordered;

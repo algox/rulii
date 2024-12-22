@@ -18,7 +18,7 @@
 package org.rulii.trace;
 
 import org.rulii.bind.match.ParameterMatch;
-import org.rulii.lang.Runnable;
+import org.rulii.model.Runnable;
 
 import java.util.*;
 

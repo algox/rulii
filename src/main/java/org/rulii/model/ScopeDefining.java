@@ -17,8 +17,6 @@
  */
 package org.rulii.model;
 
-import org.rulii.lang.Runnable;
-
 /**
  * Marker interface to denote the Runnable item defines its own scope.
  *

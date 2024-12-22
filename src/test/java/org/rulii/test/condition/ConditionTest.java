@@ -19,8 +19,8 @@ package org.rulii.test.condition;
 
 import org.rulii.bind.Binding;
 import org.rulii.context.RuleContext;
-import org.rulii.lang.condition.Condition;
-import org.rulii.lang.function.TriFunction;
+import org.rulii.model.condition.Condition;
+import org.rulii.model.function.TriFunction;
 import org.rulii.model.UnrulyException;
 import org.rulii.util.TypeReference;
 import org.junit.Assert;
@@ -29,7 +29,7 @@ import org.junit.Test;
 import java.math.BigDecimal;
 import java.util.*;
 
-import static org.rulii.lang.condition.Conditions.condition;
+import static org.rulii.model.condition.Conditions.condition;
 
 /**
  * Tests related to the ConditionBuilder.

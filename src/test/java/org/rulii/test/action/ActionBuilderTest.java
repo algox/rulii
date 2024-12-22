@@ -22,8 +22,8 @@ import org.rulii.annotation.Function;
 import org.rulii.bind.Binding;
 import org.rulii.bind.Bindings;
 import org.rulii.model.UnrulyException;
-import org.rulii.lang.action.Action;
-import org.rulii.lang.action.TriAction;
+import org.rulii.model.action.Action;
+import org.rulii.model.action.TriAction;
 import org.rulii.util.TypeReference;
 import org.junit.Assert;
 import org.junit.Test;
@@ -318,9 +318,9 @@ public class ActionBuilderTest {
 
     @Test
     public void testLoadFromClass() {
-        List<org.rulii.lang.condition.Condition> conditions = org.rulii.lang.condition.Condition.builder().build(TestClass.class);
+        List<org.rulii.model.condition.Condition> conditions = org.rulii.model.condition.Condition.builder().build(TestClass.class);
         List<Action> actions = Action.builder().build(new TestClass());
-        org.rulii.lang.function.Function[] functions = org.rulii.lang.function.Function.builder().build(TestClass.class);
+        org.rulii.model.function.Function[] functions = org.rulii.model.function.Function.builder().build(TestClass.class);
         Assert.assertTrue(conditions.get(0).run(x -> 25));
         Bindings bindings = Bindings.builder().standard();
         bindings.bind("x", 25);

@@ -22,8 +22,8 @@ import org.rulii.bind.NamedScope;
 import org.rulii.bind.PromiscuousBinder;
 import org.rulii.bind.ReservedBindings;
 import org.rulii.context.RuleContext;
-import org.rulii.lang.action.Action;
-import org.rulii.lang.condition.Condition;
+import org.rulii.model.action.Action;
+import org.rulii.model.condition.Condition;
 import org.rulii.lib.apache.commons.logging.Log;
 import org.rulii.lib.apache.commons.logging.LogFactory;
 import org.rulii.lib.spring.util.Assert;
@@ -91,7 +91,7 @@ public class RulingClass<T> implements Rule {
         NamedScope ruleScope = createRuleScope(ruleContext);
         // Notify Rule start
         ruleContext.getTracer().fireOnRuleStart(this, ruleScope);
-        logger.debug("Rule [" + getName() + "] Execution. Scope [" + ruleScope.getName() + "] created.");
+        if (logger.isDebugEnabled()) logger.debug("Rule [" + getName() + "] Execution. Scope [" + ruleScope.getName() + "] created.");
         RuleResult result = null;
 
         try {
@@ -99,7 +99,7 @@ public class RulingClass<T> implements Rule {
 
             // We did not pass the Pre-Condition
             if (!preConditionCheck) {
-                logger.debug("Rule [" + getName() + "] pre-condition check failed. Rule is skipped.");
+                if (logger.isDebugEnabled()) logger.debug("Rule [" + getName() + "] pre-condition check failed. Rule is skipped.");
                 result = new RuleResult(this, RuleExecutionStatus.SKIPPED);
                 return result;
             }
@@ -109,10 +109,10 @@ public class RulingClass<T> implements Rule {
 
             // The Condition passed
             if (conditionCheck) {
-                logger.debug("Rule [" + getName() + "] given condition passed. Actions to be executed.");
+                if (logger.isDebugEnabled()) logger.debug("Rule [" + getName() + "] given condition passed. Actions to be executed.");
                 runActions(ruleContext);
             } else {
-                logger.debug("Rule [" + getName() + "] given condition has failed.");
+                if (logger.isDebugEnabled()) logger.debug("Rule [" + getName() + "] given condition has failed.");
                 runOtherwiseAction(ruleContext);
             }
 
@@ -125,7 +125,7 @@ public class RulingClass<T> implements Rule {
             throw e;
         } finally {
             ruleContext.getBindings().removeScope(ruleScope);
-            logger.debug("Rule [" + getName() + "] Executed. Scope [" + ruleScope.getName() + "] cleared.");
+            if (logger.isDebugEnabled()) logger.debug("Rule [" + getName() + "] Executed. Scope [" + ruleScope.getName() + "] cleared.");
             // Notify Rule end
             ruleContext.getTracer().fireOnRuleEnd(this, result, ruleScope);
         }
@@ -140,7 +140,7 @@ public class RulingClass<T> implements Rule {
      * @throws UnrulyException if the current scope in the rule context is not a PromiscuousBinder
      */
     protected NamedScope createRuleScope(RuleContext ruleContext) {
-        NamedScope result = ruleContext.getBindings().addScope(getName() + "-scope-" + UUID.randomUUID());
+        NamedScope result = ruleContext.getBindings().addScope(getRuleScopeName());
 
         if (!(result.getBindings() instanceof PromiscuousBinder bindings)) {
             throw new UnrulyException("IllegalState CurrentScope does not allow reserved keyword binding.");
@@ -209,7 +209,7 @@ public class RulingClass<T> implements Rule {
         // Execute associated Actions.
         for (Action action : getActions()) {
             action.run(ruleContext);
-            logger.debug("Rule [" + getName() + "] Action [" + action.getName() + "] executed.");
+            if (logger.isDebugEnabled()) logger.debug("Rule [" + getName() + "] Action [" + action.getName() + "] executed.");
             // Notify the Action
             ruleContext.getTracer().fireOnRuleAction(this, action);
         }
@@ -219,7 +219,7 @@ public class RulingClass<T> implements Rule {
         // Execute otherwise Action.
         if (getOtherwiseAction() != null) {
             getOtherwiseAction().run(ruleContext);
-            logger.debug("Rule [" + getName() + "] Otherwise Action [" + getOtherwiseAction().getName() + "] executed.");
+            if (logger.isDebugEnabled()) logger.debug("Rule [" + getName() + "] Otherwise Action [" + getOtherwiseAction().getName() + "] executed.");
             // Notify the OtherwiseAction
             ruleContext.getTracer().fireOnRuleOtherwiseAction(this, getOtherwiseAction());
         }
@@ -274,7 +274,8 @@ public class RulingClass<T> implements Rule {
         if (ruleDefinition.getDescription() != null) return ruleDefinition.getDescription();
 
         StringBuilder result = new StringBuilder("rule(name = " + ruleDefinition.getName());
-        if (!ruleDefinition.isInline()) result.append(", class = " + ruleDefinition.getRuleClass().getSimpleName());
+        if (!ruleDefinition.isInline())
+            result.append(", class = ").append(ruleDefinition.getRuleClass().getSimpleName());
         result.append(")");
         return result.toString();
     }

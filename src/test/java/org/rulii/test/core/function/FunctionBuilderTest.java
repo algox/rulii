@@ -17,7 +17,7 @@
  */
 package org.rulii.test.core.function;
 
-import org.rulii.lang.function.Function;
+import org.rulii.model.function.Function;
 import org.junit.Assert;
 import org.junit.Test;
 import org.rulii.model.Definable;

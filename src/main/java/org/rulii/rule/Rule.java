@@ -18,9 +18,9 @@
 package org.rulii.rule;
 
 import org.rulii.context.RuleContext;
-import org.rulii.lang.Runnable;
-import org.rulii.lang.action.Action;
-import org.rulii.lang.condition.Condition;
+import org.rulii.model.Runnable;
+import org.rulii.model.action.Action;
+import org.rulii.model.condition.Condition;
 import org.rulii.model.Definable;
 import org.rulii.model.Identifiable;
 import org.rulii.model.ScopeDefining;

@@ -38,7 +38,7 @@ import org.junit.Test;
 
 import java.util.Date;
 
-import static org.rulii.lang.condition.Conditions.condition;
+import static org.rulii.model.condition.Conditions.condition;
 /**
  * Test cases for the various Validation Rules.
  *

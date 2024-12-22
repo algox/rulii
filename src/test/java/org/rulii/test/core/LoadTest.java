@@ -18,9 +18,9 @@
 package org.rulii.test.core;
 
 import org.rulii.model.UnrulyException;
-import org.rulii.lang.action.Action;
-import org.rulii.lang.action.Actions;
-import org.rulii.lang.condition.Condition;
+import org.rulii.model.action.Action;
+import org.rulii.model.action.Actions;
+import org.rulii.model.condition.Condition;
 import org.rulii.model.MethodDefinition;
 import org.rulii.rule.Rule;
 import org.rulii.rule.RuleDefinition;

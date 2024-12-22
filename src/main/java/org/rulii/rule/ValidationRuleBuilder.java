@@ -19,7 +19,7 @@ package org.rulii.rule;
 
 import org.rulii.bind.match.MatchByTypeMatchingStrategy;
 import org.rulii.bind.match.ParameterMatch;
-import org.rulii.lang.action.Action;
+import org.rulii.model.action.Action;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.validation.RuleViolation;

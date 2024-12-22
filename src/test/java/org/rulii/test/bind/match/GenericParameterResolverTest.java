@@ -24,7 +24,7 @@ import org.rulii.bind.match.BindingMatchingStrategyType;
 import org.rulii.bind.match.ParameterMatch;
 import org.rulii.bind.match.ParameterResolver;
 import org.rulii.convert.ConverterRegistry;
-import org.rulii.lang.action.Action;
+import org.rulii.model.action.Action;
 import org.rulii.model.MethodDefinition;
 import org.rulii.util.reflect.ObjectFactory;
 import org.junit.Assert;

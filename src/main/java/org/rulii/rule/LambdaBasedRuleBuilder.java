@@ -17,7 +17,7 @@
  */
 package org.rulii.rule;
 
-import org.rulii.lang.condition.Condition;
+import org.rulii.model.condition.Condition;
 import org.rulii.model.MethodDefinition;
 
 public class LambdaBasedRuleBuilder<T> extends AbstractRuleBuilder<T> {

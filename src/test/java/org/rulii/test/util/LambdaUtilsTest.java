@@ -17,8 +17,8 @@
  */
 package org.rulii.test.util;
 
-import org.rulii.lang.function.TriFunction;
-import org.rulii.lang.function.UnaryFunction;
+import org.rulii.model.function.TriFunction;
+import org.rulii.model.function.UnaryFunction;
 import org.rulii.lib.spring.core.ParameterNameDiscoverer;
 import org.rulii.util.reflect.LambdaUtils;
 import org.junit.Assert;

@@ -17,7 +17,7 @@
  */
 package org.rulii.util;
 
-import org.rulii.lang.Runnable;
+import org.rulii.model.Runnable;
 
 import java.util.Comparator;
 

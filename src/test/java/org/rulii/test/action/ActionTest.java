@@ -22,8 +22,8 @@ import org.rulii.bind.Binding;
 import org.rulii.bind.Bindings;
 import org.rulii.bind.InvalidBindingException;
 import org.rulii.context.RuleContext;
-import org.rulii.lang.ParameterMismatchException;
-import org.rulii.lang.action.Action;
+import org.rulii.model.ParameterMismatchException;
+import org.rulii.model.action.Action;
 import org.rulii.model.UnrulyException;
 import org.junit.Assert;
 import org.junit.Test;
@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import static org.rulii.lang.action.Actions.action;
+import static org.rulii.model.action.Actions.action;
 
 /**
  * Action related tests.

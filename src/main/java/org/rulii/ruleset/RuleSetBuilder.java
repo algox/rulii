@@ -19,9 +19,9 @@ package org.rulii.ruleset;
 
 import org.rulii.bind.ReservedBindings;
 import org.rulii.context.RuleContext;
-import org.rulii.lang.action.Action;
-import org.rulii.lang.condition.Condition;
-import org.rulii.lang.function.Function;
+import org.rulii.model.action.Action;
+import org.rulii.model.condition.Condition;
+import org.rulii.model.function.Function;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.SourceDefinition;
 import org.rulii.rule.Rule;

@@ -34,8 +34,8 @@
  */
 package org.rulii.trace;
 
-import org.rulii.lang.Runnable;
-import org.rulii.lang.action.Action;
+import org.rulii.model.Runnable;
+import org.rulii.model.action.Action;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.Definable;
 import org.rulii.model.Definition;

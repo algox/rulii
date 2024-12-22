@@ -17,9 +17,9 @@
  */
 package org.rulii.rule;
 
-import org.rulii.lang.action.Action;
-import org.rulii.lang.condition.Condition;
-import org.rulii.lang.condition.Conditions;
+import org.rulii.model.action.Action;
+import org.rulii.model.condition.Condition;
+import org.rulii.model.condition.Conditions;
 import org.rulii.model.MethodDefinition;
 import org.rulii.model.SourceDefinition;
 import org.rulii.lib.spring.core.Ordered;

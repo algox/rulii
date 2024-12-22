@@ -18,10 +18,10 @@
 package org.rulii.ruleset;
 
 import org.rulii.context.RuleContext;
-import org.rulii.lang.Runnable;
-import org.rulii.lang.action.Action;
-import org.rulii.lang.condition.Condition;
-import org.rulii.lang.function.Function;
+import org.rulii.model.Runnable;
+import org.rulii.model.action.Action;
+import org.rulii.model.condition.Condition;
+import org.rulii.model.function.Function;
 import org.rulii.model.Definable;
 import org.rulii.model.Identifiable;
 import org.rulii.model.ScopeDefining;
@@ -82,7 +82,7 @@ public interface RuleSet<T> extends Runnable<T>, Identifiable, Iterable<Rule>, D
     Function<T> getResultExtractor();
 
     /**
-     * Size of this RuleSet (ie. number of Rules in this RuleSet)
+     * Size of this RuleSet (ie : number of Rules in this RuleSet)
      *
      * @return number of Rules in this RuleSet.
      */

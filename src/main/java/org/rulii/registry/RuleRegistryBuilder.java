@@ -17,7 +17,7 @@
  */
 package org.rulii.registry;
 
-import org.rulii.lang.Runnable;
+import org.rulii.model.Runnable;
 
 /**
  * The RuleRegistryBuilder class is a builder for creating a RuleRegistry object.

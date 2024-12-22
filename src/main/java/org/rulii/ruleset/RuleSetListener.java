@@ -18,9 +18,9 @@
 package org.rulii.ruleset;
 
 import org.rulii.bind.NamedScope;
-import org.rulii.lang.action.Action;
-import org.rulii.lang.condition.Condition;
-import org.rulii.lang.function.Function;
+import org.rulii.model.action.Action;
+import org.rulii.model.condition.Condition;
+import org.rulii.model.function.Function;
 import org.rulii.rule.Rule;
 import org.rulii.rule.RuleResult;
 
