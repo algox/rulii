@@ -29,12 +29,9 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
- * A builder class for constructing Binding objects with various properties.
- * The builder allows setting attributes such as type, value, mutability, and others
- * to define a Binding in a fluent API manner.
- *
- * @author Max Arulananthan
- * @since 1.0
+ * Builder class to construct Binding objects with various properties and configurations.
+ * Provides a fluent API to set up the type, value, mutability, and other attributes of the Binding.
+ * This builder is immutable and produces immutable Binding instances when {@link #build()} is invoked.
  */
 public final class BindingBuilder {
 
@@ -111,7 +108,23 @@ public final class BindingBuilder {
      */
     public <T> BindingBuilder value(Supplier<T> supplier) {
         Assert.notNull(supplier, "supplier cannot be null");
-        return delegate(supplier, null);
+        this.getter = supplier;
+        return this;
+    }
+    
+    /**
+     * Ensures a supplier is set for the 'getter' field only if it is currently absent,
+     * and marks the binding as final. The supplier provided cannot be null.
+     *
+     * @param <T> the generic type of the supplier and corresponding binding value
+     * @param supplier the supplier to compute and assign if absent
+     * @return the updated BindingBuilder instance for fluent API usage
+     */
+    public <T> BindingBuilder computeIfAbsent(Supplier<T> supplier) {
+        Assert.notNull(supplier, "supplier cannot be null");
+        this.getter = supplier;
+        this.isFinal = true;
+        return this;
     }
 
     /**
@@ -149,6 +162,7 @@ public final class BindingBuilder {
      * @return this for fluency.
      */
     public BindingBuilder isFinal(boolean isFinal) {
+        Assert.isTrue(setter == null, "setter must be null for final Bindings.");
         this.isFinal = isFinal;
         return this;
     }
@@ -201,9 +215,15 @@ public final class BindingBuilder {
         Type bindingType = typeRef != null ? typeRef.getType() : getDefaultType();
         Object bindingValue = value != null ? value : ReflectionUtils.getDefaultValue(bindingType);
 
-        Binding<T> result = (getter != null)
-                ? new BindingSupplier(name, bindingType, getter, setter, isFinal, primary, description)
-                : new DefaultBinding(name, bindingType, bindingValue, editable, isFinal, primary, description);
+        Binding<T> result;
+
+        if (getter != null && setter != null) {
+            result = new DelegatingBinding(name, bindingType, getter, setter, isFinal, primary, description);
+        } else if (getter != null) {
+            result = new SuppliedBinding(name, bindingType, getter, isFinal, primary, description);
+        } else {
+            result = new DefaultBinding(name, bindingType, bindingValue, editable, isFinal, primary, description);
+        }
 
         // Add the listeners
         for (BindingValueListener listener : listeners) {

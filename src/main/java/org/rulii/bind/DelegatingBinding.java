@@ -33,16 +33,18 @@ import java.util.function.Supplier;
  * @author Max Arulananthan
  * @since 1.0
  */
-public class BindingSupplier<T> extends DefaultBinding<T> {
+public class DelegatingBinding<T> extends DefaultBinding<T> {
 
-    private static final Log logger = LogFactory.getLog(BindingSupplier.class);
+    private static final Log logger = LogFactory.getLog(DelegatingBinding.class);
 
     private final Supplier<T> getter;
     private final Consumer<T> setter;
 
-    public BindingSupplier(String name, Type type, Supplier<T> getter, Consumer<T> setter, boolean isFinal, boolean primary, String description) {
+    public DelegatingBinding(String name, Type type, Supplier<T> getter, Consumer<T> setter,
+                             boolean isFinal, boolean primary, String description) {
         super(name, type, setter != null, isFinal, primary, description);
         Assert.notNull(getter, "getter cannot be null.");
+        Assert.isTrue(!isFinal, "Delegating Bindings cannot be final.");
         this.getter = getter;
         this.setter = setter;
     }
@@ -67,7 +69,7 @@ public class BindingSupplier<T> extends DefaultBinding<T> {
     }
 
     @Override
-    public final BindingSupplier<T> asImmutable() {
-        return new BindingSupplier<>(getName(), getType(), getter, null, isFinal(), isPrimary(), getDescription());
+    public final DelegatingBinding<T> asImmutable() {
+        return new DelegatingBinding<>(getName(), getType(), getter, null, isFinal(), isPrimary(), getDescription());
     }
 }
