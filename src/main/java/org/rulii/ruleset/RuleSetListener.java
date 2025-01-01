@@ -39,4 +39,6 @@ public interface RuleSetListener {
     void onRuleSetFinalizer(RuleSet<?> ruleSet, Action finalizer);
 
     void onRuleSetResult(RuleSet<?> ruleSet, Function<?> resultExtractor, RuleSetExecutionStatus status);
+
+    void onnRuleSetEnd(RuleSet<?> ruleSet, NamedScope ruleSetScope, RuleSetExecutionStatus status);
 }

@@ -167,4 +167,9 @@ public class DefaultTracer implements Tracer {
     public void fireOnRuleSetResult(RuleSet<?> ruleSet, Function<?> resultExtractor, RuleSetExecutionStatus status) {
         ruleSetListeners.forEach(listener -> listener.onRuleSetResult(ruleSet, resultExtractor, status));
     }
+
+    @Override
+    public void fireOnRuleSetEnd(RuleSet<?> ruleSet, NamedScope ruleSetScope, RuleSetExecutionStatus status) {
+        ruleSetListeners.forEach(listener -> listener.onnRuleSetEnd(ruleSet, ruleSetScope, status));
+    }
 }

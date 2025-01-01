@@ -53,5 +53,4 @@ public interface RuleContextOptions {
 
     Locale getLocale();
 
-    ExecutionListener[] getExecutionListeners();
 }

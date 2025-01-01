@@ -35,6 +35,8 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Builder class to properly build a RuleContext with the bells and whistles.
@@ -43,6 +45,8 @@ import java.util.Locale;
  * @since 1.0
  */
 public class RuleContextBuilder implements RuleContextOptions {
+
+    private static final ExecutorService DEFAULT_EXECUTOR_SERVICE = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
     private Bindings bindings;
     private BindingMatchingStrategy matchingStrategy;
@@ -55,7 +59,7 @@ public class RuleContextBuilder implements RuleContextOptions {
     private RuleRegistry ruleRegistry;
     private Clock clock;
     private Locale locale;
-    private List<ExecutionListener> listeners = new LinkedList<>();
+    private ExecutorService executorService = DEFAULT_EXECUTOR_SERVICE;
 
     RuleContextBuilder() {
         super();
@@ -106,11 +110,6 @@ public class RuleContextBuilder implements RuleContextOptions {
         if (options.getRuleRegistry() != null) this.ruleRegistry = options.getRuleRegistry();
         if (options.getClock() != null) this.clock = options.getClock();
         if (options.getLocale() != null) this.locale = options.getLocale();
-        if (options.getExecutionListeners() != null && options.getExecutionListeners().length > 0) {
-            Arrays.stream(options.getExecutionListeners())
-                    .filter(listener -> listener != null)
-                    .forEach(listener -> traceUsing(null));
-        }
         return this;
     }
 
@@ -196,6 +195,12 @@ public class RuleContextBuilder implements RuleContextOptions {
         return this;
     }
 
+    public RuleContextBuilder executorService(ExecutorService executorService) {
+        Assert.notNull(executorService, "executorService cannot be null.");
+        this.executorService = executorService;
+        return this;
+    }
+
     public Bindings getBindings() {
         return bindings;
     }
@@ -248,10 +253,6 @@ public class RuleContextBuilder implements RuleContextOptions {
         return locale;
     }
 
-    public ExecutionListener[] getExecutionListeners() {
-        return listeners.toArray(new ExecutionListener[listeners.size()]);
-    }
-
     /**
      * Builds a Rule Context with desired parameters.
      *
@@ -260,8 +261,9 @@ public class RuleContextBuilder implements RuleContextOptions {
     public RuleContext build() {
         ScopedBindings scopedBindings = Bindings.builder().scoped();
 
-        RuleContext result  = new RuleContext(scopedBindings, locale, matchingStrategy, parameterResolver, messageResolver,
-                messageFormatter, objectFactory, tracer != null ? tracer : new DefaultTracer(), converterRegistry, ruleRegistry, clock);
+        RuleContext result  = new RuleContext(scopedBindings, locale, matchingStrategy, parameterResolver,
+                messageResolver, messageFormatter, objectFactory, tracer != null ? tracer : new DefaultTracer(),
+                converterRegistry, ruleRegistry, clock, executorService);
 
         // Make the Bindings are avail.
         ((PromiscuousBinder) (scopedBindings.getRootScope().getBindings())).promiscuousBind(Binding.builder()
@@ -280,7 +282,6 @@ public class RuleContextBuilder implements RuleContextOptions {
                 .build());
 
         scopedBindings.addScope(ScopedBindings.GLOBAL_SCOPE, bindings != null ? bindings : Bindings.builder().standard());
-        //listeners.stream().forEach(listener -> result.getEventProcessor().addEventListener(listener));
 
         return result;
     }

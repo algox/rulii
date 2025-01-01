@@ -79,4 +79,6 @@ public interface Tracer {
     void fireOnRuleSetFinalizer(RuleSet<?> ruleSet, Action finalizer);
 
     void fireOnRuleSetResult(RuleSet<?> ruleSet, Function<?> resultExtractor, RuleSetExecutionStatus status);
+
+    void fireOnRuleSetEnd(RuleSet<?> ruleSet, NamedScope ruleSetScope, RuleSetExecutionStatus status);
 }

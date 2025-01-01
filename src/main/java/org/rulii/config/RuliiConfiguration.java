@@ -130,11 +130,6 @@ public class RuliiConfiguration implements RuleContextOptions {
         return null;
     }
 
-    @Override
-    public ExecutionListener[] getExecutionListeners() {
-        return null;
-    }
-
     void setScriptLanguage(String scriptLanguage) {
         Assert.notNull(scriptLanguage, "scriptLanguage cannot be null.");
         this.scriptLanguage = scriptLanguage;

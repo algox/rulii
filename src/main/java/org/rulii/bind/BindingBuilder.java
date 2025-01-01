@@ -111,7 +111,7 @@ public final class BindingBuilder {
         this.getter = supplier;
         return this;
     }
-    
+
     /**
      * Ensures a supplier is set for the 'getter' field only if it is currently absent,
      * and marks the binding as final. The supplier provided cannot be null.

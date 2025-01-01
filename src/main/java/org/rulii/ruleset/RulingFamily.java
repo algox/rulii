@@ -34,9 +34,19 @@ import org.rulii.rule.RuleResult;
 import org.rulii.util.RuleUtils;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
- * Default implementation of the RuleSet.
+ * A class that represents a set of rules grouped and executed within a specified context.
+ * This class manages rule evaluation execution, precondition checks, stopping conditions,
+ * result extraction, initialization, and finalization. It implements the {@link RuleSet} interface
+ * to provide a structured way to apply rules to a given context.
+ *
+ * This is the default implementation for {@link RuleSet}
+ *
+ * @param <T> the type of the result that this rule set produces after execution
  *
  * @author Max Arulananthan
  * @since 1.0
@@ -62,8 +72,8 @@ public class RulingFamily<T> implements RuleSet<T> {
                         Function<T> resultExtractor,
                         List<Rule> rules) {
         super();
-        Assert.notNull(ruleSetDefinition, "ruleSetDefinition cannot be null");
-        Assert.notNull(resultExtractor, "resultExtractor cannot be null");
+        Assert.notNull(ruleSetDefinition, "ruleSetDefinition cannot be null.");
+        Assert.notNull(rules, "rules cannot be null.");
         this.ruleSetDefinition = ruleSetDefinition;
         this.rules.addAll(rules);
         this.preCondition = preCondition;
@@ -83,7 +93,7 @@ public class RulingFamily<T> implements RuleSet<T> {
         // Create a new Scope for the RuleSet to use
         NamedScope ruleSetScope = createRuleSetScope(ruleContext, ruleSetStatus);
         ruleContext.getTracer().fireOnRuleSetStart(this, ruleSetScope);
-        logger.debug("RuleSet [" + getName() + "] Execution. Scope [" +  ruleSetScope.getName() + "] created.");
+        if (logger.isDebugEnabled()) logger.debug("RuleSet [" + getName() + "] Execution. Scope [" +  ruleSetScope.getName() + "] created.");
 
         try {
             // Run the PreCondition if there is one.
@@ -92,7 +102,7 @@ public class RulingFamily<T> implements RuleSet<T> {
 
             // RuleSet did not pass the precondition; Do not execute the rules.
             if (!preConditionCheck) {
-                logger.debug("RuleSet [" + getName() + "] pre-condition check failed. RuleSet is skipped.");
+                if (logger.isDebugEnabled())  logger.debug("RuleSet [" + getName() + "] pre-condition check failed. RuleSet is skipped.");
                 return null;
             }
 
@@ -106,8 +116,25 @@ public class RulingFamily<T> implements RuleSet<T> {
             throw e;
         } finally {
             removeRuleSetScope(ruleContext, ruleSetScope);
-            logger.debug("RuleSet [" + getName() + "] Executed. Scope cleared.");
+            ruleContext.getTracer().fireOnRuleSetEnd(this, ruleSetScope, ruleSetStatus);
+            if (logger.isDebugEnabled()) logger.debug("RuleSet [" + getName() + "] Executed. Scope cleared.");
         }
+    }
+
+    @Override
+    public CompletableFuture<T> runAsync(final RuleContext ruleContext) {
+        CompletableFuture<T> completableFuture = new CompletableFuture<>();
+
+        ruleContext.getExecutorService().submit(() -> {
+            try {
+                T result = run(ruleContext);
+                completableFuture.complete(result);
+            } catch (Throwable e) {
+                completableFuture.completeExceptionally(e);
+            }
+        });
+
+        return completableFuture;
     }
 
     /**
@@ -124,7 +151,7 @@ public class RulingFamily<T> implements RuleSet<T> {
             // Execute the rules/actions in order; STOP if the stopCondition is met.
             for (Rule rule : getRules()) {
                 // Run the rule/action
-                logger.debug("RuleSet [" + getName() + "] running rule [" + rule.getName() + "]");
+                if (logger.isDebugEnabled()) logger.debug("RuleSet [" + getName() + "] running rule [" + rule.getName() + "]");
                 RuleResult executionResult = rule.run(ruleContext);
                 status.add(executionResult);
                 // Fire Rule event
@@ -132,7 +159,7 @@ public class RulingFamily<T> implements RuleSet<T> {
 
                 // Check to see if we need to stop the execution?
                 if (getStopCondition() != null && getStopCondition().run(ruleContext)) {
-                    logger.debug("Stopping RuleSet [" + getName() + "]. Stop condition met.");
+                    if (logger.isDebugEnabled()) logger.debug("Stopping RuleSet [" + getName() + "]. Stop condition met.");
                     // Fire Stop event
                     ruleContext.getTracer().fireOnRuleSetStop(this, getStopCondition(), status);
                     break;
@@ -199,7 +226,7 @@ public class RulingFamily<T> implements RuleSet<T> {
 
         if (getPreCondition() != null) {
             // Check the Pre-Condition
-            logger.debug("RuleSet [" + getName() + "] executing pre-condition check.");
+            if (logger.isDebugEnabled()) logger.debug("RuleSet [" + getName() + "] executing pre-condition check.");
             result = getPreCondition().run(ruleContext);
             // Notify the pre-condition check
             ruleContext.getTracer().fireOnRuleSetPreConditionCheck(this, getPreCondition(), result);
@@ -219,7 +246,7 @@ public class RulingFamily<T> implements RuleSet<T> {
         // Run the PreAction before executing the Rules
         if (getInitializer() != null) {
             getInitializer().run(ruleContext);
-            logger.debug("RuleSet [" + getName() + "] initializer [" + getInitializer().getName() + "] is executed.");
+            if (logger.isDebugEnabled()) logger.debug("RuleSet [" + getName() + "] initializer [" + getInitializer().getName() + "] is executed.");
             ruleContext.getTracer().fireOnRuleSetInitializer(this, getInitializer());
         }
     }
@@ -235,7 +262,7 @@ public class RulingFamily<T> implements RuleSet<T> {
         // Run the Finalizer after executing the Rules
         if (getFinalizer() != null) {
             getFinalizer().run(ruleContext);
-            logger.debug("RuleSet [" + getName() + "] finalizer [" + getFinalizer().getName() + "] is executed.");
+            if (logger.isDebugEnabled()) logger.debug("RuleSet [" + getName() + "] finalizer [" + getFinalizer().getName() + "] is executed.");
             ruleContext.getTracer().fireOnRuleSetFinalizer(this, getFinalizer());
         }
     }
@@ -252,7 +279,7 @@ public class RulingFamily<T> implements RuleSet<T> {
 
         if (getResultExtractor() != null) {
             result = getResultExtractor().apply(ruleContext.getBindings());
-            logger.debug("RuleSet [" + getName() + "] result [" + result + "]");
+            if (logger.isDebugEnabled()) logger.debug("RuleSet [" + getName() + "] result [" + result + "]");
             ruleContext.getTracer().fireOnRuleSetResult(this, getResultExtractor(), ruleSetStatus);
         }
 

@@ -41,8 +41,6 @@ public class RuleSetBuilder<T> {
     private Function<T> resultExtractor = (RuleContext ruleContext) -> ruleContext.getBindings().getValue(ReservedBindings.RULE_SET_STATUS.getName());
     private final LinkedList<Rule> ruleSetItems = new LinkedList<>();
 
-    // TODO : Order
-
     RuleSetBuilder(String name) {
         super();
         name(name);

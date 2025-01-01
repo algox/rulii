@@ -37,6 +37,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Responsible for state management during Rule execution. This class provides access to everything that is required
@@ -47,10 +48,15 @@ import java.util.UUID;
  */
 public class RuleContext implements Immutator<RuleContext> {
 
+    public static RuleContextBuilderBuilder builder() {
+        return RuleContextBuilderBuilder.getInstance();
+    }
+
     private final String id = UUID.randomUUID().toString();
     private final Date creationTime = new Date();
     private final ScopedBindings bindings;
     private final Locale locale;
+    private final BindingMatchingStrategy matchingStrategy;
     private final ParameterResolver parameterResolver;
     private final MessageResolver messageResolver;
     private final MessageFormatter messageFormatter;
@@ -60,13 +66,13 @@ public class RuleContext implements Immutator<RuleContext> {
     private final RuleRegistry ruleRegistry;
     private final Clock clock;
     private final ExecutionTracker executionContext = new ExecutionTracker();
-    private BindingMatchingStrategy matchingStrategy;
+    private final ExecutorService executorService;
 
     RuleContext(ScopedBindings bindings, Locale locale, BindingMatchingStrategy matchingStrategy,
                 ParameterResolver parameterResolver, MessageResolver messageResolver,
                 MessageFormatter messageFormatter, ObjectFactory objectFactory,
                 Tracer tracer, ConverterRegistry converterRegistry,
-                RuleRegistry ruleRegistry, Clock clock) {
+                RuleRegistry ruleRegistry, Clock clock, ExecutorService executorService) {
         super();
         Assert.notNull(bindings, "bindings cannot be null.");
         Assert.notNull(locale, "locale cannot be null.");
@@ -79,6 +85,7 @@ public class RuleContext implements Immutator<RuleContext> {
         Assert.notNull(converterRegistry, "converterRegistry cannot be null.");
         Assert.notNull(ruleRegistry, "ruleRegistry cannot be null.");
         Assert.notNull(clock, "clock cannot be null.");
+        Assert.notNull(executorService, "executorService cannot be null.");
         this.bindings = bindings;
         this.locale = locale;
         this.matchingStrategy = matchingStrategy;
@@ -90,10 +97,7 @@ public class RuleContext implements Immutator<RuleContext> {
         this.converterRegistry = converterRegistry;
         this.ruleRegistry = ruleRegistry;
         this.clock = clock;
-    }
-
-    public static RuleContextBuilderBuilder builder() {
-        return RuleContextBuilderBuilder.getInstance();
+        this.executorService = executorService;
     }
 
     public List<ParameterMatch> match(MethodDefinition definition) {
@@ -128,11 +132,6 @@ public class RuleContext implements Immutator<RuleContext> {
      */
     public BindingMatchingStrategy getMatchingStrategy() {
         return matchingStrategy;
-    }
-
-    public void setMatchingStrategy(BindingMatchingStrategy matchingStrategy) {
-        Assert.notNull(matchingStrategy, "matchingStrategy cannot be null.");
-        this.matchingStrategy = matchingStrategy;
     }
 
     /**
@@ -197,10 +196,14 @@ public class RuleContext implements Immutator<RuleContext> {
         return executionContext;
     }
 
+    public ExecutorService getExecutorService() {
+        return executorService;
+    }
+
     @Override
     public RuleContext asImmutable() {
         return new RuleContext(bindings.asImmutable(), locale, matchingStrategy, parameterResolver, messageResolver,
-                messageFormatter, objectFactory, tracer, converterRegistry, ruleRegistry, clock);
+                messageFormatter, objectFactory, tracer, converterRegistry, ruleRegistry, clock, executorService);
     }
 
     @Override
@@ -208,18 +211,19 @@ public class RuleContext implements Immutator<RuleContext> {
         return "RuleContext{" +
                 "id='" + id + '\'' +
                 ", creationTime=" + creationTime +
-                ", bindings=" + bindings.getClass().getSimpleName() +
+                ", bindings=" + bindings.getClass() +
                 ", locale=" + locale +
-                ", parameterResolver=" + parameterResolver.getClass().getSimpleName() +
-                ", messageResolver=" + messageResolver.getClass().getSimpleName() +
-                ", messageFormatter=" + messageFormatter.getClass().getSimpleName() +
-                ", objectFactory=" + objectFactory.getClass().getSimpleName() +
-                ", tracer=" + tracer.getClass().getSimpleName() +
-                ", converterRegistry=" + converterRegistry.getClass().getSimpleName() +
-                ", ruleRegistry=" + ruleRegistry.getClass().getSimpleName() +
+                ", matchingStrategy=" + matchingStrategy +
+                ", parameterResolver=" + parameterResolver +
+                ", messageResolver=" + messageResolver +
+                ", messageFormatter=" + messageFormatter +
+                ", objectFactory=" + objectFactory +
+                ", tracer=" + tracer +
+                ", converterRegistry=" + converterRegistry +
+                ", ruleRegistry=" + ruleRegistry +
                 ", clock=" + clock +
-                ", executionContext=" + executionContext.getClass().getSimpleName() +
-                ", matchingStrategy=" + matchingStrategy.getClass().getSimpleName() +
+                ", executionContext=" + executionContext +
+                ", executorService=" + executorService +
                 '}';
     }
 }
