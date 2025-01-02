@@ -68,14 +68,23 @@ public class DefaultTracer implements Tracer {
         return ruleListeners.remove(listener);
     }
 
+    @Override
     public void addRuleSetListener(RuleSetListener listener) {
         Assert.notNull(listener, "listener cannot be null.");
         ruleSetListeners.add(listener);
     }
 
+    @Override
     public boolean removeRuleSetListener(RuleSetListener listener) {
         Assert.notNull(listener, "listener cannot be null.");
         return ruleSetListeners.remove(listener);
+    }
+
+    @Override
+    public void clear() {
+        bindingListeners.clear();
+        ruleListeners.clear();
+        ruleSetListeners.clear();
     }
 
     @Override
@@ -171,5 +180,14 @@ public class DefaultTracer implements Tracer {
     @Override
     public void fireOnRuleSetEnd(RuleSet<?> ruleSet, NamedScope ruleSetScope, RuleSetExecutionStatus status) {
         ruleSetListeners.forEach(listener -> listener.onnRuleSetEnd(ruleSet, ruleSetScope, status));
+    }
+
+    @Override
+    public String toString() {
+        return "DefaultTracer{" +
+                "bindingListeners=" + bindingListeners.size() +
+                ", ruleListeners=" + ruleListeners.size() +
+                ", ruleSetListeners=" + ruleSetListeners.size() +
+                '}';
     }
 }

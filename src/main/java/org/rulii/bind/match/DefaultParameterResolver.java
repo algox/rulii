@@ -279,4 +279,11 @@ public class DefaultParameterResolver implements ParameterResolver {
     public boolean isAutoConvert() {
         return autoConvert;
     }
+
+    @Override
+    public String toString() {
+        return "DefaultParameterResolver{" +
+                "autoConvert=" + autoConvert +
+                '}';
+    }
 }

@@ -32,6 +32,10 @@ import org.rulii.ruleset.RuleSetListener;
 
 public interface Tracer {
 
+    static TracerBuilder builder() {
+        return new TracerBuilder();
+    }
+
     void addBindingListener(BindingListener listener);
 
     boolean removeBindingListener(BindingListener listener);
@@ -43,6 +47,8 @@ public interface Tracer {
     void addRuleSetListener(RuleSetListener listener);
 
     boolean removeRuleSetListener(RuleSetListener listener);
+
+    void clear();
 
     void fireOnBind(Binding<?> binding);
 

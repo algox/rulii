@@ -79,4 +79,11 @@ public class CompositeResourceBundleMessageResolver implements MessageResolver {
 
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "CompositeResourceBundleMessageResolver{" +
+                "baseNames=" + baseNames +
+                '}';
+    }
 }

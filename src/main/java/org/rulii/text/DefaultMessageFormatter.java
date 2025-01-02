@@ -71,4 +71,9 @@ public class DefaultMessageFormatter implements MessageFormatter {
 
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "DefaultMessageFormatter{}";
+    }
 }

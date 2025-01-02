@@ -197,4 +197,11 @@ public class DefaultObjectFactory implements ObjectFactory {
             throw new UnrulyException("Unable to instantiate type [" + type + "]. Does it have a default ctor ?", e);
         }
     }
+
+    @Override
+    public String toString() {
+        return "DefaultObjectFactory{" +
+                "useCache=" + useCache +
+                '}';
+    }
 }

@@ -19,13 +19,11 @@ package org.rulii.context;
 
 import org.rulii.bind.BindingDeclaration;
 import org.rulii.bind.Bindings;
-import org.rulii.config.RuliiConfiguration;
-import org.rulii.config.RuliiSystem;
 import org.rulii.lib.spring.util.Assert;
 
 public class RuleContextBuilderBuilder {
 
-    private static RuleContextBuilderBuilder instance = new RuleContextBuilderBuilder();
+    private static final RuleContextBuilderBuilder instance = new RuleContextBuilderBuilder();
 
     private RuleContextBuilderBuilder() {
         super();
@@ -35,12 +33,12 @@ public class RuleContextBuilderBuilder {
         return instance;
     }
 
-    public RuleContextBuilder empty() {
+    public RuleContextBuilder standard() {
         return new RuleContextBuilder();
     }
 
-    public RuleContextBuilder with(RuliiConfiguration configuration) {
-        return new RuleContextBuilder(configuration);
+    public RuleContextBuilder with(RuleContextOptions options) {
+        return new RuleContextBuilder(options);
     }
 
     public RuleContextBuilder with(RuleContext context) {
@@ -55,7 +53,7 @@ public class RuleContextBuilderBuilder {
      */
     public RuleContextBuilder with(Bindings bindings) {
         Assert.notNull(bindings, "bindings cannot be null.");
-        RuleContextBuilder result = new RuleContextBuilder(RuliiSystem.getInstance().getConfiguration());
+        RuleContextBuilder result = new RuleContextBuilder();
         result.bindings(bindings);
         return result;
     }

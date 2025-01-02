@@ -52,8 +52,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class DefaultConverterRegistry implements ConverterRegistry {
 
-    private List<Converter<?, ?>> converters = Collections.synchronizedList(new ArrayList<>());
-    private Map<ConverterKey, Converter<?, ?>> converterCache = new ConcurrentHashMap();
+    private final List<Converter<?, ?>> converters = Collections.synchronizedList(new ArrayList<>());
+    private final Map<ConverterKey, Converter<?, ?>> converterCache = new ConcurrentHashMap();
 
     /**
      * Ctor to create a new ConverterRegistry.
@@ -151,5 +151,13 @@ public class DefaultConverterRegistry implements ConverterRegistry {
         register(new TextToCurrencyConverter());
         register(new TextToUrlConverter());
         register(new TextToUUIDConverter());
+    }
+
+    @Override
+    public String toString() {
+        return "DefaultConverterRegistry{" +
+                "converters=" + converters +
+                ", converterCache=" + converterCache +
+                '}';
     }
 }

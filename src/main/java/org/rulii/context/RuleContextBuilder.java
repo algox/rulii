@@ -44,7 +44,7 @@ import java.util.concurrent.Executors;
  * @author Max Arulananthan
  * @since 1.0
  */
-public class RuleContextBuilder implements RuleContextOptions {
+public class RuleContextBuilder {
 
     private static final ExecutorService DEFAULT_EXECUTOR_SERVICE = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
@@ -62,7 +62,7 @@ public class RuleContextBuilder implements RuleContextOptions {
     private ExecutorService executorService = DEFAULT_EXECUTOR_SERVICE;
 
     RuleContextBuilder() {
-        super();
+        this(RuleContextOptions.standard());
     }
 
     RuleContextBuilder(RuleContextOptions configuration) {
@@ -86,35 +86,19 @@ public class RuleContextBuilder implements RuleContextOptions {
         this.bindings = context.getBindings();
     }
 
-    protected void init(RuleContextOptions configuration) {
-        Assert.notNull(configuration, "configuration cannot be null.");
-        this.matchingStrategy = configuration.getMatchingStrategy();
-        this.parameterResolver = configuration.getParameterResolver();
-        this.messageResolver = configuration.getMessageResolver();
-        this.messageFormatter = configuration.getMessageFormatter();
-        this.objectFactory = configuration.getObjectFactory();
-        this.converterRegistry = configuration.getConverterRegistry();
-        this.ruleRegistry = configuration.getRuleRegistry();
-        this.clock = configuration.getClock();
-        this.locale = configuration.getLocale();
-    }
-
-    public RuleContextBuilder merge(RuleContextOptions options) {
+    protected void init(RuleContextOptions options) {
         Assert.notNull(options, "options cannot be null.");
-        if (options.getMatchingStrategy() != null) this.matchingStrategy = options.getMatchingStrategy();
-        if (options.getParameterResolver() != null) this.parameterResolver = options.getParameterResolver();
-        if (options.getMessageResolver() != null) this.messageResolver = options.getMessageResolver();
-        if (options.getMessageFormatter() != null) this.messageFormatter = options.getMessageFormatter();
-        if (options.getObjectFactory() != null) this.objectFactory = options.getObjectFactory();
-        if (options.getConverterRegistry() != null) this.converterRegistry = options.getConverterRegistry();
-        if (options.getRuleRegistry() != null) this.ruleRegistry = options.getRuleRegistry();
-        if (options.getClock() != null) this.clock = options.getClock();
-        if (options.getLocale() != null) this.locale = options.getLocale();
-        return this;
-    }
-
-    public RuleContextOptions getOptions() {
-        return this;
+        this.matchingStrategy = options.getMatchingStrategy();
+        this.parameterResolver = options.getParameterResolver();
+        this.messageResolver = options.getMessageResolver();
+        this.messageFormatter = options.getMessageFormatter();
+        this.objectFactory = options.getObjectFactory();
+        this.converterRegistry = options.getConverterRegistry();
+        this.ruleRegistry = options.getRuleRegistry();
+        this.clock = options.getClock();
+        this.locale = options.getLocale();
+        this.tracer = options.getTracer();
+        this.executorService = options.getExecutorService();
     }
 
     public RuleContextBuilder bindings(Bindings bindings) {
@@ -195,7 +179,7 @@ public class RuleContextBuilder implements RuleContextOptions {
         return this;
     }
 
-    public RuleContextBuilder executorService(ExecutorService executorService) {
+    public RuleContextBuilder executeUsing(ExecutorService executorService) {
         Assert.notNull(executorService, "executorService cannot be null.");
         this.executorService = executorService;
         return this;
@@ -205,42 +189,34 @@ public class RuleContextBuilder implements RuleContextOptions {
         return bindings;
     }
 
-    @Override
     public BindingMatchingStrategy getMatchingStrategy() {
         return matchingStrategy;
     }
 
-    @Override
     public ParameterResolver getParameterResolver() {
         return parameterResolver;
     }
 
-    @Override
     public MessageResolver getMessageResolver() {
         return messageResolver;
     }
 
-    @Override
     public MessageFormatter getMessageFormatter() {
         return messageFormatter;
     }
 
-    @Override
     public ObjectFactory getObjectFactory() {
         return objectFactory;
     }
 
-    @Override
     public Tracer getTracer() {
         return tracer;
     }
 
-    @Override
     public ConverterRegistry getConverterRegistry() {
         return converterRegistry;
     }
 
-    @Override
     public RuleRegistry getRuleRegistry() {
         return ruleRegistry;
     }
@@ -253,6 +229,10 @@ public class RuleContextBuilder implements RuleContextOptions {
         return locale;
     }
 
+    public ExecutorService getExecutorService() {
+        return executorService;
+    }
+
     /**
      * Builds a Rule Context with desired parameters.
      *
@@ -262,7 +242,7 @@ public class RuleContextBuilder implements RuleContextOptions {
         ScopedBindings scopedBindings = Bindings.builder().scoped();
 
         RuleContext result  = new RuleContext(scopedBindings, locale, matchingStrategy, parameterResolver,
-                messageResolver, messageFormatter, objectFactory, tracer != null ? tracer : new DefaultTracer(),
+                messageResolver, messageFormatter, objectFactory, tracer,
                 converterRegistry, ruleRegistry, clock, executorService);
 
         // Make the Bindings are avail.

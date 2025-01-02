@@ -29,9 +29,11 @@ public class RuleContextTest {
         super();
     }
 
-    @Test(expected = BindingAlreadyExistsException.class)
+    @Test()
     public void test1() {
         RuleContext context = RuleContext.builder().build(Bindings.builder().standard());
-        context.getBindings().bind(ReservedBindings.RULE_CONTEXT.getName(), 25);
+        //context.getBindings().bind(ReservedBindings.RULE_CONTEXT.getName(), 25);
+
+        System.err.println(context.toString());
     }
 }

@@ -105,6 +105,13 @@ public class ExecutionTracker implements ExecutionListener {
         return result.toString();
     }
 
+    @Override
+    public String toString() {
+        return "ExecutionTracker{" +
+                "events=" + events +
+                '}';
+    }
+
     private static class ExecutionItem {
         private final String className;
         private final String methodName;

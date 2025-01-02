@@ -17,6 +17,7 @@
  */
 package org.rulii.bind;
 
+import org.rulii.context.RuleContext;
 import org.rulii.lib.apache.commons.logging.Log;
 import org.rulii.lib.apache.commons.logging.LogFactory;
 import org.rulii.lib.spring.util.Assert;
@@ -204,6 +205,7 @@ public class DefaultBindings implements Bindings, PromiscuousBinder {
 
         for (Binding<?> binding : bindings.values()) {
             if (binding.getValue() instanceof Bindings) continue;
+            if (binding.getValue() instanceof RuleContext) continue;
 
             result.append(prefix)
                     .append(binding.getSummary())

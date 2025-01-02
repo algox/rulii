@@ -211,19 +211,19 @@ public class RuleContext implements Immutator<RuleContext> {
         return "RuleContext{" +
                 "id='" + id + '\'' +
                 ", creationTime=" + creationTime +
-                ", bindings=" + bindings.getClass() +
-                ", locale=" + locale +
-                ", matchingStrategy=" + matchingStrategy +
-                ", parameterResolver=" + parameterResolver +
-                ", messageResolver=" + messageResolver +
-                ", messageFormatter=" + messageFormatter +
-                ", objectFactory=" + objectFactory +
-                ", tracer=" + tracer +
-                ", converterRegistry=" + converterRegistry +
-                ", ruleRegistry=" + ruleRegistry +
-                ", clock=" + clock +
-                ", executionContext=" + executionContext +
-                ", executorService=" + executorService +
+                ", bindings=" + bindings + System.lineSeparator() +
+                ", locale=" + locale + System.lineSeparator() +
+                ", matchingStrategy=" + matchingStrategy + System.lineSeparator() +
+                ", parameterResolver=" + parameterResolver + System.lineSeparator() +
+                ", messageResolver=" + messageResolver + System.lineSeparator() +
+                ", messageFormatter=" + messageFormatter + System.lineSeparator() +
+                ", objectFactory=" + objectFactory + System.lineSeparator() +
+                ", tracer=" + tracer + System.lineSeparator() +
+                ", converterRegistry=" + converterRegistry + System.lineSeparator() +
+                ", ruleRegistry=" + ruleRegistry + System.lineSeparator() +
+                ", clock=" + clock + System.lineSeparator() +
+                ", executionContext=" + executionContext + System.lineSeparator() +
+                ", executorService=" + executorService + System.lineSeparator() +
                 '}';
     }
 }

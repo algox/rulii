@@ -32,6 +32,7 @@ import java.util.Arrays;
  * @since 1.0
  */
 public abstract class RunnableBuilder<T extends RunnableBuilder, R extends Runnable> {
+
     private final Object target;
     private final MethodDefinition definition;
 

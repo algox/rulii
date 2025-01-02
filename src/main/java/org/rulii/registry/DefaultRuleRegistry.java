@@ -108,5 +108,12 @@ public class DefaultRuleRegistry implements MutableRuleRegistry {
 
         return Collections.unmodifiableList(result);
     }
+
+    @Override
+    public String toString() {
+        return "DefaultRuleRegistry{" +
+                "registry=" + registry +
+                '}';
+    }
 }
 
