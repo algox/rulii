@@ -17,9 +17,6 @@
  */
 package org.rulii.model;
 
-import org.rulii.lib.apache.ArrayUtils;
-import org.rulii.lib.spring.util.Assert;
-
 /**
  * Parent class of all Rule Runtime exceptions.
  * UnrulyExceptions can be thrown anytime throughout the lifecycle of this framework.
@@ -33,8 +30,6 @@ import org.rulii.lib.spring.util.Assert;
  * @since 1.0
  */
 public class UnrulyException extends RuntimeException {
-    
-    private boolean filled = false;
 
     protected UnrulyException() {
         super(null, null, false, true);
@@ -67,20 +62,5 @@ public class UnrulyException extends RuntimeException {
     public UnrulyException(String message, Throwable cause) {
         super(message, cause, false, true);
     }
-
-    public boolean isFilled() {
-        return filled;
-    }
-
-    public void fillStack(StackTraceElement[] stack) {
-        Assert.notNull(stack, "stack cannot be null.");
-        super.setStackTrace(stack);
-        this.filled = true;
-    }
-
-    public void fillStack(StackTraceElement[] original, StackTraceElement[] stack) {
-        Assert.notNull(stack, "stack cannot be null.");
-        super.setStackTrace(original != null ? ArrayUtils.addAll(stack, original) : stack);
-        this.filled = true;
-    }
+    
 }
