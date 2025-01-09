@@ -67,6 +67,8 @@ public class ComposeWithAfterFunction<V, T> implements Function<T> {
             V value = mainFunction.apply(ruleContext);
             scope.getBindings().bind(resultBindingName, value);
             return after.apply(ruleContext);
+        } catch (Exception e) {
+            throw new UnrulyException("Error trying to run ComposeWithAfterFunction.", e);
         } finally {
           ruleContext.getBindings().removeScope(scope);
         }

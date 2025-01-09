@@ -28,7 +28,6 @@ import org.rulii.model.MethodDefinition;
 import org.rulii.registry.RuleRegistry;
 import org.rulii.text.MessageFormatter;
 import org.rulii.text.MessageResolver;
-import org.rulii.trace.ExecutionTracker;
 import org.rulii.trace.Tracer;
 import org.rulii.util.reflect.ObjectFactory;
 
@@ -65,7 +64,6 @@ public class RuleContext implements Immutator<RuleContext> {
     private final ConverterRegistry converterRegistry;
     private final RuleRegistry ruleRegistry;
     private final Clock clock;
-    private final ExecutionTracker executionContext = new ExecutionTracker();
     private final ExecutorService executorService;
 
     RuleContext(ScopedBindings bindings, Locale locale, BindingMatchingStrategy matchingStrategy,
@@ -192,10 +190,6 @@ public class RuleContext implements Immutator<RuleContext> {
         return creationTime;
     }
 
-    public ExecutionTracker getExecutionContext() {
-        return executionContext;
-    }
-
     public ExecutorService getExecutorService() {
         return executorService;
     }
@@ -222,7 +216,6 @@ public class RuleContext implements Immutator<RuleContext> {
                 ", converterRegistry=" + converterRegistry + System.lineSeparator() +
                 ", ruleRegistry=" + ruleRegistry + System.lineSeparator() +
                 ", clock=" + clock + System.lineSeparator() +
-                ", executionContext=" + executionContext + System.lineSeparator() +
                 ", executorService=" + executorService + System.lineSeparator() +
                 '}';
     }

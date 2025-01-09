@@ -23,6 +23,7 @@ import org.rulii.model.AbstractRunnable;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.MethodDefinition;
 import org.rulii.model.UnrulyException;
+import org.rulii.util.RuleUtils;
 import org.rulii.util.reflect.MethodExecutor;
 
 import java.util.List;
@@ -52,17 +53,19 @@ public class DefaultAction extends AbstractRunnable implements Action {
     public Void run(RuleContext ruleContext) throws UnrulyException {
         Assert.notNull(ruleContext, "context cannot be null.");
 
+        List<ParameterMatch> matches = null;
+        List<Object> values = null;
+
         try {
             // match the parameters with bindings
-            List<ParameterMatch> matches = ruleContext.match(getDefinition());
+            matches = ruleContext.match(getDefinition());
             // resolve parameter values
-            List<Object> values = ruleContext.resolve(matches, getDefinition());
+            values = ruleContext.resolve(matches, getDefinition());
             // run the action
             run(matches, values);
             return null;
-        } catch (UnrulyException e) {
-            if (!e.isFilled()) e.fillStack(e.getStackTrace(), ruleContext.getExecutionContext().getStackTrace());
-            throw e;
+        } catch (Exception e) {
+            throw new UnrulyException("Error trying to run Action: " + RuleUtils.getSignature(this, matches, values), e);
         }
     }
 

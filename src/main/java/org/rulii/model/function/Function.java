@@ -23,7 +23,6 @@ import org.rulii.bind.ReservedBindings;
 import org.rulii.context.RuleContext;
 import org.rulii.model.Runnable;
 import org.rulii.model.UnrulyException;
-import org.rulii.rule.RuleExecutionException;
 
 /**
  * Represents a function that accepts argument(s) and produces a result.
@@ -54,9 +53,9 @@ public interface Function<T> extends Runnable<T> {
      *
      * @param bindings the Bindings to be applied to the Function
      * @return the result of applying the Bindings to the Function
-     * @throws RuleExecutionException if there are any errors during the execution of the Function
+     * @throws UnrulyException if there are any errors during the execution of the Function
      */
-    default T apply(Bindings bindings) throws RuleExecutionException {
+    default T apply(Bindings bindings) throws UnrulyException {
         return run(bindings);
     }
 
@@ -65,9 +64,9 @@ public interface Function<T> extends Runnable<T> {
      *
      * @param params an array of BindingDeclaration objects representing the binding declarations to be applied
      * @return the result of applying the binding declarations to the function
-     * @throws RuleExecutionException if there are any errors during the execution of the function
+     * @throws UnrulyException if there are any errors during the execution of the function
      */
-    default T apply(BindingDeclaration<?>...params) throws RuleExecutionException {
+    default T apply(BindingDeclaration<?>...params) throws UnrulyException {
         return run(params);
     }
 

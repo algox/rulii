@@ -22,21 +22,19 @@ import org.rulii.bind.NamedScope;
 import org.rulii.bind.PromiscuousBinder;
 import org.rulii.bind.ReservedBindings;
 import org.rulii.context.RuleContext;
-import org.rulii.model.action.Action;
-import org.rulii.model.condition.Condition;
-import org.rulii.model.function.Function;
 import org.rulii.lib.apache.commons.logging.Log;
 import org.rulii.lib.apache.commons.logging.LogFactory;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.UnrulyException;
+import org.rulii.model.action.Action;
+import org.rulii.model.condition.Condition;
+import org.rulii.model.function.Function;
 import org.rulii.rule.Rule;
 import org.rulii.rule.RuleResult;
 import org.rulii.util.RuleUtils;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 /**
  * A class that represents a set of rules grouped and executed within a specified context.
@@ -88,7 +86,6 @@ public class RulingFamily<T> implements RuleSet<T> {
     @Override
     public T run(RuleContext ruleContext) throws UnrulyException {
         Assert.notNull(ruleContext, "context cannot be null");
-
         RuleSetExecutionStatus ruleSetStatus = new RuleSetExecutionStatus();
         // Create a new Scope for the RuleSet to use
         NamedScope ruleSetScope = createRuleSetScope(ruleContext, ruleSetStatus);
@@ -99,21 +96,18 @@ public class RulingFamily<T> implements RuleSet<T> {
             // Run the PreCondition if there is one.
             boolean preConditionCheck = checkPreCondition(ruleContext);
             ruleSetStatus.setPreConditionCheck(preConditionCheck);
-
             // RuleSet did not pass the precondition; Do not execute the rules.
             if (!preConditionCheck) {
                 if (logger.isDebugEnabled())  logger.debug("RuleSet [" + getName() + "] pre-condition check failed. RuleSet is skipped.");
                 return null;
             }
-
             // Run the rules
             runRules(ruleContext, ruleSetStatus);
-
             return extractResult(ruleContext, ruleSetStatus);
-        } catch (UnrulyException e) {
-            if (!e.isFilled()) e.fillStack(ruleContext.getExecutionContext().getStackTrace());
+        } catch (Exception e) {
             logger.error("RuleSet [" + getName() + "] execution caused an error.", e);
-            throw e;
+            ruleContext.getTracer().fireOnRuleSetError(this, ruleSetStatus, e);
+            throw new UnrulyException("Error trying to run RuleSet [" + getName() + "]", e);
         } finally {
             removeRuleSetScope(ruleContext, ruleSetScope);
             ruleContext.getTracer().fireOnRuleSetEnd(this, ruleSetScope, ruleSetStatus);
@@ -156,7 +150,6 @@ public class RulingFamily<T> implements RuleSet<T> {
                 status.add(executionResult);
                 // Fire Rule event
                 ruleContext.getTracer().fireOnRuleSetRuleRun(this, rule, executionResult, status);
-
                 // Check to see if we need to stop the execution?
                 if (getStopCondition() != null && getStopCondition().run(ruleContext)) {
                     if (logger.isDebugEnabled()) logger.debug("Stopping RuleSet [" + getName() + "]. Stop condition met.");
@@ -227,7 +220,11 @@ public class RulingFamily<T> implements RuleSet<T> {
         if (getPreCondition() != null) {
             // Check the Pre-Condition
             if (logger.isDebugEnabled()) logger.debug("RuleSet [" + getName() + "] executing pre-condition check.");
-            result = getPreCondition().run(ruleContext);
+            try {
+                result = getPreCondition().run(ruleContext);
+            } catch (Exception e) {
+                throw new UnrulyException("RuleSet(" + getName() + ") Pre-condition failed.", e);
+            }
             // Notify the pre-condition check
             ruleContext.getTracer().fireOnRuleSetPreConditionCheck(this, getPreCondition(), result);
         }
@@ -245,7 +242,11 @@ public class RulingFamily<T> implements RuleSet<T> {
 
         // Run the PreAction before executing the Rules
         if (getInitializer() != null) {
-            getInitializer().run(ruleContext);
+            try {
+                getInitializer().run(ruleContext);
+            } catch (Exception e) {
+                throw new UnrulyException("RuleSet(" + getName() + ") Initializer failed.", e);
+            }
             if (logger.isDebugEnabled()) logger.debug("RuleSet [" + getName() + "] initializer [" + getInitializer().getName() + "] is executed.");
             ruleContext.getTracer().fireOnRuleSetInitializer(this, getInitializer());
         }
@@ -261,7 +262,11 @@ public class RulingFamily<T> implements RuleSet<T> {
 
         // Run the Finalizer after executing the Rules
         if (getFinalizer() != null) {
-            getFinalizer().run(ruleContext);
+            try {
+                getFinalizer().run(ruleContext);
+            } catch (Exception e) {
+                throw new UnrulyException("RuleSet(" + getName() + ") Finalizer failed.", e);
+            }
             if (logger.isDebugEnabled()) logger.debug("RuleSet [" + getName() + "] finalizer [" + getFinalizer().getName() + "] is executed.");
             ruleContext.getTracer().fireOnRuleSetFinalizer(this, getFinalizer());
         }
@@ -278,7 +283,11 @@ public class RulingFamily<T> implements RuleSet<T> {
         T result = null;
 
         if (getResultExtractor() != null) {
-            result = getResultExtractor().apply(ruleContext.getBindings());
+            try {
+                result = getResultExtractor().apply(ruleContext.getBindings());
+            } catch (Exception e) {
+                throw new UnrulyException("RuleSet(" + getName() + ") ResultExtractor failed.", e);
+            }
             if (logger.isDebugEnabled()) logger.debug("RuleSet [" + getName() + "] result [" + result + "]");
             ruleContext.getTracer().fireOnRuleSetResult(this, getResultExtractor(), ruleSetStatus);
         }

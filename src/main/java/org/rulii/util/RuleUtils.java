@@ -20,14 +20,13 @@ package org.rulii.util;
 import org.rulii.bind.match.ParameterMatch;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.MethodDefinition;
+import org.rulii.model.Runnable;
 import org.rulii.model.UnrulyException;
 import org.rulii.rule.Rule;
 import org.rulii.rule.RuleDefinition;
 import org.rulii.ruleset.RuleSet;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
@@ -116,6 +115,43 @@ public final class RuleUtils {
             if (r.getTarget() == null) return false;
             return names.contains(r.getTarget().getClass().getPackage().getName());
         };
+    }
+
+    public static String getSignature(Runnable<?> data, List<ParameterMatch> matches, List<?> values) {
+        StringBuilder result = new StringBuilder(data.getDescription());
+        Map<String, Object> parameters = convert(matches, values);
+
+        if (!parameters.isEmpty()) {
+            int size = parameters.size();
+            int index = 0;
+
+            result.append(" args [");
+
+            for (Map.Entry<String, Object> entry : parameters.entrySet()) {
+                result.append(entry.getKey()).append(" = ").append(RuleUtils.getSummaryTextValue(entry.getValue()));
+                if (index < size - 1) result.append(", ");
+                index++;
+            }
+
+            result.append("]");
+        }
+
+        return result.toString();
+    }
+
+    private static Map<String, Object> convert(List<ParameterMatch> matches, List<?> values) {
+        if (matches == null) return new LinkedHashMap<>();
+        if (matches.isEmpty()) return new LinkedHashMap<>();
+        if (matches.size() != values.size()) throw new UnrulyException("Size mismatch [" + matches.size() + "] [" + values.size() + "]");
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        int size = matches.size();
+
+        for (int i = 0; i < size; i++) {
+            result.put(matches.get(i).getDefinition().getName(), values.get(i));
+        }
+
+        return Collections.unmodifiableMap(result);
     }
 
     /**

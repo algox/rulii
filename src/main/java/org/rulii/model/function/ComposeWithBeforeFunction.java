@@ -64,6 +64,8 @@ public class ComposeWithBeforeFunction<V, T> implements Function<T> {
         try {
             scope.getBindings().bind(resultBindingName, value);
             return mainFunction.apply(ruleContext);
+        } catch (Exception e) {
+            throw new UnrulyException("Error trying to run ComposeWithBeforeFunction.", e);
         } finally {
           ruleContext.getBindings().removeScope(scope);
         }

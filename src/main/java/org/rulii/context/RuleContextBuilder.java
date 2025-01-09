@@ -25,15 +25,10 @@ import org.rulii.lib.spring.util.Assert;
 import org.rulii.registry.RuleRegistry;
 import org.rulii.text.MessageFormatter;
 import org.rulii.text.MessageResolver;
-import org.rulii.trace.DefaultTracer;
-import org.rulii.trace.ExecutionListener;
 import org.rulii.trace.Tracer;
 import org.rulii.util.reflect.ObjectFactory;
 
 import java.time.Clock;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

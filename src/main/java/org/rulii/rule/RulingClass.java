@@ -118,11 +118,10 @@ public class RulingClass<T> implements Rule {
 
             result = new RuleResult(this, conditionCheck ? RuleExecutionStatus.PASS : RuleExecutionStatus.FAIL);
             return result;
-        } catch (UnrulyException e) {
-            if (!e.isFilled()) e.fillStack(ruleContext.getExecutionContext().getStackTrace());
+        } catch (Exception e) {
             logger.error("Rule [" + getName() + "] execution caused an error.", e);
             ruleContext.getTracer().fireOnRuleError(this, e);
-            throw e;
+            throw new UnrulyException("Error trying to run Rule [" + getName() + "]", e);
         } finally {
             ruleContext.getBindings().removeScope(ruleScope);
             if (logger.isDebugEnabled()) logger.debug("Rule [" + getName() + "] Executed. Scope [" + ruleScope.getName() + "] cleared.");
@@ -172,8 +171,12 @@ public class RulingClass<T> implements Rule {
         boolean result = true;
 
         if (getPreCondition() != null) {
-            // Check the Pre-Condition
-            result = getPreCondition().run(ruleContext);
+            try {
+                // Check the Pre-Condition
+                result = getPreCondition().run(ruleContext);
+            } catch (Exception e) {
+                throw new UnrulyException("Rule(" + getName() + ") Pre-condition failed.", e);
+            }
             // Notify the pre-condition check
             ruleContext.getTracer().fireOnRulePreConditionCheck(this, getPreCondition(), result);
         }
@@ -192,7 +195,11 @@ public class RulingClass<T> implements Rule {
         boolean result = true;
 
         if (getCondition() != null) {
-            result = getCondition().run(ruleContext);
+            try {
+                result = getCondition().run(ruleContext);
+            } catch (Exception e) {
+                throw new UnrulyException("Rule(" + getName() + ") Condition failed.", e);
+            }
             // Notify the Condition check
             ruleContext.getTracer().fireOnRuleConditionCheck(this, getCondition(), result);
         }
@@ -208,7 +215,11 @@ public class RulingClass<T> implements Rule {
     protected void runActions(RuleContext ruleContext) {
         // Execute associated Actions.
         for (Action action : getActions()) {
-            action.run(ruleContext);
+            try {
+                action.run(ruleContext);
+            } catch (Exception e) {
+                throw new UnrulyException("Rule(" + getName() + ") Action failed.", e);
+            }
             if (logger.isDebugEnabled()) logger.debug("Rule [" + getName() + "] Action [" + action.getName() + "] executed.");
             // Notify the Action
             ruleContext.getTracer().fireOnRuleAction(this, action);
@@ -218,7 +229,11 @@ public class RulingClass<T> implements Rule {
     protected void runOtherwiseAction(RuleContext ruleContext) {
         // Execute otherwise Action.
         if (getOtherwiseAction() != null) {
-            getOtherwiseAction().run(ruleContext);
+            try {
+                getOtherwiseAction().run(ruleContext);
+            } catch (Exception e) {
+                throw new UnrulyException("Rule(" + getName() + ") Otherwise Action failed.", e);
+            }
             if (logger.isDebugEnabled()) logger.debug("Rule [" + getName() + "] Otherwise Action [" + getOtherwiseAction().getName() + "] executed.");
             // Notify the OtherwiseAction
             ruleContext.getTracer().fireOnRuleOtherwiseAction(this, getOtherwiseAction());

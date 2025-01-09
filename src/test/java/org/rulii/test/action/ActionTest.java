@@ -66,7 +66,7 @@ public class ActionTest {
         action.run(arg1 -> "a", arg2 -> "b");
     }
 
-    @Test(expected = ParameterMismatchException.class)
+    @Test(expected = UnrulyException.class)
     public void test3() {
         Action action = Action.builder().with((String arg1, String arg2) -> {}).build();
         action.run(arg1 -> 123, arg2 -> 12);
@@ -111,7 +111,7 @@ public class ActionTest {
         actions.get(3).run();
     }
 
-    @Test(expected = ParameterMismatchException.class)
+    @Test(expected = UnrulyException.class)
     public void test7() {
         List<Action> actions = Action.builder().build(new ActionContainer());
 
@@ -142,7 +142,7 @@ public class ActionTest {
         Assert.assertEquals(bindings.getValue("var9"), new BigDecimal("400.00"));
     }
 
-    @Test(expected = InvalidBindingException.class)
+    @Test(expected = UnrulyException.class)
     public void test11() {
         List<Action> actions = Action.builder().build(new ActionContainer());
         Bindings bindings = Bindings.builder().standard();
@@ -158,7 +158,7 @@ public class ActionTest {
         actions.get(4).run(bindings);
     }
 
-    @Test(expected = InvalidBindingException.class)
+    @Test(expected = UnrulyException.class)
     public void test13() {
         List<Action> actions = Action.builder().build(new ActionContainer());
         Bindings bindings = Bindings.builder().standard();

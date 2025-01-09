@@ -21,7 +21,6 @@ import org.rulii.bind.BindingDeclaration;
 import org.rulii.bind.Bindings;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.spring.util.Assert;
-import org.rulii.rule.RuleExecutionException;
 
 /**
  * Anything that can be executed given a RuleContext.
@@ -50,7 +49,7 @@ public interface Runnable<T> extends Identifiable {
      * @return result.
      * @throws UnrulyException thrown if there are any runtime errors during the execution.
      */
-    default T run(Bindings bindings) throws RuleExecutionException {
+    default T run(Bindings bindings) throws UnrulyException {
         Assert.notNull(bindings, "bindings cannot be null.");
         return run(RuleContext.builder().build(bindings));
     }
@@ -62,7 +61,7 @@ public interface Runnable<T> extends Identifiable {
      * @return result.
      * @throws UnrulyException thrown if there are any runtime errors during the execution.
      */
-    default T run(BindingDeclaration<?>...params) throws RuleExecutionException {
+    default T run(BindingDeclaration<?>...params) throws UnrulyException {
         Bindings bindings = Bindings.builder().standard(params);
         return run(RuleContext.builder().build(bindings));
     }

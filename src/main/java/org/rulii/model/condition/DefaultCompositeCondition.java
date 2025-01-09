@@ -50,9 +50,13 @@ public class DefaultCompositeCondition implements CompositeCondition {
 
     @Override
     public Boolean run(RuleContext context) throws UnrulyException {
-        boolean leftResult = leftOperand.isTrue(context);
-        boolean rightResult = rightOperand.isTrue(context);
-        return predicate.test(leftResult, rightResult);
+        try {
+            boolean leftResult = leftOperand.isTrue(context);
+            boolean rightResult = rightOperand.isTrue(context);
+            return predicate.test(leftResult, rightResult);
+        } catch (Exception e) {
+            throw new UnrulyException("Unable to run Composite Condition.", e);
+        }
     }
 
     @Override

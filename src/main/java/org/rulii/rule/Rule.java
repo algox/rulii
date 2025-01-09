@@ -19,12 +19,9 @@ package org.rulii.rule;
 
 import org.rulii.context.RuleContext;
 import org.rulii.model.Runnable;
+import org.rulii.model.*;
 import org.rulii.model.action.Action;
 import org.rulii.model.condition.Condition;
-import org.rulii.model.Definable;
-import org.rulii.model.Identifiable;
-import org.rulii.model.ScopeDefining;
-import org.rulii.model.UnrulyException;
 import org.rulii.util.Ordered;
 
 import java.util.List;
@@ -58,7 +55,7 @@ public interface Rule extends Runnable<RuleResult>, Identifiable, Ordered, Defin
      * @throws UnrulyException thrown if there are any runtime errors during the execution.
      */
     @Override
-    RuleResult run(RuleContext ruleContext) throws RuleExecutionException;
+    RuleResult run(RuleContext ruleContext) throws UnrulyException;
 
     default boolean isTrue(RuleContext ruleContext) {
         if (getPreCondition() != null && !getPreCondition().run(ruleContext)) return false;
