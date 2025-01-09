@@ -29,11 +29,11 @@ public final class RuleSetBuilderBuilder {
         return instance;
     }
 
-    public static RuleSetBuilder with(String name) {
-        return new RuleSetBuilder(name);
+    public static <T> RuleSetBuilder<T> with(String name) {
+        return new RuleSetBuilder<T>(name);
     }
 
-    public static RuleSetBuilder with(String name, String description) {
-        return new RuleSetBuilder(name, description);
+    public static <T> RuleSetBuilder<T> with(String name, String description) {
+        return new RuleSetBuilder<T>(name, description);
     }
 }

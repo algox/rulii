@@ -62,5 +62,5 @@ public class UnrulyException extends RuntimeException {
     public UnrulyException(String message, Throwable cause) {
         super(message, cause, false, true);
     }
-    
+
 }
