@@ -19,9 +19,9 @@ package org.rulii.rule;
 
 import org.rulii.bind.match.MatchByTypeMatchingStrategy;
 import org.rulii.bind.match.ParameterMatch;
-import org.rulii.model.action.Action;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.spring.util.Assert;
+import org.rulii.model.action.Action;
 import org.rulii.validation.RuleViolation;
 import org.rulii.validation.RuleViolationBuilder;
 import org.rulii.validation.RuleViolations;
@@ -69,8 +69,11 @@ public class ValidationRuleBuilder<T> extends LambdaBasedRuleBuilder<T> {
         super.otherwise(Action.builder().with((RuleContext ruleContext, RuleViolations ruleViolations) -> {
             if (getCondition() == null) return;
 
-            List<ParameterMatch> matches = ruleContext.match(getCondition().getDefinition());
-            List<Object> values = ruleContext.resolve(matches, getCondition().getDefinition());
+            List<ParameterMatch> matches = ruleContext.getParameterResolver().match(getCondition().getDefinition(),
+                    ruleContext.getBindings(), ruleContext.getMatchingStrategy(), ruleContext.getObjectFactory());
+            List<Object> values = ruleContext.getParameterResolver().resolve(matches, getCondition().getDefinition(),
+                    ruleContext.getBindings(), ruleContext.getMatchingStrategy(), ruleContext.getConverterRegistry(),
+                    ruleContext.getObjectFactory());
 
             RuleViolationBuilder builder = RuleViolation.builder()
                     .with(getName())

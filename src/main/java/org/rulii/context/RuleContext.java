@@ -19,12 +19,10 @@ package org.rulii.context;
 
 import org.rulii.bind.ScopedBindings;
 import org.rulii.bind.match.BindingMatchingStrategy;
-import org.rulii.bind.match.ParameterMatch;
 import org.rulii.bind.match.ParameterResolver;
 import org.rulii.convert.ConverterRegistry;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.Immutator;
-import org.rulii.model.MethodDefinition;
 import org.rulii.registry.RuleRegistry;
 import org.rulii.text.MessageFormatter;
 import org.rulii.text.MessageResolver;
@@ -33,7 +31,6 @@ import org.rulii.util.reflect.ObjectFactory;
 
 import java.time.Clock;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -98,22 +95,6 @@ public class RuleContext implements Immutator<RuleContext> {
         this.executorService = executorService;
     }
 
-    public List<ParameterMatch> match(MethodDefinition definition) {
-        return getParameterResolver().match(definition, getBindings(), getMatchingStrategy(), getObjectFactory());
-    }
-
-    public List<Object> resolve(List<ParameterMatch> matches, MethodDefinition definition) {
-        return getParameterResolver().resolve(matches, definition, getBindings(), matchingStrategy, getConverterRegistry(), getObjectFactory());
-    }
-
-    public String resolveMessage(String code) {
-        return resolveMessage(code, null);
-    }
-
-    public String resolveMessage(String code, String defaultMessage) {
-        return getMessageResolver().resolve(getLocale(), code, defaultMessage);
-    }
-
     /**
      * Returns the Bindings.
      *
@@ -137,7 +118,7 @@ public class RuleContext implements Immutator<RuleContext> {
      *
      * @return parameter resolver. Cannot be null.
      */
-    protected ParameterResolver getParameterResolver() {
+    public ParameterResolver getParameterResolver() {
         return parameterResolver;
     }
 

@@ -57,9 +57,11 @@ public class DefaultFunction<T> extends AbstractRunnable implements Function<T> 
 
         try {
             // match the parameters with bindings
-            matches = ruleContext.match(getDefinition());
+            matches = ruleContext.getParameterResolver().match(getDefinition(), ruleContext.getBindings(),
+                    ruleContext.getMatchingStrategy(), ruleContext.getObjectFactory());
             // resolve parameter values
-            values = ruleContext.resolve(matches, getDefinition());
+            values = ruleContext.getParameterResolver().resolve(matches, getDefinition(), ruleContext.getBindings(),
+                    ruleContext.getMatchingStrategy(), ruleContext.getConverterRegistry(), ruleContext.getObjectFactory());
             return apply(values.toArray());
         } catch (Exception e) {
             throw new UnrulyException("Error trying to run Function : " + RuleUtils.getSignature(this, matches, values), e);

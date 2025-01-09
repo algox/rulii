@@ -58,9 +58,11 @@ public class DefaultAction extends AbstractRunnable implements Action {
 
         try {
             // match the parameters with bindings
-            matches = ruleContext.match(getDefinition());
+            matches = ruleContext.getParameterResolver().match(getDefinition(), ruleContext.getBindings(),
+                    ruleContext.getMatchingStrategy(), ruleContext.getObjectFactory());
             // resolve parameter values
-            values = ruleContext.resolve(matches, getDefinition());
+            values = ruleContext.getParameterResolver().resolve(matches, getDefinition(), ruleContext.getBindings(),
+                    ruleContext.getMatchingStrategy(), ruleContext.getConverterRegistry(), ruleContext.getObjectFactory());
             // run the action
             run(matches, values);
             return null;
