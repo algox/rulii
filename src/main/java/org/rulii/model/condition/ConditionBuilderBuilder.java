@@ -18,16 +18,15 @@
 package org.rulii.model.condition;
 
 import org.rulii.annotation.Function;
-import org.rulii.config.RuliiSystem;
-import org.rulii.model.RunnableBuilder;
-import org.rulii.model.action.Action;
-import org.rulii.model.function.*;
 import org.rulii.lib.spring.core.BridgeMethodResolver;
 import org.rulii.lib.spring.core.annotation.AnnotationUtils;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.MethodDefinition;
+import org.rulii.model.RunnableBuilder;
 import org.rulii.model.SourceDefinition;
 import org.rulii.model.UnrulyException;
+import org.rulii.model.action.Action;
+import org.rulii.model.function.*;
 import org.rulii.util.reflect.ObjectFactory;
 import org.rulii.util.reflect.ReflectionUtils;
 
@@ -68,7 +67,7 @@ public final class ConditionBuilderBuilder {
 
     public List<Condition> build(Class<?> clazz) {
         Assert.notNull(clazz, "clazz cannot be null.");
-        ObjectFactory objectFactory = RuliiSystem.getInstance().getObjectFactory();
+        ObjectFactory objectFactory = ObjectFactory.builder().build();
         return build(clazz, objectFactory);
     }
 
@@ -80,7 +79,7 @@ public final class ConditionBuilderBuilder {
      * Introspect the given object for methods that are annotated with @Condition Annotation and build corresponding conditions for them.
      *
      * @param target target object.
-     * @return array of condition inside the input class.
+     * @return list of condition inside the input class.
      */
     public List<Condition> build(Object target) {
         return build(target, org.rulii.annotation.Condition.class);
@@ -91,7 +90,7 @@ public final class ConditionBuilderBuilder {
      *
      * @param target target object
      * @param annotationClass desired Condition marker.            .
-     * @return array of conditions inside the input class.
+     * @return list of conditions inside the input class.
      */
     public List<Condition> build(Object target, Class<? extends Annotation> annotationClass) {
         Assert.notNull(annotationClass, "annotationClass cannot be null.");
@@ -123,7 +122,7 @@ public final class ConditionBuilderBuilder {
     private ConditionBuilder withCondition(Object target) {
         Method[] candidates = ReflectionUtils.getMethods(target.getClass(), FILTER);
 
-        if (candidates == null || candidates.length == 0) {
+        if (candidates.length == 0) {
             throw new UnrulyException("Condition method not found on class [" + target.getClass() + "]");
         }
 

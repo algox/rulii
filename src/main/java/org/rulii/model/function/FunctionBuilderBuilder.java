@@ -17,12 +17,11 @@
  */
 package org.rulii.model.function;
 
-import org.rulii.config.RuliiSystem;
-import org.rulii.model.RunnableBuilder;
 import org.rulii.lib.spring.core.BridgeMethodResolver;
 import org.rulii.lib.spring.core.annotation.AnnotationUtils;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.MethodDefinition;
+import org.rulii.model.RunnableBuilder;
 import org.rulii.model.SourceDefinition;
 import org.rulii.model.UnrulyException;
 import org.rulii.util.reflect.ObjectFactory;
@@ -63,7 +62,7 @@ public final class FunctionBuilderBuilder {
 
     public Function[] build(Class<?> clazz) {
         Assert.notNull(clazz, "clazz cannot be null.");
-        ObjectFactory objectFactory = RuliiSystem.getInstance().getObjectFactory();
+        ObjectFactory objectFactory = ObjectFactory.builder().build();
         return build(clazz, objectFactory);
     }
 

@@ -17,7 +17,6 @@
  */
 package org.rulii.rule;
 
-import org.rulii.config.RuliiSystem;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.util.reflect.ObjectFactory;
 
@@ -41,7 +40,7 @@ public final class RuleBuilder {
 
     public <T> ClassBasedRuleBuilder<T> with(Class<T> ruleClass) {
         Assert.notNull(ruleClass, "ruleClass cannot be null.");
-        ObjectFactory objectFactory = RuliiSystem.getInstance().getObjectFactory();
+        ObjectFactory objectFactory = ObjectFactory.builder().build();
         return with(ruleClass, objectFactory);
     }
 

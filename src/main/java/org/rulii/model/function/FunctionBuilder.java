@@ -17,11 +17,7 @@
  */
 package org.rulii.model.function;
 
-import org.rulii.model.RunnableBuilder;
-import org.rulii.model.MethodDefinition;
-import org.rulii.model.ParameterDefinition;
-import org.rulii.model.ParameterDefinitionEditor;
-import org.rulii.model.UnrulyException;
+import org.rulii.model.*;
 
 /**
  * Builder class for Functions.
@@ -30,7 +26,7 @@ import org.rulii.model.UnrulyException;
  * @since 1.0
  *
  */
-public class FunctionBuilder<T> extends RunnableBuilder<FunctionBuilder<T>, Function> {
+public class FunctionBuilder<T> extends RunnableBuilder<FunctionBuilder<T>, Function<?>> {
 
     private String name;
 

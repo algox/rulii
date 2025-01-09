@@ -17,9 +17,9 @@
  */
 package org.rulii.model;
 
-import org.rulii.config.RuliiSystem;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.util.reflect.LambdaUtils;
+import org.rulii.util.reflect.MethodResolver;
 
 import java.lang.invoke.SerializedLambda;
 import java.lang.reflect.Method;
@@ -31,7 +31,9 @@ import java.util.Arrays;
  * @author Max Arulananthan.
  * @since 1.0
  */
-public abstract class RunnableBuilder<T extends RunnableBuilder, R extends Runnable> {
+public abstract class RunnableBuilder<T extends RunnableBuilder<?,?>, R extends Runnable<?>> {
+
+    private static final MethodResolver METHOD_RESOLVER = MethodResolver.builder().build();
 
     private final Object target;
     private final MethodDefinition definition;
@@ -154,12 +156,12 @@ public abstract class RunnableBuilder<T extends RunnableBuilder, R extends Runna
     }
 
     private static Method getImplementationMethod(Class<?> c, Method candidate) {
-        return RuliiSystem.getInstance().getMethodResolver().getImplementationMethod(c, candidate);
+        return METHOD_RESOLVER.getImplementationMethod(c, candidate);
     }
 
     public static class MethodInfo {
-        private Object target;
-        private MethodDefinition definition;
+        private final Object target;
+        private final MethodDefinition definition;
 
         public MethodInfo(Object target, MethodDefinition definition) {
             super();
