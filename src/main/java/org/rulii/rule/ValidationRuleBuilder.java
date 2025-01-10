@@ -65,9 +65,24 @@ public class ValidationRuleBuilder<T> extends LambdaBasedRuleBuilder<T> {
     }
 
     @Override
+    public AbstractRuleBuilder<T> then(Action action) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public AbstractRuleBuilder<T> otherwise(Action action) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    protected AbstractRuleBuilder<T> target(T target) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Rule build() {
         super.otherwise(Action.builder().with((RuleContext ruleContext, RuleViolations ruleViolations) -> {
-            if (getCondition() == null) return;
+            Assert.notNull(getCondition(), "condition cannot be null.");
 
             List<ParameterMatch> matches = ruleContext.getParameterResolver().match(getCondition().getDefinition(),
                     ruleContext.getBindings(), ruleContext.getMatchingStrategy(), ruleContext.getObjectFactory());

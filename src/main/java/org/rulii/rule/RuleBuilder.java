@@ -48,6 +48,7 @@ public final class RuleBuilder {
         return with(ruleClass).build();
     }
 
+    @SuppressWarnings("unchecked")
     public <T> ClassBasedRuleBuilder<T> with(T ruleTarget) {
         Assert.notNull(ruleTarget, "ruleTargetCannot be null");
         return ClassBasedRuleBuilder.with((Class<T>) ruleTarget.getClass(), ruleTarget);
@@ -71,8 +72,8 @@ public final class RuleBuilder {
         return new LambdaBasedRuleBuilder(ruleName, null);
     }
 
-    public LambdaBasedRuleBuilder<?> name(String ruleName, String description) {
-        return new LambdaBasedRuleBuilder(ruleName, description);
+    public <T> LambdaBasedRuleBuilder<T> name(String ruleName, String description) {
+        return new LambdaBasedRuleBuilder<T>(ruleName, description);
     }
 
     public ValidationRuleBuilder<?> validationRule(String name, String errorCode) {

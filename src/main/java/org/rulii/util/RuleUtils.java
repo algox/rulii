@@ -139,7 +139,7 @@ public final class RuleUtils {
         return result.toString();
     }
 
-    private static Map<String, Object> convert(List<ParameterMatch> matches, List<?> values) {
+    public static Map<String, Object> convert(List<ParameterMatch> matches, List<?> values) {
         if (matches == null) return new LinkedHashMap<>();
         if (matches.isEmpty()) return new LinkedHashMap<>();
         if (matches.size() != values.size()) throw new UnrulyException("Size mismatch [" + matches.size() + "] [" + values.size() + "]");

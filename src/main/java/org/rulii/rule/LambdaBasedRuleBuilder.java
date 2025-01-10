@@ -28,6 +28,7 @@ public class LambdaBasedRuleBuilder<T> extends AbstractRuleBuilder<T> {
         description(description);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public LambdaBasedRuleBuilder<T> given(Condition condition) {
         super.given(condition);

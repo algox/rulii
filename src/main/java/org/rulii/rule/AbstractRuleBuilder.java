@@ -17,13 +17,13 @@
  */
 package org.rulii.rule;
 
+import org.rulii.lib.spring.core.Ordered;
+import org.rulii.lib.spring.util.Assert;
+import org.rulii.model.MethodDefinition;
+import org.rulii.model.SourceDefinition;
 import org.rulii.model.action.Action;
 import org.rulii.model.condition.Condition;
 import org.rulii.model.condition.Conditions;
-import org.rulii.model.MethodDefinition;
-import org.rulii.model.SourceDefinition;
-import org.rulii.lib.spring.core.Ordered;
-import org.rulii.lib.spring.util.Assert;
 import org.rulii.util.RuleUtils;
 import org.rulii.util.RunnableComparator;
 
@@ -185,7 +185,7 @@ public abstract class AbstractRuleBuilder<T> {
             ((RuleDefinitionAware) getTarget()).setRuleDefinition(ruleDefinition);
         }
 
-        return new RulingClass(ruleDefinition, getTarget(), getPreCondition(), getCondition(),
+        return new RulingClass<>(ruleDefinition, getTarget(), getPreCondition(), getCondition(),
                 getThenActions(), getOtherwiseAction());
     }
 
