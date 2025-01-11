@@ -17,6 +17,12 @@
  */
 package org.rulii.ruleset;
 
+import org.rulii.bind.Bindings;
+import org.rulii.bind.match.MatchByTypeMatchingStrategy;
+import org.rulii.model.action.Action;
+import org.rulii.validation.RuleViolations;
+import org.rulii.validation.ValidationException;
+
 /**
  * RuleSetBuilderBuilder is a final class that provides a builder pattern implementation
  * to construct RuleSet objects. It contains methods to create a RuleSetBuilder instance
@@ -67,6 +73,44 @@ public final class RuleSetBuilderBuilder {
      * @return a new RuleSetBuilder instance with the specified name and description
      */
     public <T> RuleSetBuilder<T> with(String name, String description) {
-        return new RuleSetBuilder<T>(name, description);
+        return new RuleSetBuilder<>(name, description);
+    }
+
+    /**
+     * Builds a RuleSetBuilder with the provided rules.
+     *
+     * @param rules the RuleSet to use for building the RuleSetBuilder
+     * @return a new RuleSetBuilder instance with the specified rules
+     */
+    public <T> RuleSetBuilder<T> with(RuleSet<T> rules) {
+        return new RuleSetBuilder<>(rules);
+    }
+
+    public RuleSetBuilder<RuleSetExecutionStatus> validating(String name) {
+        return validating(name, null);
+    }
+
+    /**
+     * Creates a Validating RuleSetBuilder with the given name and description, adding an initializer to bind ruleViolations and a finalizer to check for any errors.
+     *
+     * @param name the name of the RuleSetBuilder to validate
+     * @param description the description of the RuleSetBuilder to validate
+     * @return a RuleSetBuilder instance with added initializer and finalizer for validation
+     * @throws ValidationException of there are any validation errors during the run.
+     */
+    public RuleSetBuilder<RuleSetExecutionStatus> validating(String name, String description) {
+        RuleSetBuilder<RuleSetExecutionStatus> result = with(name, description);
+        // Add the error container.
+        result.initializer(Action.builder().with((Bindings bindings) -> bindings.bind("ruleViolations", new RuleViolations()))
+                .param(0).matchUsing(MatchByTypeMatchingStrategy.class).build()
+                .build());
+        // Throw a ValidationException if there are any errors during the run.
+        result.finalizer(Action.builder().with((Bindings bindings) -> {
+            RuleViolations ruleViolations = bindings.getValue("ruleViolations");
+            if (ruleViolations.hasErrors()) throw new ValidationException(ruleViolations);
+        }).param(0).matchUsing(MatchByTypeMatchingStrategy.class).build()
+                .build());
+
+        return result;
     }
 }

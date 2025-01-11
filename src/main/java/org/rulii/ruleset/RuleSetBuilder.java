@@ -19,17 +19,26 @@ package org.rulii.ruleset;
 
 import org.rulii.bind.ReservedBindings;
 import org.rulii.context.RuleContext;
+import org.rulii.lib.spring.util.Assert;
+import org.rulii.model.SourceDefinition;
 import org.rulii.model.action.Action;
 import org.rulii.model.condition.Condition;
 import org.rulii.model.function.Function;
-import org.rulii.lib.spring.util.Assert;
-import org.rulii.model.SourceDefinition;
 import org.rulii.rule.Rule;
 import org.rulii.rule.RuleDefinition;
 import org.rulii.util.RuleUtils;
 
 import java.util.*;
 
+/**
+ * A builder class to construct RuleSets with customizable preconditions, stop conditions, initializers,
+ * finalizers, and result extractors.
+ *
+ * @param <T> the type of the result extracted by the RuleSet.
+ *
+ * @author Max Arulananthan
+ * @since 1.0
+ */
 public class RuleSetBuilder<T> {
 
     private String name;
@@ -41,17 +50,33 @@ public class RuleSetBuilder<T> {
     private Function<T> resultExtractor = (RuleContext ruleContext) -> ruleContext.getBindings().getValue(ReservedBindings.RULE_SET_STATUS.getName());
     private final LinkedList<Rule> ruleSetItems = new LinkedList<>();
 
+    /**
+     * Constructs a new RuleSetBuilder instance with the provided name.
+     *
+     * @param name the name of the RuleSetBuilder
+     */
     RuleSetBuilder(String name) {
         super();
         name(name);
     }
 
+    /**
+     * Initializes a new RuleSetBuilder instance with the provided name and description.
+     *
+     * @param name        the name of the RuleSetBuilder
+     * @param description the description of the RuleSetBuilder
+     */
     RuleSetBuilder(String name, String description) {
         super();
         name(name);
         description(description);
     }
 
+    /**
+     * Constructs a RuleSetBuilder with the provided RuleSet, initializing the builder with the information from the given rules.
+     *
+     * @param rules the RuleSet containing rules to be used for initialization. Must not be null.
+     */
     RuleSetBuilder(RuleSet<T> rules) {
         super();
         Assert.notNull(rules, "rules cannot be null.");
@@ -65,6 +90,12 @@ public class RuleSetBuilder<T> {
         this.rules(rules.getRules());
     }
 
+    /**
+     * Sets the name of the RuleSetBuilder.
+     *
+     * @param name the name to set for the RuleSetBuilder
+     * @return this RuleSetBuilder instance for method chaining
+     */
     public RuleSetBuilder<T> name(String name) {
         Assert.isTrue(RuleUtils.isValidName(name), "RuleSet name [" + name + "] not valid. It must conform to ["
                 + RuleUtils.NAME_REGEX + "]");
@@ -72,6 +103,12 @@ public class RuleSetBuilder<T> {
         return this;
     }
 
+    /**
+     * Sets the description for the RuleSetBuilder.
+     *
+     * @param description the description to be set for the RuleSetBuilder
+     * @return this RuleSetBuilder instance for method chaining
+     */
     public RuleSetBuilder<T> description(String description) {
         this.description = description;
         return this;
@@ -125,18 +162,37 @@ public class RuleSetBuilder<T> {
         return this;
     }
 
+    /**
+     * Sets the result extractor function for the RuleSetBuilder.
+     *
+     * @param resultExtractor the function used to extract results
+     * @return this RuleSetBuilder instance for method chaining
+     */
     public RuleSetBuilder<T> resultExtractor(Function<T> resultExtractor) {
         Assert.notNull(resultExtractor, "resultExtractor cannot be null.");
         this.resultExtractor = resultExtractor;
         return this;
     }
 
+    /**
+     * Adds a rule to the RuleSetBuilder.
+     *
+     * @param rule the rule to be added to the RuleSetBuilder. Must not be null.
+     * @return this RuleSetBuilder instance for method chaining.
+     */
     public RuleSetBuilder<T> rule(Rule rule) {
         Assert.notNull(rule, "rule cannot be null");
         getRules().add(rule);
         return this;
     }
 
+    /**
+     * Adds a rule at the specified index in the RuleSetBuilder.
+     *
+     * @param index the index at which the rule should be added. Must be >= 0.
+     * @param rule the rule to be added to the RuleSetBuilder. Must not be null.
+     * @return this RuleSetBuilder instance for method chaining.
+     */
     public RuleSetBuilder<T> rule(int index, Rule rule) {
         Assert.notNull(rule, "rule cannot be null");
         Assert.isTrue(index >= 0, "index must be >= 0");
@@ -144,6 +200,12 @@ public class RuleSetBuilder<T> {
         return this;
     }
 
+    /**
+     * Sets the rules for this RuleSetBuilder.
+     *
+     * @param rules the array of rules to set for this RuleSetBuilder. Must not be null.
+     * @return this RuleSetBuilder instance for method chaining
+     */
     public RuleSetBuilder<T> rules(Rule...rules) {
         Assert.notNullArray(rules, "rules cannot be null.");
         Arrays
@@ -153,6 +215,12 @@ public class RuleSetBuilder<T> {
         return this;
     }
 
+    /**
+     * Sets the rules for this RuleSetBuilder.
+     *
+     * @param rules the collection of rules to be set for this RuleSetBuilder. Must not be null.
+     * @return this RuleSetBuilder instance for method chaining
+     */
     public RuleSetBuilder<T> rules(Collection<Rule> rules) {
         Assert.notNull(rules, "rules cannot be null.");
         rules
@@ -162,6 +230,13 @@ public class RuleSetBuilder<T> {
         return this;
     }
 
+    /**
+     * Sets the rules at the specified index in the RuleSetBuilder.
+     *
+     * @param index the index at which the rules should be added. Must be >= 0.
+     * @param rules the array of rules to be added to the RuleSetBuilder. Must not be null.
+     * @return this RuleSetBuilder instance for method chaining
+     */
     public RuleSetBuilder<T> rules(int index, Rule...rules) {
         Assert.notNullArray(rules, "rules cannot be null.");
 
@@ -172,25 +247,53 @@ public class RuleSetBuilder<T> {
         return this;
     }
 
+    /**
+     * Returns the size of the RuleSetItems.
+     *
+     * @return the size of the RuleSetItems
+     */
     public int size() {
         return ruleSetItems.size();
     }
 
+    /**
+     * Retrieves the list of rules associated with this RuleSetBuilder.
+     *
+     * @return LinkedList of Rule objects representing the rules in this RuleSetBuilder
+     */
     protected LinkedList<Rule> getRules() {
         return ruleSetItems;
     }
 
+    /**
+     * Removes the RuleSetItem at the specified index.
+     *
+     * @param index the index of the RuleSetItem to be removed. Must be >= 0.
+     * @return this RuleSetBuilder instance for method chaining
+     */
     public RuleSetBuilder<T> remove(int index) {
         this.ruleSetItems.remove(index);
         return this;
     }
 
+    /**
+     * Removes the specified Rule from the RuleSetBuilder.
+     *
+     * @param rule the rule to be removed from the RuleSetBuilder
+     * @return this RuleSetBuilder instance for method chaining
+     */
     public RuleSetBuilder<T> remove(Rule rule) {
         this.ruleSetItems.remove(rule);
         return this;
     }
 
-    public RuleSetDefinition buildRuleSetDefinition() {
+    /**
+     * Builds a RuleSetDefinition based on the rules provided in the RuleSetBuilder instance.
+     *
+     * @return a RuleSetDefinition object containing the name, description, source definition, pre-condition,
+     * stop condition, and an array of rule definitions for the rules in the RuleSetBuilder.
+     */
+    protected RuleSetDefinition buildRuleSetDefinition() {
         List<RuleDefinition> definitions = new ArrayList<>(getRules().size());
 
         getRules().forEach(r -> {
@@ -203,6 +306,12 @@ public class RuleSetBuilder<T> {
                 definitions.toArray(new RuleDefinition[definitions.size()]));
     }
 
+    /**
+     * Builds and returns a RuleSet instance based on the current configuration of the RuleSetBuilder.
+     *
+     * @return a RuleSet instance constructed with the defined RuleSetDefinition, pre-condition, stop-condition,
+     *         initializer, finalizer, result-extractor, and list of rules.
+     */
     public RuleSet<T> build() {
         return new RulingFamily<T>(buildRuleSetDefinition(), getPreCondition(), getStopCondition(),
                 getInitializer(), getFinalizer(), getResultExtractor(), Collections.unmodifiableList(getRules()));
@@ -241,9 +350,12 @@ public class RuleSetBuilder<T> {
         return "RuleSetBuilder{" +
                 "name='" + name + '\'' +
                 ", description='" + description + '\'' +
-                ", ruleSetItems=" + ruleSetItems +
                 ", preCondition=" + preCondition +
                 ", stopCondition=" + stopCondition +
+                ", initializer=" + initializer +
+                ", finalizer=" + finalizer +
+                ", resultExtractor=" + resultExtractor +
+                ", ruleSetItems=" + ruleSetItems +
                 '}';
     }
 }

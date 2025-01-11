@@ -26,6 +26,12 @@ import org.rulii.util.RuleUtils;
 
 import java.util.Arrays;
 
+/**
+ * Represents a RuleSet Definition, which defines a set of rules with pre-condition and stop actions.
+ *
+ * @author Max Arulananthan
+ * @since 1.0
+ */
 public final class RuleSetDefinition implements Definition {
 
     // Name of the RuleSet

@@ -69,7 +69,7 @@ public final class ActionBuilderBuilder {
      * Introspect the given object for methods that are annotated with @Action Annotation and build corresponding actions for them.
      *
      * @param target target object.
-     * @return array of actions inside the input class.
+     * @return list of actions inside the input class.
      */
     public List<Action> build(Object target) {
         return build(target, org.rulii.annotation.Action.class);
@@ -112,7 +112,7 @@ public final class ActionBuilderBuilder {
             result[i] = builder.build();
         }
 
-        return Collections.unmodifiableList(Arrays.asList(result));
+        return List.of(result);
     }
 
     private static class MethodComparator implements Comparator<Method> {

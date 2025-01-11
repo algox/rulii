@@ -31,7 +31,6 @@ import java.util.function.Predicate;
  * @since 1.0
  */
 public class RuleSetExecutionStatus implements Iterable<RuleResult> {
-
     private final List<RuleResult> statuses = Collections.synchronizedList(new LinkedList<>());
     private boolean preConditionCheck = false;
 

@@ -380,6 +380,12 @@ public class RulingFamily<T> implements RuleSet<T> {
         return Collections.unmodifiableList(rules);
     }
 
+    /**
+     * Constructs a human-readable representation of the RuleSet.
+     *
+     * @return a formatted string representing the RuleSet containing its name, pre and stop conditions (if present),
+     * and a list of rules with their descriptions
+     */
     public String prettyPrint() {
         StringBuilder result = new StringBuilder();
 

@@ -28,7 +28,6 @@ import org.rulii.model.UnrulyException;
  *
  * @author Max Arulananthan
  * @since 1.0
- *
  */
 public class ValidationException extends UnrulyException {
 
