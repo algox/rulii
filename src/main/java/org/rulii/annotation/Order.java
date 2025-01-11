@@ -21,8 +21,8 @@ import java.lang.annotation.*;
 
 /**
  * This is a copy of the Spring's @Order annotation.
- *  *
- *  * see org.springframework.core.annotation.Order
+ *
+ * see org.springframework.core.annotation.Order
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD, ElementType.FIELD})

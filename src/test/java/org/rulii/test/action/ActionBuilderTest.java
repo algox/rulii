@@ -1,7 +1,7 @@
 /*
  * This software is licensed under the Apache 2 license, quoted below.
  *
- * Copyright (c) 1999-2024, Algorithmx Inc.
+ * Copyright (c) 1999-2025, Algorithmx Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
  */
 package org.rulii.test.action;
 
+import org.junit.Assert;
+import org.junit.Test;
 import org.rulii.annotation.Condition;
 import org.rulii.annotation.Function;
 import org.rulii.bind.Binding;
@@ -25,8 +27,6 @@ import org.rulii.model.UnrulyException;
 import org.rulii.model.action.Action;
 import org.rulii.model.action.TriAction;
 import org.rulii.util.TypeReference;
-import org.junit.Assert;
-import org.junit.Test;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -50,77 +50,71 @@ public class ActionBuilderTest {
     public void testNoArg() {
         Action action = Action.builder()
                 .with(() -> {
-                    return;
                 })
                 .name("action0")
                 .build();
 
-        Assert.assertTrue(action.getDefinition().getName().equals("action0"));
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().size() == 0);
+        Assert.assertEquals("action0", action.getDefinition().getName());
+        Assert.assertEquals(0, action.getDefinition().getParameterDefinitions().size());
     }
 
     @Test
     public void test1Arg() {
         Action action = Action.builder()
                 .with((String x) -> {
-                    return;
                 })
                 .description("Action with one arg")
                 .build();
 
-        Assert.assertTrue(action.getDefinition().getDescription().equals("Action with one arg"));
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().size() == 1);
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().get(0).getName().equals("x"));
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().get(0).getType().equals(String.class));
+        Assert.assertEquals("Action with one arg", action.getDefinition().getDescription());
+        Assert.assertEquals(1, action.getDefinition().getParameterDefinitions().size());
+        Assert.assertEquals("x", action.getDefinition().getParameterDefinitions().get(0).getName());
+        Assert.assertEquals(action.getDefinition().getParameterDefinitions().get(0).getType(), String.class);
     }
 
     @Test
     public void test2Args() {
         Action action = Action.builder()
                 .with((String x, BigDecimal value) -> {
-                    return;
                 })
                 .build();
 
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().size() == 2);
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().get(1).getName().equals("value"));
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().get(1).getType().equals(BigDecimal.class));
+        Assert.assertEquals(2, action.getDefinition().getParameterDefinitions().size());
+        Assert.assertEquals("value", action.getDefinition().getParameterDefinitions().get(1).getName());
+        Assert.assertEquals(action.getDefinition().getParameterDefinitions().get(1).getType(), BigDecimal.class);
     }
 
     @Test
     public void test3Args() {
         Action action = Action.builder()
                 .with((String x, BigDecimal value, Integer c) -> {
-                    return;
                 })
                 .build();
 
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().size() == 3);
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().get(2).getName().equals("c"));
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().get(2).getType().equals(Integer.class));
+        Assert.assertEquals(3, action.getDefinition().getParameterDefinitions().size());
+        Assert.assertEquals("c", action.getDefinition().getParameterDefinitions().get(2).getName());
+        Assert.assertEquals(action.getDefinition().getParameterDefinitions().get(2).getType(), Integer.class);
     }
 
     @Test
     public void test4Args() {
         Action action = Action.builder()
                 .with((String x, BigDecimal value, Integer c, Float d) -> {
-                    return;
                 })
                 .param("d")
                     //.optional(true)
                     .build()
                 .build();
 
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().size() == 4);
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().get(3).getName().equals("d"));
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().get(3).getType().equals(Float.class));
+        Assert.assertEquals(4, action.getDefinition().getParameterDefinitions().size());
+        Assert.assertEquals("d", action.getDefinition().getParameterDefinitions().get(3).getName());
+        Assert.assertEquals(action.getDefinition().getParameterDefinitions().get(3).getType(), Float.class);
     }
 
     @Test
     public void test5Args() {
         Action action = Action.builder()
                 .with((String x, BigDecimal value, Integer c, Float d, Boolean flag) -> {
-                    return;
                 })
                 .param("d")
                     .build()
@@ -129,10 +123,10 @@ public class ActionBuilderTest {
                     .build()
                 .build();
 
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().size() == 5);
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().get(4).getName().equals("flag"));
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().get(4).getType().equals(Boolean.class));
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().get(4).getDefaultValueText().equals("yes"));
+        Assert.assertEquals(5, action.getDefinition().getParameterDefinitions().size());
+        Assert.assertEquals("flag", action.getDefinition().getParameterDefinitions().get(4).getName());
+        Assert.assertEquals(action.getDefinition().getParameterDefinitions().get(4).getType(), Boolean.class);
+        Assert.assertEquals("yes", action.getDefinition().getParameterDefinitions().get(4).getDefaultValueText());
     }
 
     @Test
@@ -144,9 +138,9 @@ public class ActionBuilderTest {
                 })
                 .build();
 
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().size() == 6);
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().get(5).getName().equals("bindingValue"));
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().get(5).getType().equals(Binding.class));
+        Assert.assertEquals(6, action.getDefinition().getParameterDefinitions().size());
+        Assert.assertEquals("bindingValue", action.getDefinition().getParameterDefinitions().get(5).getName());
+        Assert.assertEquals(action.getDefinition().getParameterDefinitions().get(5).getType(), Binding.class);
         Assert.assertTrue(action.getDefinition().getParameterDefinitions().get(5).isBindingType());
     }
 
@@ -159,10 +153,10 @@ public class ActionBuilderTest {
                 })
                 .build();
 
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().size() == 7);
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().get(6).getName().equals("listArg"));
+        Assert.assertEquals(7, action.getDefinition().getParameterDefinitions().size());
+        Assert.assertEquals("listArg", action.getDefinition().getParameterDefinitions().get(6).getName());
         // Lambda does not store generic info
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().get(6).getType().equals(List.class));
+        Assert.assertEquals(action.getDefinition().getParameterDefinitions().get(6).getType(), List.class);
     }
 
     @Test
@@ -178,10 +172,11 @@ public class ActionBuilderTest {
                     .build()
                 .build();
 
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().size() == 8);
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().get(7).getName().equals("mapArg"));
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().get(7)
-                .getType().equals(new TypeReference<Map<String, Object>>(){}.getType()));
+        Assert.assertEquals(8, action.getDefinition().getParameterDefinitions().size());
+        Assert.assertEquals("mapArg", action.getDefinition().getParameterDefinitions().get(7).getName());
+        Assert.assertEquals(action.getDefinition().getParameterDefinitions().get(7)
+                .getType(), new TypeReference<Map<String, Object>>() {
+        }.getType());
     }
 
     @Test
@@ -197,10 +192,11 @@ public class ActionBuilderTest {
                     .build()
                 .build();
 
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().size() == 9);
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().get(8).getName().equals("someList"));
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().get(8)
-                .getType().equals(new TypeReference<List<String>>(){}.getType()));
+        Assert.assertEquals(9, action.getDefinition().getParameterDefinitions().size());
+        Assert.assertEquals("someList", action.getDefinition().getParameterDefinitions().get(8).getName());
+        Assert.assertEquals(action.getDefinition().getParameterDefinitions().get(8)
+                .getType(), new TypeReference<List<String>>() {
+        }.getType());
     }
 
     @Test
@@ -216,16 +212,15 @@ public class ActionBuilderTest {
                     .build()
                 .build();
 
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().size() == 10);
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().get(9).getName().equals("tenthArg"));
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().get(9).getType().equals(String.class));
+        Assert.assertEquals(10, action.getDefinition().getParameterDefinitions().size());
+        Assert.assertEquals("tenthArg", action.getDefinition().getParameterDefinitions().get(9).getName());
+        Assert.assertEquals(action.getDefinition().getParameterDefinitions().get(9).getType(), String.class);
     }
 
     @Test(expected = UnrulyException.class)
     public void testInvalidParameterIndex() {
         Action.builder()
                 .with((String x, BigDecimal value, Integer c) -> {
-                    return;
                 })
                 .param(3)
                     .type(new TypeReference<List<String>>(){}.getType())
@@ -238,7 +233,6 @@ public class ActionBuilderTest {
     public void testInvalidParameterNameIndex() {
         Action.builder()
                 .with((String x, BigDecimal value, Integer c) -> {
-                    return;
                 })
                 .param("y")
                     .type(new TypeReference<List<String>>(){}.getType())
@@ -257,33 +251,32 @@ public class ActionBuilderTest {
                     }
                 })
                 .build();
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().size() == 3);
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().get(2).getName().equals("map"));
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().get(2)
-                .getType().equals(new TypeReference<Map<String, Integer>>(){}.getType()));
+        Assert.assertEquals(3, action.getDefinition().getParameterDefinitions().size());
+        Assert.assertEquals("map", action.getDefinition().getParameterDefinitions().get(2).getName());
+        Assert.assertEquals(action.getDefinition().getParameterDefinitions().get(2)
+                .getType(), new TypeReference<Map<String, Integer>>() {
+        }.getType());
         action.run(a -> "aa", b -> 12, map ->  new HashMap<>());
     }
 
     public String c = "c";
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     @Test
     public void testOtherArgs() {
-
-        Integer a = 12;
+        String a = "12 ";
         String b = "b";
 
         Action action = Action.builder()
                 .with((String x, BigDecimal value, Integer c) -> {
-                    a.intValue();
+                    a.trim();
                     b.length();
-                    c.intValue();
-                    return;
                 })
                 .build();
 
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().size() == 3);
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().get(2).getName().equals("c"));
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().get(2).getType().equals(Integer.class));
+        Assert.assertEquals(3, action.getDefinition().getParameterDefinitions().size());
+        Assert.assertEquals("c", action.getDefinition().getParameterDefinitions().get(2).getName());
+        Assert.assertEquals(action.getDefinition().getParameterDefinitions().get(2).getType(), Integer.class);
     }
 
     public static void testActionMethod1(Integer a, List<Integer> values, BigDecimal c) {}
@@ -293,13 +286,14 @@ public class ActionBuilderTest {
         Action action = Action.builder()
                 .with(ActionBuilderTest::testActionMethod1).build();
 
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().size() == 3);
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().get(0).getName().equals("a"));
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().get(0).getType().equals(Integer.class));
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().get(1).getName().equals("values"));
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().get(1).getType().equals(new TypeReference<List<Integer>>(){}.getType()));
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().get(2).getName().equals("c"));
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().get(2).getType().equals(BigDecimal.class));
+        Assert.assertEquals(3, action.getDefinition().getParameterDefinitions().size());
+        Assert.assertEquals("a", action.getDefinition().getParameterDefinitions().get(0).getName());
+        Assert.assertEquals(action.getDefinition().getParameterDefinitions().get(0).getType(), Integer.class);
+        Assert.assertEquals("values", action.getDefinition().getParameterDefinitions().get(1).getName());
+        Assert.assertEquals(action.getDefinition().getParameterDefinitions().get(1).getType(), new TypeReference<List<Integer>>() {
+        }.getType());
+        Assert.assertEquals("c", action.getDefinition().getParameterDefinitions().get(2).getName());
+        Assert.assertEquals(action.getDefinition().getParameterDefinitions().get(2).getType(), BigDecimal.class);
     }
 
     public void testActionMethod2(List<Integer> values, BigDecimal c) {}
@@ -309,13 +303,15 @@ public class ActionBuilderTest {
         Action action = Action.builder()
                 .with(this::testActionMethod2).build();
 
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().size() == 2);
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().get(0).getName().equals("values"));
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().get(0).getType().equals(new TypeReference<List<Integer>>(){}.getType()));
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().get(1).getName().equals("c"));
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().get(1).getType().equals(BigDecimal.class));
+        Assert.assertEquals(2, action.getDefinition().getParameterDefinitions().size());
+        Assert.assertEquals("values", action.getDefinition().getParameterDefinitions().get(0).getName());
+        Assert.assertEquals(action.getDefinition().getParameterDefinitions().get(0).getType(), new TypeReference<List<Integer>>() {
+        }.getType());
+        Assert.assertEquals("c", action.getDefinition().getParameterDefinitions().get(1).getName());
+        Assert.assertEquals(action.getDefinition().getParameterDefinitions().get(1).getType(), BigDecimal.class);
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Test
     public void testLoadFromClass() {
         List<org.rulii.model.condition.Condition> conditions = org.rulii.model.condition.Condition.builder().build(TestClass.class);
@@ -325,8 +321,8 @@ public class ActionBuilderTest {
         Bindings bindings = Bindings.builder().standard();
         bindings.bind("x", 25);
         actions.get(0).run(bindings);
-        Assert.assertTrue(bindings.getValue("x", Integer.class) == 0);
-        Assert.assertTrue(functions[0].run(x -> 25).equals(50));
+        Assert.assertEquals(0, (int) bindings.getValue("x", Integer.class));
+        Assert.assertEquals(50, functions[0].run(x -> 25));
     }
 
     public static class TestClass {
