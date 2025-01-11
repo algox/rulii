@@ -17,6 +17,8 @@
  */
 package org.rulii.test.validation;
 
+import org.junit.Assert;
+import org.junit.Test;
 import org.rulii.bind.Bindings;
 import org.rulii.context.RuleContext;
 import org.rulii.rule.Rule;
@@ -33,8 +35,6 @@ import org.rulii.validation.rules.nulll.NullValidationRule;
 import org.rulii.validation.rules.past.PastValidationRule;
 import org.rulii.validation.rules.pattern.PatternValidationRule;
 import org.rulii.validation.rules.size.SizeValidationRule;
-import org.junit.Assert;
-import org.junit.Test;
 
 import java.util.Date;
 
@@ -52,7 +52,7 @@ public class ValidationTest {
 
     @Test
     public void test1() {
-        RuleSet rules = RuleSet.builder()
+        RuleSet<?> rules = RuleSet.builder()
                 .with("RuleSet1", "Test Rule Set")
                     .rule(Rule.builder().build(TestRule1.class))
                     .rule(Rule.builder().build(TestRule2.class))
@@ -70,7 +70,7 @@ public class ValidationTest {
 
     @Test
     public void test2() {
-        RuleSet rules = RuleSet.builder()
+        RuleSet<?> rules = RuleSet.builder()
                 .with("RuleSet2", "Test Rule Set")
                     .rule(Rule.builder().build(TestRule1.class))
                     .rule(Rule.builder().build(TestRule2.class))
@@ -90,14 +90,14 @@ public class ValidationTest {
         bindings.bind("value",1);
         bindings.bind("e", errors);
 
-        RuleSet rules = RuleSet.builder()
+        RuleSet<?> rules = RuleSet.builder()
                 .with("RuleSet2", "Test Rule Set")
                     .rule(Rule.builder().build(new NotNullValidationRule("value")))
                 .build();
 
         RuleContext context = RuleContext.builder().with(bindings).build();
         rules.run(context);
-        Assert.assertTrue(errors.size() == 0);
+        Assert.assertEquals(0, errors.size());
     }
 
     @Test
@@ -107,13 +107,13 @@ public class ValidationTest {
         bindings.bind("b", String.class, null);
         bindings.bind("e", errors);
 
-        RuleSet rules = RuleSet.builder()
+        RuleSet<?> rules = RuleSet.builder()
                 .with("RuleSet2", "Test Rule Set")
                     .rule(Rule.builder().build(new NullValidationRule("value")))
                 .build();
 
         rules.run(RuleContext.builder().with(bindings).build());
-        Assert.assertTrue(errors.size() == 0);
+        Assert.assertEquals(0, errors.size());
     }
 
     @Test
@@ -123,13 +123,13 @@ public class ValidationTest {
         bindings.bind("value", String.class, "  ");
         bindings.bind("e", errors);
 
-        RuleSet rules = RuleSet.builder()
+        RuleSet<?> rules = RuleSet.builder()
                 .with("RuleSet2", "Test Rule Set")
                     .rule(Rule.builder().build(new SizeValidationRule("value", 1, Integer.MAX_VALUE)))
                 .build();
 
         rules.run(RuleContext.builder().with(bindings).build());
-        Assert.assertTrue(errors.size() == 0);
+        Assert.assertEquals(0, errors.size());
     }
 
     @Test
@@ -139,13 +139,13 @@ public class ValidationTest {
         bindings.bind("value", String.class, "  a");
         bindings.bind("e", errors);
 
-        RuleSet rules = RuleSet.builder()
+        RuleSet<?> rules = RuleSet.builder()
                 .with("RuleSet2", "Test Rule Set")
                     .rule(Rule.builder().build(new NotBlankValidationRule("value")))
                 .build();
 
         rules.run(RuleContext.builder().with(bindings).build());
-        Assert.assertTrue(errors.size() == 0);
+        Assert.assertEquals(0, errors.size());
     }
 
     @Test
@@ -155,13 +155,13 @@ public class ValidationTest {
         bindings.bind("value", String.class, "ababab");
         bindings.bind("e", errors);
 
-        RuleSet rules = RuleSet.builder()
+        RuleSet<?> rules = RuleSet.builder()
                 .with("RuleSet2", "Test Rule Set")
                     .rule(Rule.builder().build(new PatternValidationRule("value","[z]*")))
                 .build();
 
         rules.run(RuleContext.builder().with(bindings).build());
-        Assert.assertTrue(errors.size() == 1);
+        Assert.assertEquals(1, errors.size());
     }
 
 
@@ -172,7 +172,7 @@ public class ValidationTest {
         bindings.bind("value", new Date());
         bindings.bind("e", errors);
 
-        RuleSet rules = RuleSet.builder()
+        RuleSet<?> rules = RuleSet.builder()
                 .with("RuleSet", "Test Rule Set")
                     .rule(Rule.builder().build(new FutureValidationRule("value")))
                 .build();
@@ -187,13 +187,13 @@ public class ValidationTest {
         bindings.bind("value", new Date());
         bindings.bind("e", errors);
 
-        RuleSet rules = RuleSet.builder()
+        RuleSet<?> rules = RuleSet.builder()
                 .with("RuleSet", "Test Rule Set")
                     .rule(Rule.builder().build(new PastValidationRule("value")))
                 .build();
 
         rules.run(RuleContext.builder().with(bindings).build());
-        Assert.assertTrue(errors.size() == 0);
+        Assert.assertEquals(0, errors.size());
     }
 
 
@@ -204,14 +204,14 @@ public class ValidationTest {
         bindings.bind("value", 25);
         bindings.bind("e", errors);
 
-        RuleSet rules = RuleSet.builder()
+        RuleSet<?> rules = RuleSet.builder()
                 .with("RuleSet", "Test Rule Set")
                     .rule(Rule.builder().build(new MaxValidationRule("value", 50)))
                     .rule(Rule.builder().build(new MaxValidationRule("value", 20)))
                 .build();
 
         rules.run(RuleContext.builder().with(bindings).build());
-        Assert.assertTrue(errors.size() == 1);
+        Assert.assertEquals(1, errors.size());
     }
 
     @Test
@@ -221,7 +221,7 @@ public class ValidationTest {
         bindings.bind("value", 10);
         bindings.bind("e", errors);
 
-        RuleSet rules = RuleSet.builder()
+        RuleSet<?> rules = RuleSet.builder()
                 .with("RuleSet", "Test Rule Set")
                     .rule(Rule.builder().build(new MinValidationRule("value", 11)))
                     .rule(Rule.builder().build(new MinValidationRule("value", 5)))
@@ -230,7 +230,7 @@ public class ValidationTest {
                 .build();
 
         rules.run(RuleContext.builder().with(bindings).build());
-        Assert.assertTrue(errors.size() == 3);
+        Assert.assertEquals(3, errors.size());
     }
 
     @Test
@@ -240,7 +240,7 @@ public class ValidationTest {
         bindings.bind("a", 22);
         bindings.bind("e", errors);
 
-        RuleSet rules = RuleSet.builder()
+        RuleSet<?> rules = RuleSet.builder()
                 .with("RuleSet", "Test Rule Set")
                     .preCondition(condition(() -> true))
                     .rule(Rule.builder().build(new MustBeDefinedRule("c")))
@@ -248,7 +248,7 @@ public class ValidationTest {
                 .build();
 
         rules.run(RuleContext.builder().with(bindings).build());
-        Assert.assertTrue(errors.size() == 1);
+        Assert.assertEquals(1, errors.size());
     }
 
     @Test
@@ -258,14 +258,14 @@ public class ValidationTest {
         bindings.bind("a", 22);
         bindings.bind("e", errors);
 
-        RuleSet rules = RuleSet.builder()
+        RuleSet<?> rules = RuleSet.builder()
                 .with("RuleSet", "Test Rule Set")
                     .rule(Rule.builder().build(new MustNotBeDefinedRule("a")))
                     .rule(Rule.builder().build(new MustNotBeDefinedRule("c")))
                 .build();
 
         rules.run(RuleContext.builder().with(bindings).build());
-        Assert.assertTrue(errors.size() == 1);
+        Assert.assertEquals(1, errors.size());
     }
 
     @Test
@@ -276,10 +276,9 @@ public class ValidationTest {
         bindings.bind("e", errors);
 
         Rule rule = Rule.builder()
-                .validationRule("testRule", "errorCode.100")
-                .given(condition((Integer a) -> a < 20)).build();
+                .validationRule("testRule", "errorCode.100", condition((Integer a) -> a < 20)).build();
 
         rule.run(RuleContext.builder().with(bindings).build());
-        Assert.assertTrue(errors.size() == 1);
+        Assert.assertEquals(1, errors.size());
     }
 }

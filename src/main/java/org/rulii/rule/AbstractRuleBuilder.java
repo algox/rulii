@@ -28,7 +28,6 @@ import org.rulii.util.RuleUtils;
 import org.rulii.util.RunnableComparator;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public abstract class AbstractRuleBuilder<T> {
@@ -43,7 +42,6 @@ public abstract class AbstractRuleBuilder<T> {
     private Action otherwiseAction;
     private T target;
     private final List<Action> thenActions = new ArrayList<>();
-    private RuleDefinition ruleDefinition = null;
 
     protected AbstractRuleBuilder(boolean inline) {
         super();
@@ -112,10 +110,6 @@ public abstract class AbstractRuleBuilder<T> {
         return this;
     }
 
-    protected RuleDefinition getRuleDefinition() {
-        return ruleDefinition;
-    }
-
     protected Class<T> getRuleClass() {
         return ruleClass;
     }
@@ -152,13 +146,13 @@ public abstract class AbstractRuleBuilder<T> {
         return target;
     }
 
-    public RuleDefinition buildRuleDefinition() {
+    protected RuleDefinition buildRuleDefinition() {
         Assert.notNull(getName(), "Rule Name cannot be null");
 
         // Sort Then Action per Order
-        Collections.sort(thenActions, new RunnableComparator());
+        thenActions.sort(new RunnableComparator());
 
-        List<MethodDefinition> thenActionDefinitions = new ArrayList(thenActions.size());
+        List<MethodDefinition> thenActionDefinitions = new ArrayList<>(thenActions.size());
 
         for (Action thenAction : thenActions) {
             thenActionDefinitions.add(thenAction.getDefinition());

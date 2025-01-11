@@ -33,9 +33,7 @@ public class LambdaBasedRuleBuilder<T> extends AbstractRuleBuilder<T> {
     public LambdaBasedRuleBuilder<T> given(Condition condition) {
         super.given(condition);
         MethodDefinition definition = condition.getDefinition();
-        if (definition != null) {
-            ruleClass((Class<T>) definition.getMethod().getDeclaringClass());
-        }
+        if (definition != null) ruleClass((Class<T>) definition.getMethod().getDeclaringClass());
         return this;
     }
 }

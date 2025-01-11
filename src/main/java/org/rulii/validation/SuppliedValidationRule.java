@@ -19,8 +19,8 @@ public class SuppliedValidationRule extends ValidationRule {
 
     private final Condition condition;
 
-    public SuppliedValidationRule(Condition condition, String errorCode, Severity severity, String defaultMessage) {
-        super(errorCode, severity, defaultMessage);
+    public SuppliedValidationRule(Condition condition, String errorCode, Severity severity, String errorMessage, String defaultMessage) {
+        super(errorCode, severity, errorMessage, defaultMessage);
         Assert.notNull(condition, "condition must not be null.");
         this.condition = condition;
     }

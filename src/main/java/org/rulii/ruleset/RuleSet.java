@@ -19,13 +19,10 @@ package org.rulii.ruleset;
 
 import org.rulii.context.RuleContext;
 import org.rulii.model.Runnable;
+import org.rulii.model.*;
 import org.rulii.model.action.Action;
 import org.rulii.model.condition.Condition;
 import org.rulii.model.function.Function;
-import org.rulii.model.Definable;
-import org.rulii.model.Identifiable;
-import org.rulii.model.ScopeDefining;
-import org.rulii.model.UnrulyException;
 import org.rulii.rule.Rule;
 
 import java.util.List;
@@ -65,7 +62,6 @@ public interface RuleSet<T> extends Runnable<T>, Identifiable, Iterable<Rule>, D
      */
     T run(RuleContext context) throws UnrulyException;
 
-
     /**
      * Asynchronously executes the rules defined within the RuleSet using the provided RuleContext.
      *
@@ -74,7 +70,7 @@ public interface RuleSet<T> extends Runnable<T>, Identifiable, Iterable<Rule>, D
      * @return a CompletableFuture that completes with the result of the rule execution
      *         as an instance of type T.
      */
-    CompletableFuture<T> runAsync(final RuleContext ruleContext);
+    CompletableFuture<T> runAsync(RuleContext ruleContext);
 
     /**
      * Ruleset name.
@@ -149,7 +145,7 @@ public interface RuleSet<T> extends Runnable<T>, Identifiable, Iterable<Rule>, D
      *
      * @param index the position of the Rule in the RuleSet. Index must be non-negative and less than the size of the RuleSet.
      * @return the Rule at the specified index.
-     * @throws IndexOutOfBoundsException if the index is out of range (index < 0 || index >= size()).
+     * @throws IndexOutOfBoundsException if the index is out of range.
      */
     Rule get(int index);
 

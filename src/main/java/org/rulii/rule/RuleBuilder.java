@@ -18,12 +18,15 @@
 package org.rulii.rule;
 
 import org.rulii.lib.spring.util.Assert;
+import org.rulii.model.condition.Condition;
 import org.rulii.util.reflect.ObjectFactory;
+import org.rulii.validation.ValidationRuleBuilder;
 
 /**
- * Builder class for creating Rule instances.
+ * RuleBuilder class provides a fluent interface to build different types of rules.
+ * You can create rule instances based on class type, object instance, provide rule names, descriptions, and validation errors.
  *
- * @author Max Arulananthan.
+ * @author Max Arulananthan
  * @since 1.0
  */
 public final class RuleBuilder {
@@ -69,18 +72,20 @@ public final class RuleBuilder {
     }
 
     public LambdaBasedRuleBuilder<?> name(String ruleName) {
-        return new LambdaBasedRuleBuilder(ruleName, null);
+        return new LambdaBasedRuleBuilder<>(ruleName, null);
     }
 
     public <T> LambdaBasedRuleBuilder<T> name(String ruleName, String description) {
         return new LambdaBasedRuleBuilder<T>(ruleName, description);
     }
 
-    public ValidationRuleBuilder<?> validationRule(String name, String errorCode) {
-        return validationRule(name, null, errorCode);
+    public ValidationRuleBuilder validationRule(String name, Condition condition) {
+        return new ValidationRuleBuilder(name, condition);
     }
 
-    public ValidationRuleBuilder<?> validationRule(String name, String description, String errorCode) {
-        return new ValidationRuleBuilder<>(name, description, errorCode);
+    public ValidationRuleBuilder validationRule(String name, String errorCode, Condition condition) {
+        ValidationRuleBuilder result = new ValidationRuleBuilder(name, condition);
+        result.errorCode(errorCode);
+        return result;
     }
 }

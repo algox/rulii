@@ -80,7 +80,7 @@ public abstract class ValidationRule implements RuleDefinitionAware {
     protected ValidationRule(String errorCode, Severity severity, String errorMessage, String defaultMessage) {
         super();
         this.errorCode = errorCode;
-        this.severity = severity;
+        this.severity = severity != null ? severity : Severity.ERROR;
         this.errorMessage = errorMessage;
         this.defaultMessage = defaultMessage;
     }

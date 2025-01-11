@@ -116,7 +116,7 @@ public final class ConditionBuilderBuilder {
             result[i] = builder.build();
         }
 
-        return Collections.unmodifiableList(Arrays.asList(result));
+        return List.of(result);
     }
 
     private ConditionBuilder withCondition(Object target) {

@@ -61,8 +61,8 @@ public class RulingClass<T> implements Rule {
      * @param thenActions all the Then actions.
      * @param otherwiseAction the Otherwise action (optional);
      */
-    RulingClass(RuleDefinition ruleDefinition, T target, Condition preCondition, Condition condition,
-                List<Action> thenActions, Action otherwiseAction) {
+    RulingClass(RuleDefinition ruleDefinition, T target, Condition preCondition,
+                Condition condition, List<Action> thenActions, Action otherwiseAction) {
         super();
         Assert.notNull(ruleDefinition, "ruleDefinition cannot be null");
         this.ruleDefinition = ruleDefinition;
