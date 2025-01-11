@@ -29,8 +29,6 @@ import org.rulii.model.UnrulyException;
  */
 public class AlreadyRegisteredException extends UnrulyException {
 
-    private static final long serialVersionUID = 0L;
-
     private final Runnable<?> runnable;
 
     /**

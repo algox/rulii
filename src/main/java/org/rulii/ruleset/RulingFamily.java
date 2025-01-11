@@ -138,10 +138,10 @@ public class RulingFamily<T> implements RuleSet<T> {
      * @param status      the RuleSetStatus to keep track of rule execution results (must not be null)
      */
     protected void runRules(RuleContext ruleContext, RuleSetExecutionStatus status) {
-        try {
-            // Run any PreAction if one is available.
-            runInitializer(ruleContext);
+        // Run any PreAction if one is available.
+        runInitializer(ruleContext);
 
+        try {
             // Execute the rules/actions in order; STOP if the stopCondition is met.
             for (Rule rule : getRules()) {
                 // Run the rule/action

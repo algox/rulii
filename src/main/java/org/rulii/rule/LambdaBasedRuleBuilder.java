@@ -20,9 +20,17 @@ package org.rulii.rule;
 import org.rulii.model.condition.Condition;
 import org.rulii.model.MethodDefinition;
 
+/**
+ * LambdaBasedRuleBuilder is a concrete class that extends AbstractRuleBuilder and provides methods for building rule definitions using lambda expressions.
+ *
+ * @param <T> the type of the rule target
+ *
+ * @author Max Arulananthan
+ * @since 1.0
+ */
 public class LambdaBasedRuleBuilder<T> extends AbstractRuleBuilder<T> {
 
-    public LambdaBasedRuleBuilder(String name, String description) {
+    protected LambdaBasedRuleBuilder(String name, String description) {
         super(true);
         name(name);
         description(description);

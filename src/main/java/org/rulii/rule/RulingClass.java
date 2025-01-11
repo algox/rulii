@@ -22,22 +22,32 @@ import org.rulii.bind.NamedScope;
 import org.rulii.bind.PromiscuousBinder;
 import org.rulii.bind.ReservedBindings;
 import org.rulii.context.RuleContext;
-import org.rulii.model.action.Action;
-import org.rulii.model.condition.Condition;
 import org.rulii.lib.apache.commons.logging.Log;
 import org.rulii.lib.apache.commons.logging.LogFactory;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.UnrulyException;
+import org.rulii.model.action.Action;
+import org.rulii.model.condition.Condition;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
 /**
- * Default Rule Implementation (implements Identifiable).
+ * Default implementation for <code>Rule</code>
+ * Represents a rule that can be executed based on specified conditions and actions.
  *
- * @author Max Arulananthan
- * @since 1.0
+ * This class implements the Rule interface and provides methods to define and execute a rule.
+ * The rule can have a pre-condition, a condition to be evaluated, then actions to be executed
+ * if the condition is met, and an optional otherwise action to be executed if the condition fails.
+ *
+ * When the rule is executed using the run method, the pre-condition is first checked. If the pre-condition is
+ * satisfied, the specified condition is evaluated. If the condition holds true, then actions associated with
+ * the rule are executed. If the condition fails, the otherwise action is executed.
+ *
+ * Detailed logging is performed during rule execution, and exceptions are thrown if any errors occur.
+ *
+ * @param <T> the type of target object the rule is defined for
  */
 public class RulingClass<T> implements Rule {
 
@@ -226,6 +236,12 @@ public class RulingClass<T> implements Rule {
         }
     }
 
+    /**
+     * Executes the otherwise action associated with the rule context if it is not null.
+     * If the otherwise action fails, an UnrulyException is thrown.
+     *
+     * @param ruleContext the rule context in which the action is executed
+     */
     protected void runOtherwiseAction(RuleContext ruleContext) {
         // Execute otherwise Action.
         if (getOtherwiseAction() != null) {
@@ -285,6 +301,12 @@ public class RulingClass<T> implements Rule {
         return getDescription();
     }
 
+    /**
+     * Creates the description for a Rule based on the provided RuleDefinition.
+     *
+     * @param ruleDefinition the RuleDefinition object containing information about the Rule
+     * @return the description of the Rule, if available; otherwise, a default description based on the RuleDefinition
+     */
     protected static String createDescription(RuleDefinition ruleDefinition) {
         if (ruleDefinition.getDescription() != null) return ruleDefinition.getDescription();
 

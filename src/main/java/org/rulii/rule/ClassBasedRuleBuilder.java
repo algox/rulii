@@ -28,26 +28,52 @@ import org.rulii.util.Ordered;
 import java.util.List;
 
 /**
- * Builder class for all Class based Rule(s).
+ * ClassBasedRuleBuilder is a generic class that extends AbstractRuleBuilder and is used to build rule objects based on a Rule class and a target object.
+ * It provides methods to retrieve information about the Rule class such as name, description, and order.
+ * It also loads the Rule class by setting the necessary properties like name, description, order, pre-conditions, conditions, then-actions, and otherwise actions.
  *
- * @author Max Arulananthan.
+ * @author Max Arulananthan
  * @since 1.0
  */
 public class ClassBasedRuleBuilder<T> extends AbstractRuleBuilder<T> {
 
+    /**
+     * Constructor for the ClassBasedRuleBuilder class. Initializes a new instance with the specified inline flag set to false.
+     */
     protected ClassBasedRuleBuilder() {
         super(false);
     }
 
+    /**
+     * Constructor for the ClassBasedRuleBuilder class. Initializes a new instance with the specified inline flag set to false.
+     *
+     * @param ruleClass the desired Rule class to be loaded. Must not be null.
+     * @param target the rule implementation object. Must not be null.
+     */
     protected ClassBasedRuleBuilder(Class<T> ruleClass, T target) {
         super(false);
         load(ruleClass, target);
     }
 
+    /**
+     * Creates a ClassBasedRuleBuilder instance with the specified ruleClass and target object.
+     *
+     * @param <T> the type of the ruleClass and target object
+     * @param ruleClass the desired Rule class to be loaded. Must not be null.
+     * @param target the rule implementation object. Must not be null.
+     * @return a new ClassBasedRuleBuilder instance
+     */
     public static <T> ClassBasedRuleBuilder<T> with(Class<T> ruleClass, T target) {
         return new ClassBasedRuleBuilder<>(ruleClass, target);
     }
 
+    /**
+     * Retrieves the name of the Rule based on the Rule annotation on the provided class.
+     *
+     * @param <T> the type of the Rule class
+     * @param ruleClass the Class object representing the Rule class
+     * @return the name of the Rule as specified in the annotation, or the simple class name if no annotation is present
+     */
     public static <T> String getRuleName(Class<T> ruleClass) {
         // Try and locate the Rule annotation on the class
         Rule rule = ruleClass.getAnnotation(Rule.class);
@@ -58,11 +84,25 @@ public class ClassBasedRuleBuilder<T> extends AbstractRuleBuilder<T> {
                         : rule.name();
     }
 
+    /**
+     * Retrieves the detailed description of a rule based on the Description annotation on the provided class.
+     *
+     * @param <T>        the type of the ruleClass
+     * @param ruleClass   the Class object representing the rule class to retrieve the description from
+     * @return the detailed description specified in the Description annotation, or null if no annotation is present
+     */
     public static <T> String getRuleDescription(Class<T> ruleClass) {
         Description descriptionAnnotation = ruleClass.getAnnotation(Description.class);
         return descriptionAnnotation != null ? descriptionAnnotation.value() : null;
     }
 
+    /**
+     * Retrieves the rule order value specified in the Order annotation of the provided Rule class.
+     *
+     * @param <T>       the type of the Rule class
+     * @param ruleClass the Class object representing the Rule class
+     * @return the rule order value as specified in the annotation, or Ordered.LOWEST_PRECEDENCE if no annotation is present
+     */
     public static <T> Integer getRuleOrder(Class<T> ruleClass) {
         Order orderAnnotation = ruleClass.getAnnotation(Order.class);
         return orderAnnotation != null ? orderAnnotation.value() : Ordered.LOWEST_PRECEDENCE;
@@ -89,6 +129,12 @@ public class ClassBasedRuleBuilder<T> extends AbstractRuleBuilder<T> {
         loadOtherwiseAction(target);
     }
 
+    /**
+     * Loads and processes the pre-condition method of the specified rule class against the target object.
+     *
+     * @param ruleClass the Class representing the rule class with the pre-condition method
+     * @param target the target object to process the pre-condition against
+     */
     protected void loadPreCondition(Class<T> ruleClass, Object target) {
         List<Condition> preConditions = Condition.builder().build(target, PreCondition.class);
 
@@ -106,6 +152,12 @@ public class ClassBasedRuleBuilder<T> extends AbstractRuleBuilder<T> {
         if (preConditions.get(0) != null) pre(preConditions.get(0));
     }
 
+    /**
+     * Introspects the given object for methods that are annotated with the required Annotation and builds corresponding conditions for them.
+     *
+     * @param ruleClass the Rule class to load conditions for
+     * @param target the target object to build conditions from
+     */
     protected void loadCondition(Class<T> ruleClass, Object target) {
         List<Condition> givenConditions = Condition.builder().build(target, Given.class);
 

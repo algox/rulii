@@ -30,6 +30,15 @@ import org.rulii.util.RunnableComparator;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * AbstractRuleBuilder is an abstract class that provides a fluent interface for building rule definitions.
+ * It allows the creation of rules with a name, description, order, pre-condition, main condition, actions, and an otherwise action.
+ *
+ * @param <T> the type of the rule target
+ *
+ * @author Max Arulananthan
+ * @since 1.0
+ */
 public abstract class AbstractRuleBuilder<T> {
 
     private final boolean inline;
@@ -43,11 +52,22 @@ public abstract class AbstractRuleBuilder<T> {
     private T target;
     private final List<Action> thenActions = new ArrayList<>();
 
+    /**
+     * Initializes a new AbstractRuleBuilder object with the specified inline flag.
+     *
+     * @param inline indicates whether the rule is inline or not.
+     */
     protected AbstractRuleBuilder(boolean inline) {
         super();
         this.inline = inline;
     }
 
+    /**
+     * Sets the rule class for the current rule being built.
+     *
+     * @param ruleClass the class representing the rule.
+     * @return the AbstractRuleBuilder instance for method chaining.
+     */
     protected AbstractRuleBuilder<T> ruleClass(Class<T> ruleClass) {
         Assert.notNull(ruleClass, "ruleClass cannot be null.");
         this.ruleClass = ruleClass;
@@ -78,33 +98,69 @@ public abstract class AbstractRuleBuilder<T> {
         return this;
     }
 
+    /**
+     * Sets the order value of this AbstractRuleBuilder.
+     *
+     * @param order the desired order value for the rule.
+     * @return the AbstractRuleBuilder instance with the updated order value.
+     */
     public AbstractRuleBuilder<T> order(int order) {
         this.order = order;
         return this;
     }
 
+    /**
+     * Sets the pre-condition for the rule being built.
+     *
+     * @param preCondition the pre-condition to be set.
+     * @return the AbstractRuleBuilder instance for method chaining.
+     */
     public AbstractRuleBuilder<T> pre(Condition preCondition) {
         this.preCondition = preCondition;
         return this;
     }
 
+    /**
+     * Sets the given condition for the rule being built.
+     *
+     * @param condition the Condition to set for the rule.
+     * @return the AbstractRuleBuilder instance for method chaining.
+     */
     public AbstractRuleBuilder<T> given(Condition condition) {
         Assert.notNull(condition, "condition cannot be null.");
         this.condition = condition;
         return this;
     }
 
+    /**
+     * Appends the given action to the list of actions to be executed after the current rule.
+     *
+     * @param action the action to be executed after the rule.
+     * @return the AbstractRuleBuilder instance for method chaining.
+     */
     public AbstractRuleBuilder<T> then(Action action) {
         Assert.notNull(action, "action cannot be null.");
         this.thenActions.add(action);
         return this;
     }
 
+    /**
+     * Sets the action to be executed if none of the conditions of the rule are met.
+     *
+     * @param action the Action to be executed if no conditions are met.
+     * @return the AbstractRuleBuilder instance for method chaining.
+     */
     public AbstractRuleBuilder<T> otherwise(Action action) {
         this.otherwiseAction = action;
         return this;
     }
 
+    /**
+     * Sets the target for the current rule builder.
+     *
+     * @param target the target for the rule
+     * @return the AbstractRuleBuilder instance for method chaining
+     */
     protected AbstractRuleBuilder<T> target(T target) {
         this.target = target;
         return this;
@@ -146,6 +202,13 @@ public abstract class AbstractRuleBuilder<T> {
         return target;
     }
 
+    /**
+     * Builds a RuleDefinition object based on the specified parameters and internal state of the AbstractRuleBuilder.
+     * The RuleDefinition consists of information about a rule, including its name, description, order, source details,
+     * pre-condition method information, condition method information, then actions method information, and otherwise action method information.
+     *
+     * @return a RuleDefinition object representing the built rule with all relevant information populated.
+     */
     protected RuleDefinition buildRuleDefinition() {
         Assert.notNull(getName(), "Rule Name cannot be null");
 
@@ -166,10 +229,22 @@ public abstract class AbstractRuleBuilder<T> {
                 getOtherwiseAction() != null ? getOtherwiseAction().getDefinition() : null);
     }
 
+    /**
+     * Validate method ensures that a valid Rule object must have a non-null Condition set. An Assertion error
+     * will be thrown if the Condition field is null.
+     */
     public void validate() {
         Assert.notNull(getCondition(), "Rule must have a Condition.");
     }
 
+    /**
+     * Builds a Rule object based on the specified parameters and internal state of the AbstractRuleBuilder.
+     * It validates the Rule object to ensure it has a non-null Condition set.
+     * If the target object implements RuleDefinitionAware, it sets the RuleDefinition.
+     * Finally, it constructs and returns a new Rule object with the relevant information.
+     *
+     * @return a Rule object representing the built rule with all the necessary properties set.
+     */
     public Rule build() {
         validate();
         RuleDefinition ruleDefinition = buildRuleDefinition();
