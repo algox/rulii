@@ -17,8 +17,8 @@
  */
 package org.rulii.test.validation;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.rulii.bind.Bindings;
 import org.rulii.context.RuleContext;
 import org.rulii.rule.Rule;
@@ -39,6 +39,7 @@ import org.rulii.validation.rules.size.SizeValidationRule;
 import java.util.Date;
 
 import static org.rulii.model.condition.Conditions.condition;
+
 /**
  * Test cases for the various Validation Rules.
  *
@@ -97,7 +98,7 @@ public class ValidationTest {
 
         RuleContext context = RuleContext.builder().with(bindings).build();
         rules.run(context);
-        Assert.assertEquals(0, errors.size());
+        Assertions.assertEquals(0, errors.size());
     }
 
     @Test
@@ -113,7 +114,7 @@ public class ValidationTest {
                 .build();
 
         rules.run(RuleContext.builder().with(bindings).build());
-        Assert.assertEquals(0, errors.size());
+        Assertions.assertEquals(0, errors.size());
     }
 
     @Test
@@ -129,7 +130,7 @@ public class ValidationTest {
                 .build();
 
         rules.run(RuleContext.builder().with(bindings).build());
-        Assert.assertEquals(0, errors.size());
+        Assertions.assertEquals(0, errors.size());
     }
 
     @Test
@@ -145,7 +146,7 @@ public class ValidationTest {
                 .build();
 
         rules.run(RuleContext.builder().with(bindings).build());
-        Assert.assertEquals(0, errors.size());
+        Assertions.assertEquals(0, errors.size());
     }
 
     @Test
@@ -161,7 +162,7 @@ public class ValidationTest {
                 .build();
 
         rules.run(RuleContext.builder().with(bindings).build());
-        Assert.assertEquals(1, errors.size());
+        Assertions.assertEquals(1, errors.size());
     }
 
 
@@ -193,7 +194,7 @@ public class ValidationTest {
                 .build();
 
         rules.run(RuleContext.builder().with(bindings).build());
-        Assert.assertEquals(0, errors.size());
+        Assertions.assertEquals(0, errors.size());
     }
 
 
@@ -211,7 +212,7 @@ public class ValidationTest {
                 .build();
 
         rules.run(RuleContext.builder().with(bindings).build());
-        Assert.assertEquals(1, errors.size());
+        Assertions.assertEquals(1, errors.size());
     }
 
     @Test
@@ -230,7 +231,7 @@ public class ValidationTest {
                 .build();
 
         rules.run(RuleContext.builder().with(bindings).build());
-        Assert.assertEquals(3, errors.size());
+        Assertions.assertEquals(3, errors.size());
     }
 
     @Test
@@ -248,7 +249,7 @@ public class ValidationTest {
                 .build();
 
         rules.run(RuleContext.builder().with(bindings).build());
-        Assert.assertEquals(1, errors.size());
+        Assertions.assertEquals(1, errors.size());
     }
 
     @Test
@@ -265,7 +266,7 @@ public class ValidationTest {
                 .build();
 
         rules.run(RuleContext.builder().with(bindings).build());
-        Assert.assertEquals(1, errors.size());
+        Assertions.assertEquals(1, errors.size());
     }
 
     @Test
@@ -279,6 +280,6 @@ public class ValidationTest {
                 .validationRule("testRule", "errorCode.100", condition((Integer a) -> a < 20)).build();
 
         rule.run(RuleContext.builder().with(bindings).build());
-        Assert.assertEquals(1, errors.size());
+        Assertions.assertEquals(1, errors.size());
     }
 }

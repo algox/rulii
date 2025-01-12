@@ -17,16 +17,19 @@
  */
 package org.rulii.test.bind;
 
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.rulii.bind.Binding;
 import org.rulii.bind.BindingBuilder;
 import org.rulii.bind.InvalidBindingException;
 import org.rulii.lib.apache.reflect.TypeUtils;
 import org.rulii.util.TypeReference;
-import org.junit.Assert;
-import org.junit.Test;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -42,84 +45,90 @@ public class BindTest {
 
     @Test
     public void testBuilder() {
-        Binding binding = Binding.builder().with("name").build();
-        Assert.assertTrue(binding != null && Object.class.equals(binding.getType()));
+        Binding<?> binding = Binding.builder().with("name").build();
+        Assertions.assertEquals(Object.class, binding.getType());
     }
 
     @Test
     public void testBindingBuilder() {
-        Binding binding = Binding.builder().with("a").type(Integer.class).value(200).build();
-        Assert.assertTrue(binding.getName().equals("a"));
-        Assert.assertTrue(binding.getValue().equals(200));
+        Binding<Integer> binding = Binding.builder().with("a").type(Integer.class).value(200).build();
+        Assertions.assertEquals("a", binding.getName());
+        Assertions.assertEquals(200, (int) binding.getValue());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testBind1() {
-        Binding.builder().with("a b c");
+        Assertions.assertThrows(IllegalArgumentException.class, () -> {
+            Binding.builder().with("a b c");
+        });
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testBind2() {
-        Binding.builder().with((String) null);
+        Assertions.assertThrows(IllegalArgumentException.class, () -> {
+            Binding.builder().with((String) null);
+        });
     }
 
     @Test
     public void testBind3() {
         BindingBuilder bindingBuilder = Binding.builder().with("a");
-        Assert.assertTrue(bindingBuilder != null);
+        Assertions.assertNotNull(bindingBuilder);
     }
 
     @Test
     public void testBind4() {
         BindingBuilder bindingBuilder = Binding.builder().with(a -> null);
-        Assert.assertTrue(bindingBuilder != null);
-        Binding binding = Binding.builder().with(a -> "hello").build();
-        Assert.assertTrue(binding != null);
-        Assert.assertEquals("a", binding.getName());
-        Assert.assertEquals("hello", binding.getValue());
-        Assert.assertEquals(String.class, binding.getType());
+        Assertions.assertNotNull(bindingBuilder);
+        Binding<String> binding = Binding.builder().with(a -> "hello").build();
+        Assertions.assertNotNull(binding);
+        Assertions.assertEquals("a", binding.getName());
+        Assertions.assertEquals("hello", binding.getValue());
+        Assertions.assertEquals(String.class, binding.getType());
     }
 
     @Test
     public void testBind5() {
-        Binding binding = Binding.builder()
+        Binding<String> binding = Binding.builder()
                 .with("a")
                 .value("hello")
                 .build();
-        Assert.assertEquals(binding.getName(), "a");
-        Assert.assertEquals(binding.getValue(), "hello");
-        Assert.assertEquals(binding.getType(), String.class);
+        Assertions.assertEquals(binding.getName(), "a");
+        Assertions.assertEquals(binding.getValue(), "hello");
+        Assertions.assertEquals(binding.getType(), String.class);
     }
 
     @Test
     public void testBind6() {
-        Binding binding = Binding.builder()
+        Binding<String> binding = Binding.builder()
                 .with("someBinding")
                 .type(String.class)
                 .value("value")
                 .build();
-        Assert.assertEquals(binding.getName(), "someBinding");
-        Assert.assertEquals(binding.getValue(), "value");
-        Assert.assertEquals(binding.getType(), String.class);
+        Assertions.assertEquals(binding.getName(), "someBinding");
+        Assertions.assertEquals(binding.getValue(), "value");
+        Assertions.assertEquals(binding.getType(), String.class);
     }
 
-    @Test(expected = InvalidBindingException.class)
+    @Test
     public void testBind7() {
-        Binding binding = Binding.builder()
-                .with("someBinding")
-                .type(Integer.class)
-                .value("value")
-                .build();
+        Assertions.assertThrows(InvalidBindingException.class, () -> {
+            Binding.builder()
+                    .with("someBinding")
+                    .type(Integer.class)
+                    .value("value")
+                    .build();
+        });
     }
 
     @Test
     public void testBind8() {
-        Binding binding = Binding.builder()
+        Binding<List<Integer>> binding = Binding.builder()
                 .with("someBinding")
                 .type(new TypeReference<List<Integer>>() {})
                 .build();
-        Assert.assertEquals(binding.getType(), new TypeReference<List<Integer>>() {}.getType());
-        Assert.assertTrue(TypeUtils.isAssignable(binding.getType(), new TypeReference<List<Integer>>() {}.getType()));
+        Assertions.assertEquals(binding.getType(), new TypeReference<List<Integer>>() {}.getType());
+        Assertions.assertTrue(TypeUtils.isAssignable(binding.getType(), new TypeReference<List<Integer>>() {}.getType()));
     }
 
     @Test
@@ -127,13 +136,13 @@ public class BindTest {
         List<Integer> values = new ArrayList<>();
         values.add(1);
 
-        Binding binding = Binding.builder()
+        Binding<List<Integer>> binding = Binding.builder()
                 .with("someBinding")
                 .type(new TypeReference<List<Integer>>() {})
                 .value(values)
                 .build();
 
-        Assert.assertTrue(binding.isEditable());
+        Assertions.assertTrue(binding.isEditable());
     }
 
     @Test
@@ -141,96 +150,101 @@ public class BindTest {
         List<Integer> values = new ArrayList<>();
         values.add(1);
 
-        Binding binding = Binding.builder()
+        Binding<List<Integer>> binding = Binding.builder()
                 .with("someBinding")
                 .type(new TypeReference<List<Integer>>() {})
                 .value(() -> values)
                 .build();
 
-        Assert.assertTrue(!binding.isEditable());
-        Assert.assertEquals(values, binding.getValue());
+        Assertions.assertFalse(binding.isEditable());
+        Assertions.assertEquals(values, binding.getValue());
     }
 
     @Test
     public void testBind11() {
         AtomicInteger value = new AtomicInteger(10);
 
-        Binding binding = Binding.builder()
+        Binding<Integer> binding = Binding.builder()
                 .with("someBinding")
                 .type(Integer.class)
                 .delegate(() -> value.get(), (Integer x) -> value.set(x))
                 .build();
 
-        Assert.assertEquals(10, binding.getValue());
+        Assertions.assertEquals(10, binding.getValue());
         binding.setValue(25);
-        Assert.assertEquals(25, binding.getValue());
+        Assertions.assertEquals(25, binding.getValue());
     }
 
     @Test
     public void testBind12() {
-        Binding binding = Binding.builder()
+        Binding<Integer> binding = Binding.builder()
                 .with("someBinding")
                 .type(Integer.class)
                 .description("some description")
                 .primary(true)
                 .build();
 
-        Assert.assertEquals(true, binding.isPrimary());
-        Assert.assertEquals("some description", binding.getDescription());
+        Assertions.assertTrue(binding.isPrimary());
+        Assertions.assertEquals("some description", binding.getDescription());
     }
 
-    @Test(expected = InvalidBindingException.class)
+    @Test
     public void testBind13() {
-        Binding binding = Binding.builder()
-                .with("b", new TypeReference<Map<String, List<BigDecimal>>>() {}).build();
-        binding.setValue(new ArrayList<>());
+        Assertions.assertThrows(InvalidBindingException.class, () -> {
+            Binding<Object> binding = Binding.builder()
+                    .with("b", new TypeReference<Map<String, List<BigDecimal>>>() {
+                    }).build();
+            binding.setValue(new ArrayList<>());
+        });
     }
 
     @Test
     public void testBind14() {
-        Binding binding = Binding.builder()
+        Binding<Map<String, List<BigDecimal>>> binding = Binding.builder()
                 .with("b", new TypeReference<Map<String, List<BigDecimal>>>() {}).build();
         Map<String, List<BigDecimal>> value = new HashMap<>();
-        value.put("value1", Arrays.asList());
+        value.put("value1", List.of());
         binding.setValue(value);
     }
 
     @Test
     public void testBind15() {
-        Binding binding = Binding.builder()
+        Binding<Map<String, List<?>>> binding = Binding.builder()
                 .with("b", new TypeReference<Map<String, List<?>>>() {}).build();
-        Assert.assertTrue(binding.isTypeAcceptable(new TypeReference<Map<String, List<?>>>() {}.getType()));
+        Assertions.assertTrue(binding.isTypeAcceptable(new TypeReference<Map<String, List<?>>>() {}.getType()));
     }
 
     @Test
     public void testBind16() {
-        Binding binding = Binding.builder()
+        Binding<List<?>> binding = Binding.builder()
                 .with("b", ArrayList.class).build();
-        Assert.assertTrue(binding.isAssignable(List.class));
+        Assertions.assertTrue(binding.isAssignable(List.class));
     }
 
-    @Test(expected = InvalidBindingException.class)
+    @Test
     public void testBind17() {
-        Binding binding = Binding.builder().constant("c", "hello world!");
-        binding.setValue("new value");
+        Assertions.assertThrows(InvalidBindingException.class, () -> {
+            Binding<String> binding = Binding.builder().constant("c", "hello world!");
+            binding.setValue("new value");
+        });
     }
 
     @Test
     public void testBind18() {
-        Binding b = Binding.builder().build("binding", BigDecimal.class);
-        Assert.assertTrue("BigDecimal".equals(b.getTypeName()));
+        Binding<BigDecimal> b = Binding.builder().build("binding", BigDecimal.class);
+        Assertions.assertEquals("BigDecimal", b.getTypeName());
     }
 
     @Test
     public void testBind19() {
-        Binding b = Binding.builder().build("binding", new TypeReference<Map<String, List<?>>>() {});
-        Assert.assertTrue("java.util.Map<java.lang.String, java.util.List<?>>".equals(b.getTypeName()));
+        Binding<Map<String, List<?>>> b = Binding.builder().build("binding", new TypeReference<Map<String, List<?>>>() {});
+        Assertions.assertEquals("java.util.Map<java.lang.String, java.util.List<?>>", b.getTypeName());
     }
 
     @Test
     public void testBind20() {
-        Binding b = Binding.builder().build("binding", String.class);
-        Assert.assertTrue("String binding".equals(b.getTypeAndName()));
+        Binding<String> b = Binding.builder().build("binding", String.class);
+        Assertions.assertEquals("String binding", b.getTypeAndName());
     }
 }
 

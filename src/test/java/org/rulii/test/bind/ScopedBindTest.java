@@ -17,10 +17,10 @@
  */
 package org.rulii.test.bind;
 
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.rulii.bind.*;
 import org.rulii.util.TypeReference;
-import org.junit.Assert;
-import org.junit.Test;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -39,67 +39,68 @@ public class ScopedBindTest {
     @Test
     public void testCreateBindings() {
         Bindings scopedBindings = Bindings.builder().scoped();
-        Assert.assertTrue(scopedBindings instanceof DefaultScopedBindings);
+        Assertions.assertInstanceOf(DefaultScopedBindings.class, scopedBindings);
     }
 
     @Test
     public void bindTest1() {
         Bindings bindings = Bindings.builder().scoped();
-        Binding binding = Binding.builder().with("key1").value("Hello World!").build();
+        Binding<String> binding = Binding.builder().with("key1").value("Hello World!").build();
         bindings.bind(binding);
-        Binding match = bindings.getBinding("key1");
-        Assert.assertTrue(match.equals(binding));
+        Binding<String> match = bindings.getBinding("key1");
+        Assertions.assertEquals(match, binding);
     }
 
     @Test
     public void bindTest2() {
         Bindings bindings = Bindings.builder().scoped();
-        Binding binding = Binding.builder().with(key1 -> "hello world!").build();
+        Binding<String> binding = Binding.builder().with(key1 -> "hello world!").build();
         bindings.bind(binding);
-        Binding match = bindings.getBinding("key1");
-        Assert.assertTrue(match.equals(binding));
+        Binding<String> match = bindings.getBinding("key1");
+        Assertions.assertEquals(match, binding);
     }
 
     @Test
     public void bindTest3() {
         Bindings bindings = Bindings.builder().scoped();
-        Binding b = bindings.bind("key1", 100);
-        Binding match = bindings.getBinding("key1");
-        Assert.assertTrue(match.getName().equals("key1"));
-        Assert.assertTrue(match.getValue().equals(100));
-        Assert.assertTrue(match.getType().equals(Integer.class));
-        Assert.assertEquals(b, match);
+        Binding<Integer> b = bindings.bind("key1", 100);
+        Binding<Integer> match = bindings.getBinding("key1");
+        Assertions.assertEquals("key1", match.getName());
+        Assertions.assertEquals(100, match.getValue());
+        Assertions.assertEquals(match.getType(), Integer.class);
+        Assertions.assertEquals(b, match);
     }
 
     @Test
     public void bindTest4() {
         Bindings bindings = Bindings.builder().scoped();
         bindings.bind("key1", int.class);
-        Binding match = bindings.getBinding("key1");
-        Assert.assertTrue(match.getName().equals("key1"));
-        Assert.assertTrue(match.getValue().equals(0));
-        Assert.assertTrue(match.getType().equals(int.class));
+        Binding<Integer> match = bindings.getBinding("key1");
+        Assertions.assertEquals("key1", match.getName());
+        Assertions.assertEquals(0, match.getValue());
+        Assertions.assertEquals(match.getType(), int.class);
     }
 
     @Test
     public void bindTest5() {
         Bindings bindings = Bindings.builder().scoped();
-        Binding b = bindings.bind("x", new TypeReference<List<Integer>>() {});
-        Binding match = bindings.getBinding("x");
-        Assert.assertTrue(match.getName().equals("x"));
-        Assert.assertTrue(match.getType().equals(new TypeReference<List<Integer>>() {}.getType()));
-        Assert.assertTrue(match.getValue() == null);
-        Assert.assertEquals(b, match);
+        Binding<List<Integer>> b = bindings.bind("x", new TypeReference<List<Integer>>() {});
+        Binding<List<Integer>> match = bindings.getBinding("x");
+        Assertions.assertEquals("x", match.getName());
+        Assertions.assertEquals(match.getType(), new TypeReference<List<Integer>>() {
+        }.getType());
+        Assertions.assertNull(match.getValue());
+        Assertions.assertEquals(b, match);
     }
 
     @Test
     public void bindTest6() {
         Bindings bindings = Bindings.builder().scoped();
         bindings.bind("x", int.class, 250);
-        Binding match = bindings.getBinding("x");
-        Assert.assertTrue(match.getName().equals("x"));
-        Assert.assertTrue(match.getType().equals(int.class));
-        Assert.assertTrue(match.getValue().equals(250));
+        Binding<Integer> match = bindings.getBinding("x");
+        Assertions.assertEquals("x", match.getName());
+        Assertions.assertEquals(match.getType(), int.class);
+        Assertions.assertEquals(250, match.getValue());
     }
 
     @Test
@@ -107,22 +108,23 @@ public class ScopedBindTest {
         List<Integer> values = new ArrayList<>();
         Bindings bindings = Bindings.builder().scoped();
         bindings.bind("x", new TypeReference<List<Integer>>() {}, values);
-        Binding match = bindings.getBinding("x");
-        Assert.assertTrue(match.getName().equals("x"));
-        Assert.assertTrue(match.getType().equals(new TypeReference<List<Integer>>() {}.getType()));
-        Assert.assertTrue(match.getValue().equals(values));
+        Binding<List<Integer>> match = bindings.getBinding("x");
+        Assertions.assertEquals("x", match.getName());
+        Assertions.assertEquals(match.getType(), new TypeReference<List<Integer>>() {
+        }.getType());
+        Assertions.assertEquals(match.getValue(), values);
     }
 
     @Test
     public void bindTest8() {
         Bindings bindings = Bindings.builder().scoped();
-        Assert.assertTrue(bindings.size() == 0);
+        Assertions.assertEquals(0, bindings.size());
         bindings.bind(Binding.builder().with(key1 -> "hello world!").build());
-        Assert.assertTrue(bindings.size() == 1);
+        Assertions.assertEquals(1, bindings.size());
         bindings.bind(Binding.builder().with(key2 -> 25).build());
-        Assert.assertTrue(bindings.size() == 2);
+        Assertions.assertEquals(2, bindings.size());
         bindings.bind(Binding.builder().with(key3 -> new BigDecimal("100.00")).build());
-        Assert.assertTrue(bindings.size() == 3);
+        Assertions.assertEquals(3, bindings.size());
     }
 
     @Test
@@ -131,102 +133,104 @@ public class ScopedBindTest {
         bindings.bind(Binding.builder().with(key1 -> "hello world!").build());
         bindings.bind(Binding.builder().with(key2 -> 25).build());
         bindings.bind(Binding.builder().with(key3 -> new BigDecimal("100.00")).build());
-        Assert.assertTrue(bindings.size() == 3);
+        Assertions.assertEquals(3, bindings.size());
     }
 
-    @Test(expected = BindingAlreadyExistsException.class)
+    @Test
     public void bindTest10() {
-        Bindings bindings = Bindings.builder().scoped();
-        bindings.bind("x", int.class, 250);
-        bindings.bind("x", String.class, "Hello world");
+        Assertions.assertThrows(BindingAlreadyExistsException.class, () -> {
+            Bindings bindings = Bindings.builder().scoped();
+            bindings.bind("x", int.class, 250);
+            bindings.bind("x", String.class, "Hello world");
+        });
     }
 
     @Test
     public void bindTest11() {
         Bindings bindings = Bindings.builder().scoped();
-        Binding binding1 = Binding.builder().with("x").value("Hello World!").build();
+        Binding<String> binding1 = Binding.builder().with("x").value("Hello World!").build();
         bindings.bind(binding1);
-        Binding binding2 = Binding.builder().with("X").value(101).build();
+        Binding<Integer> binding2 = Binding.builder().with("X").value(101).build();
         bindings.bind(binding2);
 
-        Binding<String> match = bindings.getBinding("X");
-        Assert.assertTrue(match.equals(binding2));
+        Binding<Integer> match = bindings.getBinding("X");
+        Assertions.assertEquals(match, binding2);
         match = bindings.getBinding("key");
-        Assert.assertTrue(match == null);
+        Assertions.assertNull(match);
     }
 
     @Test
     public void bindTest12() {
         Bindings bindings = Bindings.builder().scoped();
-        Binding binding1 = Binding.builder().with("x").value("Hello World!").build();
+        Binding<String> binding1 = Binding.builder().with("x").value("Hello World!").build();
         bindings.bind(binding1);
-        Binding binding2 = Binding.builder().with("X").value(101).build();
+        Binding<Integer> binding2 = Binding.builder().with("X").value(101).build();
         bindings.bind(binding2);
-        Binding binding3 = Binding.builder().with("y").type(new TypeReference<Map<List<Integer>, String>>() {}).build();
+        Binding<Map<List<Integer>, String>> binding3 = Binding.builder().with("y").type(new TypeReference<Map<List<Integer>, String>>() {}).build();
         bindings.bind(binding3);
 
-        Assert.assertTrue(bindings.contains("x"));
-        Assert.assertTrue(bindings.contains("X"));
-        Assert.assertTrue(bindings.contains("X", Integer.class));
-        Assert.assertTrue(bindings.contains("x", String.class));
-        Assert.assertTrue(bindings.contains("y", new TypeReference<Map<List<Integer>, String>>() {}));
-        Assert.assertTrue(!bindings.contains("a"));
+        Assertions.assertTrue(bindings.contains("x"));
+        Assertions.assertTrue(bindings.contains("X"));
+        Assertions.assertTrue(bindings.contains("X", Integer.class));
+        Assertions.assertTrue(bindings.contains("x", String.class));
+        Assertions.assertTrue(bindings.contains("y", new TypeReference<Map<List<Integer>, String>>() {}));
+        Assertions.assertFalse(bindings.contains("a"));
     }
 
     @Test
     public void bindTest13() {
         Bindings bindings = Bindings.builder().scoped();
-        Binding binding1 = Binding.builder().with("x").value("Hello World!").build();
+        Binding<String> binding1 = Binding.builder().with("x").value("Hello World!").build();
         bindings.bind(binding1);
-        Binding binding2 = Binding.builder().with("X").value(101).build();
+        Binding<Integer> binding2 = Binding.builder().with("X").value(101).build();
         bindings.bind(binding2);
-        Binding binding3 = Binding.builder().with("y").type(new TypeReference<Map<List<Integer>, String>>() {
+        Binding<Map<List<Integer>, String>> binding3 = Binding.builder().with("y").type(new TypeReference<Map<List<Integer>, String>>() {
         }).build();
         bindings.bind(binding3);
 
-        Binding match1 = bindings.getBinding("x");
-        Binding match2 = bindings.getBinding("X", Integer.class);
-        Binding match3 = bindings.getBinding("y", new TypeReference<Map<List<Integer>, String>>() {
+        Binding<String> match1 = bindings.getBinding("x");
+        Binding<Integer> match2 = bindings.getBinding("X", Integer.class);
+        Binding<Map<List<Integer>, String>> match3 = bindings.getBinding("y", new TypeReference<Map<List<Integer>, String>>() {
         }.getType());
-        Binding match4 = bindings.getBinding("a");
-        Binding match5 = bindings.getBinding("a", Integer.class);
-        Binding match6 = bindings.getBinding("a", new TypeReference<Map<List<Integer>, String>>() {
+        Binding<?> match4 = bindings.getBinding("a");
+        Binding<Integer> match5 = bindings.getBinding("a", Integer.class);
+        Binding<Map<List<Integer>, String>> match6 = bindings.getBinding("a", new TypeReference<Map<List<Integer>, String>>() {
         }.getType());
-        Assert.assertTrue(match1.equals(binding1));
-        Assert.assertTrue(match2.equals(binding2));
-        Assert.assertTrue(match3.equals(binding3));
-        Assert.assertTrue(match4 == null);
-        Assert.assertTrue(match5 == null);
-        Assert.assertTrue(match6 == null);
+        Assertions.assertEquals(match1, binding1);
+        Assertions.assertEquals(match2, binding2);
+        Assertions.assertEquals(match3, binding3);
+        Assertions.assertNull(match4);
+        Assertions.assertNull(match5);
+        Assertions.assertNull(match6);
     }
 
     @Test
     public void bindTest14() {
         Bindings bindings = Bindings.builder().scoped();
-        Binding binding1 = Binding.builder().with("x").value("Hello World!").build();
+        Binding<String> binding1 = Binding.builder().with("x").value("Hello World!").build();
         bindings.bind(binding1);
-        Binding binding2 = Binding.builder().with("X").value("101").build();
+        Binding<String> binding2 = Binding.builder().with("X").value("101").build();
         bindings.bind(binding2);
-        Binding binding3 = Binding.builder().with("y").type(new TypeReference<Map<List<Integer>, String>>() {}).build();
+        Binding<Map<List<Integer>, String>> binding3 = Binding.builder().with("y").type(new TypeReference<Map<List<Integer>, String>>() {}).build();
         bindings.bind(binding3);
-        Binding binding4 = Binding.builder().with("z").type(new TypeReference<Map<String, String>>() {}).build();
+        Binding<Map<List<Integer>, String>> binding4 = Binding.builder().with("z").type(new TypeReference<Map<String, String>>() {}).build();
         bindings.bind(binding4);
-        Binding binding5 = Binding.builder().with("a").type(new TypeReference<ArrayList<Integer>>() {}).value(new ArrayList<>()).build();
+        Binding<ArrayList<Integer>> binding5 = Binding.builder().with("a").type(new TypeReference<ArrayList<Integer>>() {}).value(new ArrayList<>()).build();
         bindings.bind(binding5);
 
         List<Binding<String>> matches1 = bindings.getBindings(String.class);
-        Assert.assertTrue(matches1.contains(binding1));
-        Assert.assertTrue(matches1.contains(binding2));
-        Assert.assertTrue(!matches1.contains(binding3));
+        Assertions.assertTrue(matches1.contains(binding1));
+        Assertions.assertTrue(matches1.contains(binding2));
+        Assertions.assertFalse(matches1.contains(binding3));
 
-        List<Binding<Map>> matches2 = bindings.getBindings(Map.class);
-        Assert.assertTrue(matches2.contains(binding3));
+        List<Binding<Map<?,?>>> matches2 = bindings.getBindings(Map.class);
+        Assertions.assertTrue(matches2.contains(binding3));
         List<Binding<Map<?, ?>>> matches3 = bindings.getBindings(new TypeReference<Map<?, ?>>() {}.getType());
-        Assert.assertTrue(matches3.size() == 2 && matches3.contains(binding3) && matches3.contains(binding4));
+        Assertions.assertTrue(matches3.size() == 2 && matches3.contains(binding3) && matches3.contains(binding4));
         List<Binding<Map<List<Integer>, String>>> matches4 = bindings.getBindings(new TypeReference<Map<List<Integer>, String>>() {}.getType());
-        Assert.assertTrue(matches4.size() == 1 && matches4.contains(binding3));
+        Assertions.assertTrue(matches4.size() == 1 && matches4.contains(binding3));
         List<Binding<List<Integer>>> matches5 = bindings.getBindings(new TypeReference<List<Integer>>() {}.getType());
-        Assert.assertTrue(matches5.size() == 1 && matches5.contains(binding5));
+        Assertions.assertTrue(matches5.size() == 1 && matches5.contains(binding5));
     }
 
     @Test
@@ -240,33 +244,37 @@ public class ScopedBindTest {
         bindings.bind("x", String.class, "Hello World!");
         bindings.bind("y", List.class, values);
 
-        Assert.assertTrue(bindings.getValue("x").equals("Hello World!"));
-        Assert.assertTrue(bindings.getValue("y").equals(values));
+        Assertions.assertEquals("Hello World!", bindings.getValue("x"));
+        Assertions.assertEquals(bindings.getValue("y"), values);
     }
 
-    @Test(expected = NoSuchBindingException.class)
+    @Test
     public void bindTest16() {
-        Bindings bindings = Bindings.builder().scoped();
-        bindings.getValue("x");
+        Assertions.assertThrows(NoSuchBindingException.class, () -> {
+            Bindings bindings = Bindings.builder().scoped();
+            bindings.getValue("x");
+        });
     }
 
     @Test
     public void bindTest17() {
         Bindings bindings = Bindings.builder().scoped();
         bindings.bind("x", String.class, "Hello World!");
-        Assert.assertTrue(bindings.getValue("x").equals("Hello World!"));
+        Assertions.assertEquals("Hello World!", bindings.getValue("x"));
         bindings.setValue("x", "new value");
-        Assert.assertTrue(bindings.getValue("x").equals("new value"));
+        Assertions.assertEquals("new value", bindings.getValue("x"));
         bindings.bind("y", List.class);
         bindings.setValue("y", new ArrayList<>());
-        Assert.assertTrue(bindings.getValue("y").equals(new ArrayList<>()));
+        Assertions.assertEquals(bindings.getValue("y"), new ArrayList<>());
     }
 
-    @Test(expected = InvalidBindingException.class)
+    @Test
     public void bindTest18() {
-        Bindings bindings = Bindings.builder().scoped();
-        bindings.bind("x", String.class, "Hello World!");
-        bindings.setValue("x", 123);
+        Assertions.assertThrows(InvalidBindingException.class, () -> {
+            Bindings bindings = Bindings.builder().scoped();
+            bindings.bind("x", String.class, "Hello World!");
+            bindings.setValue("x", 123);
+        });
     }
 
     @Test
@@ -277,20 +285,20 @@ public class ScopedBindTest {
         values.add(3);
 
         Bindings bindings = Bindings.builder().scoped();
-        Binding binding1 = Binding.builder().with("x").value("Hello World!").build();
+        Binding<String> binding1 = Binding.builder().with("x").value("Hello World!").build();
         bindings.bind(binding1);
-        Binding binding2 = Binding.builder().with("X").value(101).build();
+        Binding<Integer> binding2 = Binding.builder().with("X").value(101).build();
         bindings.bind(binding2);
-        Binding binding3 = Binding.builder().with("y").value(values).build();
+        Binding<List<Integer>> binding3 = Binding.builder().with("y").value(values).build();
         bindings.bind(binding3);
-        Binding binding4 = Binding.builder().with("z").build();
+        Binding<?> binding4 = Binding.builder().with("z").build();
         bindings.bind(binding4);
 
         Map<String, ?> bindingsMap = bindings.asMap();
-        Assert.assertTrue(bindings.size() == bindingsMap.size());
+        Assertions.assertEquals(bindings.size(), bindingsMap.size());
 
         for (Binding<?> binding : bindings) {
-            Assert.assertTrue(Objects.equals(binding.getValue(), bindingsMap.get(binding.getName())));
+            Assertions.assertEquals(binding.getValue(), bindingsMap.get(binding.getName()));
         }
     }
 
@@ -301,49 +309,51 @@ public class ScopedBindTest {
         bindings.bind("y", Integer.class, 100);
 
         List<Binding<Integer>> matches = bindings.getBindings(Integer.class);
-        Assert.assertTrue(matches.size() == 2);
+        Assertions.assertEquals(2, matches.size());
     }
 
     @Test
     public void bindTest21() {
         ScopedBindings bindings = Bindings.builder().scoped();
         bindings.bind("key1", String.class, "value");
-        Assert.assertTrue(bindings.getValue("key1").equals("value"));
+        Assertions.assertEquals("value", bindings.getValue("key1"));
         bindings.addScope();
         bindings.bind(Binding.builder().with("key1").type(String.class).value("value2").build());
-        Assert.assertTrue(bindings.getValue("key1").equals("value2"));
-        Assert.assertTrue(bindings.size() == 2);
+        Assertions.assertEquals("value2", bindings.getValue("key1"));
+        Assertions.assertEquals(2, bindings.size());
         bindings.removeScope();
-        Assert.assertTrue(bindings.getValue("key1").equals("value"));
-        Assert.assertTrue(bindings.size() == 1);
+        Assertions.assertEquals("value", bindings.getValue("key1"));
+        Assertions.assertEquals(1, bindings.size());
     }
 
-    @Test(expected = CannotRemoveRootScopeException.class)
+    @Test
     public void bindTest22() {
-        ScopedBindings bindings = Bindings.builder().scoped();
-        bindings.removeScope();
+        Assertions.assertThrows(CannotRemoveRootScopeException.class, () -> {
+            ScopedBindings bindings = Bindings.builder().scoped();
+            bindings.removeScope();
+        });
     }
 
     @Test
     public void bindTest23() {
         ScopedBindings bindings = Bindings.builder().scoped();
         bindings.bind("x", Integer.class);
-        Assert.assertTrue(bindings.size() == 1);
+        Assertions.assertEquals(1, bindings.size());
         bindings.addScope();
-        Assert.assertTrue(bindings.getCurrentBindings().size() == 0);
+        Assertions.assertEquals(0, bindings.getCurrentBindings().size());
         bindings.removeScope();
-        Assert.assertTrue(bindings.size() == 1);
+        Assertions.assertEquals(1, bindings.size());
     }
 
     @Test
     public void bindTest24() {
         ScopedBindings bindings = Bindings.builder().scoped();
         bindings.bind("x", int.class);
-        Assert.assertTrue(bindings.getValue("x").equals(0));
+        Assertions.assertEquals(0, (int) bindings.getValue("x"));
         bindings.addScope().getBindings().bind("x", 24);
-        Assert.assertTrue(bindings.getValue("x").equals(24));
+        Assertions.assertEquals(24, (int) bindings.getValue("x"));
         bindings.removeScope();
-        Assert.assertTrue(bindings.getValue("x").equals(0));
+        Assertions.assertEquals(0, (int) bindings.getValue("x"));
     }
 
     @Test
@@ -352,10 +362,10 @@ public class ScopedBindTest {
         bindings.bind("x", int.class);
         bindings.addScope().getBindings().bind("x", "Hello World!");
         Binding<String> match1 = bindings.getBinding("x", String.class);
-        Assert.assertTrue(match1.getName().equals("x") && String.class.equals(match1.getType()));
+        Assertions.assertTrue(match1.getName().equals("x") && String.class.equals(match1.getType()));
         bindings.removeScope();
         Binding<Integer> match2 = bindings.getBinding("x", int.class);
-        Assert.assertTrue(match2.getName().equals("x") && int.class.equals(match2.getType()));
+        Assertions.assertTrue(match2.getName().equals("x") && int.class.equals(match2.getType()));
     }
 
     @Test
@@ -366,20 +376,20 @@ public class ScopedBindTest {
                 .bind("b", new HashSet<>());
         bindings.addScope().getBindings()
                 .bind("c", new Vector<>());
-        List<Binding<List>> matches1 = bindings.getBindings(List.class);
-        Assert.assertTrue(matches1.size() == 1);
+        List<Binding<List<?>>> matches1 = bindings.getBindings(List.class);
+        Assertions.assertEquals(1, matches1.size());
         List<Binding<List<?>>> matches2 = bindings.getBindings(new TypeReference<List<?>>() {}.getType());
-        Assert.assertTrue(matches2.size() == 1);
+        Assertions.assertEquals(1, matches2.size());
         List<Binding<List<?>>> matches3 = bindings.getAllBindings(new TypeReference<List<?>>() {}.getType());
-        Assert.assertTrue(matches3.size() == 2);
+        Assertions.assertEquals(2, matches3.size());
         List<Binding<Collection<?>>> matches4 = bindings.getAllBindings(new TypeReference<Collection<?>>() {}.getType());
-        Assert.assertTrue(matches4.size() == 3);
+        Assertions.assertEquals(3, matches4.size());
         bindings.removeScope();
         matches4 = bindings.getAllBindings(new TypeReference<Collection<?>>() {}.getType());
-        Assert.assertTrue(matches4.size() == 2);
+        Assertions.assertEquals(2, matches4.size());
         bindings.removeScope();
         matches4 = bindings.getAllBindings(new TypeReference<Collection<?>>() {}.getType());
-        Assert.assertTrue(matches4.size() == 1);
+        Assertions.assertEquals(1, matches4.size());
     }
 
     @Test
@@ -390,8 +400,8 @@ public class ScopedBindTest {
                 .bind("b", new HashSet<>());
         bindings.addScope().getBindings()
                 .bind("c", new BigDecimal("100"));
-        List<Binding<List>> matches1 = bindings.getBindings(List.class);
-        Assert.assertTrue(matches1.size() == 1 && matches1.stream().findFirst().get().getName().equals("a"));
+        List<Binding<List<?>>> matches1 = bindings.getBindings(List.class);
+        Assertions.assertTrue(matches1.size() == 1 && matches1.stream().findFirst().get().getName().equals("a"));
     }
 
     @Test
@@ -405,7 +415,7 @@ public class ScopedBindTest {
         Map<String, ?> map = bindings.asMap();
 
         for (Map.Entry<String, ?> entry : map.entrySet()) {
-            Assert.assertTrue(bindings.getValue(entry.getKey()).equals(entry.getValue()));
+            Assertions.assertEquals(bindings.getValue(entry.getKey()), entry.getValue());
         }
     }
 
@@ -417,8 +427,8 @@ public class ScopedBindTest {
                 .bind("b", new HashSet<>());
         bindings.addScope().getBindings()
                 .bind("a", new BigDecimal("100"));
-        Assert.assertTrue(bindings.size() == 3);
-        Assert.assertTrue(bindings.uniqueSize() == 2);
+        Assertions.assertEquals(3, bindings.size());
+        Assertions.assertEquals(2, bindings.uniqueSize());
     }
 
     @Test
@@ -429,14 +439,16 @@ public class ScopedBindTest {
         bindings.addScope().getBindings().bind("a", new BigDecimal("100"));
 
         ScopedBindings immutableBindings = bindings.asImmutable();
-        Assert.assertTrue(immutableBindings.size() == 3);
-        Assert.assertTrue(immutableBindings.uniqueSize() == 2);
+        Assertions.assertEquals(3, immutableBindings.size());
+        Assertions.assertEquals(2, immutableBindings.uniqueSize());
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void bindTest31() {
-        ScopedBindings bindings = Bindings.builder().scoped().asImmutable();
-        bindings.bind("test", Integer.class);
+        Assertions.assertThrows(UnsupportedOperationException.class, () -> {
+            ScopedBindings bindings = Bindings.builder().scoped().asImmutable();
+            bindings.bind("test", Integer.class);
+        });
     }
 
     @Test
@@ -445,7 +457,7 @@ public class ScopedBindTest {
         bindings.addScope("scope-1");
         bindings.addScope("scope-2");
         bindings.addScope("scope-3");
-        Assert.assertTrue(bindings.getScopeSize() == 4);
+        Assertions.assertEquals(4, bindings.getScopeSize());
     }
 
     @Test
@@ -454,10 +466,10 @@ public class ScopedBindTest {
         bindings.addScope("scope-1");
         bindings.addScope("scope-2");
         bindings.addScope("scope-3");
-        Assert.assertTrue(bindings.containsScope(ScopedBindings.ROOT_SCOPE));
-        Assert.assertTrue(bindings.containsScope("scope-1"));
-        Assert.assertTrue(bindings.containsScope("scope-2"));
-        Assert.assertTrue(bindings.containsScope("scope-3"));
+        Assertions.assertTrue(bindings.containsScope(ScopedBindings.ROOT_SCOPE));
+        Assertions.assertTrue(bindings.containsScope("scope-1"));
+        Assertions.assertTrue(bindings.containsScope("scope-2"));
+        Assertions.assertTrue(bindings.containsScope("scope-3"));
     }
 
     @Test
@@ -466,22 +478,22 @@ public class ScopedBindTest {
         bindings.addScope("scope-1");
         bindings.addScope("scope-2");
         bindings.addScope("scope-3");
-        Assert.assertTrue(bindings.containsScope(ScopedBindings.ROOT_SCOPE));
+        Assertions.assertTrue(bindings.containsScope(ScopedBindings.ROOT_SCOPE));
 
         bindings.removeScope("scope-3");
-        Assert.assertFalse(bindings.containsScope("scope-3"));
-        Assert.assertTrue(bindings.containsScope("scope-1"));
-        Assert.assertTrue(bindings.containsScope("scope-2"));
+        Assertions.assertFalse(bindings.containsScope("scope-3"));
+        Assertions.assertTrue(bindings.containsScope("scope-1"));
+        Assertions.assertTrue(bindings.containsScope("scope-2"));
 
         bindings.removeScope("scope-2");
-        Assert.assertFalse(bindings.containsScope("scope-3"));
-        Assert.assertFalse(bindings.containsScope("scope-2"));
-        Assert.assertTrue(bindings.containsScope("scope-1"));
+        Assertions.assertFalse(bindings.containsScope("scope-3"));
+        Assertions.assertFalse(bindings.containsScope("scope-2"));
+        Assertions.assertTrue(bindings.containsScope("scope-1"));
 
         bindings.removeScope("scope-1");
-        Assert.assertFalse(bindings.containsScope("scope-3"));
-        Assert.assertFalse(bindings.containsScope("scope-2"));
-        Assert.assertFalse(bindings.containsScope("scope-1"));
+        Assertions.assertFalse(bindings.containsScope("scope-3"));
+        Assertions.assertFalse(bindings.containsScope("scope-2"));
+        Assertions.assertFalse(bindings.containsScope("scope-1"));
     }
 
     @Test
@@ -491,14 +503,14 @@ public class ScopedBindTest {
         Bindings bindings2 = bindings.addScope("scope-2").getBindings();
         Bindings bindings3 = bindings.addScope("scope-3").getBindings();
 
-        Assert.assertTrue(bindings3 == bindings.getCurrentBindings());
-        Assert.assertTrue(bindings2 == bindings.getParentScope().getBindings());
+        Assertions.assertSame(bindings3, bindings.getCurrentBindings());
+        Assertions.assertSame(bindings2, bindings.getParentScope().getBindings());
         bindings.removeScope();
-        Assert.assertTrue(bindings2 == bindings.getCurrentBindings());
-        Assert.assertTrue(bindings1 == bindings.getParentScope().getBindings());
+        Assertions.assertSame(bindings2, bindings.getCurrentBindings());
+        Assertions.assertSame(bindings1, bindings.getParentScope().getBindings());
         bindings.removeScope();
-        Assert.assertTrue(bindings1 == bindings.getCurrentBindings());
-        Assert.assertTrue(bindings.getParentScope() == null);
+        Assertions.assertSame(bindings1, bindings.getCurrentBindings());
+        Assertions.assertNull(bindings.getParentScope());
     }
 
     @Test
@@ -509,8 +521,8 @@ public class ScopedBindTest {
         bindings.addScope("scope-3");
 
         bindings.removeScope("scope-1");
-        Assert.assertFalse(bindings.containsScope("scope-3"));
-        Assert.assertFalse(bindings.containsScope("scope-2"));
-        Assert.assertFalse(bindings.containsScope("scope-1"));
+        Assertions.assertFalse(bindings.containsScope("scope-3"));
+        Assertions.assertFalse(bindings.containsScope("scope-2"));
+        Assertions.assertFalse(bindings.containsScope("scope-1"));
     }
 }

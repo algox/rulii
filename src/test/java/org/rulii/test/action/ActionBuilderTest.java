@@ -17,8 +17,8 @@
  */
 package org.rulii.test.action;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.rulii.annotation.Condition;
 import org.rulii.annotation.Function;
 import org.rulii.bind.Binding;
@@ -54,8 +54,8 @@ public class ActionBuilderTest {
                 .name("action0")
                 .build();
 
-        Assert.assertEquals("action0", action.getDefinition().getName());
-        Assert.assertEquals(0, action.getDefinition().getParameterDefinitions().size());
+        Assertions.assertEquals("action0", action.getDefinition().getName());
+        Assertions.assertEquals(0, action.getDefinition().getParameterDefinitions().size());
     }
 
     @Test
@@ -66,10 +66,10 @@ public class ActionBuilderTest {
                 .description("Action with one arg")
                 .build();
 
-        Assert.assertEquals("Action with one arg", action.getDefinition().getDescription());
-        Assert.assertEquals(1, action.getDefinition().getParameterDefinitions().size());
-        Assert.assertEquals("x", action.getDefinition().getParameterDefinitions().get(0).getName());
-        Assert.assertEquals(action.getDefinition().getParameterDefinitions().get(0).getType(), String.class);
+        Assertions.assertEquals("Action with one arg", action.getDefinition().getDescription());
+        Assertions.assertEquals(1, action.getDefinition().getParameterDefinitions().size());
+        Assertions.assertEquals("x", action.getDefinition().getParameterDefinitions().get(0).getName());
+        Assertions.assertEquals(action.getDefinition().getParameterDefinitions().get(0).getType(), String.class);
     }
 
     @Test
@@ -79,9 +79,9 @@ public class ActionBuilderTest {
                 })
                 .build();
 
-        Assert.assertEquals(2, action.getDefinition().getParameterDefinitions().size());
-        Assert.assertEquals("value", action.getDefinition().getParameterDefinitions().get(1).getName());
-        Assert.assertEquals(action.getDefinition().getParameterDefinitions().get(1).getType(), BigDecimal.class);
+        Assertions.assertEquals(2, action.getDefinition().getParameterDefinitions().size());
+        Assertions.assertEquals("value", action.getDefinition().getParameterDefinitions().get(1).getName());
+        Assertions.assertEquals(action.getDefinition().getParameterDefinitions().get(1).getType(), BigDecimal.class);
     }
 
     @Test
@@ -91,9 +91,9 @@ public class ActionBuilderTest {
                 })
                 .build();
 
-        Assert.assertEquals(3, action.getDefinition().getParameterDefinitions().size());
-        Assert.assertEquals("c", action.getDefinition().getParameterDefinitions().get(2).getName());
-        Assert.assertEquals(action.getDefinition().getParameterDefinitions().get(2).getType(), Integer.class);
+        Assertions.assertEquals(3, action.getDefinition().getParameterDefinitions().size());
+        Assertions.assertEquals("c", action.getDefinition().getParameterDefinitions().get(2).getName());
+        Assertions.assertEquals(action.getDefinition().getParameterDefinitions().get(2).getType(), Integer.class);
     }
 
     @Test
@@ -106,9 +106,9 @@ public class ActionBuilderTest {
                     .build()
                 .build();
 
-        Assert.assertEquals(4, action.getDefinition().getParameterDefinitions().size());
-        Assert.assertEquals("d", action.getDefinition().getParameterDefinitions().get(3).getName());
-        Assert.assertEquals(action.getDefinition().getParameterDefinitions().get(3).getType(), Float.class);
+        Assertions.assertEquals(4, action.getDefinition().getParameterDefinitions().size());
+        Assertions.assertEquals("d", action.getDefinition().getParameterDefinitions().get(3).getName());
+        Assertions.assertEquals(action.getDefinition().getParameterDefinitions().get(3).getType(), Float.class);
     }
 
     @Test
@@ -123,10 +123,10 @@ public class ActionBuilderTest {
                     .build()
                 .build();
 
-        Assert.assertEquals(5, action.getDefinition().getParameterDefinitions().size());
-        Assert.assertEquals("flag", action.getDefinition().getParameterDefinitions().get(4).getName());
-        Assert.assertEquals(action.getDefinition().getParameterDefinitions().get(4).getType(), Boolean.class);
-        Assert.assertEquals("yes", action.getDefinition().getParameterDefinitions().get(4).getDefaultValueText());
+        Assertions.assertEquals(5, action.getDefinition().getParameterDefinitions().size());
+        Assertions.assertEquals("flag", action.getDefinition().getParameterDefinitions().get(4).getName());
+        Assertions.assertEquals(action.getDefinition().getParameterDefinitions().get(4).getType(), Boolean.class);
+        Assertions.assertEquals("yes", action.getDefinition().getParameterDefinitions().get(4).getDefaultValueText());
     }
 
     @Test
@@ -138,10 +138,10 @@ public class ActionBuilderTest {
                 })
                 .build();
 
-        Assert.assertEquals(6, action.getDefinition().getParameterDefinitions().size());
-        Assert.assertEquals("bindingValue", action.getDefinition().getParameterDefinitions().get(5).getName());
-        Assert.assertEquals(action.getDefinition().getParameterDefinitions().get(5).getType(), Binding.class);
-        Assert.assertTrue(action.getDefinition().getParameterDefinitions().get(5).isBindingType());
+        Assertions.assertEquals(6, action.getDefinition().getParameterDefinitions().size());
+        Assertions.assertEquals("bindingValue", action.getDefinition().getParameterDefinitions().get(5).getName());
+        Assertions.assertEquals(action.getDefinition().getParameterDefinitions().get(5).getType(), Binding.class);
+        Assertions.assertTrue(action.getDefinition().getParameterDefinitions().get(5).isBindingType());
     }
 
     @Test
@@ -153,10 +153,10 @@ public class ActionBuilderTest {
                 })
                 .build();
 
-        Assert.assertEquals(7, action.getDefinition().getParameterDefinitions().size());
-        Assert.assertEquals("listArg", action.getDefinition().getParameterDefinitions().get(6).getName());
+        Assertions.assertEquals(7, action.getDefinition().getParameterDefinitions().size());
+        Assertions.assertEquals("listArg", action.getDefinition().getParameterDefinitions().get(6).getName());
         // Lambda does not store generic info
-        Assert.assertEquals(action.getDefinition().getParameterDefinitions().get(6).getType(), List.class);
+        Assertions.assertEquals(action.getDefinition().getParameterDefinitions().get(6).getType(), List.class);
     }
 
     @Test
@@ -172,9 +172,9 @@ public class ActionBuilderTest {
                     .build()
                 .build();
 
-        Assert.assertEquals(8, action.getDefinition().getParameterDefinitions().size());
-        Assert.assertEquals("mapArg", action.getDefinition().getParameterDefinitions().get(7).getName());
-        Assert.assertEquals(action.getDefinition().getParameterDefinitions().get(7)
+        Assertions.assertEquals(8, action.getDefinition().getParameterDefinitions().size());
+        Assertions.assertEquals("mapArg", action.getDefinition().getParameterDefinitions().get(7).getName());
+        Assertions.assertEquals(action.getDefinition().getParameterDefinitions().get(7)
                 .getType(), new TypeReference<Map<String, Object>>() {
         }.getType());
     }
@@ -192,9 +192,9 @@ public class ActionBuilderTest {
                     .build()
                 .build();
 
-        Assert.assertEquals(9, action.getDefinition().getParameterDefinitions().size());
-        Assert.assertEquals("someList", action.getDefinition().getParameterDefinitions().get(8).getName());
-        Assert.assertEquals(action.getDefinition().getParameterDefinitions().get(8)
+        Assertions.assertEquals(9, action.getDefinition().getParameterDefinitions().size());
+        Assertions.assertEquals("someList", action.getDefinition().getParameterDefinitions().get(8).getName());
+        Assertions.assertEquals(action.getDefinition().getParameterDefinitions().get(8)
                 .getType(), new TypeReference<List<String>>() {
         }.getType());
     }
@@ -212,33 +212,37 @@ public class ActionBuilderTest {
                     .build()
                 .build();
 
-        Assert.assertEquals(10, action.getDefinition().getParameterDefinitions().size());
-        Assert.assertEquals("tenthArg", action.getDefinition().getParameterDefinitions().get(9).getName());
-        Assert.assertEquals(action.getDefinition().getParameterDefinitions().get(9).getType(), String.class);
+        Assertions.assertEquals(10, action.getDefinition().getParameterDefinitions().size());
+        Assertions.assertEquals("tenthArg", action.getDefinition().getParameterDefinitions().get(9).getName());
+        Assertions.assertEquals(action.getDefinition().getParameterDefinitions().get(9).getType(), String.class);
     }
 
-    @Test(expected = UnrulyException.class)
+    @Test
     public void testInvalidParameterIndex() {
-        Action.builder()
-                .with((String x, BigDecimal value, Integer c) -> {
-                })
-                .param(3)
-                    .type(new TypeReference<List<String>>(){}.getType())
+        Assertions.assertThrows(UnrulyException.class, () -> {
+            Action.builder()
+                    .with((String x, BigDecimal value, Integer c) -> {
+                    })
+                    .param(3)
+                    .type(new TypeReference<List<String>>() {
+                    }.getType())
                     .build()
-                .build();
-
+                    .build();
+        });
     }
 
-    @Test(expected = UnrulyException.class)
+    @Test
     public void testInvalidParameterNameIndex() {
-        Action.builder()
-                .with((String x, BigDecimal value, Integer c) -> {
-                })
-                .param("y")
-                    .type(new TypeReference<List<String>>(){}.getType())
+        Assertions.assertThrows(UnrulyException.class, () -> {
+            Action.builder()
+                    .with((String x, BigDecimal value, Integer c) -> {
+                    })
+                    .param("y")
+                    .type(new TypeReference<List<String>>() {
+                    }.getType())
                     .build()
-                .build();
-
+                    .build();
+        });
     }
 
     @Test
@@ -251,9 +255,9 @@ public class ActionBuilderTest {
                     }
                 })
                 .build();
-        Assert.assertEquals(3, action.getDefinition().getParameterDefinitions().size());
-        Assert.assertEquals("map", action.getDefinition().getParameterDefinitions().get(2).getName());
-        Assert.assertEquals(action.getDefinition().getParameterDefinitions().get(2)
+        Assertions.assertEquals(3, action.getDefinition().getParameterDefinitions().size());
+        Assertions.assertEquals("map", action.getDefinition().getParameterDefinitions().get(2).getName());
+        Assertions.assertEquals(action.getDefinition().getParameterDefinitions().get(2)
                 .getType(), new TypeReference<Map<String, Integer>>() {
         }.getType());
         action.run(a -> "aa", b -> 12, map ->  new HashMap<>());
@@ -274,9 +278,9 @@ public class ActionBuilderTest {
                 })
                 .build();
 
-        Assert.assertEquals(3, action.getDefinition().getParameterDefinitions().size());
-        Assert.assertEquals("c", action.getDefinition().getParameterDefinitions().get(2).getName());
-        Assert.assertEquals(action.getDefinition().getParameterDefinitions().get(2).getType(), Integer.class);
+        Assertions.assertEquals(3, action.getDefinition().getParameterDefinitions().size());
+        Assertions.assertEquals("c", action.getDefinition().getParameterDefinitions().get(2).getName());
+        Assertions.assertEquals(action.getDefinition().getParameterDefinitions().get(2).getType(), Integer.class);
     }
 
     public static void testActionMethod1(Integer a, List<Integer> values, BigDecimal c) {}
@@ -286,14 +290,14 @@ public class ActionBuilderTest {
         Action action = Action.builder()
                 .with(ActionBuilderTest::testActionMethod1).build();
 
-        Assert.assertEquals(3, action.getDefinition().getParameterDefinitions().size());
-        Assert.assertEquals("a", action.getDefinition().getParameterDefinitions().get(0).getName());
-        Assert.assertEquals(action.getDefinition().getParameterDefinitions().get(0).getType(), Integer.class);
-        Assert.assertEquals("values", action.getDefinition().getParameterDefinitions().get(1).getName());
-        Assert.assertEquals(action.getDefinition().getParameterDefinitions().get(1).getType(), new TypeReference<List<Integer>>() {
+        Assertions.assertEquals(3, action.getDefinition().getParameterDefinitions().size());
+        Assertions.assertEquals("a", action.getDefinition().getParameterDefinitions().get(0).getName());
+        Assertions.assertEquals(action.getDefinition().getParameterDefinitions().get(0).getType(), Integer.class);
+        Assertions.assertEquals("values", action.getDefinition().getParameterDefinitions().get(1).getName());
+        Assertions.assertEquals(action.getDefinition().getParameterDefinitions().get(1).getType(), new TypeReference<List<Integer>>() {
         }.getType());
-        Assert.assertEquals("c", action.getDefinition().getParameterDefinitions().get(2).getName());
-        Assert.assertEquals(action.getDefinition().getParameterDefinitions().get(2).getType(), BigDecimal.class);
+        Assertions.assertEquals("c", action.getDefinition().getParameterDefinitions().get(2).getName());
+        Assertions.assertEquals(action.getDefinition().getParameterDefinitions().get(2).getType(), BigDecimal.class);
     }
 
     public void testActionMethod2(List<Integer> values, BigDecimal c) {}
@@ -303,12 +307,12 @@ public class ActionBuilderTest {
         Action action = Action.builder()
                 .with(this::testActionMethod2).build();
 
-        Assert.assertEquals(2, action.getDefinition().getParameterDefinitions().size());
-        Assert.assertEquals("values", action.getDefinition().getParameterDefinitions().get(0).getName());
-        Assert.assertEquals(action.getDefinition().getParameterDefinitions().get(0).getType(), new TypeReference<List<Integer>>() {
+        Assertions.assertEquals(2, action.getDefinition().getParameterDefinitions().size());
+        Assertions.assertEquals("values", action.getDefinition().getParameterDefinitions().get(0).getName());
+        Assertions.assertEquals(action.getDefinition().getParameterDefinitions().get(0).getType(), new TypeReference<List<Integer>>() {
         }.getType());
-        Assert.assertEquals("c", action.getDefinition().getParameterDefinitions().get(1).getName());
-        Assert.assertEquals(action.getDefinition().getParameterDefinitions().get(1).getType(), BigDecimal.class);
+        Assertions.assertEquals("c", action.getDefinition().getParameterDefinitions().get(1).getName());
+        Assertions.assertEquals(action.getDefinition().getParameterDefinitions().get(1).getType(), BigDecimal.class);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -317,12 +321,12 @@ public class ActionBuilderTest {
         List<org.rulii.model.condition.Condition> conditions = org.rulii.model.condition.Condition.builder().build(TestClass.class);
         List<Action> actions = Action.builder().build(new TestClass());
         org.rulii.model.function.Function[] functions = org.rulii.model.function.Function.builder().build(TestClass.class);
-        Assert.assertTrue(conditions.get(0).run(x -> 25));
+        Assertions.assertTrue(conditions.get(0).run(x -> 25));
         Bindings bindings = Bindings.builder().standard();
         bindings.bind("x", 25);
         actions.get(0).run(bindings);
-        Assert.assertEquals(0, (int) bindings.getValue("x", Integer.class));
-        Assert.assertEquals(50, functions[0].run(x -> 25));
+        Assertions.assertEquals(0, (int) bindings.getValue("x", Integer.class));
+        Assertions.assertEquals(50, functions[0].run(x -> 25));
     }
 
     public static class TestClass {

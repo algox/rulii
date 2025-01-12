@@ -17,6 +17,8 @@
  */
 package org.rulii.test.bind.match;
 
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.rulii.bind.Binding;
 import org.rulii.bind.Bindings;
 import org.rulii.bind.ScopedBindings;
@@ -24,11 +26,9 @@ import org.rulii.bind.match.BindingMatchingStrategyType;
 import org.rulii.bind.match.ParameterMatch;
 import org.rulii.bind.match.ParameterResolver;
 import org.rulii.convert.ConverterRegistry;
-import org.rulii.model.action.Action;
 import org.rulii.model.MethodDefinition;
+import org.rulii.model.action.Action;
 import org.rulii.util.reflect.ObjectFactory;
-import org.junit.Assert;
-import org.junit.Test;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -60,7 +60,7 @@ public class GenericParameterResolverTest<T extends CharSequence> {
                 BindingMatchingStrategyType.MATCH_BY_NAME_THEN_BY_TYPE.getStrategy(),
                 ConverterRegistry.builder().build(), ObjectFactory.builder().build());
 
-        Assert.assertEquals(var2, values.get(0));
-        Assert.assertEquals("genericMatch", values.get(1));
+        Assertions.assertEquals(var2, values.get(0));
+        Assertions.assertEquals("genericMatch", values.get(1));
     }
 }

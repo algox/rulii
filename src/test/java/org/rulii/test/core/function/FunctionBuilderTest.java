@@ -17,11 +17,11 @@
  */
 package org.rulii.test.core.function;
 
-import org.rulii.model.function.Function;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.rulii.model.Definable;
 import org.rulii.model.MethodDefinition;
+import org.rulii.model.function.Function;
 
 import java.math.BigDecimal;
 
@@ -31,6 +31,7 @@ public class FunctionBuilderTest {
         super();
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     public void testNoArg() {
         Function<Boolean> function = Function.builder()
@@ -38,19 +39,20 @@ public class FunctionBuilderTest {
                 .name("function0")
                 .build();
 
-        Assert.assertTrue(((Definable<MethodDefinition>) function).getDefinition().getName().equals("function0"));
-        Assert.assertTrue(((Definable<MethodDefinition>) function).getDefinition().getParameterDefinitions().size() == 0);
+        Assertions.assertEquals("function0", ((Definable<MethodDefinition>) function).getDefinition().getName());
+        Assertions.assertEquals(0, ((Definable<MethodDefinition>) function).getDefinition().getParameterDefinitions().size());
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     public void test2Args() {
         Function<BigDecimal> function = Function.builder()
                 .with((String x, BigDecimal value) -> value)
                 .build();
 
-        Assert.assertTrue(((Definable<MethodDefinition>) function).getDefinition().getParameterDefinitions().size() == 2);
-        Assert.assertTrue(((Definable<MethodDefinition>) function).getDefinition().getParameterDefinitions().get(1).getName().equals("value"));
-        Assert.assertTrue(((Definable<MethodDefinition>) function).getDefinition().getParameterDefinitions().get(1).getType().equals(BigDecimal.class));
+        Assertions.assertEquals(2, ((Definable<MethodDefinition>) function).getDefinition().getParameterDefinitions().size());
+        Assertions.assertEquals("value", ((Definable<MethodDefinition>) function).getDefinition().getParameterDefinitions().get(1).getName());
+        Assertions.assertEquals(((Definable<MethodDefinition>) function).getDefinition().getParameterDefinitions().get(1).getType(), BigDecimal.class);
 
         function.apply(x -> "123", value -> new BigDecimal("10.00"));
     }

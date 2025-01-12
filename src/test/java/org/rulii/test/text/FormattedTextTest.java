@@ -17,10 +17,10 @@
  */
 package org.rulii.test.text;
 
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.rulii.text.FormattedText;
 import org.rulii.text.FormattedTextParser;
-import org.junit.Assert;
-import org.junit.Test;
 
 /**
  * Test cases covering the Formatted Text.
@@ -36,67 +36,71 @@ public class FormattedTextTest {
    @Test
    public void testMessageFormattedText1() {
        FormattedText formattedText = FormattedTextParser.parse("This is a test of with no place holders");
-       Assert.assertTrue(formattedText.getTemplate().equals("This is a test of with no place holders"));
-       Assert.assertTrue(formattedText.getPlaceholderSize() == 0);
+       Assertions.assertEquals("This is a test of with no place holders", formattedText.getTemplate());
+       Assertions.assertEquals(0, formattedText.getPlaceholderSize());
     }
 
     @Test
     public void testMessageFormattedText2() {
         FormattedText formattedText = FormattedTextParser.parse("This is a test ${a} ${b}");
-        Assert.assertTrue(formattedText.getPlaceholderSize() == 2);
-        Assert.assertTrue(formattedText.getFirstPlaceholder("a").getStartPosition() == 15);
-        Assert.assertTrue(formattedText.getFirstPlaceholder("a").getEndPosition() == 19);
-        Assert.assertTrue(formattedText.getFirstPlaceholder("a").getOptions().size() == 0);
-        Assert.assertTrue(formattedText.getFirstPlaceholder("b").getStartPosition() == 20);
-        Assert.assertTrue(formattedText.getFirstPlaceholder("b").getEndPosition() == 24);
-        Assert.assertTrue(formattedText.getFirstPlaceholder("b").getOptions().size() == 0);
+        Assertions.assertEquals(2, formattedText.getPlaceholderSize());
+        Assertions.assertEquals(15, (int) formattedText.getFirstPlaceholder("a").getStartPosition());
+        Assertions.assertEquals(19, formattedText.getFirstPlaceholder("a").getEndPosition());
+        Assertions.assertEquals(0, formattedText.getFirstPlaceholder("a").getOptions().size());
+        Assertions.assertEquals(20, (int) formattedText.getFirstPlaceholder("b").getStartPosition());
+        Assertions.assertEquals(24, formattedText.getFirstPlaceholder("b").getEndPosition());
+        Assertions.assertEquals(0, formattedText.getFirstPlaceholder("b").getOptions().size());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testMessageFormattedText3() {
-        FormattedTextParser.parse(null);
+        Assertions.assertThrows(IllegalArgumentException.class, () -> {
+            FormattedTextParser.parse(null);
+        });
     }
 
     @Test
     public void testMessageFormattedText4() {
         FormattedText formattedText = FormattedTextParser.parse("This is a test {0} {1}");
-        Assert.assertTrue(formattedText.getPlaceholderSize() == 0);
+        Assertions.assertEquals(0, formattedText.getPlaceholderSize());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testMessageFormattedText5() {
-        FormattedTextParser.parse("This is a test ${} ${}");
+        Assertions.assertThrows(IllegalArgumentException.class, () -> {
+            FormattedTextParser.parse("This is a test ${} ${}");
+        });
     }
 
     @Test
     public void testMessageFormattedText6() {
         FormattedText formattedText = FormattedTextParser.parse("This is a test ${ a    } ${  b  }");
-        Assert.assertTrue(formattedText.getPlaceholderSize() == 2);
-        Assert.assertTrue(formattedText.getFirstPlaceholder("a").getStartPosition() == 15);
-        Assert.assertTrue(formattedText.getFirstPlaceholder("a").getEndPosition() == 24);
-        Assert.assertTrue(formattedText.getFirstPlaceholder("b").getStartPosition() == 25);
-        Assert.assertTrue(formattedText.getFirstPlaceholder("b").getEndPosition() == 33);
+        Assertions.assertEquals(2, formattedText.getPlaceholderSize());
+        Assertions.assertEquals(15, (int) formattedText.getFirstPlaceholder("a").getStartPosition());
+        Assertions.assertEquals(24, formattedText.getFirstPlaceholder("a").getEndPosition());
+        Assertions.assertEquals(25, (int) formattedText.getFirstPlaceholder("b").getStartPosition());
+        Assertions.assertEquals(33, formattedText.getFirstPlaceholder("b").getEndPosition());
     }
 
     @Test
     public void testMessageFormattedText7() {
         FormattedText formattedText = FormattedTextParser.parse("This is a test ${ a     ${  b  }");
-        Assert.assertTrue(formattedText.getPlaceholderSize() == 1);
+        Assertions.assertEquals(1, formattedText.getPlaceholderSize());
     }
 
     @Test
     public void testMessageFormattedText8() {
         FormattedText formattedText = FormattedTextParser.parse("This is a test ${a, number, integer}    ${b,date, long} ${c} ${value, number}");
-        Assert.assertTrue(formattedText.getPlaceholderSize() == 4);
-        Assert.assertTrue(formattedText.getFirstPlaceholder("a").getOptions().size() == 2);
-        Assert.assertTrue(formattedText.getFirstPlaceholder("b").getOptions().size() == 2);
-        Assert.assertTrue(formattedText.getFirstPlaceholder("c").getOptions().size() == 0);
-        Assert.assertTrue(formattedText.getFirstPlaceholder("value").getOptions().size() == 1);
+        Assertions.assertEquals(4, formattedText.getPlaceholderSize());
+        Assertions.assertEquals(2, formattedText.getFirstPlaceholder("a").getOptions().size());
+        Assertions.assertEquals(2, formattedText.getFirstPlaceholder("b").getOptions().size());
+        Assertions.assertEquals(0, formattedText.getFirstPlaceholder("c").getOptions().size());
+        Assertions.assertEquals(1, formattedText.getFirstPlaceholder("value").getOptions().size());
     }
 
     @Test
     public void testMessageFormattedText9() {
         FormattedText formattedText = FormattedTextParser.parse("${a} ${b} ${c} ${a} ${b}");
-        Assert.assertTrue(formattedText.getPlaceholderSize() == 5);
+        Assertions.assertEquals(5, formattedText.getPlaceholderSize());
     }
 }

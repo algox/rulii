@@ -17,10 +17,10 @@
  */
 package org.rulii.test.util;
 
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.rulii.lib.apache.reflect.TypeUtils;
 import org.rulii.util.TypeReference;
-import org.junit.Assert;
-import org.junit.Test;
 
 import java.lang.reflect.Type;
 import java.util.Collection;
@@ -41,26 +41,26 @@ public class TypeUtilsTest {
 
     @Test
     public void testBasics() {
-        Assert.assertTrue(TypeUtils.isAssignable(Integer.class, int.class));
-        Assert.assertTrue(TypeUtils.isAssignable(List.class, Collection.class));
+        Assertions.assertTrue(TypeUtils.isAssignable(Integer.class, int.class));
+        Assertions.assertTrue(TypeUtils.isAssignable(List.class, Collection.class));
     }
 
     @Test
     public void testComplex() {
         Type lhs = new TypeReference<List<?>>() {}.getType();
         Type rhs = new TypeReference<List<String>>() {}.getType();
-        Assert.assertTrue(TypeUtils.isAssignable(rhs, lhs));
+        Assertions.assertTrue(TypeUtils.isAssignable(rhs, lhs));
 
         lhs = new TypeReference<Map<List<?>, ?>>() {}.getType();
         rhs = new TypeReference<Map<List<?>, String>>() {}.getType();
-        Assert.assertTrue(TypeUtils.isAssignable(rhs, lhs));
+        Assertions.assertTrue(TypeUtils.isAssignable(rhs, lhs));
     }
 
     @Test
     public void testTypeReference() throws NoSuchFieldException {
         Type type1 = TypeReferenceTestClass.class.getDeclaredField("field").getGenericType();
         Type type2 = new TypeReference<Map<List<?>, ?>>(){}.getType();
-        Assert.assertTrue(type1.equals(type2));
+        Assertions.assertEquals(type1, type2);
     }
 
     private static class TypeReferenceTestClass {

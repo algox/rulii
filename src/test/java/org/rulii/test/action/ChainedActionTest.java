@@ -17,18 +17,17 @@
  */
 package org.rulii.test.action;
 
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.rulii.bind.Binding;
 import org.rulii.bind.Bindings;
 import org.rulii.context.RuleContext;
-import org.rulii.model.action.Action;
 import org.rulii.model.UnrulyException;
-import org.junit.Assert;
-import org.junit.Test;
+import org.rulii.model.action.Action;
 
 import java.math.BigDecimal;
 
 import static org.rulii.model.action.Actions.action;
-import static org.rulii.model.condition.Conditions.condition;
 /**
  * CompositeAction related tests.
  *
@@ -44,54 +43,54 @@ public class ChainedActionTest {
     @Test
     public void test1() {
         Action action = Action.builder().with((Binding<String> arg1) -> {
-                    Assert.assertEquals("a", arg1.getValue());
+                    Assertions.assertEquals("a", arg1.getValue());
                     arg1.setValue("b");
                 }).build()
                 .andThen(Action.builder().with((Binding<String> arg1) -> {
-                    Assert.assertEquals("b", arg1.getValue());
+                    Assertions.assertEquals("b", arg1.getValue());
                     arg1.setValue("c");
                 }).build())
                 .andThen(Action.builder().with((Binding<String> arg1) -> {
-                    Assert.assertEquals("c", arg1.getValue());
+                    Assertions.assertEquals("c", arg1.getValue());
                     arg1.setValue("d");
                 }).build())
                 .andThen(action((Binding<String> arg1) -> {
-                    Assert.assertEquals("d", arg1.getValue());
+                    Assertions.assertEquals("d", arg1.getValue());
                     arg1.setValue("e");
                 }));
 
         Bindings bindings = Bindings.builder().standard(arg1 -> "a");
         action.run(bindings);
-        Assert.assertEquals("e", bindings.getValue("arg1"));
+        Assertions.assertEquals("e", bindings.getValue("arg1"));
     }
 
     @Test
     public void test2() {
         Action action = Action.builder().with((Binding<String> arg1) -> {
-                    Assert.assertEquals("a", arg1.getValue());
+                    Assertions.assertEquals("a", arg1.getValue());
                     arg1.setValue("b");
                 }).build()
                 .andThen(Action.builder().with((Binding<String> arg1) -> {
-                            Assert.assertEquals("b", arg1.getValue());
+                            Assertions.assertEquals("b", arg1.getValue());
                             arg1.setValue("c");
                         }).build().andThen(Action.builder().with((Binding<String> arg1) -> {
-                            Assert.assertEquals("c", arg1.getValue());
+                            Assertions.assertEquals("c", arg1.getValue());
                             arg1.setValue("d");
                         }).build().andThen(action((Binding<String> arg1) -> {
-                            Assert.assertEquals("d", arg1.getValue());
+                            Assertions.assertEquals("d", arg1.getValue());
                             arg1.setValue("e");
                         })))
                         );
 
         Bindings bindings = Bindings.builder().standard(arg1 -> "a");
         action.run(bindings);
-        Assert.assertEquals("e", bindings.getValue("arg1"));
+        Assertions.assertEquals("e", bindings.getValue("arg1"));
     }
 
     @Test
     public void test3() {
         Action action = Action.builder().with((Binding<Integer> arg1) -> {
-                    Assert.assertEquals(0, (int) arg1.getValue());
+                    Assertions.assertEquals(0, (int) arg1.getValue());
                     arg1.setValue(200);
                 }).build()
                 .andThen(action((Binding<Integer> arg2) -> arg2.setValue(1)))
@@ -101,16 +100,16 @@ public class ChainedActionTest {
         Bindings bindings = Bindings.builder().standard(arg1 -> 0, arg2 -> 0, arg3 -> 0, arg4 -> 0);
         action.run(bindings);
 
-        Assert.assertEquals(200, (int) bindings.getValue("arg1"));
-        Assert.assertEquals(1, (int) bindings.getValue("arg2"));
-        Assert.assertEquals(1, (int) bindings.getValue("arg3"));
-        Assert.assertEquals(1, (int) bindings.getValue("arg4"));
+        Assertions.assertEquals(200, (int) bindings.getValue("arg1"));
+        Assertions.assertEquals(1, (int) bindings.getValue("arg2"));
+        Assertions.assertEquals(1, (int) bindings.getValue("arg3"));
+        Assertions.assertEquals(1, (int) bindings.getValue("arg4"));
     }
 
     @Test
     public void test4() {
         Action action = action((Binding<Integer> arg1) -> {
-            Assert.assertEquals(0, (int) arg1.getValue());
+            Assertions.assertEquals(0, (int) arg1.getValue());
             arg1.setValue(200);
         })
                 .andThen(action((Binding<Integer> arg2) -> arg2.setValue(1)))
@@ -120,46 +119,50 @@ public class ChainedActionTest {
         Bindings bindings = Bindings.builder().standard(arg1 -> 0, arg2 -> 0, arg3 -> 0, arg4 -> 0);
         action.run(bindings);
 
-        Assert.assertEquals(200, (int) bindings.getValue("arg1"));
-        Assert.assertEquals(1, (int) bindings.getValue("arg2"));
-        Assert.assertEquals(1, (int) bindings.getValue("arg3"));
-        Assert.assertEquals(1, (int) bindings.getValue("arg4"));
+        Assertions.assertEquals(200, (int) bindings.getValue("arg1"));
+        Assertions.assertEquals(1, (int) bindings.getValue("arg2"));
+        Assertions.assertEquals(1, (int) bindings.getValue("arg3"));
+        Assertions.assertEquals(1, (int) bindings.getValue("arg4"));
     }
 
     @Test
     public void test5() {
         Action action = action((Binding<Integer> arg1) -> {
-            Assert.assertEquals(0, (int) arg1.getValue());
+            Assertions.assertEquals(0, (int) arg1.getValue());
             arg1.setValue(200);
         }).andThen(action((Binding<Integer> arg1) -> {
-            Assert.assertEquals(200, (int) arg1.getValue());
+            Assertions.assertEquals(200, (int) arg1.getValue());
             arg1.setValue(300);
         }));
 
         Bindings bindings = Bindings.builder().standard(arg1 -> 0);
         action.run(bindings);
 
-        Assert.assertEquals(300, (int) bindings.getValue("arg1"));
+        Assertions.assertEquals(300, (int) bindings.getValue("arg1"));
     }
 
-    @Test(expected = UnrulyException.class)
+    @Test
     public void test6() {
-        Action action = action((Binding<Integer> arg1) -> {
-            arg1.getValue();
-        });
+        Assertions.assertThrows(UnrulyException.class, () -> {
+            Action action = action((Binding<Integer> arg1) -> {
+                arg1.getValue();
+            });
 
-        Bindings bindings = Bindings.builder().standard();
-        action.run(bindings);
+            Bindings bindings = Bindings.builder().standard();
+            action.run(bindings);
+        });
     }
 
-    @Test(expected = UnrulyException.class)
+    @Test
     public void test7() {
-        Action action = action((Binding<Integer> arg1) -> {
-            arg1.getValue();
-        }).andThen(action((Integer arg1) -> Assert.assertEquals(200, (int) arg1)));
+        Assertions.assertThrows(UnrulyException.class, () -> {
+            Action action = action((Binding<Integer> arg1) -> {
+                arg1.getValue();
+            }).andThen(action((Integer arg1) -> Assertions.assertEquals(200, (int) arg1)));
 
-        Bindings bindings = Bindings.builder().standard();
-        action.run(bindings);
+            Bindings bindings = Bindings.builder().standard();
+            action.run(bindings);
+        });
     }
 
     @Test
@@ -173,6 +176,6 @@ public class ChainedActionTest {
         Bindings bindings = Bindings.builder().standard();
         action.run(bindings);
 
-        Assert.assertEquals(100, (int) bindings.getValue("arg1"));
+        Assertions.assertEquals(100, (int) bindings.getValue("arg1"));
     }
 }

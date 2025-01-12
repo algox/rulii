@@ -17,6 +17,8 @@
  */
 package org.rulii.test.util;
 
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.rulii.annotation.Description;
 import org.rulii.annotation.Given;
 import org.rulii.annotation.Rule;
@@ -25,8 +27,6 @@ import org.rulii.bind.match.MatchByNameAndTypeMatchingStrategy;
 import org.rulii.bind.match.MatchByNameMatchingStrategy;
 import org.rulii.bind.match.MatchByTypeMatchingStrategy;
 import org.rulii.util.reflect.ObjectFactory;
-import org.junit.Assert;
-import org.junit.Test;
 
 /**
  * Binding ParameterDefinition tests.
@@ -42,12 +42,12 @@ public class ObjectFactoryTest {
     @Test
     public void strategyCreationTest() {
         ObjectFactory factory = ObjectFactory.builder().build();
-        Assert.assertTrue(factory.createBindingMatchingStrategy(MatchByNameMatchingStrategy.class) instanceof MatchByNameMatchingStrategy);
-        Assert.assertTrue(factory.createBindingMatchingStrategy(MatchByNameAndTypeMatchingStrategy.class) instanceof MatchByNameAndTypeMatchingStrategy);
-        Assert.assertTrue(factory.createBindingMatchingStrategy(MatchByTypeMatchingStrategy.class) instanceof MatchByTypeMatchingStrategy);
-        Assert.assertTrue(factory.createBindingMatchingStrategy(MatchByTypeMatchingStrategy.class) instanceof MatchByTypeMatchingStrategy);
+        Assertions.assertInstanceOf(MatchByNameMatchingStrategy.class, factory.createBindingMatchingStrategy(MatchByNameMatchingStrategy.class));
+        Assertions.assertInstanceOf(MatchByNameAndTypeMatchingStrategy.class, factory.createBindingMatchingStrategy(MatchByNameAndTypeMatchingStrategy.class));
+        Assertions.assertInstanceOf(MatchByTypeMatchingStrategy.class, factory.createBindingMatchingStrategy(MatchByTypeMatchingStrategy.class));
+        Assertions.assertInstanceOf(MatchByTypeMatchingStrategy.class, factory.createBindingMatchingStrategy(MatchByTypeMatchingStrategy.class));
 
-        Assert.assertTrue(factory.createRule(TestRule.class) instanceof TestRule);
+        Assertions.assertInstanceOf(TestRule.class, factory.createRule(TestRule.class));
     }
 
     @Rule @Description("This is test rule")

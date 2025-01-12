@@ -17,10 +17,10 @@
  */
 package org.rulii.test.text;
 
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.rulii.text.MessageFormatter;
 import org.rulii.text.ParameterInfo;
-import org.junit.Assert;
-import org.junit.Test;
 
 import java.util.Locale;
 
@@ -34,7 +34,7 @@ public class MessageFormatterTest {
     public void testMessageFormatter1() {
         MessageFormatter formatter = MessageFormatter.builder().build();
         String formatted = formatter.format(Locale.getDefault(), "this is a test");
-        Assert.assertTrue(formatted.equals("this is a test"));
+        Assertions.assertEquals("this is a test", formatted);
     }
 
     @Test
@@ -45,7 +45,7 @@ public class MessageFormatterTest {
         args[1] = new ParameterInfo(1, "b", "hello");
         args[2] = new ParameterInfo(2, "c", "there");
         String formatted = formatter.format(Locale.getDefault(), "Test: {0} {1} {2}", args);
-        Assert.assertTrue(formatted.equals("Test: oh hello there"));
+        Assertions.assertEquals("Test: oh hello there", formatted);
     }
 
     @Test
@@ -55,7 +55,7 @@ public class MessageFormatterTest {
         args[0] = new ParameterInfo(0, "a", "oh");
         args[1] = new ParameterInfo(1, "b", 123);
         String formatted = formatter.format(Locale.getDefault(), "Test: {0} {1,number, integer }", args);
-        Assert.assertTrue(formatted.equals("Test: oh 123"));
+        Assertions.assertEquals("Test: oh 123", formatted);
     }
 
     @Test
@@ -65,7 +65,7 @@ public class MessageFormatterTest {
         args[0] = new ParameterInfo(0, "a", "oh");
         args[1] = new ParameterInfo(1, "b", 123);
         String formatted = formatter.format(Locale.getDefault(), "Test: ${a}  ${b,number, integer } ${a} ${b}", args);
-        Assert.assertTrue(formatted.equals("Test: oh  123 oh 123"));
+        Assertions.assertEquals("Test: oh  123 oh 123", formatted);
     }
 
     @Test
@@ -75,15 +75,17 @@ public class MessageFormatterTest {
         args[0] = new ParameterInfo(0, "a", "oh");
         args[1] = new ParameterInfo(1, "b", 123);
         String formatted = formatter.format(Locale.getDefault(), "Test: ${a}  ${b,number, integer } ${a} ${b} {0} {1}", args);
-        Assert.assertTrue(formatted.equals("Test: oh  123 oh 123 oh 123"));
+        Assertions.assertEquals("Test: oh  123 oh 123 oh 123", formatted);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testMessageFormatter6() {
-        MessageFormatter formatter = MessageFormatter.builder().build();
-        ParameterInfo[] args = new ParameterInfo[2];
-        args[0] = new ParameterInfo(0, "a", "oh");
-        args[1] = new ParameterInfo(1, "b", 123);
-        formatter.format(Locale.getDefault(), "Test: ${a}  ${b,number, integer ${a} ${b} {0} {1}", args);
+        Assertions.assertThrows(IllegalArgumentException.class, () -> {
+            MessageFormatter formatter = MessageFormatter.builder().build();
+            ParameterInfo[] args = new ParameterInfo[2];
+            args[0] = new ParameterInfo(0, "a", "oh");
+            args[1] = new ParameterInfo(1, "b", 123);
+            formatter.format(Locale.getDefault(), "Test: ${a}  ${b,number, integer ${a} ${b} {0} {1}", args);
+        });
     }
 }

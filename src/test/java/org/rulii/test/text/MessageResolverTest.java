@@ -17,9 +17,9 @@
  */
 package org.rulii.test.text;
 
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.rulii.text.MessageResolver;
-import org.junit.Assert;
-import org.junit.Test;
 
 import java.util.Locale;
 import java.util.MissingResourceException;
@@ -34,20 +34,22 @@ public class MessageResolverTest {
     public void testMessageFormattedText1() {
         MessageResolver resolver = MessageResolver.builder("message-resolver").build();
         String template = resolver.resolve(null, "test.001");
-        Assert.assertTrue("testing".equals(template));
+        Assertions.assertEquals("testing", template);
     }
 
-    @Test(expected = MissingResourceException.class)
+    @Test
     public void testMessageFormattedText2() {
-        MessageResolver resolver = MessageResolver.builder("message-resolver").build();
-        String notFound = resolver.resolve(null, "unknown");
-        Assert.assertNull(notFound);
+        Assertions.assertThrows(MissingResourceException.class, () -> {
+            MessageResolver resolver = MessageResolver.builder("message-resolver").build();
+            String notFound = resolver.resolve(null, "unknown");
+            Assertions.assertNull(notFound);
+        });
     }
 
     @Test
     public void testMessageFormattedText3() {
         MessageResolver resolver = MessageResolver.builder("message-resolver").build();
         String template = resolver.resolve(Locale.US, "test.001");
-        Assert.assertTrue("testing".equals(template));
+        Assertions.assertEquals("testing", template);
     }
 }

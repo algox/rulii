@@ -17,6 +17,8 @@
  */
 package org.rulii.test.util.reflect;
 
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.rulii.annotation.Action;
 import org.rulii.annotation.Then;
 import org.rulii.bind.Binding;
@@ -25,8 +27,6 @@ import org.rulii.model.condition.Condition;
 import org.rulii.model.function.TriFunction;
 import org.rulii.util.reflect.LambdaUtils;
 import org.rulii.util.reflect.ReflectionUtils;
-import org.junit.Assert;
-import org.junit.Test;
 
 import javax.annotation.PostConstruct;
 import java.io.Serializable;
@@ -51,70 +51,76 @@ public class ReflectionUtilsTest {
     @Test
     public void parameterNamesTest1() throws NoSuchMethodException {
         Method m = SomeClass.class.getDeclaredMethod("testMethod", String.class, Integer.class, List.class);
-        Assert.assertTrue(m != null);
+        Assertions.assertNotNull(m);
         String[] parameterNames = ReflectionUtils.getParameterNames(m);
-        Assert.assertTrue(parameterNames.length == 3);
-        Assert.assertTrue("a".equals(parameterNames[0]));
-        Assert.assertTrue("b".equals(parameterNames[1]));
-        Assert.assertTrue("c".equals(parameterNames[2]));
+        Assertions.assertEquals(3, parameterNames.length);
+        Assertions.assertEquals("a", parameterNames[0]);
+        Assertions.assertEquals("b", parameterNames[1]);
+        Assertions.assertEquals("c", parameterNames[2]);
     }
 
     @Test
     public void parameterNamesTest2() throws NoSuchMethodException {
         TriFunction<Boolean, Integer, String, List<Float>> lambda = (Integer a, String b, List<Float> c) -> a > 100;
         SerializedLambda serializedLambda = LambdaUtils.getSafeSerializedLambda(lambda);
-        Assert.assertTrue(serializedLambda != null);
+        Assertions.assertNotNull(serializedLambda);
         Class<?> c = LambdaUtils.getImplementationClass(serializedLambda);
-        Assert.assertTrue(c != null);
+        Assertions.assertNotNull(c);
         Method m = LambdaUtils.getImplementationMethod(serializedLambda, c);
         String[] parameterNames = ReflectionUtils.getParameterNames(m);
-        Assert.assertTrue(parameterNames.length == 3);
-        Assert.assertTrue("a".equals(parameterNames[0]));
-        Assert.assertTrue("b".equals(parameterNames[1]));
-        Assert.assertTrue("c".equals(parameterNames[2]));
+        Assertions.assertEquals(3, parameterNames.length);
+        Assertions.assertEquals("a", parameterNames[0]);
+        Assertions.assertEquals("b", parameterNames[1]);
+        Assertions.assertEquals("c", parameterNames[2]);
     }
 
     @Test
     public void postConstructorTest1() {
         Method postConstructor = ReflectionUtils.getPostConstructMethods(SomeClass.class);
-        Assert.assertTrue(postConstructor != null);
+        Assertions.assertNotNull(postConstructor);
         ReflectionUtils.invokePostConstruct(postConstructor, new SomeClass());
     }
 
-    @Test(expected = UnrulyException.class)
+    @Test
     public void postConstructorTest2() {
-        // 2 PostConstructors
-        ReflectionUtils.getPostConstructMethods(OtherClass.class);
+        Assertions.assertThrows(UnrulyException.class, () -> {
+            // 2 PostConstructors
+            ReflectionUtils.getPostConstructMethods(OtherClass.class);
+        });
     }
 
     @Test
     public void postConstructorTest3() {
         Method postConstructor = ReflectionUtils.getPostConstructMethods(ErrorClass.class);
-        Assert.assertTrue(postConstructor == null);
+        Assertions.assertNull(postConstructor);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void isAnnotatedTest1() {
-        ReflectionUtils.isAnnotated(null, null);
+        Assertions.assertThrows(IllegalArgumentException.class, () -> {
+            ReflectionUtils.isAnnotated(null, null);
+        });
     }
 
     @Test
     public void isAnnotatedTest2() throws NoSuchMethodException {
         Method method = TestClass.class.getDeclaredMethod("execute");
-        Assert.assertTrue(!ReflectionUtils.isAnnotated(method, Action.class));
+        Assertions.assertFalse(ReflectionUtils.isAnnotated(method, Action.class));
     }
 
     @Test
     public void isAnnotatedTest3() throws NoSuchMethodException {
         Method method1 = TestClass.class.getDeclaredMethod("execute", Map.class);
-        Assert.assertTrue(ReflectionUtils.isAnnotated(method1, Action.class));
+        Assertions.assertTrue(ReflectionUtils.isAnnotated(method1, Action.class));
         Method method2 = TestClass.class.getDeclaredMethod("execute", List.class);
-        Assert.assertTrue(ReflectionUtils.isAnnotated(method2, Action.class));
+        Assertions.assertTrue(ReflectionUtils.isAnnotated(method2, Action.class));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void getMethodsWithAnnotationTest1() {
-        ReflectionUtils.getMethodsWithAnnotation(null, null);
+        Assertions.assertThrows(IllegalArgumentException.class, () -> {
+            ReflectionUtils.getMethodsWithAnnotation(null, null);
+        });
     }
 
     @Test
@@ -125,18 +131,18 @@ public class ReflectionUtilsTest {
         Method method4 = Interface2.class.getDeclaredMethod("test", Integer.class, String.class);
         Method method5 = BaseClass2.class.getDeclaredMethod("init");
         List<Method> methods = Arrays.asList(ReflectionUtils.getMethodsWithAnnotation(TestClass.class, Action.class));
-        Assert.assertTrue(methods.contains(method1));
-        Assert.assertTrue(methods.contains(method2));
-        Assert.assertTrue(methods.contains(method3));
-        Assert.assertTrue(methods.contains(method4));
-        Assert.assertTrue(!methods.contains(method5));
+        Assertions.assertTrue(methods.contains(method1));
+        Assertions.assertTrue(methods.contains(method2));
+        Assertions.assertTrue(methods.contains(method3));
+        Assertions.assertTrue(methods.contains(method4));
+        Assertions.assertFalse(methods.contains(method5));
     }
 
     @Test
     public void testUnderlyingTypes1() throws NoSuchMethodException {
         Method method = Interface3.class.getDeclaredMethod("test", Binding.class, Optional.class, Optional.class);
-        Assert.assertEquals(ReflectionUtils.getUnderlyingType(method.getGenericParameterTypes()[0], Binding.class), String.class);
-        Assert.assertEquals(ReflectionUtils.getUnderlyingType(method.getGenericParameterTypes()[1], Optional.class), Integer.class);
+        Assertions.assertEquals(ReflectionUtils.getUnderlyingType(method.getGenericParameterTypes()[0], Binding.class), String.class);
+        Assertions.assertEquals(ReflectionUtils.getUnderlyingType(method.getGenericParameterTypes()[1], Optional.class), Integer.class);
     }
 
     @Test
@@ -144,9 +150,9 @@ public class ReflectionUtilsTest {
         Condition condition = Condition.builder().with((Binding<Integer> bind, Optional<String> opt) -> true)
                 .build();
         Method method = LambdaUtils.getImplementationMethod(condition.getTarget());
-        SerializedLambda lambda = LambdaUtils.getSafeSerializedLambda(condition.getTarget());
-        Assert.assertEquals(ReflectionUtils.getUnderlyingType(method.getGenericParameterTypes()[0], Binding.class), Object.class);
-        Assert.assertEquals(ReflectionUtils.getUnderlyingType(method.getGenericParameterTypes()[1], Optional.class), Object.class);
+        LambdaUtils.getSafeSerializedLambda(condition.getTarget());
+        Assertions.assertEquals(ReflectionUtils.getUnderlyingType(method.getGenericParameterTypes()[0], Binding.class), Object.class);
+        Assertions.assertEquals(ReflectionUtils.getUnderlyingType(method.getGenericParameterTypes()[1], Optional.class), Object.class);
     }
 
     private static class SomeClass {

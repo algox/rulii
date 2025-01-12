@@ -17,6 +17,8 @@
  */
 package org.rulii.test.bind.match;
 
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.rulii.annotation.Param;
 import org.rulii.bind.Binding;
 import org.rulii.bind.BindingException;
@@ -24,18 +26,16 @@ import org.rulii.bind.Bindings;
 import org.rulii.bind.ScopedBindings;
 import org.rulii.bind.match.*;
 import org.rulii.convert.ConverterRegistry;
-import org.rulii.model.action.Action;
-import org.rulii.model.condition.Condition;
-import org.rulii.model.function.Function;
 import org.rulii.model.Definable;
 import org.rulii.model.MethodDefinition;
 import org.rulii.model.SourceDefinition;
+import org.rulii.model.action.Action;
+import org.rulii.model.condition.Condition;
+import org.rulii.model.function.Function;
 import org.rulii.util.TypeReference;
 import org.rulii.util.reflect.LambdaUtils;
 import org.rulii.util.reflect.ObjectFactory;
 import org.rulii.util.reflect.ReflectionUtils;
-import org.junit.Assert;
-import org.junit.Test;
 
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
@@ -63,22 +63,22 @@ public class ParameterResolverTest {
         bindings.bind("c", new TypeReference<List<Integer>>() {}, new ArrayList<>());
         bindings.bind("d", new TypeReference<Map<?, Long>>() {}, new HashMap<>());
 
-        Assert.assertTrue(definitions.size() == 1);
+        Assertions.assertEquals(1, definitions.size());
         List<ParameterMatch> matches = resolver.match(definitions.get(0), bindings,
                 BindingMatchingStrategy.builder().matchByName(), ObjectFactory.builder().build());
 
-        Assert.assertTrue(matches.size() == 4);
-        Assert.assertTrue(matches.get(0).getBinding().getName().equals("a") && !matches.get(0).getDefinition().isBindingType());
-        Assert.assertTrue(matches.get(1).getBinding().getName().equals("b") && !matches.get(1).getDefinition().isBindingType());
-        Assert.assertTrue(matches.get(2).getBinding().getName().equals("c") && matches.get(2).getDefinition().isBindingType());
-        Assert.assertTrue(matches.get(3).getBinding().getName().equals("d") && !matches.get(3).getDefinition().isBindingType());
+        Assertions.assertEquals(4, matches.size());
+        Assertions.assertTrue(matches.get(0).getBinding().getName().equals("a") && !matches.get(0).getDefinition().isBindingType());
+        Assertions.assertTrue(matches.get(1).getBinding().getName().equals("b") && !matches.get(1).getDefinition().isBindingType());
+        Assertions.assertTrue(matches.get(2).getBinding().getName().equals("c") && matches.get(2).getDefinition().isBindingType());
+        Assertions.assertTrue(matches.get(3).getBinding().getName().equals("d") && !matches.get(3).getDefinition().isBindingType());
 
         List<Object> values = resolver.resolve(matches, definitions.get(0), bindings,
                 BindingMatchingStrategy.builder().matchByName(), ConverterRegistry.builder().build(), ObjectFactory.builder().build());
-        Assert.assertTrue(values.get(0).equals(bindings.getValue("a")));
-        Assert.assertTrue(values.get(1).equals(bindings.getValue("b")));
-        Assert.assertTrue(values.get(2).equals(bindings.getBinding("c")));
-        Assert.assertTrue(values.get(3).equals(bindings.getValue("d")));
+        Assertions.assertEquals(values.get(0), bindings.getValue("a"));
+        Assertions.assertEquals(values.get(1), bindings.getValue("b"));
+        Assertions.assertEquals(values.get(2), bindings.getBinding("c"));
+        Assertions.assertEquals(values.get(3), bindings.getValue("d"));
     }
 
     @Test
@@ -92,18 +92,18 @@ public class ParameterResolverTest {
         bindings.bind("c", new TypeReference<List<Integer>>() {}, new ArrayList<>());
         bindings.bind("d", new TypeReference<Map<?, Long>>() {}, new HashMap<>());
 
-        Assert.assertTrue(definitions.size() == 1);
+        Assertions.assertEquals(1, definitions.size());
         List<ParameterMatch> matches = resolver.match(definitions.get(0), bindings,
                 BindingMatchingStrategy.builder().matchByName(), ObjectFactory.builder().build());
 
-        Assert.assertTrue(matches.size() == 2);
-        Assert.assertTrue(matches.get(0).getBinding().getName().equals("a") && !matches.get(0).getDefinition().isBindingType());
-        Assert.assertTrue(matches.get(1).getBinding().getName().equals("values") && !matches.get(1).getDefinition().isBindingType());
+        Assertions.assertEquals(2, matches.size());
+        Assertions.assertTrue(matches.get(0).getBinding().getName().equals("a") && !matches.get(0).getDefinition().isBindingType());
+        Assertions.assertTrue(matches.get(1).getBinding().getName().equals("values") && !matches.get(1).getDefinition().isBindingType());
 
         List<Object> values = resolver.resolve(matches, definitions.get(0),
                 bindings,BindingMatchingStrategy.builder().matchByName(), ConverterRegistry.builder().build(), ObjectFactory.builder().build());
-        Assert.assertTrue(values.get(0).equals(bindings.getValue("a")));
-        Assert.assertTrue(values.get(1).equals(bindings.getValue("values")));
+        Assertions.assertEquals(values.get(0), bindings.getValue("a"));
+        Assertions.assertEquals(values.get(1), bindings.getValue("values"));
     }
 
     @Test
@@ -116,16 +116,16 @@ public class ParameterResolverTest {
         bindings.bind("b", new TypeReference<List<Integer>>() {}, new ArrayList<>());
         bindings.bind("c", new TypeReference<Map<?, Long>>() {}, new HashMap<>());
 
-        Assert.assertTrue(definitions.size() == 1);
+        Assertions.assertEquals(1, definitions.size());
         List<ParameterMatch> matches = resolver.match(definitions.get(0), bindings,
                 BindingMatchingStrategy.builder().matchByName(), ObjectFactory.builder().build());
 
-        Assert.assertTrue(matches.size() == 1);
-        Assert.assertTrue(matches.get(0).getBinding().getName().equals("x") && matches.get(0).getDefinition().isBindingType());
+        Assertions.assertEquals(1, matches.size());
+        Assertions.assertTrue(matches.get(0).getBinding().getName().equals("x") && matches.get(0).getDefinition().isBindingType());
 
         List<Object> values = resolver.resolve(matches, definitions.get(0), bindings,
                 BindingMatchingStrategy.builder().matchByName(), ConverterRegistry.builder().build(), ObjectFactory.builder().build());
-        Assert.assertTrue(values.get(0).equals(bindings.getBinding("x")));
+        Assertions.assertEquals(values.get(0), bindings.getBinding("x"));
     }
 
     @Test
@@ -138,20 +138,20 @@ public class ParameterResolverTest {
         bindings.bind("b", int.class, 1);
         bindings.bind("x", new TypeReference<List<Integer>>() {}, new ArrayList<>());
 
-        Assert.assertTrue(definitions.size() == 1);
+        Assertions.assertEquals(1, definitions.size());
         List<ParameterMatch> matches = resolver.match(definitions.get(0), bindings,
                 BindingMatchingStrategy.builder().matchByName(), ObjectFactory.builder().build());
 
-        Assert.assertTrue(matches.size() == 3);
-        Assert.assertTrue(matches.get(0).getBinding().getName().equals("a") && !matches.get(0).getDefinition().isBindingType());
-        Assert.assertTrue(matches.get(1).getBinding().getName().equals("b") && !matches.get(1).getDefinition().isBindingType());
-        Assert.assertTrue(matches.get(2).getBinding().getName().equals("x") && matches.get(2).getDefinition().isBindingType());
+        Assertions.assertEquals(3, matches.size());
+        Assertions.assertTrue(matches.get(0).getBinding().getName().equals("a") && !matches.get(0).getDefinition().isBindingType());
+        Assertions.assertTrue(matches.get(1).getBinding().getName().equals("b") && !matches.get(1).getDefinition().isBindingType());
+        Assertions.assertTrue(matches.get(2).getBinding().getName().equals("x") && matches.get(2).getDefinition().isBindingType());
 
         List<Object> values = resolver.resolve(matches, definitions.get(0), bindings,
                 BindingMatchingStrategy.builder().matchByName(), ConverterRegistry.builder().build(), ObjectFactory.builder().build());
-        Assert.assertTrue(values.get(0).equals(bindings.getValue("a")));
-        Assert.assertTrue(values.get(1).equals(bindings.getValue("b")));
-        Assert.assertTrue(values.get(2).equals(bindings.getBinding("x")));
+        Assertions.assertEquals(values.get(0), bindings.getValue("a"));
+        Assertions.assertEquals(values.get(1), bindings.getValue("b"));
+        Assertions.assertEquals(values.get(2), bindings.getBinding("x"));
     }
 
     @Test
@@ -165,22 +165,22 @@ public class ParameterResolverTest {
         bindings.bind("c", new TypeReference<List<Integer>>() {}, new ArrayList<>());
         bindings.bind("d", new TypeReference<Map<String, Long>>() {}, new HashMap<>());
 
-        Assert.assertTrue(definitions.size() == 1);
+        Assertions.assertEquals(1, definitions.size());
         List<ParameterMatch> matches = resolver.match(definitions.get(0), bindings,
                 BindingMatchingStrategy.builder().matchByType(), ObjectFactory.builder().build());
 
-        Assert.assertTrue(matches.size() == 4);
-        Assert.assertTrue(matches.get(0).getBinding().getName().equals("a") && !matches.get(0).getDefinition().isBindingType());
-        Assert.assertTrue(matches.get(1).getBinding().getName().equals("b") && !matches.get(1).getDefinition().isBindingType());
-        Assert.assertTrue(matches.get(2).getBinding().getName().equals("c") && matches.get(2).getDefinition().isBindingType());
-        Assert.assertTrue(matches.get(3).getBinding().getName().equals("d") && !matches.get(3).getDefinition().isBindingType());
+        Assertions.assertEquals(4, matches.size());
+        Assertions.assertTrue(matches.get(0).getBinding().getName().equals("a") && !matches.get(0).getDefinition().isBindingType());
+        Assertions.assertTrue(matches.get(1).getBinding().getName().equals("b") && !matches.get(1).getDefinition().isBindingType());
+        Assertions.assertTrue(matches.get(2).getBinding().getName().equals("c") && matches.get(2).getDefinition().isBindingType());
+        Assertions.assertTrue(matches.get(3).getBinding().getName().equals("d") && !matches.get(3).getDefinition().isBindingType());
 
         List<Object> values = resolver.resolve(matches, definitions.get(0), bindings,
                 BindingMatchingStrategy.builder().matchByType(), ConverterRegistry.builder().build(), ObjectFactory.builder().build());
-        Assert.assertTrue(values.get(0).equals(bindings.getValue("a")));
-        Assert.assertTrue(values.get(1).equals(bindings.getValue("b")));
-        Assert.assertTrue(values.get(2).equals(bindings.getBinding("c")));
-        Assert.assertTrue(values.get(3).equals(bindings.getValue("d")));
+        Assertions.assertEquals(values.get(0), bindings.getValue("a"));
+        Assertions.assertEquals(values.get(1), bindings.getValue("b"));
+        Assertions.assertEquals(values.get(2), bindings.getBinding("c"));
+        Assertions.assertEquals(values.get(3), bindings.getValue("d"));
     }
 
     @Test
@@ -194,39 +194,41 @@ public class ParameterResolverTest {
         bindings.addScope().getBindings()
                 .bind("key2", new TypeReference<Map<String, Integer>>() {}, new HashMap<>());
 
-        Assert.assertTrue(definitions.size() == 1);
+        Assertions.assertEquals(1, definitions.size());
         List<ParameterMatch> matches = resolver.match(definitions.get(0), bindings,
                 BindingMatchingStrategy.builder().matchByType(), ObjectFactory.builder().build());
 
-        Assert.assertTrue(matches.size() == 2);
-        Assert.assertTrue(matches.get(0).getBinding().getName().equals("key1") && !matches.get(0).getDefinition().isBindingType());
-        Assert.assertTrue(matches.get(1).getBinding().getName().equals("key2") && !matches.get(1).getDefinition().isBindingType());
+        Assertions.assertEquals(2, matches.size());
+        Assertions.assertTrue(matches.get(0).getBinding().getName().equals("key1") && !matches.get(0).getDefinition().isBindingType());
+        Assertions.assertTrue(matches.get(1).getBinding().getName().equals("key2") && !matches.get(1).getDefinition().isBindingType());
 
         List<Object> values = resolver.resolve(matches, definitions.get(0), bindings,
                 BindingMatchingStrategy.builder().matchByType(), ConverterRegistry.builder().build(), ObjectFactory.builder().build());
-        Assert.assertTrue(values.get(0).equals(bindings.getValue("key1")));
-        Assert.assertTrue(values.get(1).equals(bindings.getValue("key2")));
+        Assertions.assertEquals(values.get(0), bindings.getValue("key1"));
+        Assertions.assertEquals(values.get(1), bindings.getValue("key2"));
     }
 
-    @Test(expected = BindingException.class)
+    @Test
     public void matchByTypeTest3() {
-        ParameterResolver resolver = ParameterResolver.builder().build();
-        List<MethodDefinition> definitions = MethodDefinition.load(TestClass.class, method -> method.getName().equals("testMethod3"), SourceDefinition.build());
+        Assertions.assertThrows(BindingException.class, () -> {
+            ParameterResolver resolver = ParameterResolver.builder().build();
+            List<MethodDefinition> definitions = MethodDefinition.load(TestClass.class, method -> method.getName().equals("testMethod3"), SourceDefinition.build());
 
-        Bindings bindings = Bindings.builder().standard();
-        bindings.bind("key1", String.class, "Ruling class");
-        bindings.bind("key2", Integer.class, 24);
+            Bindings bindings = Bindings.builder().standard();
+            bindings.bind("key1", String.class, "Ruling class");
+            bindings.bind("key2", Integer.class, 24);
 
-        Assert.assertTrue(definitions.size() == 1);
-        List<ParameterMatch> matches = resolver.match(definitions.get(0), bindings,
-                BindingMatchingStrategy.builder().matchByType(), ObjectFactory.builder().build());
+            Assertions.assertEquals(1, definitions.size());
+            List<ParameterMatch> matches = resolver.match(definitions.get(0), bindings,
+                    BindingMatchingStrategy.builder().matchByType(), ObjectFactory.builder().build());
 
-        Assert.assertTrue(matches.size() == 1);
-        Assert.assertTrue(matches.get(0).getBinding().getName().equals("key1") && matches.get(0).getDefinition().isBindingType());
+            Assertions.assertEquals(1, matches.size());
+            Assertions.assertTrue(matches.get(0).getBinding().getName().equals("key1") && matches.get(0).getDefinition().isBindingType());
 
-        List<Object> values = resolver.resolve(matches, definitions.get(0), bindings,
-                BindingMatchingStrategy.builder().matchByType(), ConverterRegistry.builder().build(), ObjectFactory.builder().build());
-        Assert.assertTrue(values.get(0).equals(bindings.getValue("key1")));
+            List<Object> values = resolver.resolve(matches, definitions.get(0), bindings,
+                    BindingMatchingStrategy.builder().matchByType(), ConverterRegistry.builder().build(), ObjectFactory.builder().build());
+            Assertions.assertEquals(values.get(0), bindings.getValue("key1"));
+        });
     }
 
     @Test
@@ -239,14 +241,14 @@ public class ParameterResolverTest {
         bindings.addScope().getBindings()
                 .bind("key3", new TypeReference<List<Integer>>() {}, new ArrayList<>());
 
-        Assert.assertTrue(definitions.size() == 1);
+        Assertions.assertEquals(1, definitions.size());
         List<ParameterMatch> matches = resolver.match(definitions.get(0), bindings,
                 BindingMatchingStrategy.builder().matchByType(), ObjectFactory.builder().build());
 
-        Assert.assertTrue(matches.size() == 3);
-        Assert.assertTrue(matches.get(0).getBinding().getName().equals("key1") && !matches.get(0).getDefinition().isBindingType());
-        Assert.assertTrue(matches.get(1).getBinding() == null);
-        Assert.assertTrue(matches.get(2).getBinding().getName().equals("key3") && matches.get(2).getDefinition().isBindingType());
+        Assertions.assertEquals(3, matches.size());
+        Assertions.assertTrue(matches.get(0).getBinding().getName().equals("key1") && !matches.get(0).getDefinition().isBindingType());
+        Assertions.assertNull(matches.get(1).getBinding());
+        Assertions.assertTrue(matches.get(2).getBinding().getName().equals("key3") && matches.get(2).getDefinition().isBindingType());
 
         resolver.resolve(matches, definitions.get(0), bindings, BindingMatchingStrategy.builder().matchByType(),
                 ConverterRegistry.builder().build(), ObjectFactory.builder().build());
@@ -260,25 +262,25 @@ public class ParameterResolverTest {
         Bindings bindings = Bindings.builder().standard();
         bindings.bind("a", String.class, "Ruling class");
         bindings.bind("b", new TypeReference<Set<Integer>>() {}, new HashSet<>());
-        bindings.bind("c", new TypeReference<List<Integer>>() {}, new Vector());
+        bindings.bind("c", new TypeReference<List<Integer>>() {}, new Vector<>());
         bindings.bind("d", new TypeReference<Map<String, Long>>() {}, new HashMap<>());
 
-        Assert.assertTrue(definitions.size() == 1);
+        Assertions.assertEquals(1, definitions.size());
         List<ParameterMatch> matches = resolver.match(definitions.get(0), bindings,
                 BindingMatchingStrategy.builder().matchByNameAndType(), ObjectFactory.builder().build());
 
-        Assert.assertTrue(matches.size() == 4);
-        Assert.assertTrue(matches.get(0).getBinding().getName().equals("a") && !matches.get(0).getDefinition().isBindingType());
-        Assert.assertTrue(matches.get(1).getBinding().getName().equals("b") && !matches.get(1).getDefinition().isBindingType());
-        Assert.assertTrue(matches.get(2).getBinding().getName().equals("c") && matches.get(2).getDefinition().isBindingType());
-        Assert.assertTrue(matches.get(3).getBinding().getName().equals("d") && !matches.get(3).getDefinition().isBindingType());
+        Assertions.assertEquals(4, matches.size());
+        Assertions.assertTrue(matches.get(0).getBinding().getName().equals("a") && !matches.get(0).getDefinition().isBindingType());
+        Assertions.assertTrue(matches.get(1).getBinding().getName().equals("b") && !matches.get(1).getDefinition().isBindingType());
+        Assertions.assertTrue(matches.get(2).getBinding().getName().equals("c") && matches.get(2).getDefinition().isBindingType());
+        Assertions.assertTrue(matches.get(3).getBinding().getName().equals("d") && !matches.get(3).getDefinition().isBindingType());
 
         List<Object> values = resolver.resolve(matches, definitions.get(0), bindings,
                 BindingMatchingStrategy.builder().matchByType(), ConverterRegistry.builder().build(), ObjectFactory.builder().build());
-        Assert.assertTrue(values.get(0).equals(bindings.getValue("a")));
-        Assert.assertTrue(values.get(1).equals(bindings.getValue("b")));
-        Assert.assertTrue(values.get(2).equals(bindings.getBinding("c")));
-        Assert.assertTrue(values.get(3).equals(bindings.getValue("d")));
+        Assertions.assertEquals(values.get(0), bindings.getValue("a"));
+        Assertions.assertEquals(values.get(1), bindings.getValue("b"));
+        Assertions.assertEquals(values.get(2), bindings.getBinding("c"));
+        Assertions.assertEquals(values.get(3), bindings.getValue("d"));
     }
 
     @Test
@@ -294,22 +296,22 @@ public class ParameterResolverTest {
         newScopeBindings.bind("a", Integer.class, 50);
         newScopeBindings.bind("x", new TypeReference<List<Integer>>() {}, new ArrayList<>());
 
-        Assert.assertTrue(definitions.size() == 1);
+        Assertions.assertEquals(1, definitions.size());
         List<ParameterMatch> matches = resolver.match(definitions.get(0), bindings,
                 BindingMatchingStrategy.builder().matchByNameAndType(), ObjectFactory.builder().build());
 
-        Assert.assertTrue(matches.size() == 3);
-        Assert.assertTrue(matches.get(0).getBinding().getName().equals("a")
+        Assertions.assertEquals(3, matches.size());
+        Assertions.assertTrue(matches.get(0).getBinding().getName().equals("a")
                 && matches.get(0).getBinding().getType().equals(String.class) && !matches.get(0).getDefinition().isBindingType());
-        Assert.assertTrue(matches.get(1).getBinding().getName().equals("b") && !matches.get(1).getDefinition().isBindingType());
-        Assert.assertTrue(matches.get(2).getBinding().getName().equals("x") && matches.get(2).getDefinition().isBindingType());
+        Assertions.assertTrue(matches.get(1).getBinding().getName().equals("b") && !matches.get(1).getDefinition().isBindingType());
+        Assertions.assertTrue(matches.get(2).getBinding().getName().equals("x") && matches.get(2).getDefinition().isBindingType());
 
         List<Object> values = resolver.resolve(matches, definitions.get(0), bindings,
                 BindingMatchingStrategy.builder().matchByNameAndType(), ConverterRegistry.builder().build(), ObjectFactory.builder().build());
-        Assert.assertTrue(values.get(2).equals(bindings.getBinding("x")));
+        Assertions.assertEquals(values.get(2), bindings.getBinding("x"));
         bindings.removeScope();
-        Assert.assertTrue(values.get(0).equals(bindings.getValue("a")));
-        Assert.assertTrue(values.get(1).equals(bindings.getValue("b")));
+        Assertions.assertEquals(values.get(0), bindings.getValue("a"));
+        Assertions.assertEquals(values.get(1), bindings.getValue("b"));
     }
 
     @Test
@@ -329,18 +331,18 @@ public class ParameterResolverTest {
         List<ParameterMatch> matches = resolver.match(definitions.get(0), bindings,
                 BindingMatchingStrategy.builder().matchByNameThenByType(), ObjectFactory.builder().build());
 
-        Assert.assertTrue(matches.size() == 3);
-        Assert.assertTrue(matches.get(0).getBinding().getName().equals("a")
+        Assertions.assertEquals(3, matches.size());
+        Assertions.assertTrue(matches.get(0).getBinding().getName().equals("a")
                 && matches.get(0).getBinding().getType().equals(Integer.class) && !matches.get(0).getDefinition().isBindingType());
-        Assert.assertTrue(matches.get(1).getBinding().getName().equals("b") && !matches.get(1).getDefinition().isBindingType());
-        Assert.assertTrue(matches.get(2).getBinding().getName().equals("c") && matches.get(2).getDefinition().isBindingType());
+        Assertions.assertTrue(matches.get(1).getBinding().getName().equals("b") && !matches.get(1).getDefinition().isBindingType());
+        Assertions.assertTrue(matches.get(2).getBinding().getName().equals("c") && matches.get(2).getDefinition().isBindingType());
 
         List<Object> values = resolver.resolve(matches, definitions.get(0), bindings,
                 BindingMatchingStrategy.builder().matchByNameThenByType(), ConverterRegistry.builder().build(), ObjectFactory.builder().build());
-        Assert.assertTrue(values.get(0).equals(bindings.getValue("a")));
+        Assertions.assertEquals(values.get(0), bindings.getValue("a"));
         bindings.removeScope();
-        Assert.assertTrue(values.get(1).equals(bindings.getValue("b")));
-        Assert.assertTrue(values.get(2).equals(bindings.getBinding("c")));
+        Assertions.assertEquals(values.get(1), bindings.getValue("b"));
+        Assertions.assertEquals(values.get(2), bindings.getBinding("c"));
     }
 
     @Test
@@ -360,18 +362,18 @@ public class ParameterResolverTest {
         List<ParameterMatch> matches = resolver.match(definitions.get(0), bindings,
                 BindingMatchingStrategy.builder().matchByNameAndTypeThenByJustType(), ObjectFactory.builder().build());
 
-        Assert.assertTrue(matches.size() == 3);
-        Assert.assertTrue(matches.get(0).getBinding().getName().equals("a")
+        Assertions.assertEquals(3, matches.size());
+        Assertions.assertTrue(matches.get(0).getBinding().getName().equals("a")
                 && matches.get(0).getBinding().getType().equals(String.class) && !matches.get(0).getDefinition().isBindingType());
-        Assert.assertTrue(matches.get(1).getBinding().getName().equals("b") && !matches.get(1).getDefinition().isBindingType());
-        Assert.assertTrue(matches.get(2).getBinding().getName().equals("c") && matches.get(2).getDefinition().isBindingType());
+        Assertions.assertTrue(matches.get(1).getBinding().getName().equals("b") && !matches.get(1).getDefinition().isBindingType());
+        Assertions.assertTrue(matches.get(2).getBinding().getName().equals("c") && matches.get(2).getDefinition().isBindingType());
 
         List<Object> values = resolver.resolve(matches, definitions.get(0), bindings,
                 BindingMatchingStrategy.builder().matchByNameAndTypeThenByJustType(), ConverterRegistry.builder().build(), ObjectFactory.builder().build());
-        Assert.assertTrue(values.get(1).equals(bindings.getValue("b")));
-        Assert.assertTrue(values.get(2).equals(bindings.getBinding("c")));
+        Assertions.assertEquals(values.get(1), bindings.getValue("b"));
+        Assertions.assertEquals(values.get(2), bindings.getBinding("c"));
         bindings.removeScope();
-        Assert.assertTrue(values.get(0).equals(bindings.getValue("a")));
+        Assertions.assertEquals(values.get(0), bindings.getValue("a"));
     }
 
     @Test
@@ -382,7 +384,7 @@ public class ParameterResolverTest {
         Bindings bindings = Bindings.builder().scoped();
         bindings.bind("a", String.class, "Ruling class");
         bindings.bind("b", new TypeReference<Set<Integer>>() {}, new HashSet<>());
-        bindings.bind("c", new TypeReference<List<Integer>>() {}, new Vector());
+        bindings.bind("c", new TypeReference<List<Integer>>() {}, new Vector<>());
         bindings.bind("d", new TypeReference<Map<String, Long>>() {}, new HashMap<>());
 
         List<ParameterMatch> matches = resolver.match(definitions.get(0), bindings,
@@ -390,10 +392,10 @@ public class ParameterResolverTest {
         List<Object> values = resolver.resolve(matches, definitions.get(0), bindings,
                 BindingMatchingStrategy.builder().matchByName(), ConverterRegistry.builder().build(), ObjectFactory.builder().build());
 
-        Assert.assertTrue(values.get(0).equals(bindings.getValue("a")));
-        Assert.assertTrue(values.get(1).equals(bindings.getValue("b")));
-        Assert.assertTrue(values.get(2).equals(bindings.getBinding("c")));
-        Assert.assertTrue(values.get(3).equals(bindings.getValue("d")));
+        Assertions.assertEquals(values.get(0), bindings.getValue("a"));
+        Assertions.assertEquals(values.get(1), bindings.getValue("b"));
+        Assertions.assertEquals(values.get(2), bindings.getBinding("c"));
+        Assertions.assertEquals(values.get(3), bindings.getValue("d"));
     }
 
     @Test
@@ -409,9 +411,9 @@ public class ParameterResolverTest {
         List<Object> values = resolver.resolve(matches, definitions.get(0), bindings,
                 BindingMatchingStrategy.builder().matchByName(), ConverterRegistry.builder().build(), ObjectFactory.builder().build());
 
-        Assert.assertTrue(values.get(0).equals(12345l));
-        Assert.assertTrue(values.get(1).equals(0));
-        Assert.assertTrue(values.get(2).equals(bindings.getValue("c")));
+        Assertions.assertEquals(12345L, values.get(0));
+        Assertions.assertEquals(0, values.get(1));
+        Assertions.assertEquals(values.get(2), bindings.getValue("c"));
     }
 
     @Test
@@ -423,7 +425,7 @@ public class ParameterResolverTest {
 
         List<ParameterMatch> matches = resolver.match(definitions.get(0), bindings,
                 BindingMatchingStrategy.builder().matchByName(), ObjectFactory.builder().build());
-        List<Object> values = resolver.resolve(matches, definitions.get(0), bindings,
+        resolver.resolve(matches, definitions.get(0), bindings,
                 BindingMatchingStrategy.builder().matchByName(), ConverterRegistry.builder().build(), ObjectFactory.builder().build());
     }
 
@@ -441,8 +443,8 @@ public class ParameterResolverTest {
                 BindingMatchingStrategy.builder().matchByName(), ObjectFactory.builder().build());
         List<Object> values = resolver.resolve(matches, definitions.get(0), bindings,
                 BindingMatchingStrategy.builder().matchByName(), ConverterRegistry.builder().build(), ObjectFactory.builder().build());
-        Assert.assertTrue(values.get(1).equals(12345));
-        Assert.assertTrue(values.get(3).equals(321l));
+        Assertions.assertEquals(12345, values.get(1));
+        Assertions.assertEquals(321L, values.get(3));
     }
 
     @Test
@@ -451,13 +453,12 @@ public class ParameterResolverTest {
                                                        String match, BigDecimal salary, Optional<List<?>> values) -> true).build();
         Method method = LambdaUtils.getImplementationMethod(condition.getTarget());
 
-        Class x = method.getDeclaringClass();
         ParameterResolver resolver = ParameterResolver.builder().build();
         MethodDefinition definition = MethodDefinition.load(method, false, SourceDefinition.build());
 
         ScopedBindings bindings = Bindings.builder().scoped();
         bindings.bind(num -> 10, opt -> "abc", match -> "123");
-        Binding<Integer> b = bindings.bind(bind -> new Integer(200));
+        Binding<Integer> b = bindings.bind(bind -> 200);
 
         List<ParameterMatch> matches = resolver.match(definition, bindings,
                 BindingMatchingStrategy.builder().matchByNameThenByType(),
@@ -466,14 +467,15 @@ public class ParameterResolverTest {
                 BindingMatchingStrategy.builder().matchByNameThenByType(),
                 ConverterRegistry.builder().build(), ObjectFactory.builder().build());
 
-        Assert.assertEquals(values.get(0), 10);
-        Assert.assertEquals(values.get(1), b);
-        Assert.assertEquals(values.get(2), Optional.of("abc"));
-        Assert.assertEquals(values.get(3), "123");
-        Assert.assertEquals(values.get(4), null);
-        Assert.assertEquals(values.get(5), Optional.empty());
+        Assertions.assertEquals(values.get(0), 10);
+        Assertions.assertEquals(values.get(1), b);
+        Assertions.assertEquals(values.get(2), Optional.of("abc"));
+        Assertions.assertEquals(values.get(3), "123");
+        Assertions.assertNull(values.get(4));
+        Assertions.assertEquals(values.get(5), Optional.empty());
     }
 
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
     @Test
     public void matchTest2() {
         Action action = Action.builder().with((TestClass test, Binding<Integer> bind, Optional<String> opt,
@@ -488,7 +490,7 @@ public class ParameterResolverTest {
         MethodDefinition definition = action.getDefinition();
         ScopedBindings bindings = Bindings.builder().scoped();
         TestClass testClass = new TestClass();
-        Binding<TestClass> testClassBinding = bindings.bind(a -> testClass);
+        bindings.bind(a -> testClass);
 
         List<ParameterMatch> matches = resolver.match(definition, bindings,
                 BindingMatchingStrategy.builder().matchByNameThenByType(),
@@ -497,17 +499,17 @@ public class ParameterResolverTest {
                 BindingMatchingStrategy.builder().matchByNameThenByType(),
                 ConverterRegistry.builder().build(), ObjectFactory.builder().build());
 
-        Assert.assertEquals(values.get(0), testClass);
-        Assert.assertEquals(values.get(1), null);
-        Assert.assertEquals(values.get(2), Optional.empty());
-        Assert.assertEquals(values.get(3), Optional.empty());
-        Assert.assertEquals(values.get(4), Optional.of(testClass));
-        Assert.assertEquals(((Optional) values.get(4)).get(), testClass);
+        Assertions.assertEquals(values.get(0), testClass);
+        Assertions.assertNull(values.get(1));
+        Assertions.assertEquals(values.get(2), Optional.empty());
+        Assertions.assertEquals(values.get(3), Optional.empty());
+        Assertions.assertEquals(values.get(4), Optional.of(testClass));
+        Assertions.assertEquals(((Optional<?>) values.get(4)).get(), testClass);
     }
 
     @Test
     public void matchTest3() {
-        Action action = Action.builder().with((Integer num, Binding<BigDecimal> bind, Optional<List> opt, String match) -> {})
+        Action action = Action.builder().with((Integer num, Binding<BigDecimal> bind, Optional<List<?>> opt, String match) -> {})
                 .param(0)
                     .defaultValueText("100")
                 .build()
@@ -534,10 +536,10 @@ public class ParameterResolverTest {
                 BindingMatchingStrategy.builder().matchByNameThenByType(),
                 ConverterRegistry.builder().build(), ObjectFactory.builder().build());
 
-        Assert.assertEquals(values.get(0), 100);
-        Assert.assertEquals(values.get(1), var2);
-        Assert.assertEquals(values.get(2), Optional.empty());
-        Assert.assertEquals(values.get(3), "match");
+        Assertions.assertEquals(values.get(0), 100);
+        Assertions.assertEquals(values.get(1), var2);
+        Assertions.assertEquals(values.get(2), Optional.empty());
+        Assertions.assertEquals(values.get(3), "match");
     }
 
     @Test
@@ -545,40 +547,42 @@ public class ParameterResolverTest {
         List<MethodDefinition> definitions = MethodDefinition.load(TestClass.class, method -> method.getName().equals("testMethod7"), SourceDefinition.build());
         ScopedBindings bindings = Bindings.builder().scoped();
 
-        bindings.bind(arg1 -> 1000l);
+        bindings.bind(arg1 -> 1000L);
         bindings.addScope();
-        bindings.bind(a -> 10l);
+        bindings.bind(a -> 10L);
 
         // Find the renamed parameter arg1
         List<Object> values = resolveMatches(definitions.get(0), bindings, BindingMatchingStrategy.builder().matchByNameThenByType());
-        Assert.assertEquals(values.get(0), 1000l);
+        Assertions.assertEquals(values.get(0), 1000L);
 
         // Find the default value
         bindings = Bindings.builder().scoped();
-        bindings.bind(a -> 10l);
+        bindings.bind(a -> 10L);
         values = resolveMatches(definitions.get(0), bindings, BindingMatchingStrategy.builder().matchByNameThenByType());
-        Assert.assertEquals(values.get(0), 12345l);
+        Assertions.assertEquals(values.get(0), 12345L);
 
         // Auto Convert
         bindings = Bindings.builder().scoped();
         bindings.bind(arg1 -> "5555");
         values = resolveMatches(definitions.get(0), bindings, BindingMatchingStrategy.builder().matchByNameThenByType());
-        Assert.assertEquals(values.get(0), 5555l);
+        Assertions.assertEquals(values.get(0), 5555L);
 
         // Match by Type
         bindings = Bindings.builder().scoped();
         bindings.bind(arg1 -> "5555");
         values = resolveMatches(definitions.get(0), bindings, BindingMatchingStrategy.builder().matchByNameThenByType());
-        Assert.assertEquals(values.get(1), "5555");
+        Assertions.assertEquals(values.get(1), "5555");
     }
 
-    @Test(expected = BindingException.class)
+    @Test
     public void matchTest5() {
-        List<MethodDefinition> definitions = MethodDefinition.load(TestClass.class, method -> method.getName().equals("testMethod7"), SourceDefinition.build());
-        ScopedBindings bindings = Bindings.builder().scoped();
+        Assertions.assertThrows(BindingException.class, () -> {
+            List<MethodDefinition> definitions = MethodDefinition.load(TestClass.class, method -> method.getName().equals("testMethod7"), SourceDefinition.build());
+            ScopedBindings bindings = Bindings.builder().scoped();
 
-        bindings.bind(x -> "1", y -> "2");
-        resolveMatches(definitions.get(0), bindings, BindingMatchingStrategy.builder().matchByNameThenByType());
+            bindings.bind(x -> "1", y -> "2");
+            resolveMatches(definitions.get(0), bindings, BindingMatchingStrategy.builder().matchByNameThenByType());
+        });
     }
 
     @Test
@@ -587,14 +591,14 @@ public class ParameterResolverTest {
         ScopedBindings bindings = Bindings.builder().scoped();
 
         List<Object> values = resolveMatches(definitions.get(0), bindings, BindingMatchingStrategy.builder().build());
-        Assert.assertEquals(ReflectionUtils.getDefaultValue(boolean.class), values.get(0));
-        Assert.assertEquals(ReflectionUtils.getDefaultValue(byte.class), values.get(1));
-        Assert.assertEquals(ReflectionUtils.getDefaultValue(char.class), values.get(2));
-        Assert.assertEquals(ReflectionUtils.getDefaultValue(double.class), values.get(3));
-        Assert.assertEquals(ReflectionUtils.getDefaultValue(float.class), values.get(4));
-        Assert.assertEquals(ReflectionUtils.getDefaultValue(int.class), values.get(5));
-        Assert.assertEquals(ReflectionUtils.getDefaultValue(long.class), values.get(6));
-        Assert.assertEquals(ReflectionUtils.getDefaultValue(short.class), values.get(7));
+        Assertions.assertEquals(ReflectionUtils.getDefaultValue(boolean.class), values.get(0));
+        Assertions.assertEquals(ReflectionUtils.getDefaultValue(byte.class), values.get(1));
+        Assertions.assertEquals(ReflectionUtils.getDefaultValue(char.class), values.get(2));
+        Assertions.assertEquals(ReflectionUtils.getDefaultValue(double.class), values.get(3));
+        Assertions.assertEquals(ReflectionUtils.getDefaultValue(float.class), values.get(4));
+        Assertions.assertEquals(ReflectionUtils.getDefaultValue(int.class), values.get(5));
+        Assertions.assertEquals(ReflectionUtils.getDefaultValue(long.class), values.get(6));
+        Assertions.assertEquals(ReflectionUtils.getDefaultValue(short.class), values.get(7));
     }
 
     @Test
@@ -602,14 +606,14 @@ public class ParameterResolverTest {
         List<MethodDefinition> definitions = MethodDefinition.load(TestClass.class, method -> method.getName().equals("testMethod9"), SourceDefinition.build());
 
         List<Object> values = resolveMatches(definitions.get(0), Bindings.builder().standard(), BindingMatchingStrategy.builder().build());
-        Assert.assertEquals(Optional.empty(), values.get(0));
-        Assert.assertEquals(Optional.empty(), values.get(1));
-        Assert.assertEquals(Optional.empty(), values.get(2));
-        Assert.assertEquals(Optional.empty(), values.get(3));
-        Assert.assertEquals(Optional.empty(), values.get(4));
-        Assert.assertEquals(Optional.empty(), values.get(5));
-        Assert.assertEquals(Optional.empty(), values.get(6));
-        Assert.assertEquals(Optional.empty(), values.get(7));
+        Assertions.assertEquals(Optional.empty(), values.get(0));
+        Assertions.assertEquals(Optional.empty(), values.get(1));
+        Assertions.assertEquals(Optional.empty(), values.get(2));
+        Assertions.assertEquals(Optional.empty(), values.get(3));
+        Assertions.assertEquals(Optional.empty(), values.get(4));
+        Assertions.assertEquals(Optional.empty(), values.get(5));
+        Assertions.assertEquals(Optional.empty(), values.get(6));
+        Assertions.assertEquals(Optional.empty(), values.get(7));
     }
 
     @Test
@@ -619,26 +623,27 @@ public class ParameterResolverTest {
         TestClass x = new TestClass();
         Bindings bindings = Bindings.builder().standard(arg1 -> x);
         List<Object> values = resolveMatches(definitions.get(0), bindings, BindingMatchingStrategy.builder().matchByNameAndTypeThenByJustType());
-        Assert.assertEquals(x, values.get(0));
-        Assert.assertEquals(x, values.get(1));
-        Assert.assertEquals(x, values.get(2));
+        Assertions.assertEquals(x, values.get(0));
+        Assertions.assertEquals(x, values.get(1));
+        Assertions.assertEquals(x, values.get(2));
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     public void matchTest9() {
-        Function function = Function.builder().with((Binding<Integer> num, Binding<BigDecimal> bind, Optional<List> opt, Binding<String> match) -> {return true;}).build();
+        Function<?> function = Function.builder().with((Binding<Integer> num, Binding<BigDecimal> bind, Optional<List> opt, Binding<String> match) -> {return true;}).build();
         MethodDefinition definition = ((Definable<MethodDefinition>) function).getDefinition();
         Bindings bindings = Bindings.builder().standard();
-        Binding bind1 = bindings.bind("num", 100);
-        Binding bind2 = bindings.bind("bind", new BigDecimal("999"));
-        Binding bind3 = bindings.bind("opt", new LinkedList<>());
-        Binding bind4 = bindings.bind("match", "hello");
+        Binding<Integer> bind1 = bindings.bind("num", 100);
+        Binding<BigDecimal> bind2 = bindings.bind("bind", new BigDecimal("999"));
+        Binding<LinkedList<?>> bind3 = bindings.bind("opt", new LinkedList<>());
+        Binding<String> bind4 = bindings.bind("match", "hello");
 
         List<Object> values = resolveMatches(definition, bindings, BindingMatchingStrategy.builder().matchByNameAndTypeThenByJustType());
-        Assert.assertEquals(bind1, values.get(0));
-        Assert.assertEquals(bind2, values.get(1));
-        Assert.assertEquals(Optional.of(bind3.getValue()), values.get(2));
-        Assert.assertEquals(bind4, values.get(3));
+        Assertions.assertEquals(bind1, values.get(0));
+        Assertions.assertEquals(bind2, values.get(1));
+        Assertions.assertEquals(Optional.of(bind3.getValue()), values.get(2));
+        Assertions.assertEquals(bind4, values.get(3));
     }
 
     @Test
@@ -647,16 +652,16 @@ public class ParameterResolverTest {
         MethodDefinition definition = definitions.get(0);
 
         Bindings bindings = Bindings.builder().standard();
-        Binding bind1 = bindings.bind("a", "abcd");
-        Binding bind2 = bindings.bind("b", 999);
-        Binding bind3 = bindings.bind("x", Arrays.asList(1,2,3,4,5));
-        Binding bind4 = bindings.bind("d", Long.MAX_VALUE);
+        Binding<String> bind1 = bindings.bind("a", "abcd");
+        Binding<Integer> bind2 = bindings.bind("b", 999);
+        Binding<List<Integer>> bind3 = bindings.bind("x", Arrays.asList(1,2,3,4,5));
+        Binding<Long> bind4 = bindings.bind("d", Long.MAX_VALUE);
 
         List<Object> values = resolveMatches(definition, bindings, BindingMatchingStrategy.builder().matchByNameAndType());
-        Assert.assertEquals(bind1, values.get(0));
-        Assert.assertEquals(bind2, values.get(1));
-        Assert.assertEquals(bind3, values.get(2));
-        Assert.assertEquals(bind4, values.get(3));
+        Assertions.assertEquals(bind1, values.get(0));
+        Assertions.assertEquals(bind2, values.get(1));
+        Assertions.assertEquals(bind3, values.get(2));
+        Assertions.assertEquals(bind4, values.get(3));
     }
 
     @Test
@@ -690,17 +695,17 @@ public class ParameterResolverTest {
                 .build();
         MethodDefinition definition = function.getDefinition();
         Bindings bindings = Bindings.builder().standard();
-        Binding bind1 = bindings.bind("arg1", 100);
-        Binding bind2 = bindings.bind("arg2", new BigDecimal("999"));
-        Binding bind3 = bindings.bind("arg3", new LinkedList<>());
-        Binding bind4 = bindings.bind("x", "hello");
+        Binding<Integer> bind1 = bindings.bind("arg1", 100);
+        Binding<BigDecimal> bind2 = bindings.bind("arg2", new BigDecimal("999"));
+        Binding<LinkedList> bind3 = bindings.bind("arg3", new LinkedList<>());
+        Binding<String> bind4 = bindings.bind("x", "hello");
 
         List<Object> values = resolveMatches(definition, bindings, BindingMatchingStrategy.builder().matchByNameAndTypeThenByJustType());
-        Assert.assertEquals(bind1, values.get(0));
-        Assert.assertEquals(bind2, values.get(1));
-        Assert.assertEquals(Optional.of(bind3.getValue()), values.get(2));
-        Assert.assertEquals(bind4, values.get(3));
-        Assert.assertEquals(Short.valueOf("123"), values.get(4));
+        Assertions.assertEquals(bind1, values.get(0));
+        Assertions.assertEquals(bind2, values.get(1));
+        Assertions.assertEquals(Optional.of(bind3.getValue()), values.get(2));
+        Assertions.assertEquals(bind4, values.get(3));
+        Assertions.assertEquals(Short.valueOf("123"), values.get(4));
     }
 
     private static List<Object> resolveMatches(MethodDefinition definition, Bindings bindings, BindingMatchingStrategy strategy) {
@@ -738,6 +743,7 @@ public class ParameterResolverTest {
 
         public void testMethod8(boolean a, byte b, char c, double d, float f, int i, long l, short s) {}
 
+        @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
         public void testMethod9(Optional<Boolean> a, Optional<Byte> b, Optional<Character> c, Optional<Double> d, Optional<Float> f,
                                 Optional<Integer> i, Optional<Long> l, Optional<Short> s) {}
 

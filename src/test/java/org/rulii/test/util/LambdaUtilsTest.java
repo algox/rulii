@@ -17,12 +17,12 @@
  */
 package org.rulii.test.util;
 
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.rulii.lib.spring.core.ParameterNameDiscoverer;
 import org.rulii.model.function.TriFunction;
 import org.rulii.model.function.UnaryFunction;
-import org.rulii.lib.spring.core.ParameterNameDiscoverer;
 import org.rulii.util.reflect.LambdaUtils;
-import org.junit.Assert;
-import org.junit.Test;
 
 import java.lang.invoke.SerializedLambda;
 import java.lang.reflect.Method;
@@ -44,25 +44,22 @@ public final class LambdaUtilsTest {
         UnaryFunction<Boolean, Integer> rule1 = (Integer x) -> x > 10;
 
         UnaryFunction<Boolean, Integer> rule2 = new UnaryFunction<Boolean, Integer>() {
-            static final long serialVersionUID = 0L;
-
-
             @Override
             public Boolean apply(Integer arg) {
                 return null;
             }
         };
 
-        Assert.assertTrue(LambdaUtils.isLambda(rule1));
-        Assert.assertTrue(!LambdaUtils.isLambda(rule2));
+        Assertions.assertTrue(LambdaUtils.isLambda(rule1));
+        Assertions.assertFalse(LambdaUtils.isLambda(rule2));
 
         SerializedLambda lambda = LambdaUtils.getSerializedLambda(rule1);
         Class<?> implementationClass = LambdaUtils.getImplementationClass(lambda);
         Method implementationMethod = LambdaUtils.getImplementationMethod(lambda, implementationClass);
 
-        Assert.assertTrue(implementationMethod.getName().equals(lambda.getImplMethodName()));
-        Assert.assertTrue(implementationMethod.getReturnType().equals(Boolean.class));
-        Assert.assertTrue(implementationMethod.getParameterTypes()[0].equals(Integer.class));
+        Assertions.assertEquals(implementationMethod.getName(), lambda.getImplMethodName());
+        Assertions.assertEquals(implementationMethod.getReturnType(), Boolean.class);
+        Assertions.assertEquals(implementationMethod.getParameterTypes()[0], Integer.class);
     }
 
     @Test
@@ -75,19 +72,16 @@ public final class LambdaUtilsTest {
         ParameterNameDiscoverer discoverer = ParameterNameDiscoverer.create();
         String[] names = discoverer.getParameterNames(implementationMethod);
 
-        Assert.assertTrue(names.length == 3);
-        Assert.assertTrue(names[0].equals("xxx"));
-        Assert.assertTrue(names[1].equals("value"));
-        Assert.assertTrue(names[2].equals("salary"));
+        Assertions.assertEquals(3, names.length);
+        Assertions.assertEquals("xxx", names[0]);
+        Assertions.assertEquals("value", names[1]);
+        Assertions.assertEquals("salary", names[2]);
     }
 
     @Test
     public void test3() throws NoSuchMethodException {
 
         TriFunction<Boolean, Integer, String, BigDecimal> rule3 = new TriFunction<Boolean, Integer, String, BigDecimal>() {
-
-            static final long serialVersionUID = 0L;
-
             @Override
             public Boolean apply(Integer xxx, String value, BigDecimal salary) {
                 return false;
@@ -98,9 +92,9 @@ public final class LambdaUtilsTest {
         ParameterNameDiscoverer discoverer = ParameterNameDiscoverer.create();
         String[] names = discoverer.getParameterNames(implementationMethod);
 
-        Assert.assertTrue(names.length == 3);
-        Assert.assertTrue(names[0].equals("xxx"));
-        Assert.assertTrue(names[1].equals("value"));
-        Assert.assertTrue(names[2].equals("salary"));
+        Assertions.assertEquals(3, names.length);
+        Assertions.assertEquals("xxx", names[0]);
+        Assertions.assertEquals("value", names[1]);
+        Assertions.assertEquals("salary", names[2]);
     }
 }

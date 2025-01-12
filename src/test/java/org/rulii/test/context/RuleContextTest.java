@@ -17,11 +17,12 @@
  */
 package org.rulii.test.context;
 
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.rulii.bind.BindingAlreadyExistsException;
 import org.rulii.bind.Bindings;
 import org.rulii.bind.ReservedBindings;
 import org.rulii.context.RuleContext;
-import org.junit.Test;
 
 public class RuleContextTest {
 
@@ -29,11 +30,11 @@ public class RuleContextTest {
         super();
     }
 
-    @Test()
+    @Test
     public void test1() {
-        RuleContext context = RuleContext.builder().build(Bindings.builder().standard());
-        //context.getBindings().bind(ReservedBindings.RULE_CONTEXT.getName(), 25);
-
-        System.err.println(context.toString());
+        Assertions.assertThrows(BindingAlreadyExistsException.class, () -> {
+            RuleContext context = RuleContext.builder().build(Bindings.builder().standard());
+            context.getBindings().bind(ReservedBindings.RULE_CONTEXT.getName(), 25);
+        });
     }
 }

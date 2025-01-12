@@ -17,21 +17,14 @@
  */
 package org.rulii.test.validation;
 
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.rulii.util.TimeComparator;
-import org.junit.Assert;
-import org.junit.Test;
 
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.Clock;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.YearMonth;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -52,20 +45,20 @@ public class TimeComparatorTest {
         Clock fixedPastClock = Clock.fixed(Instant.parse("1980-01-01T12:00:00.00Z"), ZoneId.of("America/Chicago"));
         Clock fixedFutureClock = Clock.fixed(Instant.parse("2180-01-01T12:00:00.00Z"), ZoneId.of("America/Chicago"));
 
-        Assert.assertTrue(TimeComparator.compare(pastDate, clock) < 0);
-        Assert.assertTrue(TimeComparator.compare(futureDate, clock) > 0);
-        Assert.assertTrue(TimeComparator.compare(calendar, clock) < 0);
-        Assert.assertTrue(TimeComparator.compare(fixedPastClock.instant(), clock) < 0);
-        Assert.assertTrue(TimeComparator.compare(fixedFutureClock.instant(), clock) > 0);
-        Assert.assertTrue(TimeComparator.compare(LocalDateTime.now(fixedPastClock), clock) < 0);
-        Assert.assertTrue(TimeComparator.compare(LocalDateTime.now(fixedFutureClock), clock) > 0);
-        Assert.assertTrue(TimeComparator.compare(LocalDate.now(fixedPastClock), clock) < 0);
-        Assert.assertTrue(TimeComparator.compare(LocalDate.now(fixedFutureClock), clock) > 0);
-        Assert.assertTrue(TimeComparator.compare(OffsetDateTime.now(fixedPastClock), clock) < 0);
-        Assert.assertTrue(TimeComparator.compare(OffsetDateTime.now(fixedFutureClock), clock) > 0);
-        Assert.assertTrue(TimeComparator.compare(YearMonth.now(fixedPastClock), clock) < 0);
-        Assert.assertTrue(TimeComparator.compare(YearMonth.now(fixedFutureClock), clock) > 0);
-        Assert.assertTrue(TimeComparator.compare(ZonedDateTime.now(fixedPastClock), clock) < 0);
-        Assert.assertTrue(TimeComparator.compare(ZonedDateTime.now(fixedFutureClock), clock) > 0);
+        Assertions.assertTrue(TimeComparator.compare(pastDate, clock) < 0);
+        Assertions.assertTrue(TimeComparator.compare(futureDate, clock) > 0);
+        Assertions.assertTrue(TimeComparator.compare(calendar, clock) < 0);
+        Assertions.assertTrue(TimeComparator.compare(fixedPastClock.instant(), clock) < 0);
+        Assertions.assertTrue(TimeComparator.compare(fixedFutureClock.instant(), clock) > 0);
+        Assertions.assertTrue(TimeComparator.compare(LocalDateTime.now(fixedPastClock), clock) < 0);
+        Assertions.assertTrue(TimeComparator.compare(LocalDateTime.now(fixedFutureClock), clock) > 0);
+        Assertions.assertTrue(TimeComparator.compare(LocalDate.now(fixedPastClock), clock) < 0);
+        Assertions.assertTrue(TimeComparator.compare(LocalDate.now(fixedFutureClock), clock) > 0);
+        Assertions.assertTrue(TimeComparator.compare(OffsetDateTime.now(fixedPastClock), clock) < 0);
+        Assertions.assertTrue(TimeComparator.compare(OffsetDateTime.now(fixedFutureClock), clock) > 0);
+        Assertions.assertTrue(TimeComparator.compare(YearMonth.now(fixedPastClock), clock) < 0);
+        Assertions.assertTrue(TimeComparator.compare(YearMonth.now(fixedFutureClock), clock) > 0);
+        Assertions.assertTrue(TimeComparator.compare(ZonedDateTime.now(fixedPastClock), clock) < 0);
+        Assertions.assertTrue(TimeComparator.compare(ZonedDateTime.now(fixedFutureClock), clock) > 0);
     }
 }

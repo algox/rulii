@@ -17,8 +17,8 @@
  */
 package org.rulii.test.core;
 
+import org.junit.jupiter.api.Test;
 import org.rulii.bind.Bindings;
-import org.junit.Test;
 
 /**
  * Tests for updates to Binding.

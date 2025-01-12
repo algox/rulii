@@ -17,14 +17,14 @@
  */
 package org.rulii.test.condition;
 
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.rulii.bind.Binding;
 import org.rulii.context.RuleContext;
+import org.rulii.model.UnrulyException;
 import org.rulii.model.condition.Condition;
 import org.rulii.model.function.TriFunction;
-import org.rulii.model.UnrulyException;
 import org.rulii.util.TypeReference;
-import org.junit.Assert;
-import org.junit.Test;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -47,7 +47,7 @@ public class ConditionTest {
         Condition condition = Condition.builder()
                 .with(() -> true)
                 .build();
-        Assert.assertTrue(condition.isTrue());
+        Assertions.assertTrue(condition.isTrue());
     }
 
     @Test
@@ -55,7 +55,7 @@ public class ConditionTest {
         Condition condition = Condition.builder()
                 .with((Integer a, String x) -> a > 55)
                 .build();
-        Assert.assertTrue(condition.isTrue(a -> 56, x -> "abc"));
+        Assertions.assertTrue(condition.isTrue(a -> 56, x -> "abc"));
     }
 
     @Test
@@ -63,7 +63,7 @@ public class ConditionTest {
         Condition condition = Condition.builder()
                 .with((Integer a, Date date, String x) -> a != null)
                 .build();
-        Assert.assertTrue(condition.isTrue(a -> 10, date -> new Date(), x -> "abc"));
+        Assertions.assertTrue(condition.isTrue(a -> 10, date -> new Date(), x -> "abc"));
     }
 
     @Test
@@ -77,7 +77,7 @@ public class ConditionTest {
                 .build();
         List<String> strings = new ArrayList<>();
         strings.add("one");
-        Assert.assertTrue(condition.isTrue(a -> 36, date -> new Date(), x -> "x", values -> strings));
+        Assertions.assertTrue(condition.isTrue(a -> 36, date -> new Date(), x -> "x", values -> strings));
     }
 
     @Test
@@ -91,7 +91,7 @@ public class ConditionTest {
                 .build();
         List<String> strings = new ArrayList<>();
         strings.add("one");
-        Assert.assertTrue(condition.isTrue(a -> 36, date -> new Date(), x -> "x", values -> strings, longValue -> 0l));
+        Assertions.assertTrue(condition.isTrue(a -> 36, date -> new Date(), x -> "x", values -> strings, longValue -> 0L));
     }
 
     @Test
@@ -99,7 +99,7 @@ public class ConditionTest {
         Condition condition = Condition.builder()
                 .with((Integer a, Date date, String x, List<String> values, Long longValue, String b) -> a > 35 && x.equals("x"))
                 .build();
-        Assert.assertTrue(condition.isTrue(a -> 36, date -> new Date(), x -> "x", values -> new ArrayList(), longValue -> 0l, b -> "b"));
+        Assertions.assertTrue(condition.isTrue(a -> 36, date -> new Date(), x -> "x", values -> new ArrayList<>(), longValue -> 0L, b -> "b"));
     }
 
     @Test
@@ -108,16 +108,15 @@ public class ConditionTest {
                 .with((Integer a, Date date, String x, List<String> values, Long longValue, String b, BigDecimal big)
                         -> big.compareTo(BigDecimal.ZERO) > 0)
                 .build();
-        Assert.assertTrue(condition.isTrue(a -> 36, date -> new Date(), x -> "x", values -> new ArrayList(), longValue -> 0l, b -> "b", big -> new BigDecimal("100")));
+        Assertions.assertTrue(condition.isTrue(a -> 36, date -> new Date(), x -> "x", values -> new ArrayList<>(), longValue -> 0L, b -> "b", big -> new BigDecimal("100")));
     }
 
     @Test
     public void testCondition8() {
         Condition condition = Condition.builder()
                 .with((Integer a, Date date, String x, List<String> values, Long longValue, String b,
-                            BigDecimal big, List<Integer> numbers) ->
-                {
-                    return numbers != null && numbers.stream().count() > 5;
+                            BigDecimal big, List<Integer> numbers) -> {
+                    return numbers != null && numbers.size() > 5;
                 })
                 .build();
         List<Integer> numberValues = new ArrayList<>();
@@ -127,8 +126,8 @@ public class ConditionTest {
         numberValues.add(4);
         numberValues.add(5);
         numberValues.add(6);
-        Assert.assertTrue(condition.isTrue(a -> 36, date -> new Date(), x -> "x", values -> new ArrayList(),
-                longValue -> 0l, b -> "b", big -> new BigDecimal("100"), numbers -> numberValues));
+        Assertions.assertTrue(condition.isTrue(a -> 36, date -> new Date(), x -> "x", values -> new ArrayList<>(),
+                longValue -> 0L, b -> "b", big -> new BigDecimal("100"), numbers -> numberValues));
     }
 
     @Test
@@ -140,17 +139,7 @@ public class ConditionTest {
                 )
                 .description("some description")
                 .build();
-        List<Integer> numbers = new ArrayList<>();
-        numbers.add(1);
-        numbers.add(2);
-        numbers.add(3);
-        numbers.add(4);
-        numbers.add(5);
-        numbers.add(6);
-        Map<String, String> map = new HashMap<>();
-        map.put("abcde", "xxx");
-
-        Assert.assertTrue(condition.getDefinition().getDescription().equals("some description"));
+        Assertions.assertEquals("some description", condition.getDefinition().getDescription());
     }
 
     @Test
@@ -172,54 +161,63 @@ public class ConditionTest {
         Map<String, String> mapValues = new HashMap<>();
         mapValues.put("abcde", "xxx");
 
-        Assert.assertTrue(condition.isTrue(a -> 36, date -> new Date(), x -> "x", values -> new ArrayList(),
-                longValue -> 0l, b -> "b", big -> new BigDecimal("100"), numbers -> numberValues, map -> mapValues, z -> 10));
+        Assertions.assertTrue(condition.isTrue(a -> 36, date -> new Date(), x -> "x", values -> new ArrayList<>(),
+                longValue -> 0L, b -> "b", big -> new BigDecimal("100"), numbers -> numberValues, map -> mapValues, z -> 10));
     }
 
-    @Test(expected = UnrulyException.class)
+    @Test
     public void testCondition11() {
-        Condition condition = condition((Binding<Integer> arg1) -> {
-            arg1.setValue(200);
-            return true;
-        });
+        Assertions.assertThrows(UnrulyException.class, () -> {
+            Condition condition = condition((Binding<Integer> arg1) -> {
+                arg1.setValue(200);
+                return true;
+            });
 
-        condition.run(arg1 -> 100);
+            condition.run(arg1 -> 100);
+        });
     }
 
-    @Test(expected = UnrulyException.class)
+    @Test
     public void testCondition12() {
-        Condition condition = condition((RuleContext ctx) -> {
-            ctx.getBindings().addScope();
-            return true;
-        });
+        Assertions.assertThrows(UnrulyException.class, () -> {
+            Condition condition = condition((RuleContext ctx) -> {
+                ctx.getBindings().addScope();
+                return true;
+            });
 
-        condition.run(arg1 -> 100);
+            condition.run(arg1 -> 100);
+        });
     }
 
-    @Test(expected = UnrulyException.class)
+    @Test
     public void testCondition13() {
-        Condition condition = condition((Binding<RuleContext> ruleContext) -> {
-            ruleContext.getValue().getBindings().addScope();
-            return true;
-        });
+        Assertions.assertThrows(UnrulyException.class, () -> {
+            Condition condition = condition((Binding<RuleContext> ruleContext) -> {
+                ruleContext.getValue().getBindings().addScope();
+                return true;
+            });
 
-        condition.run();
+            condition.run();
+        });
     }
 
-    @Test(expected = UnrulyException.class)
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
+    @Test
     public void testCondition14() {
-        Condition condition = condition((Optional<RuleContext> ruleContext) -> {
-            ruleContext.get().getBindings().addScope();
-            return true;
-        });
+        Assertions.assertThrows(UnrulyException.class, () -> {
+            Condition condition = condition((Optional<RuleContext> ruleContext) -> {
+                ruleContext.get().getBindings().addScope();
+                return true;
+            });
 
-        condition.run();
+            condition.run();
+        });
     }
 
     @Test
     public void testConditionConsumer() {
         Condition condition = condition((Integer a) -> a > 10);
-        Assert.assertTrue(condition.isTrue(a -> 13));
+        Assertions.assertTrue(condition.isTrue(a -> 13));
     }
 
     @Test
@@ -232,10 +230,11 @@ public class ConditionTest {
                     }
                 })
                 .build();
-        Assert.assertTrue(condition.getDefinition().getParameterDefinitions().size() == 3);
-        Assert.assertTrue(condition.getDefinition().getParameterDefinitions().get(2).getName().equals("map"));
-        Assert.assertTrue(condition.getDefinition().getParameterDefinitions().get(2)
-                .getType().equals(new TypeReference<Map<String, Integer>>(){}.getType()));
-        Assert.assertTrue(condition.isTrue(a -> "aa", b -> 12, map -> new HashMap()));
+        Assertions.assertEquals(3, condition.getDefinition().getParameterDefinitions().size());
+        Assertions.assertEquals("map", condition.getDefinition().getParameterDefinitions().get(2).getName());
+        Assertions.assertEquals(condition.getDefinition().getParameterDefinitions().get(2)
+                .getType(), new TypeReference<Map<String, Integer>>() {
+        }.getType());
+        Assertions.assertTrue(condition.isTrue(a -> "aa", b -> 12, map -> new HashMap<>()));
     }
 }

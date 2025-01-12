@@ -17,11 +17,11 @@
  */
 package org.rulii.test.bind;
 
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.rulii.bind.Binding;
 import org.rulii.bind.InvalidBindingException;
 import org.rulii.util.TypeReference;
-import org.junit.Assert;
-import org.junit.Test;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -43,164 +43,171 @@ public class BindingBuilderTest {
 
     @Test
     public void bindingDeclarationTest() {
-        Binding binding = Binding.builder().with(key1 -> new BigDecimal("100.01")).build();
-        Assert.assertTrue(binding.getName().equals("key1"));
-        Assert.assertTrue(binding.getValue().equals(new BigDecimal("100.01")));
+        Binding<BigDecimal> binding = Binding.builder().with(key1 -> new BigDecimal("100.01")).build();
+        Assertions.assertEquals("key1", binding.getName());
+        Assertions.assertEquals(binding.getValue(), new BigDecimal("100.01"));
         binding = Binding.builder().with(key2 -> null).build();
-        Assert.assertTrue(binding.getName().equals("key2"));
-        Assert.assertTrue(binding.getValue() == null);
+        Assertions.assertEquals("key2", binding.getName());
+        Assertions.assertNull(binding.getValue());
         String[] values = {"a", "b", "c"};
         binding = Binding.builder().with(key3 -> values).build();
-        Assert.assertTrue(binding.getName().equals("key3"));
-        Assert.assertTrue(binding.getValue().equals(values));
+        Assertions.assertEquals("key3", binding.getName());
+        Assertions.assertEquals(binding.getValue(), values);
         binding = Binding.builder().with(key4 -> "1").build();
-        Assert.assertTrue(binding.getName().equals("key4"));
-        Assert.assertTrue(binding.getValue().equals("1"));
+        Assertions.assertEquals("key4", binding.getName());
+        Assertions.assertEquals("1", binding.getValue());
     }
 
     @Test
     public void bindUsingNameTest() {
-        Binding binding = Binding.builder().with("key1").build();
-        Assert.assertTrue(binding.getName().equals("key1"));
-        Assert.assertTrue(binding.getType().equals(Object.class));
-        Assert.assertTrue(binding.getValue() == null);
-        Assert.assertTrue(binding.getTextValue() == null);
-        Assert.assertTrue(binding.getDescription() == null);
-        Assert.assertTrue(binding.isPrimary() == false);
+        Binding<?> binding = Binding.builder().with("key1").build();
+        Assertions.assertEquals("key1", binding.getName());
+        Assertions.assertEquals(binding.getType(), Object.class);
+        Assertions.assertNull(binding.getValue());
+        Assertions.assertNull(binding.getTextValue());
+        Assertions.assertNull(binding.getDescription());
+        Assertions.assertFalse(binding.isPrimary());
     }
 
     @Test
     public void bindUsingNameClassTypeTest() {
-        Binding binding = Binding.builder().with("key1").type(String.class).build();
-        Assert.assertTrue(binding.getName().equals("key1"));
-        Assert.assertTrue(binding.getType().equals(String.class));
-        Assert.assertTrue(binding.getValue() == null);
-        Assert.assertTrue(binding.getTextValue() == null);
-        Assert.assertTrue(binding.getDescription() == null);
-        Assert.assertTrue(binding.isPrimary() == false);
+        Binding<String> binding = Binding.builder().with("key1").type(String.class).build();
+        Assertions.assertEquals("key1", binding.getName());
+        Assertions.assertEquals(binding.getType(), String.class);
+        Assertions.assertNull(binding.getValue());
+        Assertions.assertNull(binding.getTextValue());
+        Assertions.assertNull(binding.getDescription());
+        Assertions.assertFalse(binding.isPrimary());
     }
 
     @Test
     public void bindUsingNameTypeTest() {
-        Binding binding = Binding.builder().with("key1").type(new TypeReference<List<String>>() {}.getType()).build();
-        Assert.assertTrue(binding.getName().equals("key1"));
-        Assert.assertTrue(binding.getType().equals(new TypeReference<List<String>>() {}.getType()));
-        Assert.assertTrue(binding.getValue() == null);
-        Assert.assertTrue(binding.getTextValue() == null);
-        Assert.assertTrue(binding.getDescription() == null);
-        Assert.assertTrue(binding.isPrimary() == false);
+        Binding<List<String>> binding = Binding.builder().with("key1").type(new TypeReference<List<String>>() {}.getType()).build();
+        Assertions.assertEquals("key1", binding.getName());
+        Assertions.assertEquals(binding.getType(), new TypeReference<List<String>>() {
+        }.getType());
+        Assertions.assertNull(binding.getValue());
+        Assertions.assertNull(binding.getTextValue());
+        Assertions.assertNull(binding.getDescription());
+        Assertions.assertFalse(binding.isPrimary());
     }
 
     @Test
     public void bindUsingNameTypeReferenceTest() {
-        Binding binding = Binding.builder().with("key1").type(new TypeReference<List<String>>() {}).build();
-        Assert.assertTrue(binding.getName().equals("key1"));
-        Assert.assertTrue(binding.getType().equals(new TypeReference<List<String>>() {}.getType()));
-        Assert.assertTrue(binding.getValue() == null);
-        Assert.assertTrue(binding.getTextValue() == null);
-        Assert.assertTrue(binding.getDescription() == null);
-        Assert.assertTrue(binding.isPrimary() == false);
+        Binding<List<String>> binding = Binding.builder().with("key1").type(new TypeReference<List<String>>() {}).build();
+        Assertions.assertEquals("key1", binding.getName());
+        Assertions.assertEquals(binding.getType(), new TypeReference<List<String>>() {
+        }.getType());
+        Assertions.assertNull(binding.getValue());
+        Assertions.assertNull(binding.getTextValue());
+        Assertions.assertNull(binding.getDescription());
+        Assertions.assertFalse(binding.isPrimary());
     }
 
     @Test
     public void bindUsingNameTypeValueTest() {
         List<String> values = new ArrayList<>();
-        Binding binding = Binding.builder().with("key1")
+        Binding<List<String>> binding = Binding.builder().with("key1")
                 .type(new TypeReference<List<String>>() {}).value(ArrayList::new).build();
-        Assert.assertTrue(binding.getName().equals("key1"));
-        Assert.assertTrue(binding.getType().equals(new TypeReference<List<String>>() {}.getType()));
-        Assert.assertTrue(binding.getValue().equals(values));
-        Assert.assertTrue(binding.getDescription() == null);
-        Assert.assertTrue(binding.isPrimary() == false);
+        Assertions.assertEquals("key1", binding.getName());
+        Assertions.assertEquals(binding.getType(), new TypeReference<List<String>>() {
+        }.getType());
+        Assertions.assertEquals(binding.getValue(), values);
+        Assertions.assertNull(binding.getDescription());
+        Assertions.assertFalse(binding.isPrimary());
     }
 
     @Test
     public void bindUsingNameTypeValueDescriptionTest() {
         List<String> values = new ArrayList<>();
-        Binding binding = Binding.builder().with("key1")
+        Binding<List<String>> binding = Binding.builder().with("key1")
                 .type(new TypeReference<List<String>>() {}).value(ArrayList::new).description("some description").build();
-        Assert.assertTrue(binding.getName().equals("key1"));
-        Assert.assertTrue(binding.getType().equals(new TypeReference<List<String>>() {}.getType()));
-        Assert.assertTrue(binding.getValue().equals(values));
-        Assert.assertTrue(binding.getDescription().equals("some description"));
-        Assert.assertTrue(binding.isPrimary() == false);
+        Assertions.assertEquals("key1", binding.getName());
+        Assertions.assertEquals(binding.getType(), new TypeReference<List<String>>() {
+        }.getType());
+        Assertions.assertEquals(binding.getValue(), values);
+        Assertions.assertEquals("some description", binding.getDescription());
+        Assertions.assertFalse(binding.isPrimary());
     }
 
     @Test
     public void bindUsingNameTypeValuesTest() {
-        Binding binding = Binding.builder()
+        Binding<String> binding = Binding.builder()
                 .with("key1")
                 .value(() -> "Hello world!")
                 .type(String.class)
                 .build();
-        Assert.assertTrue(binding.getName().equals("key1"));
-        Assert.assertTrue(binding.getType().equals(String.class));
-        Assert.assertTrue(binding.getValue().equals("Hello world!"));
+        Assertions.assertEquals("key1", binding.getName());
+        Assertions.assertEquals(binding.getType(), String.class);
+        Assertions.assertEquals("Hello world!", binding.getValue());
 
         Optional<String> value = Optional.empty();
         binding = Binding.builder().with("key2").value(value).build();
-        Assert.assertTrue(binding.getName().equals("key2"));
-        Assert.assertTrue(binding.getType().equals(Optional.class));
-        Assert.assertTrue(binding.getValue().equals(value));
+        Assertions.assertEquals("key2", binding.getName());
+        Assertions.assertEquals(binding.getType(), Optional.class);
+        Assertions.assertEquals(binding.getValue(), value);
 
         value = Optional.of("Hello world!");
         binding = Binding.builder().with("key2").value(value).build();
-        Assert.assertTrue(binding.getName().equals("key2"));
-        Assert.assertTrue(binding.getType().equals(Optional.class));
-        Assert.assertTrue(binding.getValue().equals(value));
+        Assertions.assertEquals("key2", binding.getName());
+        Assertions.assertEquals(binding.getType(), Optional.class);
+        Assertions.assertEquals(binding.getValue(), value);
     }
 
-    @Test(expected = InvalidBindingException.class)
+    @Test
     public void bindEditableTest() {
-        Binding binding1 = Binding.builder().with("key1").value(() -> "Hello world!").editable(true).build();
-        Assert.assertTrue(!binding1.isEditable());
-        Binding binding2 = Binding.builder().with("key2").value(() -> "Hello world!").editable(false).build();
-        Assert.assertTrue(!binding2.isEditable());
-        binding2.setValue("new value");
+        Assertions.assertThrows(InvalidBindingException.class, () -> {
+            Binding<String> binding1 = Binding.builder().with("key1").value(() -> "Hello world!").editable(true).build();
+            Assertions.assertFalse(binding1.isEditable());
+            Binding<String> binding2 = Binding.builder().with("key2").value(() -> "Hello world!").editable(false).build();
+            Assertions.assertFalse(binding2.isEditable());
+            binding2.setValue("new value");
+        });
     }
 
     @Test
     public void bindPrimaryTest() {
-        Binding binding1 = Binding.builder().with("key1").value(() -> "Hello world!").primary(true).build();
-        Assert.assertTrue(binding1.isPrimary());
-        Binding binding2 = Binding.builder().with("key1").value(() -> "Hello world!").primary(false).build();
-        Assert.assertTrue(!binding2.isPrimary());
+        Binding<String> binding1 = Binding.builder().with("key1").value(() -> "Hello world!").primary(true).build();
+        Assertions.assertTrue(binding1.isPrimary());
+        Binding<String> binding2 = Binding.builder().with("key1").value(() -> "Hello world!").primary(false).build();
+        Assertions.assertFalse(binding2.isPrimary());
     }
 
     @Test
     public void bindPrimitiveTest() {
-        Binding binding = Binding.builder().with("key1").type(float.class).build();
-        Assert.assertTrue(binding.getType().equals(float.class));
-        Assert.assertTrue(binding.getValue().equals(0.0f));
+        Binding<Float> binding = Binding.builder().with("key1").type(float.class).build();
+        Assertions.assertEquals(binding.getType(), float.class);
+        Assertions.assertEquals(0.0f, binding.getValue());
     }
 
     @Test
     public void bindDeclaration() {
-        Binding binding = Binding.builder().with(a -> "hello world").build();
-        Assert.assertTrue(binding.getName().equals("a"));
-        Assert.assertTrue(binding.getType().equals(String.class));
-        Assert.assertTrue(binding.getValue().equals("hello world"));
+        Binding<String> binding = Binding.builder().with(a -> "hello world").build();
+        Assertions.assertEquals("a", binding.getName());
+        Assertions.assertEquals(binding.getType(), String.class);
+        Assertions.assertEquals("hello world", binding.getValue());
     }
 
     @Test
     public void bindNameAndValue() {
-        Binding binding = Binding.builder().with("a", "hello world").build();
-        Assert.assertTrue(binding.getName().equals("a"));
-        Assert.assertTrue(binding.getType().equals(String.class));
-        Assert.assertTrue(binding.getValue().equals("hello world"));
+        Binding<String> binding = Binding.builder().with("a", "hello world").build();
+        Assertions.assertEquals("a", binding.getName());
+        Assertions.assertEquals(binding.getType(), String.class);
+        Assertions.assertEquals("hello world", binding.getValue());
     }
 
     @Test
     public void bindNameAndType() {
-        Binding binding = Binding.builder().with("a", String.class).build();
-        Assert.assertTrue(binding.getName().equals("a"));
-        Assert.assertTrue(binding.getType().equals(String.class));
+        Binding<String> binding = Binding.builder().with("a", String.class).build();
+        Assertions.assertEquals("a", binding.getName());
+        Assertions.assertEquals(binding.getType(), String.class);
     }
 
     @Test
     public void bindNameAndTypeReference() {
-        Binding binding = Binding.builder().with("a", new TypeReference<Map<String, BigDecimal>>() {}).build();
-        Assert.assertTrue(binding.getName().equals("a"));
-        Assert.assertTrue(binding.getType().equals(new TypeReference<Map<String, BigDecimal>>() {}.getType()));
+        Binding<Map<String, BigDecimal>> binding = Binding.builder().with("a", new TypeReference<Map<String, BigDecimal>>() {}).build();
+        Assertions.assertEquals("a", binding.getName());
+        Assertions.assertEquals(binding.getType(), new TypeReference<Map<String, BigDecimal>>() {
+        }.getType());
     }
 }

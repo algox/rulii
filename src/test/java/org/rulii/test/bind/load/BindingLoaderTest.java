@@ -17,13 +17,10 @@
  */
 package org.rulii.test.bind.load;
 
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.rulii.bind.Bindings;
-import org.rulii.bind.load.BindingLoader;
-import org.rulii.bind.load.FieldBindingLoader;
-import org.rulii.bind.load.MapBindingLoader;
-import org.rulii.bind.load.PropertyBindingLoader;
-import org.junit.Assert;
-import org.junit.Test;
+import org.rulii.bind.load.*;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
@@ -48,19 +45,19 @@ public class BindingLoaderTest {
         Athlete jordan = new Athlete("Michael", "Jordan", 23, new BigDecimal("100000000"));
         Bindings bindings = Bindings.builder().standard();
         bindings.load(new FieldBindingLoader<>(), jordan);
-        Assert.assertTrue(bindings.getValue("firstName").equals("Michael"));
-        Assert.assertTrue(bindings.getValue("lastName").equals("Jordan"));
-        Assert.assertTrue(bindings.getValue("age").equals(23));
-        Assert.assertTrue(bindings.getValue("salary").equals(new BigDecimal("100000000")));
-        Assert.assertFalse(bindings.contains("serialVersionUID"));
+        Assertions.assertEquals("Michael", bindings.getValue("firstName"));
+        Assertions.assertEquals("Jordan", bindings.getValue("lastName"));
+        Assertions.assertEquals(23, (int) bindings.getValue("age"));
+        Assertions.assertEquals(bindings.getValue("salary"), new BigDecimal("100000000"));
+        Assertions.assertFalse(bindings.contains("serialVersionUID"));
 
         bindings = Bindings.builder().standard();
         bindings.loadFields(jordan);
-        Assert.assertTrue(bindings.getValue("firstName").equals("Michael"));
-        Assert.assertTrue(bindings.getValue("lastName").equals("Jordan"));
-        Assert.assertTrue(bindings.getValue("age").equals(23));
-        Assert.assertTrue(bindings.getValue("salary").equals(new BigDecimal("100000000")));
-        Assert.assertFalse(bindings.contains("serialVersionUID"));
+        Assertions.assertEquals("Michael", bindings.getValue("firstName"));
+        Assertions.assertEquals("Jordan", bindings.getValue("lastName"));
+        Assertions.assertEquals(23, (int) bindings.getValue("age"));
+        Assertions.assertEquals(bindings.getValue("salary"), new BigDecimal("100000000"));
+        Assertions.assertFalse(bindings.contains("serialVersionUID"));
     }
 
     @Test
@@ -68,19 +65,19 @@ public class BindingLoaderTest {
         Athlete jordan = new Athlete("Michael", "Jordan", 23, new BigDecimal("100000000"));
         Bindings bindings = Bindings.builder().standard();
         bindings.load(new PropertyBindingLoader<>(), jordan);
-        Assert.assertTrue(bindings.getValue("firstName").equals("Michael"));
-        Assert.assertTrue(bindings.getValue("lastName").equals("Jordan"));
-        Assert.assertTrue(bindings.getValue("age").equals(23));
-        Assert.assertTrue(bindings.getValue("salary").equals(new BigDecimal("100000000")));
-        Assert.assertFalse(bindings.contains("team"));
+        Assertions.assertEquals("Michael", bindings.getValue("firstName"));
+        Assertions.assertEquals("Jordan", bindings.getValue("lastName"));
+        Assertions.assertEquals(23, (int) bindings.getValue("age"));
+        Assertions.assertEquals(bindings.getValue("salary"), new BigDecimal("100000000"));
+        Assertions.assertNull(bindings.getValue("team"));
 
         bindings = Bindings.builder().standard();
         bindings.loadProperties(jordan);
-        Assert.assertTrue(bindings.getValue("firstName").equals("Michael"));
-        Assert.assertTrue(bindings.getValue("lastName").equals("Jordan"));
-        Assert.assertTrue(bindings.getValue("age").equals(23));
-        Assert.assertTrue(bindings.getValue("salary").equals(new BigDecimal("100000000")));
-        Assert.assertFalse(bindings.contains("team"));
+        Assertions.assertEquals("Michael", bindings.getValue("firstName"));
+        Assertions.assertEquals("Jordan", bindings.getValue("lastName"));
+        Assertions.assertEquals(23, (int) bindings.getValue("age"));
+        Assertions.assertEquals(bindings.getValue("salary"), new BigDecimal("100000000"));
+        Assertions.assertNull(bindings.getValue("team"));
     }
 
     @Test
@@ -95,90 +92,96 @@ public class BindingLoaderTest {
         Bindings bindings = Bindings.builder().standard();
         bindings.load(new MapBindingLoader(), map);
 
-        Assert.assertTrue(bindings.getValue("firstName").equals("Michael"));
-        Assert.assertTrue(bindings.getValue("lastName").equals("Jordan"));
-        Assert.assertTrue(bindings.getValue("age").equals(23));
-        Assert.assertTrue(bindings.getValue("salary").equals(new BigDecimal("100000000")));
+        Assertions.assertEquals("Michael", bindings.getValue("firstName"));
+        Assertions.assertEquals("Jordan", bindings.getValue("lastName"));
+        Assertions.assertEquals(23, (int) bindings.getValue("age"));
+        Assertions.assertEquals(bindings.getValue("salary"), new BigDecimal("100000000"));
 
         bindings = Bindings.builder().standard();
         bindings.loadMap(map);
 
-        Assert.assertTrue(bindings.getValue("firstName").equals("Michael"));
-        Assert.assertTrue(bindings.getValue("lastName").equals("Jordan"));
-        Assert.assertTrue(bindings.getValue("age").equals(23));
-        Assert.assertTrue(bindings.getValue("salary").equals(new BigDecimal("100000000")));
+        Assertions.assertEquals("Michael", bindings.getValue("firstName"));
+        Assertions.assertEquals("Jordan", bindings.getValue("lastName"));
+        Assertions.assertEquals(23, (int) bindings.getValue("age"));
+        Assertions.assertEquals(bindings.getValue("salary"), new BigDecimal("100000000"));
     }
 
     @Test
     public void fieldLoaderTest2() {
         Athlete jordan = new Athlete("Michael", "Jordan", 23, new BigDecimal("100000000"));
         Bindings bindings = Bindings.builder().standard();
-        BindingLoader loader = BindingLoader.builder().fieldLoaderBuilder()
+        BindingLoaderBuilder<Field, Athlete> builder = BindingLoader.builder().fieldLoaderBuilder();
+        BindingLoader<Athlete> loader = builder
                 .ignored("firstName")
                 .build();
 
         bindings.load(loader, jordan);
-        Assert.assertFalse(bindings.contains("firstName"));
-        Assert.assertTrue(bindings.getValue("lastName").equals("Jordan"));
-        Assert.assertTrue(bindings.getValue("age").equals(23));
-        Assert.assertTrue(bindings.getValue("salary").equals(new BigDecimal("100000000")));
+        Assertions.assertFalse(bindings.contains("firstName"));
+        Assertions.assertEquals("Jordan", bindings.getValue("lastName"));
+        Assertions.assertEquals(23, (int) bindings.getValue("age"));
+        Assertions.assertEquals(bindings.getValue("salary"), new BigDecimal("100000000"));
 
         bindings = Bindings.builder().standard();
-        loader = BindingLoader.builder().fieldLoaderBuilder()
+        builder = BindingLoader.builder().fieldLoaderBuilder();
+        loader = builder
                 .include("firstName")
                 .build();
         bindings.load(loader, jordan);
-        Assert.assertTrue(bindings.getValue("firstName").equals("Michael"));
+        Assertions.assertEquals("Michael", bindings.getValue("firstName"));
     }
 
     @Test
     public void fieldLoaderTest3() {
         Athlete jordan = new Athlete("Michael", "Jordan", 23, new BigDecimal("100000000"));
         Bindings bindings = Bindings.builder().standard();
-        BindingLoader loader = BindingLoader.builder().fieldLoaderBuilder()
+        BindingLoaderBuilder<Field, Athlete> builder = BindingLoader.builder().fieldLoaderBuilder();
+        BindingLoader<Athlete> loader = builder
                 .include("firstName")
                 .nameGenerator((Field f) -> f.getName() + "x")
                 .build();
         bindings.load(loader, jordan);
-        Assert.assertTrue(bindings.getValue("firstNamex").equals("Michael"));
-        Assert.assertFalse(bindings.contains("lastName"));
-        Assert.assertFalse(bindings.contains("lastNamex"));
+        Assertions.assertEquals("Michael", bindings.getValue("firstNamex"));
+        Assertions.assertFalse(bindings.contains("lastName"));
+        Assertions.assertFalse(bindings.contains("lastNamex"));
     }
 
     @Test
     public void propertyLoaderTest2() {
         Athlete jordan = new Athlete("Michael", "Jordan", 23, new BigDecimal("100000000"));
         Bindings bindings = Bindings.builder().standard();
-        BindingLoader loader = BindingLoader.builder().propertyLoaderBuilder()
+        BindingLoaderBuilder<PropertyDescriptor, Athlete> builder = BindingLoader.builder().propertyLoaderBuilder();
+        BindingLoader<Athlete> loader = builder
                 .ignored("firstName")
                 .build();
 
         bindings.load(loader, jordan);
-        Assert.assertFalse(bindings.contains("firstName"));
-        Assert.assertTrue(bindings.getValue("lastName").equals("Jordan"));
-        Assert.assertTrue(bindings.getValue("age").equals(23));
-        Assert.assertTrue(bindings.getValue("salary").equals(new BigDecimal("100000000")));
+        Assertions.assertFalse(bindings.contains("firstName"));
+        Assertions.assertEquals("Jordan", bindings.getValue("lastName"));
+        Assertions.assertEquals(23, (int) bindings.getValue("age"));
+        Assertions.assertEquals(bindings.getValue("salary"), new BigDecimal("100000000"));
 
         bindings = Bindings.builder().standard();
-        loader = BindingLoader.builder().propertyLoaderBuilder()
+        builder = BindingLoader.builder().propertyLoaderBuilder();
+        loader = builder
                 .include("firstName")
                 .build();
         bindings.load(loader, jordan);
-        Assert.assertTrue(bindings.getValue("firstName").equals("Michael"));
+        Assertions.assertEquals("Michael", bindings.getValue("firstName"));
     }
 
     @Test
     public void propertyLoaderTest3() {
         Athlete jordan = new Athlete("Michael", "Jordan", 23, new BigDecimal("100000000"));
         Bindings bindings = Bindings.builder().standard();
-        BindingLoader loader = BindingLoader.builder().propertyLoaderBuilder()
+        BindingLoaderBuilder<PropertyDescriptor, Athlete> builder = BindingLoader.builder().propertyLoaderBuilder();
+        BindingLoader<Athlete> loader = builder
                 .include("firstName")
                 .nameGenerator((PropertyDescriptor f) -> f.getName() + "x")
                 .build();
         bindings.load(loader, jordan);
-        Assert.assertTrue(bindings.getValue("firstNamex").equals("Michael"));
-        Assert.assertFalse(bindings.contains("lastName"));
-        Assert.assertFalse(bindings.contains("lastNamex"));
+        Assertions.assertEquals("Michael", bindings.getValue("firstNamex"));
+        Assertions.assertFalse(bindings.contains("lastName"));
+        Assertions.assertFalse(bindings.contains("lastNamex"));
     }
 
     @Test
@@ -190,22 +193,23 @@ public class BindingLoaderTest {
         jordan.put("salary", new BigDecimal("100000000"));
 
         Bindings bindings = Bindings.builder().standard();
-        BindingLoader loader = BindingLoader.builder().mapLoaderBuilder()
+        BindingLoaderBuilder<String, Map<String, Object>> builder = BindingLoader.builder().mapLoaderBuilder();
+        BindingLoader<Map<String, Object>> loader = builder
                 .ignored("firstName")
                 .build();
 
         bindings.load(loader, jordan);
-        Assert.assertFalse(bindings.contains("firstName"));
-        Assert.assertTrue(bindings.getValue("lastName").equals("Jordan"));
-        Assert.assertTrue(bindings.getValue("age").equals(23));
-        Assert.assertTrue(bindings.getValue("salary").equals(new BigDecimal("100000000")));
+        Assertions.assertFalse(bindings.contains("firstName"));
+        Assertions.assertEquals("Jordan", bindings.getValue("lastName"));
+        Assertions.assertEquals(23, (int) bindings.getValue("age"));
+        Assertions.assertEquals(bindings.getValue("salary"), new BigDecimal("100000000"));
 
         bindings = Bindings.builder().standard();
         loader = BindingLoader.builder().mapLoaderBuilder()
                 .include("firstName")
                 .build();
         bindings.load(loader, jordan);
-        Assert.assertTrue(bindings.getValue("firstName").equals("Michael"));
+        Assertions.assertEquals("Michael", bindings.getValue("firstName"));
     }
 
     @Test
@@ -217,19 +221,19 @@ public class BindingLoaderTest {
         jordan.put("salary", new BigDecimal("100000000"));
 
         Bindings bindings = Bindings.builder().standard();
-        BindingLoader loader = BindingLoader.builder().mapLoaderBuilder()
+        BindingLoaderBuilder<String, Map<String, Object>> builder = BindingLoader.builder().mapLoaderBuilder();
+        BindingLoader<Map<String, Object>> loader = builder
                 .include("firstName")
                 .nameGenerator((String k) -> k + "x")
                 .build();
         bindings.load(loader, jordan);
-        Assert.assertTrue(bindings.getValue("firstNamex").equals("Michael"));
-        Assert.assertFalse(bindings.contains("lastName"));
-        Assert.assertFalse(bindings.contains("lastNamex"));
+        Assertions.assertEquals("Michael", bindings.getValue("firstNamex"));
+        Assertions.assertFalse(bindings.contains("lastName"));
+        Assertions.assertFalse(bindings.contains("lastNamex"));
     }
 
     public static class Person {
 
-        private static final long serialVersionUID = 0l;
         private String firstName;
         private String lastName;
         private int age;
@@ -284,6 +288,10 @@ public class BindingLoaderTest {
 
         public void setTeam(String team) {
             this.team = team;
+        }
+
+        public String getTeam() {
+            return team;
         }
     }
 }

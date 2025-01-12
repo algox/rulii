@@ -50,9 +50,8 @@ public class BindingLoaderBuilderBuilder {
      * @param <T> container type.
      * @return property based binding loader.
      */
-    @SuppressWarnings({"unchecked", "rawtypes"})
     public <T> BindingLoaderBuilder<PropertyDescriptor, T> propertyLoaderBuilder() {
-        return new BindingLoaderBuilder(new PropertyBindingLoader());
+        return new BindingLoaderBuilder<>(new PropertyBindingLoader<>());
     }
 
     /**
@@ -61,9 +60,8 @@ public class BindingLoaderBuilderBuilder {
      * @param <T> container type.
      * @return field based binding loader.
      */
-    @SuppressWarnings({"unchecked", "rawtypes"})
     public <T> BindingLoaderBuilder<Field, T> fieldLoaderBuilder() {
-        return new BindingLoaderBuilder(new FieldBindingLoader());
+        return new BindingLoaderBuilder<>(new FieldBindingLoader<>());
     }
 
     /**
@@ -71,8 +69,7 @@ public class BindingLoaderBuilderBuilder {
      *
      * @return map based binding loader.
      */
-    @SuppressWarnings({"unchecked", "rawtypes"})
     public BindingLoaderBuilder<String, Map<String, Object>> mapLoaderBuilder() {
-        return new BindingLoaderBuilder(new MapBindingLoader());
+        return new BindingLoaderBuilder<>(new MapBindingLoader());
     }
 }

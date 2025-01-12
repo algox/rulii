@@ -17,13 +17,12 @@
  */
 package org.rulii.test.core;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.rulii.bind.Bindings;
 import org.rulii.bind.match.BindingMatchingStrategy;
 import org.rulii.bind.match.ParameterResolver;
 import org.rulii.context.RuleContext;
-import org.rulii.model.condition.Condition;
 import org.rulii.rule.Rule;
 
 import java.util.ArrayList;
@@ -51,8 +50,8 @@ public class ExecutorTest {
                 .given(condition((String x, Integer y, List<String> a) -> y > 10))
                 .build();
 
-        boolean result = ((Condition) rule.getCondition()).isTrue(x -> "hello world", y -> 20, a -> values);
-        Assert.assertTrue(result);
+        boolean result = rule.getCondition().isTrue(x -> "hello world", y -> 20, a -> values);
+        Assertions.assertTrue(result);
     }
 
     @Test
@@ -61,8 +60,8 @@ public class ExecutorTest {
                 .name("rule1")
                 .given(condition((String x, Integer y) -> y > 10))
                 .build();
-        boolean result = ((Condition) rule.getCondition()).isTrue(x -> "hello world", y -> 20);
-        Assert.assertTrue(result);
+        boolean result = rule.getCondition().isTrue(x -> "hello world", y -> 20);
+        Assertions.assertTrue(result);
     }
 
     @Test
@@ -92,7 +91,7 @@ public class ExecutorTest {
                 .build();
 
         TestRule1 x = rule.getTarget();
-        Assert.assertNotNull(x);
+        Assertions.assertNotNull(x);
     }
 
     @Test
@@ -108,6 +107,6 @@ public class ExecutorTest {
                 .with(bindings)
                 .paramResolver(ParameterResolver.builder().build())
                 .build());
-        Assert.assertTrue(bindings.getValue("x", Integer.class) == 0);
+        Assertions.assertEquals(0, (int) bindings.getValue("x", Integer.class));
     }
 }
