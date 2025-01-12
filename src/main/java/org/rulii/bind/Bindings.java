@@ -162,7 +162,7 @@ public interface Bindings extends Iterable<Binding<?>>, Immutator<Bindings> {
             result[i] = bind(declarations[i]);
         }
 
-        return Collections.unmodifiableList(Arrays.asList(result));
+        return List.of(result);
     }
 
     /**
@@ -245,6 +245,17 @@ public interface Bindings extends Iterable<Binding<?>>, Immutator<Bindings> {
     <T> Binding<T> getBinding(String name);
 
     /**
+     * Retrieves an optional binding for the specified name.
+     *
+     * @param name the name of the binding.
+     * @return an {@code Optional} containing the binding if present, otherwise an empty {@code Optional}
+     */
+    default <T> Optional<Binding<T>> getOptionalBinding(String name) {
+        Binding<T> result = getBinding(name);
+        return Optional.of(result);
+    }
+
+    /**
      * Retrieves the Binding identified by the given name and type.
      *
      * @param name name of the Binding.
@@ -253,6 +264,18 @@ public interface Bindings extends Iterable<Binding<?>>, Immutator<Bindings> {
      * @return Binding if found; null otherwise.
      */
     <T> Binding<T> getBinding(String name, Type type);
+
+    /**
+     * Retrieves an optional binding for the specified name and type.
+     *
+     * @param name the name of the binding
+     * @param type the type of the binding
+     * @return an {@code Optional} containing the binding if present, otherwise an empty {@code Optional}
+     */
+    default <T> Optional<Binding<T>> getOptionalBinding(String name, Type type) {
+        Binding<T> result = getBinding(name, type);
+        return Optional.of(result);
+    }
 
     /**
      * Determines if a Binding with given name exists.
@@ -317,6 +340,22 @@ public interface Bindings extends Iterable<Binding<?>>, Immutator<Bindings> {
     }
 
     /**
+     *
+     * Retrieves the optional value associated with the specified name.
+     *
+     * @param name the name of the binding to retrieve
+     * @return an Optional containing the value associated with the specified name, or an empty Optional if no value is found
+     */
+    default <T> Optional<T> getOptionalValue(String name) {
+        try {
+            Binding<T> result = getBinding(name);
+            return Optional.of(result.getValue());
+        } catch (NoSuchBindingException e) {
+            return Optional.empty();
+        }
+    }
+
+    /**
      * Retrieves the value of the Binding with the given name.
      *
      * @param name name of the Binding.
@@ -330,6 +369,22 @@ public interface Bindings extends Iterable<Binding<?>>, Immutator<Bindings> {
         // Could not find Binding
         if (result == null) throw new NoSuchBindingException(name);
         return result.getValue();
+    }
+
+    /**
+     * Retrieves the optional value of a specified type associated with the given name.
+     *
+     * @param name the name of the value to be retrieved
+     * @param type the class representing the type of the value to be retrieved
+     * @return an Optional containing the value if found, otherwise an empty Optional
+     */
+    default <T> Optional<T> getOptionalValue(String name, Class<T> type) {
+        try {
+            Binding<T> result = getBinding(name, type);
+            return Optional.of(result.getValue());
+        } catch (NoSuchBindingException e) {
+            return Optional.empty();
+        }
     }
 
     /**
