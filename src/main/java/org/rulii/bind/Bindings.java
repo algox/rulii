@@ -252,7 +252,7 @@ public interface Bindings extends Iterable<Binding<?>>, Immutator<Bindings> {
      */
     default <T> Optional<Binding<T>> getOptionalBinding(String name) {
         Binding<T> result = getBinding(name);
-        return Optional.of(result);
+        return Optional.ofNullable(result);
     }
 
     /**
@@ -274,7 +274,7 @@ public interface Bindings extends Iterable<Binding<?>>, Immutator<Bindings> {
      */
     default <T> Optional<Binding<T>> getOptionalBinding(String name, Type type) {
         Binding<T> result = getBinding(name, type);
-        return Optional.of(result);
+        return Optional.ofNullable(result);
     }
 
     /**
@@ -349,7 +349,7 @@ public interface Bindings extends Iterable<Binding<?>>, Immutator<Bindings> {
     default <T> Optional<T> getOptionalValue(String name) {
         try {
             Binding<T> result = getBinding(name);
-            return Optional.of(result.getValue());
+            return Optional.ofNullable(result != null ? result.getValue() : null);
         } catch (NoSuchBindingException e) {
             return Optional.empty();
         }

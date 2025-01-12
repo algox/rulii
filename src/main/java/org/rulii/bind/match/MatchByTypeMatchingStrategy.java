@@ -55,7 +55,7 @@ public class MatchByTypeMatchingStrategy implements BindingMatchingStrategy {
                 : bindings.getBindings(type);
         List<BindingMatch<T>> result = new LinkedList<>();
 
-        matches.stream().forEach(i -> result.add(new BindingMatch<>(i, getClass())));
+        matches.forEach(i -> result.add(new BindingMatch<>(i, getClass())));
 
         if (logger.isDebugEnabled()) {
             logger.debug("Name [" + name + "] Type [" + type + "] Matches [" + result + "]");

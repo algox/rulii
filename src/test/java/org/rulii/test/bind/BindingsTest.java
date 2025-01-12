@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.rulii.bind.*;
 import org.rulii.util.TypeReference;
 
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -520,4 +521,89 @@ public class BindingsTest {
         Assertions.assertTrue(binding.removeValueListener(bindingValueListener));
         Assertions.assertFalse(binding.removeValueListener(bindingValueListener));
     }
+
+    @Test
+    public void bindTest25() {
+        Bindings bindings = Bindings.builder().standard();
+        String testBindingName = "name";
+        String testBindingValue = UUID.randomUUID().toString();
+
+        bindings.bind(testBindingName, String.class, testBindingValue);
+        Optional<Binding<String>> retrievedBinding = bindings.getOptionalBinding(testBindingName);
+        Assertions.assertTrue(retrievedBinding.isPresent());
+    }
+
+    @Test
+    public void bindTest26() {
+        Bindings bindings = Bindings.builder().standard();
+        String testBindingName = "name";
+
+        Optional<Binding<String>> retrievedBinding = bindings.getOptionalBinding(testBindingName);
+        Assertions.assertFalse(retrievedBinding.isPresent());
+    }
+
+    @Test
+    public void bindTest27() {
+        // Create an instance of Bindings
+        Bindings bindings = Bindings.builder().standard();
+
+        // Test binding does not exist yet
+        Optional<Binding<String>> optionalBinding = bindings.getOptionalBinding("nonExistentBinding");
+
+        Assertions.assertTrue(optionalBinding.isEmpty(), "Expect empty optional binding for nonexistent identifier");
+
+        // Add a binding
+        try {
+            bindings.bind("testBinding", String.class);
+        } catch (BindingAlreadyExistsException e) {
+            Assertions.fail("Unexpected exception: " + e.getMessage());
+        }
+
+        // Test binding exists
+        Optional<Binding<String>> existingOptionalBinding = bindings.getOptionalBinding("testBinding");
+
+        Assertions.assertTrue(existingOptionalBinding.isPresent(), "Expect non-empty optional binding for existing identifier");
+        Assertions.assertEquals("testBinding", existingOptionalBinding.get().getName(), "Expect the binding name to match");
+    }
+
+    @Test
+    public void bindTest28() {
+        // Create an instance of Bindings
+        Bindings bindings = Bindings.builder().scoped();
+
+        // Test binding does not exist yet
+        Type stringType = String.class;
+        Optional<Binding<String>> optionalBinding = bindings.getOptionalBinding("nonExistentBinding", stringType);
+
+        Assertions.assertTrue(optionalBinding.isEmpty(), "Expect empty optional binding for nonexistent identifier");
+
+        // Add a binding
+        try {
+            bindings.bind("testBinding", stringType);
+        } catch (BindingAlreadyExistsException e) {
+            Assertions.fail("Unexpected exception: " + e.getMessage());
+        }
+
+        // Test binding exists
+        Optional<Binding<String>> existingOptionalBinding = bindings.getOptionalBinding("testBinding", stringType);
+
+        Assertions.assertTrue(existingOptionalBinding.isPresent(), "Expect non-empty optional binding for existing identifier");
+        Assertions.assertEquals("testBinding", existingOptionalBinding.get().getName(), "Expect the binding name to match");
+        Assertions.assertEquals(stringType, existingOptionalBinding.get().getType(), "Expect the binding type to match");
+    }
+
+    @Test
+    public void bindTest29() {
+        // Create an instance of Bindings
+        Bindings bindings = Bindings.builder().scoped();
+
+        Optional<?> value1 = bindings.getOptionalValue("name");
+        Assertions.assertFalse(value1.isPresent());
+
+        bindings.bind("name", "Fred");
+
+        Optional<?> value2 = bindings.getOptionalValue("name");
+        Assertions.assertTrue(value2.isPresent());
+    }
+
 }

@@ -20,12 +20,16 @@ package org.rulii.test.bind.match;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.rulii.bind.Binding;
+import org.rulii.bind.BindingAlreadyExistsException;
 import org.rulii.bind.Bindings;
 import org.rulii.bind.ScopedBindings;
 import org.rulii.bind.match.BindingMatch;
 import org.rulii.bind.match.BindingMatchingStrategy;
+import org.rulii.bind.match.BindingMatchingStrategyType;
+import org.rulii.bind.match.MatchByNameAndTypeMatchingStrategy;
 import org.rulii.util.TypeReference;
 
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -398,6 +402,69 @@ public class BindingMatchingStrategyTest {
         Assertions.assertTrue(matches3.contains(var2));
         Assertions.assertTrue(matches3.contains(var7));
     }
+
+    @Test
+    public void testMatch11() {
+        // Define a mock name, type and bindings
+        Bindings bindings = Bindings.builder().standard();
+        bindings.bind("testName", String.class, "testValue");
+        String name = "testName";
+        Type type = String.class;
+
+        // Execute the method under test with the mock name and type
+        List<BindingMatch<String>> result = BindingMatchingStrategyType.MATCH_BY_NAME.getStrategy().match(bindings, name, type, true);
+
+        // Assert that the result is not null
+        Assertions.assertNotNull(result);
+
+        // Assert that the result has only one matching element
+        Assertions.assertEquals(1, result.size());
+
+        // Assert that the matching element has the correct binding
+        Binding<String> resultBinding = result.get(0).getBinding();
+        Assertions.assertEquals(bindings.getBinding(name, type), resultBinding);
+    }
+
+    @Test
+    void testMatch12() throws BindingAlreadyExistsException {
+        // Prepare test data
+        Bindings bindings = Bindings.builder().scoped();
+        String bindingName = "testName";
+        Type bindingType = String.class;
+        bindings.bind(bindingName, bindingType);
+
+        // Instantiate object to be tested
+        BindingMatchingStrategy strategy = BindingMatchingStrategyType.MATCH_BY_NAME_AND_TYPE.getStrategy();
+
+        // Test method
+        List<BindingMatch<String>> matches = strategy.match(bindings, bindingName, bindingType, false);
+
+        // Assert the result
+        Assertions.assertEquals(1, matches.size());
+        BindingMatch<String> match = matches.get(0);
+        Assertions.assertEquals(bindingName, match.getBinding().getName());
+        Assertions.assertEquals(bindingType, match.getBinding().getType());
+        Assertions.assertTrue(matches.get(0).getStrategyUsed().isAssignableFrom(MatchByNameAndTypeMatchingStrategy.class));
+    }
+
+    @Test
+    public void testMatch13()  {
+        BindingMatchingStrategy smtms = BindingMatchingStrategyType.MATCH_BY_NAME_THEN_BY_TYPE.getStrategy();
+
+        // given
+        Bindings bindings = Bindings.builder().standard();
+        bindings.bind("name1", String.class);
+        bindings.bind("name2", Integer.class);
+
+        // when
+        List<BindingMatch<Object>> result = smtms.match(bindings, "name1", String.class);
+
+        // then
+        Assertions.assertFalse(result.isEmpty());
+        Assertions.assertEquals("name1", result.get(0).getBinding().getName());
+        Assertions.assertEquals(String.class, result.get(0).getBinding().getType());
+    }
+
     private static class TestClass {}
 
     private static class TestClassDeux<T> {
