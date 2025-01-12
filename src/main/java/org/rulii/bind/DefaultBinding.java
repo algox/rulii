@@ -23,10 +23,7 @@ import org.rulii.lib.spring.util.Assert;
 import org.rulii.util.RuleUtils;
 
 import java.lang.reflect.Type;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Binding is a mapping between a name and a value.
@@ -116,6 +113,11 @@ public class DefaultBinding<T> implements Binding<T> {
     public boolean removeValueListener(BindingValueListener listener) {
         Assert.notNull(listener, "listener cannot be null.");
         return this.listeners.remove(listener);
+    }
+
+    @Override
+    public List<BindingValueListener> getBindingValueListeners() {
+        return Collections.unmodifiableList(this.listeners);
     }
 
     @Override

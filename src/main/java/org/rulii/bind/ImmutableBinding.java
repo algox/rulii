@@ -20,6 +20,7 @@ package org.rulii.bind;
 import org.rulii.lib.spring.util.Assert;
 
 import java.lang.reflect.Type;
+import java.util.List;
 
 /**
  * Immutable version of a Binding. The value cannot be changed with this Binding.
@@ -134,12 +135,17 @@ public final class ImmutableBinding<T> implements Binding<T>  {
 
     @Override
     public void addValueListener(BindingValueListener listener) {
-        // No need to store listeners as value is immutable
+        throw new IllegalStateException("This Binding [" + getName() + "] is immutable. It cannot be edited in this context.");
     }
 
     @Override
     public boolean removeValueListener(BindingValueListener listener) {
-        return false;
+        throw new IllegalStateException("This Binding [" + getName() + "] is immutable. It cannot be edited in this context.");
+    }
+
+    @Override
+    public List<BindingValueListener> getBindingValueListeners() {
+        return getTarget().getBindingValueListeners();
     }
 
     @Override

@@ -43,7 +43,7 @@ public class SuppliedBinding<T> extends DefaultBinding<T> {
     private boolean valueSet = false;
     private T value = null;
 
-    public SuppliedBinding(String name, Type type, Supplier<T> supplier,
+    SuppliedBinding(String name, Type type, Supplier<T> supplier,
                              boolean isFinal, boolean primary, String description) {
         super(name, type, false, isFinal, primary, description);
         Assert.notNull(supplier, "supplier cannot be null.");

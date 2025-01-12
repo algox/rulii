@@ -525,4 +525,42 @@ public class ScopedBindTest {
         Assertions.assertFalse(bindings.containsScope("scope-2"));
         Assertions.assertFalse(bindings.containsScope("scope-1"));
     }
+
+    /**
+     * The testCurrentBindings method tests the `getCurrentBindings` method
+     * for the condition when current bindings exist.
+     */
+    @Test
+    void bindTest37() {
+        // setup
+        ScopedBindings scopedBindings = Bindings.builder().scoped();
+        // retrieve bindings
+        Bindings bindings = scopedBindings.getCurrentBindings();
+        // assertions
+        Assertions.assertNotNull(bindings);
+    }
+
+    /**
+     * This test ensures `getCurrentScope` is returning the current working scope.
+     */
+    @Test
+    void bindTest38() {
+        ScopedBindings bindings = Bindings.builder().scoped("scope1");
+        NamedScope namedScope = bindings.getCurrentScope();
+        Assertions.assertEquals("scope1", namedScope.getName(), "getCurrentScope should return the current scope");
+    }
+
+    @Test
+    public void testAsMapBinding() {
+        // Arrange
+        ScopedBindings bindings = Bindings.builder().scoped("scope1");
+        bindings.addScope("scope_test");
+        bindings.bind("binding_test", "test_value");
+        // Act
+        Map<String, ?> result = bindings.asMap();
+        // Assert
+        Assertions.assertNotNull(result);
+        Assertions.assertTrue(result.containsKey("binding_test"));
+        Assertions.assertEquals("test_value", result.get("binding_test"));
+    }
 }

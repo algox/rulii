@@ -481,4 +481,43 @@ public class BindingsTest {
         Assertions.assertEquals(b2.getName(), "b");
         Assertions.assertEquals(b2.getType(), new TypeReference<Set<Integer>>() {}.getType());
     }
+
+    @Test
+    public void bindTest23() {
+        int oldValue = 100;
+        int newValue = 101;
+
+        Binding<Integer> binding = Binding.builder().with("test")
+                .type(Integer.class)
+                .value(oldValue)
+                .build();
+
+        binding.addValueListener(new BindingValueListener() {
+            @Override
+            public void onChange(Binding<?> b, Object oldVal, Object newVal) {
+                Assertions.assertEquals(oldValue, oldVal);
+                Assertions.assertEquals(newValue, newVal);
+            }
+        });
+
+        binding.setValue(newValue);
+    }
+
+    @Test
+    public void bindTest24() {
+        Binding<Integer> binding = Binding.builder().with("test")
+                .type(Integer.class)
+                .value(1)
+                .build();
+
+        BindingValueListener bindingValueListener = new BindingValueListener() {
+            @Override
+            public void onChange(Binding<?> binding, Object oldValue, Object newValue) {}
+        };
+
+        binding.addValueListener(bindingValueListener);
+
+        Assertions.assertTrue(binding.removeValueListener(bindingValueListener));
+        Assertions.assertFalse(binding.removeValueListener(bindingValueListener));
+    }
 }

@@ -18,10 +18,11 @@
 package org.rulii.bind;
 
 import org.rulii.lib.apache.reflect.TypeUtils;
-import org.rulii.model.Immutator;
 import org.rulii.model.Identifiable;
+import org.rulii.model.Immutator;
 
 import java.lang.reflect.Type;
+import java.util.List;
 
 /**
  * A binding between a name and a value of a type.
@@ -182,6 +183,13 @@ public interface Binding<T> extends Identifiable, Immutator<Binding<T>> {
 	boolean removeValueListener(BindingValueListener listener);
 
 	/**
+	 * Retrieves the list of BindingValueListeners that are currently registered with this object.
+	 *
+	 * @return List of BindingValueListeners registered with this object.
+	 */
+	List<BindingValueListener> getBindingValueListeners();
+
+	/**
 	 * Returns an immutable version of this Binding. The value cannot be changed.
 	 *
 	 * @return immutable version of this Binding.
@@ -200,6 +208,7 @@ public interface Binding<T> extends Identifiable, Immutator<Binding<T>> {
 				.description(getDescription())
 				.primary(isPrimary())
 				.value(value)
+				.valueListeners(this.getBindingValueListeners().toArray(new BindingValueListener[0]))
 				.build());
 	}
 }

@@ -40,7 +40,7 @@ public class DelegatingBinding<T> extends DefaultBinding<T> {
     private final Supplier<T> getter;
     private final Consumer<T> setter;
 
-    public DelegatingBinding(String name, Type type, Supplier<T> getter, Consumer<T> setter,
+    DelegatingBinding(String name, Type type, Supplier<T> getter, Consumer<T> setter,
                              boolean isFinal, boolean primary, String description) {
         super(name, type, setter != null, isFinal, primary, description);
         Assert.notNull(getter, "getter cannot be null.");

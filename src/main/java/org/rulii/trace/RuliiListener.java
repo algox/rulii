@@ -19,6 +19,7 @@ package org.rulii.trace;
 
 import org.rulii.bind.BindingListener;
 import org.rulii.rule.RuleListener;
+import org.rulii.ruleset.RuleSetListener;
 
-public interface RuliiListener extends BindingListener, RuleListener {
+public interface RuliiListener extends BindingListener, RuleListener, RuleSetListener {
 }

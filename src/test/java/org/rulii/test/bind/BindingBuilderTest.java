@@ -19,15 +19,18 @@ package org.rulii.test.bind;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.rulii.bind.Binding;
-import org.rulii.bind.InvalidBindingException;
+import org.rulii.bind.*;
 import org.rulii.util.TypeReference;
 
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * Tests for BindingBuilder.
@@ -43,7 +46,7 @@ public class BindingBuilderTest {
 
     @Test
     public void bindingDeclarationTest() {
-        Binding<BigDecimal> binding = Binding.builder().with(key1 -> new BigDecimal("100.01")).build();
+        Binding<?> binding = Binding.builder().with(key1 -> new BigDecimal("100.01")).build();
         Assertions.assertEquals("key1", binding.getName());
         Assertions.assertEquals(binding.getValue(), new BigDecimal("100.01"));
         binding = Binding.builder().with(key2 -> null).build();
@@ -132,7 +135,7 @@ public class BindingBuilderTest {
 
     @Test
     public void bindUsingNameTypeValuesTest() {
-        Binding<String> binding = Binding.builder()
+        Binding<?> binding = Binding.builder()
                 .with("key1")
                 .value(() -> "Hello world!")
                 .type(String.class)
@@ -209,5 +212,138 @@ public class BindingBuilderTest {
         Assertions.assertEquals("a", binding.getName());
         Assertions.assertEquals(binding.getType(), new TypeReference<Map<String, BigDecimal>>() {
         }.getType());
+    }
+
+    /**
+     * Tests that a correctly configured Binding object is created.
+     */
+    @Test
+    void testBuild() {
+        String name = "bindingName";
+        Type type = String.class;
+        String value = "TestValue";
+
+        BindingBuilder bindingBuilder = Binding.builder().with(name);
+        bindingBuilder.type(type);
+        bindingBuilder.value(value);
+
+        Binding<String> binding = bindingBuilder.build();
+
+        Assertions.assertEquals(name, binding.getName());
+        Assertions.assertEquals(type, binding.getType());
+        Assertions.assertEquals(value, binding.getValue());
+        Assertions.assertTrue(binding.isEditable());
+        Assertions.assertFalse(binding.isFinal());
+    }
+
+    /**
+     * Test that the binding object created with a getter has the correct value.
+     */
+    @Test
+    void testBuildWithGetter() {
+        String name = "bindingName";
+        Type type = String.class;
+        Supplier<String> getter = () -> "TestValueGetter";
+
+        BindingBuilder bindingBuilder = Binding.builder().with(name);
+        bindingBuilder.type(type);
+        bindingBuilder.value(getter);
+
+        Binding<String> binding = bindingBuilder.build();
+
+        Assertions.assertEquals(name, binding.getName());
+        Assertions.assertEquals(type, binding.getType());
+        Assertions.assertEquals(getter.get(), binding.getValue());
+        Assertions.assertFalse(binding.isEditable());
+        Assertions.assertFalse(binding.isFinal());
+    }
+
+    @Test
+    void testGetSetValue() {
+        String name = "Test";
+        Type type = String.class;
+        String description = "Test description";
+        AtomicReference<String> initialValue = new AtomicReference<>("Initial");
+        String newValue = "New";
+        Supplier<String> getter = () -> initialValue.get();
+        Consumer<String> setter = value -> initialValue.set(value);
+
+        Binding<String> underTest = Binding.builder().with("Test", type)
+                .delegate(getter, setter)
+                .description(description)
+                .build();
+        Assertions.assertEquals(initialValue.get(), underTest.getValue());
+        underTest.setValue(newValue);
+        Assertions.assertEquals(newValue, underTest.getValue());
+    }
+
+    @Test
+    void testAsImmutable() {
+        String name = "name";
+        Type type = String.class;
+        String description = "Test description";
+        String value = "Value";
+        Supplier<String> getter = () -> value;
+
+        Binding<String> underTest = Binding.builder().with(name, type)
+                .delegate(getter, null)
+                .description(description)
+                .build();
+
+        Binding<String> immutableBinding = underTest.asImmutable();
+        Assertions.assertEquals(name, immutableBinding.getName());
+        Assertions.assertEquals(type, immutableBinding.getType());
+        Assertions.assertEquals(description, immutableBinding.getDescription());
+        Assertions.assertEquals(getter.get(), immutableBinding.getValue());
+        Assertions.assertFalse(immutableBinding.isFinal());
+    }
+
+    // Define a Type for testing purposes
+    private static class DummyType implements Supplier<String> {
+        @Override
+        public String get() {
+            return "Test Value";
+        }
+    }
+
+    // Supplier for test value
+    DummyType dummyType = new DummyType();
+    Type type = dummyType.getClass();
+
+    /**
+     *  Test behavior of `getValue()` with non-final value.
+     */
+    @Test
+    public void testSupplierNonFinalValue() {
+        // Create supplier object
+        Supplier<String> supplier = dummyType::get;
+        // Instantiate with non-final value
+        Binding<String> suppliedBinding = Binding.builder().with("Test", type)
+                .computeIfAbsent(supplier)
+                .description("Test Binding").build();
+        // Assert that object was created
+        Assertions.assertNotNull(suppliedBinding);
+        Assertions.assertEquals(suppliedBinding.getClass(), SuppliedBinding.class);
+        // Call getValue() and assert expected result
+        Assertions.assertEquals("Test Value", suppliedBinding.getValue());
+    }
+
+    /**
+     * Test behavior of `getValue()` with final value.
+     */
+    @Test
+    public void testSupplierFinalValue() {
+        // Create supplier object
+        Supplier<String> supplier = dummyType::get;
+        // Instantiate with final value
+        Binding<String> suppliedBinding = Binding.builder().with("Test", type)
+                .computeIfAbsent(supplier)
+                .description("Test Binding").build();
+        // Assert that object was created
+        Assertions.assertNotNull(suppliedBinding);
+        Assertions.assertEquals(suppliedBinding.getClass(), SuppliedBinding.class);
+        // Call getValue() multiple times and assert expected result
+        Assertions.assertEquals("Test Value", suppliedBinding.getValue());
+        Assertions.assertEquals("Test Value", suppliedBinding.getValue());
     }
 }

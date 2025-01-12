@@ -192,12 +192,12 @@ public final class BindingBuilder {
     /**
      * Adds a value listener to the BindingBuilder.
      *
-     * @param listener the value listener to be added
+     * @param listeners the value listener(s) to be added
      * @return the updated BindingBuilder with the value listener
      */
-    public BindingBuilder valueListener(BindingValueListener listener) {
-        Assert.notNull(listener, "listener cannot be null.");
-        listeners.add(listener);
+    public BindingBuilder valueListeners(BindingValueListener...listeners) {
+        Assert.notNull(listeners, "listener cannot be null.");
+        this.listeners.addAll(List.of(listeners));
         return this;
     }
 
