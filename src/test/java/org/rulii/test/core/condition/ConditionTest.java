@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.rulii.test.condition;
+package org.rulii.test.core.condition;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
