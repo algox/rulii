@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.rulii.test.core;
+package org.rulii.test.rule;
 
 import org.rulii.annotation.Description;
 import org.rulii.annotation.Given;
@@ -27,6 +27,7 @@ import java.util.Date;
 
 @Rule
 @Description("This Rule will validate that the first date is before the second.")
+// TODO : Fix
 public class ConsistentDateRule {
 
     public ConsistentDateRule() {

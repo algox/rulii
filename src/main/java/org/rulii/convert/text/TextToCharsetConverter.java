@@ -22,6 +22,7 @@ import org.rulii.convert.ConverterTemplate;
 
 import java.lang.reflect.Type;
 import java.nio.charset.Charset;
+import java.nio.charset.UnsupportedCharsetException;
 
 /**
  * Text to CharSet converter.
@@ -38,6 +39,10 @@ public class TextToCharsetConverter extends ConverterTemplate<CharSequence, Char
     @Override
     public Charset convert(CharSequence value, Type toType) throws ConversionException {
         if (value == null) return null;
-        return Charset.forName(value.toString());
+        try {
+            return Charset.forName(value.toString());
+        } catch (UnsupportedCharsetException e) {
+            throw new ConversionException(e, value, CharSequence.class, toType);
+        }
     }
 }

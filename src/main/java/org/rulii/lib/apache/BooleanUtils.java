@@ -564,10 +564,12 @@ public class BooleanUtils {
                     ch0 == 't' || ch0 == 'T') {
                     return Boolean.TRUE;
                 }
+                if (ch0 == '1' ) return Boolean.TRUE;
                 if (ch0 == 'n' || ch0 == 'N' ||
                     ch0 == 'f' || ch0 == 'F') {
                     return Boolean.FALSE;
                 }
+                if (ch0 == '0' ) return Boolean.FALSE;
                 break;
             }
             case 2: {

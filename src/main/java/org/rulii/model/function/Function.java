@@ -19,7 +19,6 @@ package org.rulii.model.function;
 
 import org.rulii.bind.BindingDeclaration;
 import org.rulii.bind.Bindings;
-import org.rulii.bind.ReservedBindings;
 import org.rulii.context.RuleContext;
 import org.rulii.model.Runnable;
 import org.rulii.model.UnrulyException;
@@ -29,6 +28,7 @@ import org.rulii.model.UnrulyException;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 @FunctionalInterface
 public interface Function<T> extends Runnable<T> {
@@ -75,33 +75,11 @@ public interface Function<T> extends Runnable<T> {
      *
      * @param <B> the type of the input before function accepts
      * @param before the before function to apply
-     * @return a new function that represents the composition of the before and main functions
-     */
-    default <B> Function<T> compose(Function<B> before) {
-        return new ComposeWithBeforeFunction<B, T>(before, ReservedBindings.METHOD_RESULT.getName(), this);
-    }
-
-    /**
-     * Composes this function with a before function. The before function is applied to the input and then the main function is executed.
-     *
-     * @param <B> the type of the input before function accepts
-     * @param before the before function to apply
      * @param resultBindingName the name of the binding to store the result of the before function's application
      * @return a new function that represents the composition of the before and main functions
      */
     default <B> Function<T> compose(Function<B> before, String resultBindingName) {
         return new ComposeWithBeforeFunction<B, T>(before, resultBindingName, this);
-    }
-
-    /**
-     * Composes this function with another function, applying the "after" function to the result of this function.
-     *
-     * @param <V>   the type of the result of the "after" function
-     * @param after the function to apply to the result of this function
-     * @return a new function that represents the composition of this function and the "after" function
-     */
-    default <V> Function<V> andThen(Function<V> after) {
-        return new ComposeWithAfterFunction<T, V>(this, ReservedBindings.METHOD_RESULT.getName(), after);
     }
 
     /**

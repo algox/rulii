@@ -73,7 +73,7 @@ public class FormattedText {
     public List<Placeholder> getPlaceholder(String name) {
         List<Placeholder> result = new ArrayList<>();
 
-        placeholders.stream().forEach(p -> {
+        placeholders.forEach(p -> {
             if (p.getName().equals(name)) result.add(p);
         });
 
@@ -112,6 +112,7 @@ public class FormattedText {
 
             if (!queue.isEmpty() && queue.peek().getStartPosition() == i) {
                 Placeholder match = queue.poll();
+                if (match == null) continue;
                 ParameterInfo parameter = matchMap.get(match.getName());
 
                 if (parameter != null) {

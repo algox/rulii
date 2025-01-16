@@ -26,16 +26,20 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
- * Converts a String value to a Date.
+ * TextToDateConverter is a Converter class that converts a CharSequence representing a date/time string into a Date object.
+ * It supports conversion from the following formats:
+ * - Date only: "yyyy-MM-dd"
+ * - Date and Time: "yyyy-MM-dd'T'HH:mm:ss"
+ * - Date, Time, and Time Zone: "yyyy-MM-dd'T'HH:mm:ssZ"
  *
  * @author Max Arulananthan
  * @since 1.0
  */
 public class TextToDateConverter extends ConverterTemplate<CharSequence, Date> {
 
-    private static final String DATE_ONLY_FORMAT        = "yyyy-MM-dd";
-    private static final String DATE_TIME_FORMAT        = "yyyy-MM-dd'T'HH:mm:ss";
-    private static final String DATE_TIME_ZONE_FORMAT   = "yyyy-MM-dd'T'HH:mm:ssZ";
+    public static final String DATE_ONLY_FORMAT        = "yyyy-MM-dd";
+    public static final String DATE_TIME_FORMAT        = "yyyy-MM-dd'T'HH:mm:ss";
+    public static final String DATE_TIME_ZONE_FORMAT   = "yyyy-MM-dd'T'HH:mm:ssZ";
 
     public TextToDateConverter() {
         super();

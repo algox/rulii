@@ -38,6 +38,10 @@ public class TextToCurrencyConverter extends ConverterTemplate<CharSequence, Cur
     @Override
     public Currency convert(CharSequence value, Type toType) throws ConversionException {
         if (value == null) return null;
-        return Currency.getInstance(value.toString());
+        try {
+            return Currency.getInstance(value.toString());
+        } catch (IllegalArgumentException e) {
+            throw new ConversionException(value, CharSequence.class, toType);
+        }
     }
 }

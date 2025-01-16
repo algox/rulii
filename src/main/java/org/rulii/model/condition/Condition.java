@@ -30,6 +30,7 @@ import org.rulii.model.UnrulyException;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 @FunctionalInterface
 public interface Condition extends Runnable<Boolean> {
@@ -105,6 +106,7 @@ public interface Condition extends Runnable<Boolean> {
      *
      * @return Function meta information.
      */
+    @SuppressWarnings("unchecked")
     default MethodDefinition getDefinition() {
         return this instanceof Definable ? ((Definable<MethodDefinition>) this).getDefinition() : null;
     }

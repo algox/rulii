@@ -37,7 +37,6 @@ public class TextToBooleanConverter extends ConverterTemplate<CharSequence, Bool
     @Override
     public Boolean convert(CharSequence value, Type toType) {
         if (value == null) return null;
-
         Boolean result = BooleanUtils.toBooleanObject(value.toString());
         return result != null ? result : false;
     }

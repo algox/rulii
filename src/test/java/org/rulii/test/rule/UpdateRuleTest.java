@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.rulii.test.core;
+package org.rulii.test.rule;
 
 import org.junit.jupiter.api.Test;
 import org.rulii.bind.Bindings;
@@ -25,6 +25,7 @@ import org.rulii.bind.Bindings;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 public class UpdateRuleTest {
 

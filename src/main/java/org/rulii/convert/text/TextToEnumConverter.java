@@ -34,8 +34,9 @@ public class TextToEnumConverter extends ConverterTemplate<CharSequence, Enum> {
         super();
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
-    public Enum convert(CharSequence value, Type toType) throws ConversionException {
+    public Enum<?> convert(CharSequence value, Type toType) throws ConversionException {
         if (value == null) return null;
 
         try {

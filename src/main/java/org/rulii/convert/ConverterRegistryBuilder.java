@@ -24,6 +24,7 @@ import org.rulii.lib.spring.util.Assert;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 public final class ConverterRegistryBuilder {
 
@@ -31,7 +32,7 @@ public final class ConverterRegistryBuilder {
 
     private ConverterRegistryBuilder(ConverterRegistry registry) {
         super();
-        Assert.notNull("registry", "registry cannot be null.");
+        Assert.notNull(registry, "registry cannot be null.");
         this.registry = registry;
     }
 
@@ -62,7 +63,7 @@ public final class ConverterRegistryBuilder {
      * @return this for fluency.
      * @see DefaultConverterRegistry
      */
-    public ConverterRegistryBuilder converter(Converter converter) {
+    public ConverterRegistryBuilder converter(Converter<?, ?> converter) {
         Assert.notNull(converter, "converter cannot be null.");
         registry.register(converter);
         return this;

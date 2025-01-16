@@ -23,7 +23,8 @@ import org.rulii.convert.ConverterTemplate;
 import java.lang.reflect.Type;
 
 /**
- * Converts a String value to a Byte.
+ * Converts a CharSequence to a Byte.
+ * This class extends ConverterTemplate that provides generic conversion functionality.
  *
  * @author Max Arulananthan
  * @since 1.0

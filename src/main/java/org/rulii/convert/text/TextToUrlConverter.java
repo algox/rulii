@@ -40,7 +40,6 @@ public class TextToUrlConverter extends ConverterTemplate<CharSequence, URL> {
     public URL convert(CharSequence value, Type toType) {
         if (value == null) return null;
 
-
         try {
             return new URL(value.toString());
         } catch (MalformedURLException e) {

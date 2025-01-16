@@ -17,6 +17,12 @@
  */
 package org.rulii.model.function;
 
+/**
+ * Utility class for creating functions with varying numbers of arguments.
+ *
+ * @author Max Arulananthan
+ * @since 1.0
+ */
 public final class Functions {
 
     private Functions() {
@@ -72,7 +78,7 @@ public final class Functions {
      * @param <T> generic return type of the function.
      * @return new function with three arguments.
      */
-    public static <T, A, B, C> Function function(TriFunction<T, A, B, C> function) {
+    public static <T, A, B, C> Function<T> function(TriFunction<T, A, B, C> function) {
         FunctionBuilder<T> builder = Function.builder().with(function);
         return builder.build();
     }

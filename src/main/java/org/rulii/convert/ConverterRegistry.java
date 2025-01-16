@@ -20,7 +20,7 @@ package org.rulii.convert;
 import java.lang.reflect.Type;
 
 /**
- * Registry to hold all the Converters.
+ * Interface for managing converters to convert objects between different types.
  *
  * @author Max Arulananthan
  * @since 1.0
@@ -36,11 +36,12 @@ public interface ConverterRegistry {
     }
 
     /**
-     * Register a new Converter. It will overwrite any existing converters that have the same source/target combo.
+     * Register a new Converter.
      *
      * @param converter new converter.
+     * @return true if added; false if the converter already exists.
      */
-    void register(Converter<?, ?> converter);
+    boolean register(Converter<?, ?> converter);
 
     /**
      * Finds a Convert for the desired source/target types.

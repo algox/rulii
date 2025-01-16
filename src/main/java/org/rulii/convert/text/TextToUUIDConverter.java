@@ -39,6 +39,11 @@ public class TextToUUIDConverter extends ConverterTemplate<CharSequence, UUID> {
     @Override
     public UUID convert(CharSequence value, Type toType) throws ConversionException {
         if (value == null) return null;
-        return StringUtils.isEmpty(value) ? null : UUID.fromString(value.toString().trim());
+
+        try {
+            return StringUtils.isEmpty(value) ? null : UUID.fromString(value.toString().trim());
+        } catch (IllegalArgumentException e) {
+            throw new ConversionException(value, CharSequence.class, toType);
+        }
     }
 }
