@@ -31,9 +31,7 @@ import java.util.Arrays;
  * @author Max Arulananthan
  * @since 1.0
  */
-public class ReflectiveMethodExecutor implements MethodExecutor {
-
-    private final Method method;
+public record ReflectiveMethodExecutor(Method method) implements MethodExecutor {
 
     /**
      * The ReflectiveMethodExecutor class is an implementation of the MethodExecutor interface that
@@ -42,18 +40,16 @@ public class ReflectiveMethodExecutor implements MethodExecutor {
      * @param method The method to be executed.reflectiveMethodExecutor
      * @throws IllegalArgumentException If the method parameter is null.
      */
-    public ReflectiveMethodExecutor(Method method) {
-        super();
+    public ReflectiveMethodExecutor {
         Assert.notNull(method, "method cannot be null.");
-        this.method = method;
     }
 
     /**
      * Executes the method with the given parameters.
      *
-     * @param target     The target object on which the method will be executed.
-     * @param userArgs   The arguments to be passed to the method. Can be null.
-     * @param <T>        The generic type of the result.
+     * @param target   The target object on which the method will be executed.
+     * @param userArgs The arguments to be passed to the method. Can be null.
+     * @param <T>      The generic type of the result.
      * @return The result of the method execution.
      * @throws UnrulyException if the number of arguments passed is invalid or if there is an error during execution.
      */
@@ -61,24 +57,19 @@ public class ReflectiveMethodExecutor implements MethodExecutor {
     @Override
     public <T> T execute(Object target, Object... userArgs) {
         if (method.getParameterCount() != (userArgs == null ? 0 : userArgs.length)) {
-            throw new UnrulyException("Invalid number of args passed to Method call [" + getMethod()
+            throw new UnrulyException("Invalid number of args passed to Method call [" + method()
                     + "] required [" + method.getParameterCount() + "]");
         }
 
-        boolean staticMethod = Modifier.isStatic(getMethod().getModifiers());
+        boolean staticMethod = Modifier.isStatic(method().getModifiers());
 
         try {
             // Execute the method with the given parameters
             return (T) method.invoke(staticMethod ? null : target, userArgs);
         } catch (Throwable e) {
             // Something went wrong with the execution
-            throw new UnrulyException("Unexpected error trying to execute [" + getMethod()
+            throw new UnrulyException("Unexpected error trying to execute [" + method()
                     + "] with arguments " + Arrays.toString(userArgs), e);
         }
-    }
-
-    @Override
-    public final Method getMethod() {
-        return method;
     }
 }

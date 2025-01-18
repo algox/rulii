@@ -23,6 +23,7 @@ import org.rulii.annotation.Description;
 import org.rulii.annotation.Given;
 import org.rulii.annotation.Rule;
 import org.rulii.annotation.Then;
+import org.rulii.bind.match.BindingMatchingStrategy;
 import org.rulii.bind.match.MatchByNameAndTypeMatchingStrategy;
 import org.rulii.bind.match.MatchByNameMatchingStrategy;
 import org.rulii.bind.match.MatchByTypeMatchingStrategy;
@@ -46,7 +47,6 @@ public class ObjectFactoryTest {
         Assertions.assertInstanceOf(MatchByNameAndTypeMatchingStrategy.class, factory.createBindingMatchingStrategy(MatchByNameAndTypeMatchingStrategy.class));
         Assertions.assertInstanceOf(MatchByTypeMatchingStrategy.class, factory.createBindingMatchingStrategy(MatchByTypeMatchingStrategy.class));
         Assertions.assertInstanceOf(MatchByTypeMatchingStrategy.class, factory.createBindingMatchingStrategy(MatchByTypeMatchingStrategy.class));
-
         Assertions.assertInstanceOf(TestRule.class, factory.createRule(TestRule.class));
     }
 
@@ -67,4 +67,17 @@ public class ObjectFactoryTest {
 
         }
     }
+
+    @Test
+    public void testCreateBindingMatchingStrategy_validClassType() {
+        // Creating an instance of the ObjectFactoryBuilder
+        ObjectFactory objectFactory = ObjectFactory.builder().build();
+        // Creating a BindingMatchingStrategy instance from the ObjectFactory
+        BindingMatchingStrategy bindingMatchingStrategy =
+                objectFactory.createBindingMatchingStrategy(MatchByNameAndTypeMatchingStrategy.class);
+        // Asserting the BindingMatchingStrategy instance is not null
+        Assertions.assertNotNull(bindingMatchingStrategy);
+    }
+
+
 }

@@ -20,10 +20,14 @@ package org.rulii.test.util;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.rulii.lib.spring.core.ParameterNameDiscoverer;
+import org.rulii.model.Runnable;
+import org.rulii.model.action.Action;
 import org.rulii.model.function.TriFunction;
 import org.rulii.model.function.UnaryFunction;
 import org.rulii.util.reflect.LambdaUtils;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.lang.invoke.SerializedLambda;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
@@ -96,5 +100,35 @@ public final class LambdaUtilsTest {
         Assertions.assertEquals("xxx", names[0]);
         Assertions.assertEquals("value", names[1]);
         Assertions.assertEquals("salary", names[2]);
+    }
+
+    @Test
+    public void testIsLambdaWithActualLambda() {
+        //Initialize a lambda
+        Runnable<Void> lambda = (ctx) -> {
+            System.out.println("This is a test lambda.");
+            return null;
+        };
+        //Test LambdaUtils#isLambda with the lambda
+        Assertions.assertTrue(LambdaUtils.isLambda(lambda), "LambdaUtils failed to recognize a valid lambda.");
+    }
+
+    @Test
+    public void testIsLambdaWithNonLambda() {
+        //Initialize a non-lambda Serializable object
+        Serializable nonLambda = new Serializable() {
+            @Serial
+            private static final long serialVersionUID = 1L;
+        };
+
+        //Test LambdaUtils#isLambda with the non-lambda object
+        Assertions.assertFalse(LambdaUtils.isLambda(nonLambda), "LambdaUtils recognized a non-lambda object as a lambda.");
+    }
+
+    @Test
+    void testIsLambdaWithNull() {
+        //Test LambdaUtils#isLambda with null input
+        Exception exception = Assertions.assertThrows(IllegalArgumentException.class, () -> LambdaUtils.isLambda(null));
+        Assertions.assertEquals("target cannot be null.", exception.getMessage());
     }
 }

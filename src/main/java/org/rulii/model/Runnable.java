@@ -22,6 +22,8 @@ import org.rulii.bind.Bindings;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.spring.util.Assert;
 
+import java.io.Serializable;
+
 /**
  * Anything that can be executed given a RuleContext.
  *
@@ -31,7 +33,9 @@ import org.rulii.lib.spring.util.Assert;
  * @since 1.0
  */
 @FunctionalInterface
-public interface Runnable<T> extends Identifiable {
+public interface Runnable<T> extends Identifiable, Serializable {
+
+    long serialVersionUID = 1L;
 
     /**
      * Executes the runnable within the given context.

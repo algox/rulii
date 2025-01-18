@@ -68,5 +68,5 @@ public interface MethodExecutor {
      *
      * @return method to execute.
      */
-    Method getMethod();
+    Method method();
 }

@@ -41,7 +41,7 @@ public class ResourceBundleMessageResolver implements MessageResolver {
      */
     public ResourceBundleMessageResolver(String baseName) {
         super();
-        Assert.notNull(baseName, "baseName cannot be null.");
+        Assert.hasText(baseName, "baseName cannot be empty/null.");
         this.baseName = baseName;
     }
 

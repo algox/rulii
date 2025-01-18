@@ -20,6 +20,7 @@ package org.rulii.test.text;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.rulii.text.MessageResolver;
+import org.rulii.text.ResourceBundleMessageResolver;
 
 import java.util.Locale;
 import java.util.MissingResourceException;
@@ -51,5 +52,29 @@ public class MessageResolverTest {
         MessageResolver resolver = MessageResolver.builder("message-resolver").build();
         String template = resolver.resolve(Locale.US, "test.001");
         Assertions.assertEquals("testing", template);
+    }
+
+    @Test
+    public void testResolve_ReturnsDefaultMessageWhenCodeIsNull() {
+        ResourceBundleMessageResolver resolver = new ResourceBundleMessageResolver("message-resolver");
+        String message = resolver.resolve(Locale.US, null, "Default message");
+        Assertions.assertEquals("Default message", message);
+    }
+
+    @Test
+    public void testResolve_ReturnsResolvedMessageWhenCodeExists() {
+        ResourceBundleMessageResolver resolver = new ResourceBundleMessageResolver("message-resolver");
+        // Assuming there is a code "test.message" in the resource bundle
+        String message = resolver.resolve(Locale.US, "test.message", "Default message");
+        // Expected message will depend on the actual message against the code "test.message" in your resource bundle
+        Assertions.assertEquals("Expected message", message);
+    }
+
+    @Test
+    public void testResolve_ThrowsExceptionWhenCodeDoesNotExistAndNoDefaultMessageProvided() {
+        ResourceBundleMessageResolver resolver = new ResourceBundleMessageResolver("messages");
+        Assertions.assertThrows(MissingResourceException.class, () -> {
+            resolver.resolve(Locale.US, "test.message.non.existent", null);
+        });
     }
 }

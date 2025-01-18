@@ -60,11 +60,11 @@ public class MethodHandleMethodExecutor implements MethodExecutor {
     @Override
     public <T> T execute(Object target, Object... userArgs) throws Throwable {
         if (method.getParameterCount() != (userArgs == null ? 0 : userArgs.length)) {
-            throw new UnrulyException("Invalid number of args passed to Method call [" + getMethod()
+            throw new UnrulyException("Invalid number of args passed to Method call [" + method()
                     + "] required [" + method.getParameterCount() + "]");
         }
 
-        boolean staticMethod = Modifier.isStatic(getMethod().getModifiers());
+        boolean staticMethod = Modifier.isStatic(method().getModifiers());
         int index = 0;
 
         // Do no include target if it's a static method call
@@ -83,7 +83,7 @@ public class MethodHandleMethodExecutor implements MethodExecutor {
     }
 
     @Override
-    public final Method getMethod() {
+    public final Method method() {
         return method;
     }
 }

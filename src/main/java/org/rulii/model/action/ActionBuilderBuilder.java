@@ -17,22 +17,22 @@
  */
 package org.rulii.model.action;
 
-import org.rulii.model.RunnableBuilder;
 import org.rulii.lib.spring.core.BridgeMethodResolver;
 import org.rulii.lib.spring.core.annotation.AnnotationUtils;
 import org.rulii.lib.spring.core.annotation.OrderUtils;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.MethodDefinition;
+import org.rulii.model.RunnableBuilder;
 import org.rulii.model.SourceDefinition;
 import org.rulii.model.UnrulyException;
 import org.rulii.util.Ordered;
+import org.rulii.util.reflect.ObjectFactory;
 import org.rulii.util.reflect.ReflectionUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
@@ -63,6 +63,29 @@ public final class ActionBuilderBuilder {
 
     private static ActionBuilder with(Object target, MethodDefinition definition) {
         return new ActionBuilder(target, definition);
+    }
+
+    /**
+     * Builds a list of actions based on the provided class and object factory.
+     *
+     * @param clazz the class to build actions for
+     * @return a list of actions built from the given class
+     */
+    public List<Action> build(Class<?> clazz) {
+        Assert.notNull(clazz, "clazz cannot be null.");
+        ObjectFactory objectFactory = ObjectFactory.builder().build();
+        return build(clazz, objectFactory);
+    }
+
+    /**
+     * Builds a list of actions based on the provided class and object factory.
+     *
+     * @param clazz the class to build actions for
+     * @param factory the object factory used to create actions
+     * @return a list of actions built from the given class
+     */
+    public List<Action> build(Class<?> clazz, ObjectFactory factory) {
+        return build(factory.createAction(clazz));
     }
 
     /**
@@ -258,7 +281,7 @@ public final class ActionBuilderBuilder {
     /**
      * Creates a new action with nine argument.
      *
-     * @param action action action.
+     * @param action action.
      * @param <A> generic type of the first parameter.
      * @param <B> generic type of the second parameter.
      * @param <C> generic type of the third parameter.
@@ -297,7 +320,7 @@ public final class ActionBuilderBuilder {
     private ActionBuilder withAction(Object target) {
         Method[] candidates = ReflectionUtils.getMethods(target.getClass(), FILTER);
 
-        if (candidates == null || candidates.length == 0) {
+        if (candidates.length == 0) {
             throw new UnrulyException("Action method not found on class [" + target.getClass() + "]");
         }
 

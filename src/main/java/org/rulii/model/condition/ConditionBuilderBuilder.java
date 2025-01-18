@@ -65,12 +65,25 @@ public final class ConditionBuilderBuilder {
         return new ConditionBuilder(target, definition);
     }
 
+    /**
+     * Build a list of conditions based on the provided class and object factory.
+     *
+     * @param clazz the class to use for creating conditions
+     * @return a list of conditions built using the provided class and factory
+     */
     public List<Condition> build(Class<?> clazz) {
         Assert.notNull(clazz, "clazz cannot be null.");
         ObjectFactory objectFactory = ObjectFactory.builder().build();
         return build(clazz, objectFactory);
     }
 
+    /**
+     * Build a list of conditions based on the provided class and object factory.
+     *
+     * @param clazz the class to use for creating conditions
+     * @param factory the object factory used to create conditions
+     * @return a list of conditions built using the provided class and factory
+     */
     public List<Condition> build(Class<?> clazz, ObjectFactory factory) {
         return build(factory.createCondition(clazz));
     }

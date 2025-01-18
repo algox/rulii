@@ -80,7 +80,7 @@ public class DefaultMethodExecutor implements MethodExecutor {
     }
 
     @Override
-    public Method getMethod() {
+    public Method method() {
         return method;
     }
 
