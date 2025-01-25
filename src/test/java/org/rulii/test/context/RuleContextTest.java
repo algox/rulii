@@ -23,7 +23,23 @@ import org.rulii.bind.BindingAlreadyExistsException;
 import org.rulii.bind.Bindings;
 import org.rulii.bind.ReservedBindings;
 import org.rulii.context.RuleContext;
+import org.rulii.context.RuleContextBuilder;
+import org.rulii.context.RuleContextOptions;
 
+import java.time.Clock;
+import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+/**
+ * This class contains unit tests for the RuleContext class.
+ * It includes tests for building RuleContext with different inputs,
+ * handling exceptions, and testing RuleContext options.
+ *
+ * @author Max Arulananthan
+ * @since 1.0
+ *
+ */
 public class RuleContextTest {
 
     public RuleContextTest() {
@@ -36,5 +52,35 @@ public class RuleContextTest {
             RuleContext context = RuleContext.builder().build(Bindings.builder().standard());
             context.getBindings().bind(ReservedBindings.RULE_CONTEXT.getName(), 25);
         });
+    }
+
+    @Test
+    public void testBuildContextWithEmptyInputs() {
+        RuleContextBuilder builder = RuleContext.builder().standard();
+        RuleContext context = builder.build();
+        Assertions.assertNotNull(context, "Rule context should not be null.");
+    }
+
+    @Test
+    public void testBuildContextWithPopulatedInputs() {
+        Clock clock = Clock.systemDefaultZone();
+        Locale locale = Locale.getDefault();
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        RuleContextBuilder builder = RuleContext.builder().standard();
+        builder.locale(locale);
+        builder.clock(clock);
+        builder.executeUsing(executorService);
+        RuleContext context = builder.build();
+        Assertions.assertEquals(locale, context.getLocale(), "Expected and actual locale do not match.");
+        Assertions.assertEquals(clock, context.getClock(), "Expected and actual clock do not match.");
+        Assertions.assertEquals(executorService, context.getExecutorService(), "Expected and actual executor service do not match.");
+    }
+
+    @Test
+    public void testBuildContextWithRuleContextOptions() {
+        RuleContextOptions options = RuleContextOptions.standard();
+        RuleContextBuilder builder = RuleContext.builder().with(options);
+        RuleContext context = builder.build();
+        Assertions.assertNotNull(context, "Rule context should not be null.");
     }
 }

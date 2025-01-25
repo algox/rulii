@@ -41,6 +41,7 @@ import java.util.concurrent.ExecutorService;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 public class RuleContext implements Immutator<RuleContext> {
 
@@ -122,10 +123,20 @@ public class RuleContext implements Immutator<RuleContext> {
         return parameterResolver;
     }
 
+    /**
+     * Retrieves the MessageResolver associated with this RuleContext.
+     *
+     * @return the MessageResolver instance linked to this RuleContext
+     */
     public MessageResolver getMessageResolver() {
         return messageResolver;
     }
 
+    /**
+     * Retrieves the MessageFormatter associated with this RuleContext.
+     *
+     * @return the MessageFormatter instance linked to this RuleContext
+     */
     public MessageFormatter getMessageFormatter() {
         return messageFormatter;
     }
@@ -139,6 +150,11 @@ public class RuleContext implements Immutator<RuleContext> {
         return objectFactory;
     }
 
+    /**
+     * Retrieves the Tracer associated with this RuleContext.
+     *
+     * @return the Tracer instance used for tracing within the RuleContext
+     */
     public Tracer getTracer() {
         return tracer;
     }
@@ -151,26 +167,56 @@ public class RuleContext implements Immutator<RuleContext> {
         return converterRegistry;
     }
 
+    /**
+     * Retrieves the RuleRegistry instance associated with this RuleContext.
+     *
+     * @return the RuleRegistry instance linked to this RuleContext. Cannot be null.
+     */
     public RuleRegistry getRuleRegistry() {
         return ruleRegistry;
     }
 
+    /**
+     * Returns the locale associated with this RuleContext.
+     *
+     * @return the locale of the RuleContext
+     */
     public Locale getLocale() {
         return locale;
     }
 
+    /**
+     * Get the Clock instance associated with this RuleContext.
+     *
+     * @return the Clock instance used in the RuleContext. Cannot be null.
+     */
     public Clock getClock() {
         return clock;
     }
 
+    /**
+     * Retrieves the identifier of this RuleContext.
+     *
+     * @return the identifier as a String. Cannot be null.
+     */
     public String getId() {
         return id;
     }
 
+    /**
+     * Retrieves the creation time of the RuleContext.
+     *
+     * @return The creation time of the RuleContext as a Date object.
+     */
     public Date getCreationTime() {
         return creationTime;
     }
 
+    /**
+     * Get the ExecutorService instance associated with this RuleContext.
+     *
+     * @return the ExecutorService instance linked to this RuleContext
+     */
     public ExecutorService getExecutorService() {
         return executorService;
     }

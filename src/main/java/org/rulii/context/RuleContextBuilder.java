@@ -41,7 +41,7 @@ import java.util.concurrent.Executors;
  */
 public class RuleContextBuilder {
 
-    private static final ExecutorService DEFAULT_EXECUTOR_SERVICE = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    private static final ExecutorService DEFAULT_EXECUTOR_SERVICE = Executors.newFixedThreadPool(Math.max(2, Runtime.getRuntime().availableProcessors()));
 
     private Bindings bindings;
     private BindingMatchingStrategy matchingStrategy;
@@ -96,6 +96,12 @@ public class RuleContextBuilder {
         this.executorService = options.getExecutorService();
     }
 
+    /**
+     * Sets the bindings for the RuleContextBuilder.
+     *
+     * @param bindings the bindings to be set
+     * @return RuleContextBuilder for fluency
+     */
     public RuleContextBuilder bindings(Bindings bindings) {
         Assert.notNull(bindings, "bindings cannot be null.");
         this.bindings = bindings;
@@ -114,66 +120,132 @@ public class RuleContextBuilder {
         return this;
     }
 
+    /**
+     * Sets the ParameterResolver for the RuleContextBuilder.
+     *
+     * @param parameterResolver the ParameterResolver to be set
+     * @return RuleContextBuilder for method chaining
+     */
     public RuleContextBuilder paramResolver(ParameterResolver parameterResolver) {
         Assert.notNull(objectFactory, "parameterResolver cannot be null.");
         this.parameterResolver = parameterResolver;
         return this;
     }
 
+    /**
+     * Sets the MessageResolver for the RuleContextBuilder.
+     *
+     * @param messageResolver the MessageResolver to be set
+     * @return RuleContextBuilder for method chaining
+     */
     public RuleContextBuilder messageResolver(MessageResolver messageResolver) {
         Assert.notNull(messageResolver, "messageResolver cannot be null.");
         this.messageResolver = messageResolver;
         return this;
     }
 
+    /**
+     * Sets the MessageResolver for the RuleContextBuilder.
+     *
+     * @param baseNames the base names to be used for the MessageResolver
+     * @return RuleContextBuilder for method chaining
+     */
     public RuleContextBuilder messageResolver(String...baseNames) {
         Assert.notNull(baseNames, "baseNames cannot be null.");
         this.messageResolver = MessageResolver.builder(baseNames).build();
         return this;
     }
 
+    /**
+     * Sets the MessageFormatter for the RuleContextBuilder.
+     *
+     * @param messageFormatter the MessageFormatter to be set
+     * @return RuleContextBuilder for method chaining
+     */
     public RuleContextBuilder messageFormatter(MessageFormatter messageFormatter) {
         Assert.notNull(messageFormatter, "messageFormatter cannot be null.");
         this.messageFormatter = messageFormatter;
         return this;
     }
 
+    /**
+     * Sets the ObjectFactory for the RuleContextBuilder.
+     *
+     * @param objectFactory the ObjectFactory to be set
+     * @return RuleContextBuilder for method chaining
+     */
     public RuleContextBuilder objectFactory(ObjectFactory objectFactory) {
         Assert.notNull(objectFactory, "objectFactory cannot be null.");
         this.objectFactory = objectFactory;
         return this;
     }
 
+    /**
+     * Sets the Tracer for the RuleContextBuilder to use for tracing.
+     *
+     * @param tracer the Tracer to set for tracing
+     * @return instance of RuleContextBuilder for method chaining
+     */
     public RuleContextBuilder traceUsing(Tracer tracer) {
         Assert.notNull(tracer, "tracer cannot be null.");
         this.tracer = tracer;
         return this;
     }
 
+    /**
+     * Sets the ConverterRegistry for the RuleContextBuilder.
+     *
+     * @param converterRegistry the ConverterRegistry to be set
+     * @return RuleContextBuilder for method chaining
+     */
     public RuleContextBuilder converterRegistry(ConverterRegistry converterRegistry) {
         Assert.notNull(converterRegistry, "converterRegistry cannot be null.");
         this.converterRegistry = converterRegistry;
         return this;
     }
 
+    /**
+     * Sets the RuleRegistry for the RuleContextBuilder.
+     *
+     * @param ruleRegistry the RuleRegistry to be set
+     * @return a RuleContextBuilder instance for method chaining
+     */
     public RuleContextBuilder ruleRegistry(RuleRegistry ruleRegistry) {
         Assert.notNull(ruleRegistry, "ruleRegistry cannot be null.");
         this.ruleRegistry = ruleRegistry;
         return this;
     }
 
+    /**
+     * Sets the locale for the RuleContextBuilder.
+     *
+     * @param locale The locale to be set.
+     * @return RuleContextBuilder for method chaining.
+     */
     public RuleContextBuilder locale(Locale locale) {
         Assert.notNull(locale, "locale cannot be null.");
         this.locale = locale;
         return this;
     }
 
+    /**
+     * Sets the clock to be used by the RuleContextBuilder.
+     *
+     * @param clock the Clock instance to set
+     * @return RuleContextBuilder for method chaining
+     */
     public RuleContextBuilder clock(Clock clock) {
         Assert.notNull(clock, "clock cannot be null.");
         this.clock = clock;
         return this;
     }
 
+    /**
+     * Executes using the provided ExecutorService.
+     *
+     * @param executorService the ExecutorService to execute with
+     * @return RuleContextBuilder instance for method chaining
+     */
     public RuleContextBuilder executeUsing(ExecutorService executorService) {
         Assert.notNull(executorService, "executorService cannot be null.");
         this.executorService = executorService;
@@ -229,9 +301,11 @@ public class RuleContextBuilder {
     }
 
     /**
-     * Builds a Rule Context with desired parameters.
+     * Builds and returns a RuleContext instance with the configured settings.
      *
-     * @return new Rule Context.
+     * @return RuleContext instance built with the specified bindings, locale, matching strategy,
+     * parameter resolver, message resolver, message formatter, object factory, tracer,
+     * converter registry, rule registry, clock, and executor service.
      */
     public RuleContext build() {
         ScopedBindings scopedBindings = Bindings.builder().scoped();

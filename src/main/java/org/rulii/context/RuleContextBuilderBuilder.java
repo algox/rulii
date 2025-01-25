@@ -21,6 +21,14 @@ import org.rulii.bind.BindingDeclaration;
 import org.rulii.bind.Bindings;
 import org.rulii.lib.spring.util.Assert;
 
+/**
+ * RuleContextBuilderBuilder is a utility class that provides methods for building RuleContextBuilder objects with various configurations.
+ * It follows the singleton design pattern to ensure only one instance of RuleContextBuilderBuilder exists.
+ *
+ * @author Max Arulananthan
+ * @since 1.0
+ *
+ */
 public class RuleContextBuilderBuilder {
 
     private static final RuleContextBuilderBuilder instance = new RuleContextBuilderBuilder();
@@ -29,18 +37,40 @@ public class RuleContextBuilderBuilder {
         super();
     }
 
+    /**
+     * Retrieves an instance of RuleContextBuilderBuilder.
+     *
+     * @return The singleton instance of RuleContextBuilderBuilder.
+     */
     public static RuleContextBuilderBuilder getInstance() {
         return instance;
     }
 
+    /**
+     * Constructs a new RuleContextBuilder with default settings.
+     *
+     * @return a new RuleContextBuilder object.
+     */
     public RuleContextBuilder standard() {
         return new RuleContextBuilder();
     }
 
+    /**
+     * Constructs a new RuleContextBuilder with the provided RuleContextOptions.
+     *
+     * @param options the RuleContextOptions to use for constructing the RuleContextBuilder
+     * @return a new RuleContextBuilder object initialized with the provided options
+     */
     public RuleContextBuilder with(RuleContextOptions options) {
         return new RuleContextBuilder(options);
     }
 
+    /**
+     * Constructs a new RuleContextBuilder with the provided RuleContext.
+     *
+     * @param context the RuleContext to use for constructing the RuleContextBuilder
+     * @return a new RuleContextBuilder object initialized with the provided context
+     */
     public RuleContextBuilder with(RuleContext context) {
         return new RuleContextBuilder(context);
     }
@@ -58,21 +88,45 @@ public class RuleContextBuilderBuilder {
         return result;
     }
 
-    public RuleContextBuilder with(BindingDeclaration...params) {
+    /**
+     * Sets the Bindings to use for building the RuleContextBuilder.
+     *
+     * @param params the BindingDeclarations to bind to the Bindings.
+     * @return a RuleContextBuilder with the provided BindingDeclarations bound to the Bindings.
+     */
+    public RuleContextBuilder with(BindingDeclaration<?>...params) {
         Bindings bindings = Bindings.builder().standard();
         if (params != null) bindings.bind(params);
         return with(bindings);
     }
 
+    /**
+     * Builds a RuleContext object with the default Bindings. This method constructs a RuleContext object with
+     * standard Bindings and returns it.
+     *
+     * @return a RuleContext object with default Bindings.
+     */
     public RuleContext build() {
         return with(Bindings.builder().standard()).build();
     }
 
+    /**
+     * Builds a new RuleContext object with the provided Bindings.
+     *
+     * @param bindings the Bindings object to be used for constructing the RuleContext
+     * @return a new RuleContext object constructed with the provided Bindings
+     */
     public RuleContext build(Bindings bindings) {
         return with(bindings).build();
     }
 
-    public RuleContext build(BindingDeclaration...params) {
+    /**
+     * Builds a RuleContext object with the provided BindingDeclarations.
+     *
+     * @param params the BindingDeclarations to bind to the Bindings
+     * @return a RuleContext object with the provided BindingDeclarations bound to the Bindings
+     */
+    public RuleContext build(BindingDeclaration<?>...params) {
         return with(params).build();
     }
 

@@ -51,27 +51,23 @@ final class LogAdapter {
     private static final Function<String, Log> createLog;
 
     static {
-        if (log4jSpiPresent) {
-            if (log4jSlf4jProviderPresent && slf4jSpiPresent) {
+        if (slf4jSpiPresent) {
+            // Full SLF4J SPI including location awareness support
+            createLog = Slf4jAdapter::createLocationAwareLog;
+        } else if (slf4jApiPresent) {
+            // Minimal SLF4J API without location awareness support
+            createLog = Slf4jAdapter::createLog;
+        } else if (log4jSpiPresent) {
+            if (log4jSlf4jProviderPresent) {
                 // log4j-to-slf4j bridge -> we'll rather go with the SLF4J SPI;
                 // however, we still prefer Log4j over the plain SLF4J API since
                 // the latter does not have location awareness support.
                 createLog = Slf4jAdapter::createLocationAwareLog;
-            }
-            else {
+            } else {
                 // Use Log4j 2.x directly, including location awareness support
                 createLog = Log4jAdapter::createLog;
             }
-        }
-        else if (slf4jSpiPresent) {
-            // Full SLF4J SPI including location awareness support
-            createLog = Slf4jAdapter::createLocationAwareLog;
-        }
-        else if (slf4jApiPresent) {
-            // Minimal SLF4J API without location awareness support
-            createLog = Slf4jAdapter::createLog;
-        }
-        else {
+        } else {
             // java.util.logging as default
             // Defensively use lazy-initializing adapter class here as well since the
             // java.logging module is not present by default on JDK 9. We are requiring
