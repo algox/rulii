@@ -18,8 +18,6 @@
 package org.rulii.ruleset;
 
 import org.rulii.context.RuleContext;
-import org.rulii.lib.apache.commons.logging.Log;
-import org.rulii.lib.apache.commons.logging.LogFactory;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.UnrulyException;
 import org.rulii.model.action.Action;
@@ -51,8 +49,6 @@ import java.util.concurrent.TimeUnit;
  */
 public class RulingFamily<T> implements RuleSet<T> {
 
-    private static final Log logger = LogFactory.getLog(RulingFamily.class);
-
     private final RuleSetDefinition ruleSetDefinition;
     private final Condition preCondition;
     private final Action initializer;
@@ -61,6 +57,8 @@ public class RulingFamily<T> implements RuleSet<T> {
     private final List<Rule> rules = new LinkedList<>();
     private final Condition stopCondition;
     private final String description;
+    private final RuleSetExecutionStrategy<T> syncStrategy;
+    private final RuleSetExecutionStrategy<CompletableFuture<T>> asyncStrategy;
 
     public RulingFamily(RuleSetDefinition ruleSetDefinition,
                         Condition preCondition,
@@ -81,28 +79,27 @@ public class RulingFamily<T> implements RuleSet<T> {
         this.resultExtractor = resultExtractor;
         this.description = ruleSetDefinition.getDescription() != null ? ruleSetDefinition.getDescription() :
                 "ruleSet(name = " + getName() + ", size = " + size() + ")";
+        this.syncStrategy = RuleSetExecutionStrategy.build();
+        this.asyncStrategy = RuleSetExecutionStrategy.buildAsync();
     }
 
     @Override
     public T run(RuleContext ruleContext) throws UnrulyException {
         Assert.notNull(ruleContext, "context cannot be null");
-        RuleSetExecutionStrategy<T> strategy = RuleSetExecutionStrategy.build();
-        return strategy.run(this, ruleContext);
+        return syncStrategy.run(this, ruleContext);
     }
 
     @Override
     public CompletableFuture<T> runAsync(RuleContext ruleContext) {
         Assert.notNull(ruleContext, "context cannot be null");
-        RuleSetExecutionStrategy<CompletableFuture<T>> strategy = RuleSetExecutionStrategy.buildAsync();
-        return strategy.run(this, ruleContext);
+        return asyncStrategy.run(this, ruleContext);
     }
 
     @Override
     public CompletableFuture<T> runAsync(RuleContext ruleContext, long timeOut, TimeUnit timeUnit) {
         Assert.notNull(ruleContext, "context cannot be null");
         Assert.notNull(timeUnit, "timeUnit cannot be null.");
-        RuleSetExecutionStrategy<CompletableFuture<T>> strategy = RuleSetExecutionStrategy.buildAsync();
-        CompletableFuture<T> result = strategy.run(this, ruleContext);
+        CompletableFuture<T> result = asyncStrategy.run(this, ruleContext);
         return result.orTimeout(timeOut, timeUnit);
     }
 
