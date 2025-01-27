@@ -27,6 +27,7 @@ import org.rulii.rule.Rule;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Represents a collection of Rules that can be executed together, typically in a specific sequence or according
@@ -71,6 +72,16 @@ public interface RuleSet<T> extends Runnable<T>, Identifiable, Iterable<Rule>, D
      *         as an instance of type T.
      */
     CompletableFuture<T> runAsync(RuleContext ruleContext);
+
+    /**
+     * Asynchronously runs the rules defined within the RuleSet using the provided RuleContext with a specified timeout.
+     *
+     * @param ruleContext the RuleContext containing the necessary state and dependencies for rule execution. Must not be null.
+     * @param timeOut the maximum time to wait for the completion of the async execution.
+     * @param timeUnit the time unit of the timeout value.
+     * @return a CompletableFuture that completes with the result of the rule execution as an instance of type T.
+     */
+    CompletableFuture<T> runAsync(RuleContext ruleContext, long timeOut, TimeUnit timeUnit);
 
     /**
      * Ruleset name.

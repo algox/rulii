@@ -43,6 +43,7 @@ public class RuleSetBuilder<T> {
 
     private String name;
     private String description = null;
+
     private Condition preCondition = null;
     private Condition stopCondition = null;
     private Action initializer = null;
