@@ -27,6 +27,7 @@ import org.rulii.model.Immutator;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 public class NamedScope implements Immutator<NamedScope> {
     private final String name;
@@ -57,7 +58,7 @@ public class NamedScope implements Immutator<NamedScope> {
 
     @Override
     public NamedScope asImmutable() {
-        return new NamedScope(name, bindings.asImmutableBindings());
+        return new NamedScope(name, bindings.asImmutable());
     }
 
     @Override

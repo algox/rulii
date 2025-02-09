@@ -35,6 +35,7 @@ import java.util.Map;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 public class ImmutableBindingsTest {
 
@@ -45,42 +46,42 @@ public class ImmutableBindingsTest {
     @Test
     public void immutabilityTest1() {
         Assertions.assertThrows(UnsupportedOperationException.class, () -> {
-            Bindings.builder().standard().asImmutableBindings().bind(Binding.builder().with("x").build());
+            Bindings.builder().standard().asImmutable().bind(Binding.builder().with("x").build());
         });
     }
 
     @Test
     public void immutabilityTest2() {
         Assertions.assertThrows(UnsupportedOperationException.class, () -> {
-            Bindings.builder().standard().asImmutableBindings().bind(a -> 123);
+            Bindings.builder().standard().asImmutable().bind(a -> 123);
         });
     }
 
     @Test
     public void immutabilityTest3() {
         Assertions.assertThrows(UnsupportedOperationException.class, () -> {
-            Bindings.builder().standard().asImmutableBindings().bind(a -> 123, b -> "xyz");
+            Bindings.builder().standard().asImmutable().bind(a -> 123, b -> "xyz");
         });
     }
 
     @Test
     public void immutabilityTest4() {
         Assertions.assertThrows(UnsupportedOperationException.class, () -> {
-            Bindings.builder().standard().asImmutableBindings().bind("a", 123);
+            Bindings.builder().standard().asImmutable().bind("a", 123);
         });
     }
 
     @Test
     public void immutabilityTest5() {
         Assertions.assertThrows(UnsupportedOperationException.class, () -> {
-            Bindings.builder().standard().asImmutableBindings().bind("a", Integer.class);
+            Bindings.builder().standard().asImmutable().bind("a", Integer.class);
         });
     }
 
     @Test
     public void immutabilityTest6() {
         Assertions.assertThrows(UnsupportedOperationException.class, () -> {
-            Bindings.builder().standard().asImmutableBindings().bind("a", new TypeReference<List<Integer>>() {
+            Bindings.builder().standard().asImmutable().bind("a", new TypeReference<List<Integer>>() {
             });
         });
     }
@@ -88,14 +89,14 @@ public class ImmutableBindingsTest {
     @Test
     public void immutabilityTest7() {
         Assertions.assertThrows(UnsupportedOperationException.class, () -> {
-            Bindings.builder().standard().asImmutableBindings().bind("a", int.class, 200);
+            Bindings.builder().standard().asImmutable().bind("a", int.class, 200);
         });
     }
 
     @Test
     public void immutabilityTest8() {
         Assertions.assertThrows(UnsupportedOperationException.class, () -> {
-            Bindings.builder().standard().asImmutableBindings().bind("a", new TypeReference<List<Integer>>() {
+            Bindings.builder().standard().asImmutable().bind("a", new TypeReference<List<Integer>>() {
             }, new ArrayList<>());
         });
     }
@@ -103,7 +104,7 @@ public class ImmutableBindingsTest {
     @Test
     public void immutabilityTest10() {
         Assertions.assertThrows(UnsupportedOperationException.class, () -> {
-            Bindings.builder().standard().asImmutableBindings().load(new PropertyBindingLoader<>(), new Object());
+            Bindings.builder().standard().asImmutable().load(new PropertyBindingLoader<>(), new Object());
         });
     }
 
@@ -129,7 +130,7 @@ public class ImmutableBindingsTest {
     public void immutabilityTest13() {
         Bindings bindings = Bindings.builder().standard();
         bindings.bind("key1", 100);
-        Binding<Integer> match = bindings.asImmutableBindings().getBinding("key1");
+        Binding<Integer> match = bindings.asImmutable().getBinding("key1");
         Assertions.assertEquals("key1", match.getName());
         Assertions.assertEquals(100, match.getValue());
         Assertions.assertEquals(match.getType(), Integer.class);
@@ -139,7 +140,7 @@ public class ImmutableBindingsTest {
     public void immutabilityTest14() {
         Bindings bindings = Bindings.builder().standard();
         bindings.bind("key1", int.class);
-        Binding<Integer> match = bindings.asImmutableBindings().getBinding("key1");
+        Binding<Integer> match = bindings.asImmutable().getBinding("key1");
         Assertions.assertEquals("key1", match.getName());
         Assertions.assertEquals(0, match.getValue());
         Assertions.assertEquals(match.getType(), int.class);
@@ -151,7 +152,7 @@ public class ImmutableBindingsTest {
         bindings.bind("x", new TypeReference<List<Integer>>() {
         });
 
-        Binding<List<Integer>> match = bindings.asImmutableBindings().getBinding("x");
+        Binding<List<Integer>> match = bindings.asImmutable().getBinding("x");
         Assertions.assertEquals("x", match.getName());
         Assertions.assertEquals(match.getType(), new TypeReference<List<Integer>>() {
         }.getType());
@@ -162,7 +163,7 @@ public class ImmutableBindingsTest {
     public void immutabilityTest16() {
         Bindings bindings = Bindings.builder().standard();
         bindings.bind("x", int.class, 250);
-        Binding<Integer> match = bindings.asImmutableBindings().getBinding("x");
+        Binding<Integer> match = bindings.asImmutable().getBinding("x");
         Assertions.assertEquals("x", match.getName());
         Assertions.assertEquals(match.getType(), int.class);
         Assertions.assertEquals(250, match.getValue());
@@ -175,7 +176,7 @@ public class ImmutableBindingsTest {
         bindings.bind("x", new TypeReference<List<Integer>>() {
         }, values);
 
-        Binding<List<Integer>> match = bindings.asImmutableBindings().getBinding("x");
+        Binding<List<Integer>> match = bindings.asImmutable().getBinding("x");
         Assertions.assertEquals("x", match.getName());
         Assertions.assertEquals(match.getType(), new TypeReference<List<Integer>>() {
         }.getType());
@@ -199,7 +200,7 @@ public class ImmutableBindingsTest {
         Binding<Integer> binding2 = Binding.builder().with("X").value(101).build();
         bindings.bind(binding2);
 
-        Binding<String> match = bindings.asImmutableBindings().getBinding("X");
+        Binding<String> match = bindings.asImmutable().getBinding("X");
         Assertions.assertEquals(match.getName(), binding2.getName());
         match = bindings.getBinding("key");
         Assertions.assertNull(match);
@@ -216,13 +217,13 @@ public class ImmutableBindingsTest {
         }).build();
         bindings.bind(binding3);
 
-        Assertions.assertTrue(bindings.asImmutableBindings().contains("x"));
-        Assertions.assertTrue(bindings.asImmutableBindings().contains("X"));
-        Assertions.assertTrue(bindings.asImmutableBindings().contains("X", Integer.class));
-        Assertions.assertTrue(bindings.asImmutableBindings().contains("x", String.class));
-        Assertions.assertTrue(bindings.asImmutableBindings().contains("y", new TypeReference<Map<List<Integer>, String>>() {
+        Assertions.assertTrue(bindings.asImmutable().contains("x"));
+        Assertions.assertTrue(bindings.asImmutable().contains("X"));
+        Assertions.assertTrue(bindings.asImmutable().contains("X", Integer.class));
+        Assertions.assertTrue(bindings.asImmutable().contains("x", String.class));
+        Assertions.assertTrue(bindings.asImmutable().contains("y", new TypeReference<Map<List<Integer>, String>>() {
         }));
-        Assertions.assertFalse(bindings.asImmutableBindings().contains("a"));
+        Assertions.assertFalse(bindings.asImmutable().contains("a"));
     }
 
     @Test
@@ -235,13 +236,13 @@ public class ImmutableBindingsTest {
         Binding<Map<List<Integer>, String>> binding3 = Binding.builder().with("y").type(new TypeReference<Map<List<Integer>, String>>() {
         }).build();
         bindings.bind(binding3);
-        Binding<String> match1 = bindings.asImmutableBindings().getBinding("x");
-        Binding<Integer> match2 = bindings.asImmutableBindings().getBinding("X", Integer.class);
-        Binding<Map<List<Integer>, String>> match3 = bindings.asImmutableBindings().getBinding("y", new TypeReference<Map<List<Integer>, String>>() {
+        Binding<String> match1 = bindings.asImmutable().getBinding("x");
+        Binding<Integer> match2 = bindings.asImmutable().getBinding("X", Integer.class);
+        Binding<Map<List<Integer>, String>> match3 = bindings.asImmutable().getBinding("y", new TypeReference<Map<List<Integer>, String>>() {
         }.getType());
-        Binding<?> match4 = bindings.asImmutableBindings().getBinding("a");
-        Binding<Integer> match5 = bindings.asImmutableBindings().getBinding("a", Integer.class);
-        Binding<Map<List<Integer>, String>> match6 = bindings.asImmutableBindings().getBinding("a", new TypeReference<Map<List<Integer>, String>>() {
+        Binding<?> match4 = bindings.asImmutable().getBinding("a");
+        Binding<Integer> match5 = bindings.asImmutable().getBinding("a", Integer.class);
+        Binding<Map<List<Integer>, String>> match6 = bindings.asImmutable().getBinding("a", new TypeReference<Map<List<Integer>, String>>() {
         }.getType());
         Assertions.assertEquals(match1.getValue(), binding1.getValue());
         Assertions.assertEquals(match2.getValue(), binding2.getValue());
@@ -268,19 +269,19 @@ public class ImmutableBindingsTest {
         }).value(new ArrayList<>()).build();
         bindings.bind(binding5);
 
-        List<Binding<String>> matches1 = bindings.asImmutableBindings().getBindings(String.class);
+        List<Binding<String>> matches1 = bindings.asImmutable().getBindings(String.class);
         Assertions.assertEquals(matches1.get(0), binding1);
         Assertions.assertEquals(matches1.get(1), binding2);
 
-        List<Binding<Map<?, ?>>> matches2 = bindings.asImmutableBindings().getBindings(Map.class);
+        List<Binding<Map<?, ?>>> matches2 = bindings.asImmutable().getBindings(Map.class);
         Assertions.assertEquals(matches2.get(0), binding3);
         List<Binding<Map<?, ?>>> matches3 = bindings.getBindings(new TypeReference<Map<?, ?>>() {
         }.getType());
         Assertions.assertTrue(matches3.size() == 2 && matches3.contains(binding3) && matches3.contains(binding4));
-        List<Binding<Map<List<Integer>, String>>> matches4 = bindings.asImmutableBindings()
+        List<Binding<Map<List<Integer>, String>>> matches4 = bindings.asImmutable()
                 .getBindings(new TypeReference<Map<List<Integer>, String>>() {}.getType());
         Assertions.assertTrue(matches4.size() == 1 && matches4.get(0).equals(binding3));
-        List<Binding<List<Integer>>> matches5 = bindings.asImmutableBindings().getBindings(new TypeReference<List<Integer>>() {
+        List<Binding<List<Integer>>> matches5 = bindings.asImmutable().getBindings(new TypeReference<List<Integer>>() {
         }.getType());
         Assertions.assertTrue(matches5.size() == 1 && matches5.get(0).equals(binding5));
     }
@@ -297,13 +298,13 @@ public class ImmutableBindingsTest {
         bindings.bind("y", List.class, values);
 
         Assertions.assertEquals("Hello World!", Bindings.builder().immutable(bindings).getValue("x"));
-        Assertions.assertEquals(bindings.asImmutableBindings().getValue("y"), values);
+        Assertions.assertEquals(bindings.asImmutable().getValue("y"), values);
     }
 
     @Test
     public void immutabilityTest24() {
         Assertions.assertThrows(NoSuchBindingException.class, () -> {
-            Bindings bindings = Bindings.builder().standard().asImmutableBindings();
+            Bindings bindings = Bindings.builder().standard().asImmutable();
             bindings.getValue("x");
         });
     }
@@ -312,12 +313,12 @@ public class ImmutableBindingsTest {
     public void immutabilityTest25() {
         Bindings bindings = Bindings.builder().standard();
         bindings.bind("x", String.class, "Hello World!");
-        Assertions.assertEquals("Hello World!", bindings.asImmutableBindings().getValue("x"));
+        Assertions.assertEquals("Hello World!", bindings.asImmutable().getValue("x"));
         bindings.setValue("x", "new value");
-        Assertions.assertEquals("new value", bindings.asImmutableBindings().getValue("x"));
+        Assertions.assertEquals("new value", bindings.asImmutable().getValue("x"));
         bindings.bind("y", List.class);
         bindings.setValue("y", new ArrayList<>());
-        Assertions.assertEquals(bindings.asImmutableBindings().getValue("y"), new ArrayList<>());
+        Assertions.assertEquals(bindings.asImmutable().getValue("y"), new ArrayList<>());
     }
 
     @Test
@@ -337,7 +338,7 @@ public class ImmutableBindingsTest {
         Binding<?> binding4 = Binding.builder().with("z").build();
         bindings.bind(binding4);
 
-        Map<String, ?> bindingsMap = bindings.asImmutableBindings().asMap();
+        Map<String, ?> bindingsMap = bindings.asImmutable().asMap();
         Assertions.assertEquals(bindings.size(), bindingsMap.size());
 
         for (Binding<?> binding : bindings) {

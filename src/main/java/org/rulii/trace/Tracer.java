@@ -30,6 +30,9 @@ import org.rulii.ruleset.RuleSet;
 import org.rulii.ruleset.RuleSetExecutionStatus;
 import org.rulii.ruleset.RuleSetListener;
 
+/**
+ * The Tracer interface is used for tracing events and actions within a rule execution framework.
+ */
 public interface Tracer {
 
     static TracerBuilder builder() {
@@ -58,7 +61,7 @@ public interface Tracer {
 
     void fireOnChange(Binding<?> binding, Object oldValue, Object newValue);
 
-    void fireOnRuleStart(Rule rule, NamedScope ruleScope);
+    void fireOnRuleStart(Rule rule);
 
     void fireOnRulePreConditionCheck(Rule rule, Condition condition, boolean result);
 
@@ -70,7 +73,7 @@ public interface Tracer {
 
     void fireOnRuleError(Rule rule, Exception e);
 
-    void fireOnRuleEnd(Rule rule, RuleResult result, NamedScope ruleScope);
+    void fireOnRuleEnd(Rule rule, RuleResult result);
 
     void fireOnRuleSetStart(RuleSet<?> ruleSet, NamedScope ruleSetScope);
 

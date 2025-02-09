@@ -15,31 +15,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.rulii.test.core;
+package org.rulii.convert.text;
 
-import org.rulii.annotation.Description;
-import org.rulii.annotation.Given;
-import org.rulii.annotation.Rule;
-import org.rulii.annotation.Then;
+import org.rulii.convert.ConverterTemplate;
 
-import java.util.Date;
-import java.util.List;
+import java.lang.reflect.Type;
 
-@Rule("TestRule")
-@Description("Test Description 1")
-public class TestRule1 {
+/**
+ * Converts a String value to a String.
+ *
+ * @author Max Arulananthan
+ * @since 1.0
+ *
+ */
+public class TextToStringConverter extends ConverterTemplate<CharSequence, String> {
 
-    public TestRule1() {
+    public TextToStringConverter() {
         super();
     }
 
-    @Given
-    public boolean when(int id, Date birthDate, List<String> values) {
-        return true;
-    }
-
-    @Then
-    public void then(int id) {
-        // do something
+    @Override
+    public String convert(CharSequence value, Type toType) {
+        return value != null ? value.toString() : null;
     }
 }

@@ -17,7 +17,6 @@
  */
 package org.rulii.rule;
 
-import org.rulii.bind.NamedScope;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.apache.commons.logging.Log;
 import org.rulii.lib.apache.commons.logging.LogFactory;
@@ -36,7 +35,6 @@ import org.rulii.model.UnrulyException;
  *
  * @author Max Arulananthan
  * @since 1.0
- *
  */
 public class DefaultRuleExecutionStrategy extends RuleExecutionStrategyTemplate {
 
@@ -58,11 +56,9 @@ public class DefaultRuleExecutionStrategy extends RuleExecutionStrategyTemplate 
     public RuleResult run(Rule rule, RuleContext ruleContext) throws UnrulyException {
         Assert.notNull(ruleContext, "context cannot be null");
 
-        // Rule Start Event
-        NamedScope ruleScope = createRuleScope(rule, ruleContext);
         // Notify Rule start
-        ruleContext.getTracer().fireOnRuleStart(rule, ruleScope);
-        if (logger.isDebugEnabled()) logger.debug("Rule [" + rule.getName() + "] Execution. Scope [" + ruleScope.getName() + "] created.");
+        ruleContext.getTracer().fireOnRuleStart(rule);
+        if (logger.isDebugEnabled()) logger.debug("Rule [" + rule.getName() + "]  Class [" + rule.getDefinition().getRuleClass() + "] Execution.");
         RuleResult result = null;
 
         try {
@@ -88,16 +84,15 @@ public class DefaultRuleExecutionStrategy extends RuleExecutionStrategyTemplate 
             }
 
             result = new RuleResult(rule, conditionCheck ? RuleExecutionStatus.PASS : RuleExecutionStatus.FAIL);
+            if (logger.isDebugEnabled()) logger.debug("Rule [" + rule.getName() + "] executed result [" + result + "]");
             return result;
         } catch (Exception e) {
-            logger.error("Rule [" + rule.getName() + "] execution caused an error.", e);
+            if (logger.isDebugEnabled()) logger.debug("Rule [" + rule.getName() + "] failed error [" + e.getMessage() + "]");
             ruleContext.getTracer().fireOnRuleError(rule, e);
             throw new UnrulyException("Error trying to run Rule [" + rule.getName() + "]", e);
         } finally {
-            ruleContext.getBindings().removeScope(ruleScope);
-            if (logger.isDebugEnabled()) logger.debug("Rule [" + rule.getName() + "] Executed. Scope [" + ruleScope.getName() + "] cleared.");
             // Notify Rule end
-            ruleContext.getTracer().fireOnRuleEnd(rule, result, ruleScope);
+            ruleContext.getTracer().fireOnRuleEnd(rule, result);
         }
     }
 }

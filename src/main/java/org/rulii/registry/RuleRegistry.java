@@ -32,6 +32,7 @@ import java.util.function.Predicate;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 public interface RuleRegistry {
 
@@ -161,7 +162,8 @@ public interface RuleRegistry {
      * @return the RuleSet with the specified name
      * @throws IllegalArgumentException if the name is empty or null
      */
-    default RuleSet getRuleSet(String name) {
+    @SuppressWarnings("unchecked")
+    default RuleSet<?> getRuleSet(String name) {
         Assert.hasText(name, "name cannot be empty/null.");
         return get(name, RuleSet.class);
     }

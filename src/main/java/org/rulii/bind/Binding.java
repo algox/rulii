@@ -32,6 +32,7 @@ import java.util.List;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 public interface Binding<T> extends Identifiable, Immutator<Binding<T>> {
 
@@ -196,6 +197,8 @@ public interface Binding<T> extends Identifiable, Immutator<Binding<T>> {
 	 */
 	@Override
 	default Binding<T> asImmutable() {
+		if (this instanceof ImmutableBinding<T>) return this;
+
 		Object value = getValue();
 
 		if (value instanceof Immutator) {

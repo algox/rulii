@@ -17,10 +17,10 @@
  */
 package org.rulii.rule;
 
+import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.Definition;
 import org.rulii.model.MethodDefinition;
 import org.rulii.model.SourceDefinition;
-import org.rulii.lib.spring.util.Assert;
 import org.rulii.util.RuleUtils;
 
 import java.util.Collections;
@@ -36,6 +36,7 @@ import java.util.Objects;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 public final class RuleDefinition implements Definition, Comparable<RuleDefinition> {
 
@@ -80,7 +81,6 @@ public final class RuleDefinition implements Definition, Comparable<RuleDefiniti
                           List<MethodDefinition> thenActionDefinitions,
                           MethodDefinition otherwiseActionDefinition) {
         super();
-        Assert.notNull(ruleClass, "Rule class cannot be null.");
         setName(name);
         this.ruleClass = ruleClass;
         this.inline = inline;

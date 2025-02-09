@@ -19,6 +19,7 @@ package org.rulii.rule;
 
 import org.rulii.annotation.Rule;
 import org.rulii.annotation.*;
+import org.rulii.lib.spring.core.annotation.AnnotationUtils;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.UnrulyException;
 import org.rulii.model.action.Action;
@@ -34,6 +35,7 @@ import java.util.List;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 public class ClassBasedRuleBuilder<T> extends AbstractRuleBuilder<T> {
 
@@ -76,12 +78,12 @@ public class ClassBasedRuleBuilder<T> extends AbstractRuleBuilder<T> {
      */
     public static <T> String getRuleName(Class<T> ruleClass) {
         // Try and locate the Rule annotation on the class
-        Rule rule = ruleClass.getAnnotation(Rule.class);
+        Rule rule = AnnotationUtils.getAnnotation(ruleClass, Rule.class);
 
         return rule == null ? ruleClass.getSimpleName() :
-                Rule.NOT_APPLICABLE.equals(rule.name())
+                Rule.NOT_APPLICABLE.equals(rule.value())
                         ? ruleClass.getSimpleName()
-                        : rule.name();
+                        : rule.value();
     }
 
     /**
@@ -149,7 +151,7 @@ public class ClassBasedRuleBuilder<T> extends AbstractRuleBuilder<T> {
         }
 
         // Load Pre-Condition
-        if (preConditions.get(0) != null) pre(preConditions.get(0));
+        if (preConditions.get(0) != null) preCondition(preConditions.get(0));
     }
 
     /**

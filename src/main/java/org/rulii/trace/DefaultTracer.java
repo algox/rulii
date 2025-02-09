@@ -20,20 +20,23 @@ package org.rulii.trace;
 import org.rulii.bind.Binding;
 import org.rulii.bind.BindingListener;
 import org.rulii.bind.NamedScope;
+import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.action.Action;
 import org.rulii.model.condition.Condition;
 import org.rulii.model.function.Function;
-import org.rulii.lib.spring.util.Assert;
 import org.rulii.rule.Rule;
 import org.rulii.rule.RuleListener;
 import org.rulii.rule.RuleResult;
 import org.rulii.ruleset.RuleSet;
-import org.rulii.ruleset.RuleSetListener;
 import org.rulii.ruleset.RuleSetExecutionStatus;
+import org.rulii.ruleset.RuleSetListener;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+/**
+ * Default implementation of the Tracer interface used for tracing events and actions within a rule execution framework.
+ */
 public class DefaultTracer implements Tracer {
 
     private final Set<BindingListener> bindingListeners = new LinkedHashSet<>();
@@ -108,8 +111,8 @@ public class DefaultTracer implements Tracer {
     }
 
     @Override
-    public void fireOnRuleStart(Rule rule, NamedScope ruleScope) {
-        ruleListeners.forEach(listener -> listener.onRuleStart(rule, ruleScope));
+    public void fireOnRuleStart(Rule rule) {
+        ruleListeners.forEach(listener -> listener.onRuleStart(rule));
     }
 
     @Override
@@ -138,8 +141,8 @@ public class DefaultTracer implements Tracer {
     }
 
     @Override
-    public void fireOnRuleEnd(Rule rule, RuleResult result, NamedScope ruleScope) {
-        ruleListeners.forEach(listener -> listener.onRuleEnd(rule, result, ruleScope));
+    public void fireOnRuleEnd(Rule rule, RuleResult result) {
+        ruleListeners.forEach(listener -> listener.onRuleEnd(rule, result));
     }
 
     @Override

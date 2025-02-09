@@ -36,6 +36,7 @@ import java.util.List;
  * Tests for loading definitions.
  *
  * @author Max Arulananthan
+ * @since 1.0
  */
 public class LoadTest {
 
@@ -148,7 +149,7 @@ public class LoadTest {
         Rule rule = Rule.builder()
                 .name("TestRule2")
                 .given(Condition.builder().with((Integer i, String text) -> i > 100 && text != null).build())
-                .pre(Condition.builder().with((Integer x) -> x > 10).build())
+                .preCondition(Condition.builder().with((Integer x) -> x > 10).build())
                 .description("Some rule for testing")
                 .then(Actions.emptyAction())
                 .build();

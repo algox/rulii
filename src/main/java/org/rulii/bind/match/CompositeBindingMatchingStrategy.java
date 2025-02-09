@@ -34,6 +34,7 @@ import java.util.List;
  * @author Max Arulananthan
  * @since 1.0
  * @see BindingMatchingStrategy
+ *
  */
 public class CompositeBindingMatchingStrategy implements BindingMatchingStrategy {
 
@@ -67,11 +68,7 @@ public class CompositeBindingMatchingStrategy implements BindingMatchingStrategy
             // Add all the matches
             result.addAll(strategy.match(bindings, name, type, containsGenericInfo));
             // Check to see if we should stop
-            if (stopWhenMatched && result.size() > 0) break;
-        }
-
-        if (logger.isDebugEnabled()) {
-            logger.debug("Name [" + name + "] Type [" + type + "] Matches [" + result + "]");
+            if (stopWhenMatched && !result.isEmpty()) break;
         }
 
         return Collections.unmodifiableList(result);

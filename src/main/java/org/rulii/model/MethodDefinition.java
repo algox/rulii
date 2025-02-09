@@ -19,8 +19,8 @@ package org.rulii.model;
 
 import org.rulii.annotation.Description;
 import org.rulii.annotation.Order;
-import org.rulii.util.Ordered;
 import org.rulii.lib.spring.util.Assert;
+import org.rulii.util.Ordered;
 import org.rulii.util.reflect.ReflectionUtils;
 
 import java.lang.reflect.Method;
@@ -38,6 +38,7 @@ import java.util.stream.IntStream;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 public final class MethodDefinition implements Definition, Comparable<MethodDefinition> {
 
@@ -92,7 +93,7 @@ public final class MethodDefinition implements Definition, Comparable<MethodDefi
             indexRange.remove(definition.getIndex());
         }
 
-        if (indexRange.size() > 0) {
+        if (!indexRange.isEmpty()) {
             throw new UnrulyException("Parameter indexes should be contiguous. Invalid index [" + indexRange + "]");
         }
     }
@@ -121,11 +122,10 @@ public final class MethodDefinition implements Definition, Comparable<MethodDefi
         Assert.notNull(method, "method cannot be null");
         Description descriptionAnnotation = method.getAnnotation(Description.class);
         Order orderAnnotation = method.getAnnotation(Order.class);
-        MethodDefinition result = new MethodDefinition(method, containsGenericInfo, orderAnnotation != null ? orderAnnotation.value() : Ordered.LOWEST_PRECEDENCE,
+        return new MethodDefinition(method, containsGenericInfo, orderAnnotation != null ? orderAnnotation.value() : Ordered.LOWEST_PRECEDENCE,
                 descriptionAnnotation != null ? descriptionAnnotation.value() : null, sourceDefinition,
                 ReturnTypeDefinition.load(method, sourceDefinition),
                 ParameterDefinition.load(method, containsGenericInfo, sourceDefinition));
-        return result;
     }
 
     /**
@@ -162,7 +162,7 @@ public final class MethodDefinition implements Definition, Comparable<MethodDefi
      */
     public ParameterDefinition getParameterDefinition(int index) {
 
-        if (getParameterDefinitions().size() == 0) {
+        if (getParameterDefinitions().isEmpty()) {
             throw new UnrulyException("There are no args found in this function. [" + method + "]");
         }
 
@@ -275,7 +275,7 @@ public final class MethodDefinition implements Definition, Comparable<MethodDefi
     /**
      * Determines whether the method is static.
      *
-     * @return return true if its a static method; false otherwise.
+     * @return return true if it's a static method; false otherwise.
      */
     public boolean isStatic() {
         return Modifier.isStatic(method.getModifiers());
@@ -287,31 +287,24 @@ public final class MethodDefinition implements Definition, Comparable<MethodDefi
      * @return simplified method signature.
      */
     public String getSignature() {
-        StringBuilder result = new StringBuilder(getMethod().getDeclaringClass().getSimpleName() + "."
-                + getName() + "(");
-        result.append(parameterDefinitions.stream()
-                .map(p -> p.getTypeName() + " " + p.getName())
-                .collect(Collectors.joining(", ")));
-        result.append(")");
-        return result.toString();
+        return getMethod().getDeclaringClass().getSimpleName() + "."
+                + getName() + "(" + getMethodParameterSignature() + ")";
     }
 
     public String getMethodParameterSignature() {
-        StringBuilder result = new StringBuilder();
-        result.append(parameterDefinitions.stream()
+        return getParameterDefinitions().stream()
                 .map(p -> p.getTypeName() + " " + p.getName())
-                .collect(Collectors.joining(", ")));
-        return result.toString();
+                .collect(Collectors.joining(", "));
     }
 
     /**
      * Creates a lookup between the parameter and it's name.
      */
     public void createParameterNameIndex() {
-        if (parameterDefinitions == null || parameterDefinitions.size() == 0) return;
+        if (parameterDefinitions == null || parameterDefinitions.isEmpty()) return;
         paramNameMap.clear();
         // Create the param name map
-        parameterDefinitions.stream().forEach(param -> {
+        parameterDefinitions.forEach(param -> {
             if (paramNameMap.containsKey(param.getName())) throw new UnrulyException("Parameter [" + param.getName() + "] already exists.");
             paramNameMap.put(param.getName(), param);
         });

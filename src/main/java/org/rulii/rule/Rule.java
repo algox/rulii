@@ -40,12 +40,14 @@ import java.util.List;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 public interface Rule extends Runnable<RuleResult>, Identifiable, Ordered, Definable<RuleDefinition>, ScopeDefining {
 
     static RuleBuilder builder() {
         return RuleBuilder.getInstance();
     }
+
     /**
      * Executes the Rule Condition based on the RuleContext. If the result is true then any associated Actions are executed;
      * if the result is false then the Otherwise condition will be executed (if one exists).

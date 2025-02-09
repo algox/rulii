@@ -36,6 +36,7 @@ import java.util.UUID;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 public abstract class RuleSetExecutionStrategyTemplate<T> implements RuleSetExecutionStrategy<T> {
 
@@ -68,7 +69,7 @@ public abstract class RuleSetExecutionStrategyTemplate<T> implements RuleSetExec
             throw new UnrulyException("IllegalState CurrentScope does not allow reserved keyword binding.");
         }
 
-        bindings.promiscuousBind(Binding.builder().with(ReservedBindings.THIS.getName())
+        bindings.promiscuousBind(Binding.builder().with(ReservedBindings.RULE_SET.getName())
                 .type(RuleSet.class)
                 .value(ruleSet)
                 .build());
@@ -171,7 +172,7 @@ public abstract class RuleSetExecutionStrategyTemplate<T> implements RuleSetExec
      * @return the result of executing the rules, or null if no result extractor is set
      */
     @SuppressWarnings("unchecked")
-    protected <T> T extractResult(RuleSet<?> ruleSet, RuleContext ruleContext, RuleSetExecutionStatus ruleSetStatus) {
+    protected T extractResult(RuleSet<?> ruleSet, RuleContext ruleContext, RuleSetExecutionStatus ruleSetStatus) {
         Assert.notNull(ruleSet, "ruleSet cannot be null.");
         Assert.notNull(ruleContext, "ruleContext cannot be null.");
         T result = null;

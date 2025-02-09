@@ -21,8 +21,8 @@ import org.rulii.bind.match.ParameterMatch;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.util.reflect.MethodExecutor;
 
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,6 +31,7 @@ import java.util.Optional;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 public abstract class AbstractRunnable implements Identifiable, Definable<MethodDefinition> {
 
@@ -91,28 +92,24 @@ public abstract class AbstractRunnable implements Identifiable, Definable<Method
     protected List<Object> immutable(List<Object> args) {
         if (args == null || args.isEmpty()) return args;
 
-        int size = args.size();
-        Object[] result = new Object[size];
+        List<Object> result = new LinkedList<>();
 
-        for (int  i = 0; i < size; i++) {
-            Object value = args.get(i);
+        for (Object value : args) {
 
             // Check if the argument could be converted to an Immutable version.
             if (value instanceof Immutator) {
                 value = ((Immutator<?>) value).asImmutable();
-            } else if (value instanceof Optional) {
+            } else if (value instanceof Optional<?> optional) {
                 // Looks like an Optional value; convert the value if needed.
-                Optional<?> optional = (Optional<?>) value;
-
                 if (optional.isPresent() && optional.get() instanceof Immutator) {
                     value = Optional.of(((Immutator<?>) optional.get()).asImmutable());
                 }
             }
 
-            result[i] = value;
+            result.add(value);
         }
 
-        return Collections.unmodifiableList(Arrays.asList(result));
+        return Collections.unmodifiableList(result);
     }
 
     public MethodDefinition getDefinition() {

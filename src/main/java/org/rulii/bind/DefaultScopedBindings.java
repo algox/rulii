@@ -33,6 +33,7 @@ import static org.rulii.bind.Bindings.builder;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 public class DefaultScopedBindings implements ScopedBindings {
 
@@ -445,17 +446,11 @@ public class DefaultScopedBindings implements ScopedBindings {
     }
 
     private String getTabs(int count) {
-        StringBuilder result = new StringBuilder();
-
-        for (int i = 0; i < count; i++) {
-            result.append(RuleUtils.TAB);
-        }
-
-        return result.toString();
+        return RuleUtils.TAB.repeat(Math.max(0, count));
     }
 
     @Override
     public String toString() {
-        return prettyPrint("");
+        return "ScopedBindings(" + getScopeSize() + ")";
     }
 }

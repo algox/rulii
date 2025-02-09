@@ -17,16 +17,11 @@
  */
 package org.rulii.model;
 
-import org.rulii.bind.BindingDeclaration;
-import org.rulii.bind.Bindings;
 import org.rulii.bind.match.BindingMatchingStrategy;
-import org.rulii.lib.spring.core.annotation.AnnotationUtils;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.util.TypeReference;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
-import java.util.Map;
 
 /**
  * Editor for updating parameter values.
@@ -35,6 +30,7 @@ import java.util.Map;
  *
  * @author Max Arulananthan.
  * @since 1.0
+ *
  */
 public class ParameterDefinitionEditor<T> {
 
@@ -115,12 +111,6 @@ public class ParameterDefinitionEditor<T> {
      */
     public ParameterDefinitionEditor<T> matchUsing(Class<? extends BindingMatchingStrategy> matchUsing) {
         target.setMatchUsing(matchUsing);
-        return this;
-    }
-
-    public ParameterDefinitionEditor<T> annotate(Class<? extends Annotation> annotationType, BindingDeclaration...bindings) {
-        Bindings attributes = bindings != null ? Bindings.builder().standard(bindings) : Bindings.builder().standard();
-        AnnotationUtils.synthesizeAnnotation((Map<String, Object>) attributes.asMap(), annotationType, null);
         return this;
     }
 

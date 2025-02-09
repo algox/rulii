@@ -41,7 +41,6 @@ import java.util.concurrent.ExecutorService;
  *
  * @author Max Arulananthan
  * @since 1.0
- *
  */
 public class RuleContext implements Immutator<RuleContext> {
 
@@ -232,18 +231,18 @@ public class RuleContext implements Immutator<RuleContext> {
         return "RuleContext{" +
                 "id='" + id + '\'' +
                 ", creationTime=" + creationTime +
-                ", bindings=" + bindings + System.lineSeparator() +
-                ", locale=" + locale + System.lineSeparator() +
-                ", matchingStrategy=" + matchingStrategy + System.lineSeparator() +
-                ", parameterResolver=" + parameterResolver + System.lineSeparator() +
-                ", messageResolver=" + messageResolver + System.lineSeparator() +
-                ", messageFormatter=" + messageFormatter + System.lineSeparator() +
-                ", objectFactory=" + objectFactory + System.lineSeparator() +
-                ", tracer=" + tracer + System.lineSeparator() +
-                ", converterRegistry=" + converterRegistry + System.lineSeparator() +
-                ", ruleRegistry=" + ruleRegistry + System.lineSeparator() +
-                ", clock=" + clock + System.lineSeparator() +
-                ", executorService=" + executorService + System.lineSeparator() +
+                ", bindings=" + bindings +
+                ", locale=" + locale +
+                ", matchingStrategy=" + matchingStrategy +
+                ", parameterResolver=" + parameterResolver +
+                ", messageResolver=" + messageResolver +
+                ", messageFormatter=" + messageFormatter +
+                ", objectFactory=" + objectFactory +
+                ", tracer=" + tracer +
+                ", converterRegistry=" + converterRegistry +
+                ", ruleRegistry=" + ruleRegistry +
+                ", clock=" + clock  +
+                ", executorService=" + executorService +
                 '}';
     }
 }

@@ -29,6 +29,7 @@ import java.util.Map;
  * @since 1.0
  * @see Binding
  * @see Bindings
+ *
  */
 public interface ScopedBindings extends Bindings {
 
@@ -262,6 +263,6 @@ public interface ScopedBindings extends Bindings {
      */
     @Override
     default ImmutableScopedBindings asImmutable() {
-        return new ImmutableScopedBindings(this);
+        return this instanceof ImmutableScopedBindings ? (ImmutableScopedBindings) this : new ImmutableScopedBindings(this);
     }
 }

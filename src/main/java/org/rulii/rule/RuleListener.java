@@ -17,7 +17,6 @@
  */
 package org.rulii.rule;
 
-import org.rulii.bind.NamedScope;
 import org.rulii.model.action.Action;
 import org.rulii.model.condition.Condition;
 
@@ -28,6 +27,7 @@ import java.util.EventListener;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 public interface RuleListener extends EventListener {
 
@@ -35,9 +35,8 @@ public interface RuleListener extends EventListener {
      * This method is called when a rule is about to start execution.
      *
      * @param rule the rule that is about to start execution
-     * @param ruleScope the named scope associated with the rule
      */
-    default void onRuleStart(Rule rule, NamedScope ruleScope) {}
+    default void onRuleStart(Rule rule) {}
 
     /**
      * This method is called before performing a pre-condition check for a rule.
@@ -86,7 +85,6 @@ public interface RuleListener extends EventListener {
      *
      * @param rule the rule that has completed execution
      * @param result the result of the rule execution
-     * @param ruleScope the named scope associated with the rule
      */
-    default void onRuleEnd(Rule rule, RuleResult result, NamedScope ruleScope) {}
+    default void onRuleEnd(Rule rule, RuleResult result) {}
 }

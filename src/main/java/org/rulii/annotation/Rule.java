@@ -66,6 +66,7 @@ import java.lang.annotation.*;
  * @see org.rulii.rule.Rule
  *
  * Please note that Rules created under a non-managed environment(like Spring) will require a default constructor.
+ *
  */
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
@@ -76,9 +77,18 @@ public @interface Rule {
     String NOT_APPLICABLE = "";
 
     /**
-     * Name of the Rule.
+     * Rule name.
      *
-     * @return Name of the Rule.
+     * @return name of the rule.
      */
+    @AliasFor("name")
+    String value() default NOT_APPLICABLE;
+
+    /**
+     * Rule name.
+     *
+     * @return name of the rule.
+     */
+    @AliasFor("value")
     String name() default NOT_APPLICABLE;
 }

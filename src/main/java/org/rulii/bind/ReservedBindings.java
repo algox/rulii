@@ -27,17 +27,18 @@ import java.util.Set;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 public enum ReservedBindings {
 
     RULE_CONTEXT("ruleContext"),
-    BINDINGS("bindings"),
+    BINDINGS("ruleBindings"),
     RULE_SET_STATUS("ruleSetStatus"),
     RULE_VIOLATIONS ("ruleViolations"),
-    ROOT_BEAN("rootBean"),
     BINDING_NAME("$bindingName"),
     METHOD_RESULT("$result"),
-    THIS("$this");
+    RULE("$rule"),
+    RULE_SET("$ruleSet");
 
     private static final Set<String> names = new HashSet<>();
 
@@ -45,7 +46,7 @@ public enum ReservedBindings {
         Arrays.stream(ReservedBindings.values()).forEach(r -> names.add(r.name));
     }
 
-    private String name;
+    private final String name;
 
     ReservedBindings(String name) {
         this.name = name;

@@ -32,6 +32,7 @@ import java.util.*;
  * @since 1.0
  * @see Binding
  * @see BindingBuilder
+ *
  */
 public interface Bindings extends Iterable<Binding<?>>, Immutator<Bindings> {
 
@@ -442,7 +443,7 @@ public interface Bindings extends Iterable<Binding<?>>, Immutator<Bindings> {
     boolean removeBindingListener(BindingListener listener);
 
     /**
-     * Retrieves all the Binding Names (ie. keys).
+     * Retrieves all the Binding Names (i.e. keys).
      *
      * @return all the used keys.
      */
@@ -456,17 +457,13 @@ public interface Bindings extends Iterable<Binding<?>>, Immutator<Bindings> {
     Map<String, ?> asMap();
 
     /**
-     * Returns back a immutable version of this Bindings.
+     * Returns back an immutable version of these Bindings.
      *
      * @return immutable version of this.
      */
-    default ImmutableBindings asImmutableBindings() {
-        return new ImmutableBindings(this);
-    }
-
     @Override
     default Bindings asImmutable() {
-        return new ImmutableBindings(this);
+        return this instanceof ImmutableBindings ? this : new ImmutableBindings(this);
     }
 
     /**

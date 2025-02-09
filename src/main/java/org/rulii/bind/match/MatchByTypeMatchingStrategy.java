@@ -36,6 +36,7 @@ import java.util.List;
  * @author Max Arulananthan
  * @since 1.0
  * @see BindingMatchingStrategy
+ *
  */
 public class MatchByTypeMatchingStrategy implements BindingMatchingStrategy {
 
@@ -46,7 +47,6 @@ public class MatchByTypeMatchingStrategy implements BindingMatchingStrategy {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <T> List<BindingMatch<T>> match(Bindings bindings, String name, Type type, boolean containsGenericInfo) {
         Assert.notNull(bindings, "bindings cannot be bull");
         Assert.notNull(type, "type cannot be bull");

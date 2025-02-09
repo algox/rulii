@@ -50,6 +50,7 @@ import java.util.Optional;
  * @author Max Arulananthan
  * @since 1.0
  * @see ParameterResolver
+ *
  */
 public class DefaultParameterResolver implements ParameterResolver {
 
@@ -113,7 +114,7 @@ public class DefaultParameterResolver implements ParameterResolver {
                 } else {
                     // Too many matches found; cannot proceed.
                     throw new BindingException("Multiple matches found for ("+ parameterDefinition.getTypeAndName()
-                            + "). Perhaps specify a primary Binding? ",
+                            + ") Matches [" + matches + "]. Perhaps specify a primary Binding? ",
                             definition, parameterDefinition, matchingStrategy, matches);
                 }
             }
@@ -122,9 +123,10 @@ public class DefaultParameterResolver implements ParameterResolver {
         }
 
         if (logger.isDebugEnabled()) {
-            logger.debug("Parameter Matches [" + Arrays.toString(result) + "] for method [" + definition.getMethodParameterSignature()  +"]");
+            logger.debug("Parameter Matches for method [" + definition.getSignature()  + "] values [" + Arrays.toString(result) + "]");
         }
 
+        // Do not change to Lists.of()
         return Collections.unmodifiableList(Arrays.asList(result));
     }
 
@@ -144,9 +146,10 @@ public class DefaultParameterResolver implements ParameterResolver {
         }
 
         if (logger.isDebugEnabled()) {
-            logger.debug("Parameter Resolved Values [" + Arrays.toString(result) + "] for method [" + definition.getMethodParameterSignature()  +"]");
+            logger.debug("Parameter Resolved Values for method [" + definition.getSignature()  + "] with values [" + Arrays.toString(result) + "]");
         }
 
+        // Do not use List.of() as values can be null
         return Collections.unmodifiableList(Arrays.asList(result));
     }
 
@@ -194,7 +197,7 @@ public class DefaultParameterResolver implements ParameterResolver {
             result = autoConvert(result, match, registry);
         }
 
-        return match.getDefinition().isOptionalType() ? Optional.of(result) : result;
+        return match.getDefinition().isOptionalType() ? Optional.ofNullable(result) : result;
     }
 
     /**

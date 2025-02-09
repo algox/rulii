@@ -36,6 +36,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * More Tests for Bindings/BindBuilder.
  *
  * @author Max Arulananthan
+ * @since 1.0
  */
 public class BindTest {
 
@@ -232,7 +233,7 @@ public class BindTest {
     @Test
     public void testBind18() {
         Binding<BigDecimal> b = Binding.builder().build("binding", BigDecimal.class);
-        Assertions.assertEquals("BigDecimal", b.getTypeName());
+        Assertions.assertEquals(BigDecimal.class.getName(), b.getTypeName());
     }
 
     @Test
@@ -244,7 +245,7 @@ public class BindTest {
     @Test
     public void testBind20() {
         Binding<String> b = Binding.builder().build("binding", String.class);
-        Assertions.assertEquals("String binding", b.getTypeAndName());
+        Assertions.assertEquals("java.lang.String binding", b.getTypeAndName());
     }
 }
 

@@ -31,6 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 public class DefaultBindings implements Bindings, PromiscuousBinder {
 
@@ -63,17 +64,16 @@ public class DefaultBindings implements Bindings, PromiscuousBinder {
     public <T> void promiscuousBind(Binding<T> binding) {
         Assert.notNull(binding, "binding cannot be null");
 
+        if (logger.isDebugEnabled()) {
+            logger.debug("New Binding Name [" + binding.getName() + "] Type [" + binding.getTypeName() + "] value [" + binding.getValue() + "]");
+        }
+
         // Try and put the Binding
         Binding<?> existingBinding = bindings.putIfAbsent(binding.getName(), binding);
 
         // Looks like we already have a binding
         if (existingBinding != null) {
             throw new BindingAlreadyExistsException(existingBinding, binding);
-        }
-
-        if (logger.isDebugEnabled()) {
-            logger.debug("New Binding created. Name [" + binding.getName() + "] Type [" + binding.getTypeName()
-                    + "] Value [" + binding.getTextValue() + "]");
         }
 
         // Add the value listeners
@@ -217,6 +217,6 @@ public class DefaultBindings implements Bindings, PromiscuousBinder {
 
     @Override
     public String toString() {
-        return prettyPrint("");
+        return "DefaultBindings(" + this.size() + ")";
     }
 }

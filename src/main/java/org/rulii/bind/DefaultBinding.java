@@ -33,6 +33,7 @@ import java.util.*;
  * @author Max Arulananthan
  * @since 1.0
  * @see Binding
+ *
  */
 public class DefaultBinding<T> implements Binding<T> {
 
@@ -99,7 +100,7 @@ public class DefaultBinding<T> implements Binding<T> {
      */
     DefaultBinding(String name, Type type, T value, boolean editable, boolean isFinal, boolean primary, String description) {
         this(name, type, isFinal, primary, description);
-        setValue(value);
+        setValueInternal(value, false);
         this.editable = editable;
     }
 
@@ -121,7 +122,6 @@ public class DefaultBinding<T> implements Binding<T> {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void setValue(T value) {
 
         // Make sure we can edit this value
@@ -168,7 +168,12 @@ public class DefaultBinding<T> implements Binding<T> {
     }
 
     protected void setValueInternal(T value) {
-        if (logger.isDebugEnabled()) {
+        setValueInternal(value, true);
+    }
+
+    protected void setValueInternal(T value, boolean update) {
+
+        if (update && logger.isDebugEnabled()) {
             logger.debug("Binding change. Old Value [" + this.value +"] new Value [" + value + "]");
         }
 
@@ -180,7 +185,7 @@ public class DefaultBinding<T> implements Binding<T> {
         Object oldValue = this.value;
         this.value = value;
 
-        fireListeners(oldValue, value);
+        if (update) fireListeners(oldValue, value);
     }
 
     protected void fireListeners(Object oldValue, Object newValue) {
@@ -198,7 +203,7 @@ public class DefaultBinding<T> implements Binding<T> {
     @Override
     public String getTypeName() {
         if (type == null) return null;
-        if (type instanceof Class) return ((Class<?>) type).getSimpleName();
+        if (type instanceof Class) return ((Class<?>) type).getName();
         return type.getTypeName();
     }
 

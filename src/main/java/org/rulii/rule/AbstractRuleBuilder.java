@@ -17,6 +17,8 @@
  */
 package org.rulii.rule;
 
+import org.rulii.lib.apache.commons.logging.Log;
+import org.rulii.lib.apache.commons.logging.LogFactory;
 import org.rulii.lib.spring.core.Ordered;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.MethodDefinition;
@@ -38,8 +40,11 @@ import java.util.List;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 public abstract class AbstractRuleBuilder<T> {
+
+    private static final Log logger = LogFactory.getLog(AbstractRuleBuilder.class);
 
     private final boolean inline;
     private Class<T> ruleClass;
@@ -47,7 +52,7 @@ public abstract class AbstractRuleBuilder<T> {
     private String description;
     private int order = Ordered.LOWEST_PRECEDENCE;
     private Condition preCondition = null;
-    private Condition condition = Conditions.TRUE();
+    private Condition condition;
     private Action otherwiseAction;
     private T target;
     private final List<Action> thenActions = new ArrayList<>();
@@ -115,7 +120,7 @@ public abstract class AbstractRuleBuilder<T> {
      * @param preCondition the pre-condition to be set.
      * @return the AbstractRuleBuilder instance for method chaining.
      */
-    public AbstractRuleBuilder<T> pre(Condition preCondition) {
+    public AbstractRuleBuilder<T> preCondition(Condition preCondition) {
         this.preCondition = preCondition;
         return this;
     }
@@ -246,6 +251,12 @@ public abstract class AbstractRuleBuilder<T> {
      * @return a Rule object representing the built rule with all the necessary properties set.
      */
     public Rule build() {
+
+        if (getCondition() == null) {
+            logger.warn("Rule [" + getName() + "] does not have a Given condition. Defaulting to always return TRUE.");
+            condition = Conditions.TRUE();
+        }
+
         validate();
         RuleDefinition ruleDefinition = buildRuleDefinition();
 
@@ -258,6 +269,12 @@ public abstract class AbstractRuleBuilder<T> {
                 getThenActions(), getOtherwiseAction());
     }
 
+    /**
+     * Retrieves the MethodDefinition for the given Condition.
+     *
+     * @param condition the Condition object for which to retrieve the MethodDefinition
+     * @return the MethodDefinition associated with the given Condition, or null if the Condition is null
+     */
     private MethodDefinition getConditionDefinition(Condition condition) {
         if (condition == null) return null;
         return condition.getDefinition();

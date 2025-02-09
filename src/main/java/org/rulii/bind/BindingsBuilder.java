@@ -23,6 +23,7 @@ package org.rulii.bind;
  * @author Max Arulananthan
  * @since 1.0
  * @see Bindings
+ *
  */
 public final class BindingsBuilder {
 
@@ -119,7 +120,7 @@ public final class BindingsBuilder {
      * @return immutable bindings.
      */
     public ImmutableBindings immutable(Bindings bindings) {
-        return bindings.asImmutableBindings();
+        return (ImmutableBindings) bindings.asImmutable();
     }
 
     /**
@@ -129,7 +130,7 @@ public final class BindingsBuilder {
      * @return immutable bindings.
      */
     public ImmutableBindings immutable(BindingDeclaration<?>...bindings) {
-        return standard(bindings).asImmutableBindings();
+        return (ImmutableBindings) standard(bindings).asImmutable();
     }
 
     /**

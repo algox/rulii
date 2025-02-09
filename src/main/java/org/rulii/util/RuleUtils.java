@@ -35,6 +35,7 @@ import java.util.regex.Pattern;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 public final class RuleUtils {
 
@@ -140,8 +141,8 @@ public final class RuleUtils {
     }
 
     public static Map<String, Object> convert(List<ParameterMatch> matches, List<?> values) {
-        if (matches == null) return new LinkedHashMap<>();
-        if (matches.isEmpty()) return new LinkedHashMap<>();
+        if (matches == null || matches.isEmpty()) return new LinkedHashMap<>();
+        if (values == null || values.isEmpty()) return new LinkedHashMap<>();
         if (matches.size() != values.size()) throw new UnrulyException("Size mismatch [" + matches.size() + "] [" + values.size() + "]");
 
         Map<String, Object> result = new LinkedHashMap<>();

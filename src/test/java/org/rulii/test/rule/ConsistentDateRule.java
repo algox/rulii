@@ -17,21 +17,22 @@
  */
 package org.rulii.test.rule;
 
-import org.rulii.annotation.Description;
-import org.rulii.annotation.Given;
-import org.rulii.annotation.Otherwise;
-import org.rulii.annotation.Rule;
-import org.rulii.annotation.Then;
+import org.rulii.annotation.*;
 
 import java.util.Date;
 
 @Rule
 @Description("This Rule will validate that the first date is before the second.")
-// TODO : Fix
+// TODO : Not used
 public class ConsistentDateRule {
 
     public ConsistentDateRule() {
         super();
+    }
+
+    @PreCondition
+    public boolean check() {
+        return true;
     }
 
     @Given // Condition

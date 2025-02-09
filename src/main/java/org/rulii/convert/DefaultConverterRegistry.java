@@ -30,7 +30,6 @@ import java.util.List;
  *
  * @author Max Arulananthan.
  * @since 1.0
- *
  */
 public class DefaultConverterRegistry implements ConverterRegistry {
 
@@ -102,6 +101,7 @@ public class DefaultConverterRegistry implements ConverterRegistry {
         register(new TextToShortConverter());
         register(new TextToCharsetConverter());
         register(new TextToBigIntegerConverter());
+        register(new TextToStringConverter());
     }
 
     @Override
