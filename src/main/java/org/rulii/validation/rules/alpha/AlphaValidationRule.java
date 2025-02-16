@@ -26,7 +26,6 @@ import org.rulii.validation.BindingValidationRule;
 import org.rulii.validation.Severity;
 import org.rulii.validation.ValidationRuleException;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -34,12 +33,13 @@ import java.util.List;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 @Rule
 @Description("Value can only contain unicode letters/spaces.")
 public class AlphaValidationRule extends BindingValidationRule {
 
-    private static final List<Class<?>> SUPPORTED_TYPES = Arrays.asList(CharSequence.class);
+    private static final List<Class<?>> SUPPORTED_TYPES = List.of(CharSequence.class);
 
     public static final String ERROR_CODE       = "rulii.validation.rules.AlphaValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE  = "Value must only contain unicode letters. Given {0}.";

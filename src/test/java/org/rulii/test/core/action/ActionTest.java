@@ -19,7 +19,6 @@ package org.rulii.test.core.action;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.rulii.annotation.Order;
 import org.rulii.bind.Binding;
 import org.rulii.bind.Bindings;
 import org.rulii.context.RuleContext;
@@ -38,6 +37,7 @@ import static org.rulii.model.action.Actions.action;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 public class ActionTest {
 
@@ -217,31 +217,27 @@ public class ActionTest {
             super();
         }
 
-        @org.rulii.annotation.Action
-        @Order(4)
+        @org.rulii.annotation.Action(order = 4)
         public void action1(String arg1, String arg2) {
             Assertions.assertNull(arg1);
             Assertions.assertNull(arg2);
         }
 
-        @org.rulii.annotation.Action
-        @Order(3)
+        @org.rulii.annotation.Action(order = 3)
         public void action2(String arg1, String arg2, Integer arg3) {
             Assertions.assertEquals("a", arg1);
             Assertions.assertEquals("b", arg2);
         }
 
         @SuppressWarnings({"OptionalGetWithoutIsPresent", "OptionalUsedAsFieldOrParameterType"})
-        @org.rulii.annotation.Action
-        @Order(2)
+        @org.rulii.annotation.Action(order = 2)
         public void action3(int var1, Optional<String> var2, Optional<BigDecimal> var3) {
             Assertions.assertEquals(var1, 0);
             Assertions.assertEquals(var2, Optional.empty());
             Assertions.assertEquals(var3.get(), new BigDecimal("10.00"));
         }
 
-        @org.rulii.annotation.Action
-        @Order(1)
+        @org.rulii.annotation.Action(order = 1)
         public void action4(byte var1, boolean var2, char var3, double var4, float var5, int var6, long var7, short var8) {
             Assertions.assertEquals(0, var1);
             Assertions.assertFalse(var2);
@@ -252,13 +248,12 @@ public class ActionTest {
             Assertions.assertEquals(0, var8);
         }
 
-        @org.rulii.annotation.Action
-        @Order(5)
+        @org.rulii.annotation.Action(order = 5)
         public void action5(Binding<BigDecimal> var9) {
             var9.setValue(new BigDecimal("400.00"));
         }
 
-        @org.rulii.annotation.Action
+        @org.rulii.annotation.Action(order = 6)
         public void action6(Binding<Byte> arg1, Binding<Boolean> arg2, Binding<Character> arg3, Binding<Double> arg4,
                             Binding<Float> arg5, Binding<Integer> arg6, Binding<Long> arg7, Binding<Short> arg8, Binding<Person> arg9) {
             Assertions.assertNotNull(arg1);

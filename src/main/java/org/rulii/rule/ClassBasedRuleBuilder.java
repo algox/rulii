@@ -24,8 +24,8 @@ import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.UnrulyException;
 import org.rulii.model.action.Action;
 import org.rulii.model.condition.Condition;
-import org.rulii.util.Ordered;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -35,7 +35,6 @@ import java.util.List;
  *
  * @author Max Arulananthan
  * @since 1.0
- *
  */
 public class ClassBasedRuleBuilder<T> extends AbstractRuleBuilder<T> {
 
@@ -99,18 +98,6 @@ public class ClassBasedRuleBuilder<T> extends AbstractRuleBuilder<T> {
     }
 
     /**
-     * Retrieves the rule order value specified in the Order annotation of the provided Rule class.
-     *
-     * @param <T>       the type of the Rule class
-     * @param ruleClass the Class object representing the Rule class
-     * @return the rule order value as specified in the annotation, or Ordered.LOWEST_PRECEDENCE if no annotation is present
-     */
-    public static <T> Integer getRuleOrder(Class<T> ruleClass) {
-        Order orderAnnotation = ruleClass.getAnnotation(Order.class);
-        return orderAnnotation != null ? orderAnnotation.value() : Ordered.LOWEST_PRECEDENCE;
-    }
-
-    /**
      * Loads the given Rule class. The Rule class must be annotated with @Rule and must define a single "given" method
      * which returns a boolean. The when method can take a arbitrary number of arguments.
      *
@@ -124,7 +111,6 @@ public class ClassBasedRuleBuilder<T> extends AbstractRuleBuilder<T> {
         target(target);
         name(getRuleName(ruleClass));
         description(getRuleDescription(ruleClass));
-        order(getRuleOrder(ruleClass));
         loadPreCondition(ruleClass, target);
         loadCondition(ruleClass, target);
         loadThenActions(target);
@@ -184,7 +170,7 @@ public class ClassBasedRuleBuilder<T> extends AbstractRuleBuilder<T> {
      * @param target rule target.
      */
     protected void loadThenActions(Object target) {
-        List<Action> thenActions = Action.builder().build(target, Then.class);
+        List<Action> thenActions = new ArrayList<>(Action.builder().build(target, Then.class));
 
         if (thenActions.isEmpty()) return;
 

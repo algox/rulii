@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.*;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 public final class TestRules {
 
@@ -536,22 +537,19 @@ public final class TestRules {
             return flag;
         }
 
-        @Then
-        @Order(3)
+        @Then(order = 3)
         public void action3(Binding<String> someValue) {
             assertNotNull(someValue);
             someValue.setValue(someValue.getValue() + "c");
         }
 
-        @Then
-        @Order(2)
+        @Then(order = 2)
         public void action2(Binding<String> someValue) {
             assertNotNull(someValue);
             someValue.setValue(someValue.getValue() + "b");
         }
 
-        @Then
-        @Order(1)
+        @Then(order = 1)
         public void action1(Binding<String> someValue) {
             assertNotNull(someValue);
             someValue.setValue(someValue.getValue() + "a");
@@ -570,22 +568,19 @@ public final class TestRules {
             return flag;
         }
 
-        @Then
-        @Order(2)
+        @Then(order = 2)
         public void action2(Binding<String> someValue) {
             assertNotNull(someValue);
             someValue.setValue(someValue.getValue() + "y");
         }
 
-        @Then
-        @Order(1)
+        @Then(order = 1)
         public void action1(Binding<String> someValue) {
             assertNotNull(someValue);
             someValue.setValue(someValue.getValue() + "x");
         }
 
-        @Then
-        @Order(3)
+        @Then(order = 3)
         public void action3(Binding<String> someValue) {
             assertNotNull(someValue);
             someValue.setValue(someValue.getValue() + "z");
@@ -622,8 +617,7 @@ public final class TestRules {
             return flag;
         }
 
-        @Then
-        @Order(1)
+        @Then(order = 1)
         public void action1(Binding<String> someValue) {
             assertNotNull(someValue);
             someValue.setValue(someValue.getValue() + "zzz");
@@ -647,8 +641,7 @@ public final class TestRules {
             return flag;
         }
 
-        @Then
-        @Order(1)
+        @Then(order = 1)
         public void action1(Binding<String> someValue) {
             assertNotNull(someValue);
             someValue.setValue(someValue.getValue() + "zzz");

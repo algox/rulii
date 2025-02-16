@@ -35,7 +35,6 @@ import org.rulii.lib.spring.lang.Nullable;
 import org.rulii.lib.spring.util.ConcurrentReferenceHashMap;
 import org.rulii.lib.spring.util.ReflectionUtils;
 import org.rulii.lib.spring.util.StringUtils;
-import org.rulii.annotation.AliasFor;
 
 /**
  * General utility methods for working with annotations, handling meta-annotations,
@@ -100,7 +99,6 @@ import org.rulii.annotation.AliasFor;
  * @see java.lang.reflect.AnnotatedElement#getAnnotation(Class)
  * @see java.lang.reflect.AnnotatedElement#getDeclaredAnnotations()
  */
-
 public abstract class AnnotationUtils {
 
 	/**

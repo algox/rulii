@@ -21,6 +21,7 @@ import org.rulii.annotation.Given;
 import org.rulii.annotation.Otherwise;
 import org.rulii.annotation.Rule;
 import org.rulii.annotation.Then;
+import org.rulii.validation.RuleViolation;
 import org.rulii.validation.RuleViolations;
 
 @Rule(name = "TestRule3")
@@ -37,11 +38,14 @@ public class TestRule3 {
 
     @Then
     public void then(Integer value, RuleViolations errors) {
-        errors.add("TestRule3", "Test.Error.300").param("value", value);
+        errors.add(RuleViolation.builder().with("TestRule3", "Test.Error.300").param("value", value).build());
     }
 
     @Otherwise
     public void otherwise(Integer value, RuleViolations errors) {
-        errors.add("TestRule3", "Test.Error.4000").param("value", value);
+        errors.add(RuleViolation.builder()
+                .with("TestRule3", "Test.Error.4000")
+                .param("value", value)
+                .build());
     }
 }

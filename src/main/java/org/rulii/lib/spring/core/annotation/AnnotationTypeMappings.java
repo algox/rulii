@@ -25,7 +25,6 @@ import java.util.Map;
 
 import org.rulii.lib.spring.lang.Nullable;
 import org.rulii.lib.spring.util.ConcurrentReferenceHashMap;
-import org.rulii.annotation.AliasFor;
 
 /**
  * Provides {@link AnnotationTypeMapping} information for a single source
@@ -44,7 +43,6 @@ import org.rulii.annotation.AliasFor;
  * @since 5.2
  * @see AnnotationTypeMapping
  */
-
 final class AnnotationTypeMappings {
 
 	private static final IntrospectionFailureLogger failureLogger = IntrospectionFailureLogger.DEBUG;

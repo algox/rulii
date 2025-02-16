@@ -18,7 +18,6 @@ package org.rulii.lib.spring.core.annotation;
 
 import org.rulii.lib.spring.lang.Nullable;
 import org.rulii.lib.spring.util.Assert;
-import org.rulii.annotation.AliasFor;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
@@ -136,7 +135,6 @@ import java.util.stream.Stream;
  * @see MergedAnnotationPredicates
  * @see MergedAnnotationSelectors
  */
-
 public interface MergedAnnotations extends Iterable<MergedAnnotation<Annotation>> {
 
 	/**

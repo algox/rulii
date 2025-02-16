@@ -17,6 +17,8 @@
  */
 package org.rulii.annotation;
 
+import org.rulii.lib.spring.core.annotation.AliasFor;
+
 import java.lang.annotation.*;
 
 /**
@@ -61,11 +63,11 @@ import java.lang.annotation.*;
  * }
  *</pre>
  *
+ * Please note that Rules created under a non-managed environment(like Spring) will require a default constructor.
+ *
  * @author Max Arulananthan
  * @since 1.0
  * @see org.rulii.rule.Rule
- *
- * Please note that Rules created under a non-managed environment(like Spring) will require a default constructor.
  *
  */
 @Target({ElementType.TYPE})

@@ -17,12 +17,7 @@
  */
 package org.rulii.annotation;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * Annotation to mark an Actionable method. Actionable method takes an arbitrary number of method and does not
@@ -30,6 +25,7 @@ import java.lang.annotation.Target;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  * @see Then
  * @see Otherwise
  */
@@ -47,4 +43,11 @@ public @interface Action {
      * @return name of the Action.
      */
     String name() default NOT_APPLICABLE;
+
+    /**
+     * Get the order of the Rule Action method.
+     *
+     * @return the order of the Rule Action (then) method.
+     */
+    int order() default Integer.MAX_VALUE;
 }

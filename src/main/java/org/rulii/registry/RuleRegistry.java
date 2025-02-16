@@ -18,12 +18,11 @@
 
 package org.rulii.registry;
 
-import org.rulii.model.Runnable;
 import org.rulii.lib.spring.util.Assert;
+import org.rulii.model.Runnable;
 import org.rulii.rule.Rule;
 import org.rulii.ruleset.RuleSet;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -32,7 +31,6 @@ import java.util.function.Predicate;
  *
  * @author Max Arulananthan
  * @since 1.0
- *
  */
 public interface RuleRegistry {
 
@@ -72,6 +70,7 @@ public interface RuleRegistry {
      *
      * @return the list of rule sets.
      */
+    @SuppressWarnings("rawtypes")
     List<RuleSet> getRuleSets();
 
     /**
@@ -137,10 +136,9 @@ public interface RuleRegistry {
         List<Rule> rules = getRules();
         if (rules == null || rules.isEmpty()) return rules;
 
-        List<Rule> result = rules.stream()
+        return rules.stream()
                 .filter(filter)
                 .toList();
-        return Collections.unmodifiableList(result);
     }
 
     /**

@@ -19,13 +19,11 @@ package org.rulii.model.action;
 
 import org.rulii.lib.spring.core.BridgeMethodResolver;
 import org.rulii.lib.spring.core.annotation.AnnotationUtils;
-import org.rulii.lib.spring.core.annotation.OrderUtils;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.MethodDefinition;
 import org.rulii.model.RunnableBuilder;
 import org.rulii.model.SourceDefinition;
 import org.rulii.model.UnrulyException;
-import org.rulii.util.Ordered;
 import org.rulii.util.reflect.ObjectFactory;
 import org.rulii.util.reflect.ReflectionUtils;
 
@@ -35,6 +33,7 @@ import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 
 /**
@@ -43,6 +42,7 @@ import java.util.function.Predicate;
  * @author Max Arulananthan
  * @since 1.0
  * @see Action
+ *
  */
 public final class ActionBuilderBuilder {
 
@@ -122,7 +122,7 @@ public final class ActionBuilderBuilder {
         }
 
         // Sort the methods by Order
-        Arrays.sort(candidates, new MethodComparator());
+        //Arrays.sort(candidates, new MethodComparator());
 
         Action[] result = new Action[candidates.length];
 
@@ -135,18 +135,32 @@ public final class ActionBuilderBuilder {
             result[i] = builder.build();
         }
 
+        // Sort the Action(s) by order
+        Arrays.sort(result, new ActionComparator(annotationClass));
         return List.of(result);
     }
 
-    private static class MethodComparator implements Comparator<Method> {
+    private static class ActionComparator implements Comparator<Action> {
+
+        private final Class<? extends Annotation> annotationClass;
+        public ActionComparator(Class<? extends Annotation> annotationClass) {
+            super();
+            this.annotationClass = annotationClass;
+        }
 
         @Override
-        public int compare(Method method1, Method method2) {
-            Integer order1 = OrderUtils.getOrder(method1);
-            Integer order2 = OrderUtils.getOrder(method2);
+        public int compare(Action action1, Action action2) {
+            Annotation ann1 = AnnotationUtils.getAnnotation(action1.getDefinition().getMethod(), annotationClass);
+            Annotation ann2 = AnnotationUtils.getAnnotation(action2.getDefinition().getMethod(), annotationClass);
 
-            if (order1 == null) order1 = Ordered.LOWEST_PRECEDENCE;
-            if (order2 == null) order2 = Ordered.LOWEST_PRECEDENCE;
+            if (ann1 == null) return -1;
+            if (ann2 == null) return 1;
+
+            Map<String, Object> values1 = AnnotationUtils.getAnnotationAttributes(ann1);
+            Map<String, Object> values2 = AnnotationUtils.getAnnotationAttributes(ann2);
+
+            Integer order1 = (Integer) values1.getOrDefault("order", Integer.MAX_VALUE);
+            Integer order2 = (Integer) values2.getOrDefault("order", Integer.MAX_VALUE);
 
             return order1.compareTo(order2);
         }
@@ -334,11 +348,11 @@ public final class ActionBuilderBuilder {
         Method candidate = BridgeMethodResolver.findBridgedMethod(candidates[0]);
         RunnableBuilder.MethodInfo methodInfo = RunnableBuilder.load(target, candidate);
 
-        if (!void.class.equals(methodInfo.getDefinition().getReturnType())) {
-            throw new UnrulyException("Actions must return a void [" + methodInfo.getDefinition().getMethod() + "]");
+        if (!void.class.equals(methodInfo.definition().getReturnType())) {
+            throw new UnrulyException("Actions must return a void [" + methodInfo.definition().getMethod() + "]");
         }
 
-        ActionBuilder result = new ActionBuilder(methodInfo.getTarget(), methodInfo.getDefinition());
+        ActionBuilder result = new ActionBuilder(methodInfo.target(), methodInfo.definition());
 
         if (name != null) result.name(name);
 

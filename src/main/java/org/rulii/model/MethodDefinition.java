@@ -18,9 +18,7 @@
 package org.rulii.model;
 
 import org.rulii.annotation.Description;
-import org.rulii.annotation.Order;
 import org.rulii.lib.spring.util.Assert;
-import org.rulii.util.Ordered;
 import org.rulii.util.reflect.ReflectionUtils;
 
 import java.lang.reflect.Method;
@@ -38,9 +36,8 @@ import java.util.stream.IntStream;
  *
  * @author Max Arulananthan
  * @since 1.0
- *
  */
-public final class MethodDefinition implements Definition, Comparable<MethodDefinition> {
+public final class MethodDefinition implements Definition {
 
     private static final Map<Method, MethodDefinition> CACHE = Collections.synchronizedMap(new IdentityHashMap<>());
 
@@ -54,14 +51,12 @@ public final class MethodDefinition implements Definition, Comparable<MethodDefi
 
     // Name of the action
     private String name;
-    // Order of the Action
-    private int order;
     // Description of the Action
     private String description;
     // Return type of the method
     private Type returnType;
 
-    public MethodDefinition(Method method, boolean containsGenericInfo, int order, String description,
+    public MethodDefinition(Method method, boolean containsGenericInfo, String description,
                             SourceDefinition sourceDefinition,
                             ReturnTypeDefinition returnTypeDefinition,
                             List<ParameterDefinition> parameterDefinitions) {
@@ -70,7 +65,6 @@ public final class MethodDefinition implements Definition, Comparable<MethodDefi
         this.method = method;
         this.name = method.getName();
         this.containsGenericInfo = containsGenericInfo;
-        this.order = order;
         this.description = description;
         this.returnType = method.getGenericReturnType();
         this.sourceDefinition = sourceDefinition;
@@ -121,8 +115,7 @@ public final class MethodDefinition implements Definition, Comparable<MethodDefi
     private static MethodDefinition loadInternal(Method method, boolean containsGenericInfo, SourceDefinition sourceDefinition) {
         Assert.notNull(method, "method cannot be null");
         Description descriptionAnnotation = method.getAnnotation(Description.class);
-        Order orderAnnotation = method.getAnnotation(Order.class);
-        return new MethodDefinition(method, containsGenericInfo, orderAnnotation != null ? orderAnnotation.value() : Ordered.LOWEST_PRECEDENCE,
+        return new MethodDefinition(method, containsGenericInfo,
                 descriptionAnnotation != null ? descriptionAnnotation.value() : null, sourceDefinition,
                 ReturnTypeDefinition.load(method, sourceDefinition),
                 ParameterDefinition.load(method, containsGenericInfo, sourceDefinition));
@@ -222,24 +215,6 @@ public final class MethodDefinition implements Definition, Comparable<MethodDefi
     }
 
     /**
-     * Order of this method in a group.
-     *
-     * @return order.
-     */
-    public Integer getOrder() {
-        return order;
-    }
-
-    /**
-     * Sets the order of this method in a group.
-     *
-     * @param order value
-     */
-    public void setOrder(int order) {
-        this.order = order;
-    }
-
-    /**
      * Sets the description of this method.
      *
      * @param description method description.
@@ -311,11 +286,6 @@ public final class MethodDefinition implements Definition, Comparable<MethodDefi
     }
 
     @Override
-    public int compareTo(MethodDefinition other) {
-        return getOrder().compareTo(other.getOrder());
-    }
-
-    @Override
     public String toString() {
         return "MethodDefinition{" +
                 "method=" + method +
@@ -324,7 +294,6 @@ public final class MethodDefinition implements Definition, Comparable<MethodDefi
                 ", returnTypeDefinition=" + returnTypeDefinition +
                 ", paramNameMap=" + paramNameMap +
                 ", name='" + name + '\'' +
-                ", order=" + order +
                 ", description='" + description + '\'' +
                 ", returnType=" + returnType +
                 '}';

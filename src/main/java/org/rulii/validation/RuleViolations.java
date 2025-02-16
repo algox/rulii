@@ -26,6 +26,7 @@ import java.util.*;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 public class RuleViolations implements Iterable<RuleViolation> {
 
@@ -33,18 +34,6 @@ public class RuleViolations implements Iterable<RuleViolation> {
 
     public RuleViolations() {
         super();
-    }
-
-    /**
-     * Creates a new instance of RuleViolations by cloning the current object.
-     *
-     * @return a new instance of RuleViolations
-     */
-    @SuppressWarnings("MethodDoesntCallSuperMethod")
-    public RuleViolations clone() {
-        RuleViolations result = new RuleViolations();
-        result.addAll(this.errors);
-        return result;
     }
 
     /**
@@ -99,7 +88,7 @@ public class RuleViolations implements Iterable<RuleViolation> {
      * @return newly created violation.
      */
     public RuleViolation add(String ruleName, String errorCode, Severity severity, String errorMessage) {
-        RuleViolation result = new RuleViolation(ruleName, errorCode, severity, errorMessage);
+        RuleViolation result = new RuleViolation(ruleName, errorCode, severity, errorMessage, null);
         errors.add(result);
         return result;
     }

@@ -30,7 +30,6 @@ import java.lang.reflect.Type;
  *
  * @author Max Arulananthan.
  * @since 1.0
- *
  */
 public class ParameterDefinitionEditor<T> {
 
@@ -45,6 +44,7 @@ public class ParameterDefinitionEditor<T> {
         this.returnType = returnType;
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public static <T> ParameterDefinitionEditor with(ParameterDefinition target, T returnType) {
         return new ParameterDefinitionEditor(target, returnType);
     }

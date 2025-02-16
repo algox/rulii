@@ -31,14 +31,13 @@ import java.util.Set;
  */
 public enum ReservedBindings {
 
-    RULE_CONTEXT("ruleContext"),
-    BINDINGS("ruleBindings"),
-    RULE_SET_STATUS("ruleSetStatus"),
-    RULE_VIOLATIONS ("ruleViolations"),
-    BINDING_NAME("$bindingName"),
-    METHOD_RESULT("$result"),
+    RULE_CONTEXT("$ruleContext"),
+    BINDINGS("$ruleBindings"),
     RULE("$rule"),
-    RULE_SET("$ruleSet");
+    BINDING_NAME("$bindingName"),
+    PARENT_BINDING_NAME("$parentBindingName"),
+    RULE_SET("$ruleSet"),
+    RULE_SET_STATUS("$ruleSetStatus");
 
     private static final Set<String> names = new HashSet<>();
 

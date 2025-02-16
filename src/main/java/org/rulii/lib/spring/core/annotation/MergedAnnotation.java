@@ -30,7 +30,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.rulii.lib.spring.lang.Nullable;
-import org.rulii.annotation.AliasFor;
 import org.rulii.lib.spring.core.annotation.MergedAnnotations.SearchStrategy;
 
 /**
@@ -60,7 +59,6 @@ import org.rulii.lib.spring.core.annotation.MergedAnnotations.SearchStrategy;
  * @see MergedAnnotations
  * @see MergedAnnotationPredicates
  */
-
 public interface MergedAnnotation<A extends Annotation> {
 
 	/**

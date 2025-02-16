@@ -36,17 +36,14 @@ import java.util.Objects;
  *
  * @author Max Arulananthan
  * @since 1.0
- *
  */
-public final class RuleDefinition implements Definition, Comparable<RuleDefinition> {
+public final class RuleDefinition implements Definition {
 
     // Name of the Rule
     private String name;
     // Description of the Rule
     private String description;
     private final boolean inline;
-    // Order of the Rule
-    private final Integer order;
     private final SourceDefinition sourceDefinition;
 
     // Rule class
@@ -67,14 +64,13 @@ public final class RuleDefinition implements Definition, Comparable<RuleDefiniti
      * @param inline determines whether the rule was written inline (ie: lambda)
      * @param name Rule name.
      * @param description Rule description.
-     * @param order rule order.
      * @param sourceDefinition source details.
      * @param preConditionDefinition Pre-Condition meta information.
      * @param conditionDefinition Given condition meta information.
      * @param thenActionDefinitions Then Action(s) meta information.
      * @param otherwiseActionDefinition Otherwise Action meta information.
      */
-    public RuleDefinition(Class<?> ruleClass, boolean inline, String name, String description, int order,
+    public RuleDefinition(Class<?> ruleClass, boolean inline, String name, String description,
                           SourceDefinition sourceDefinition,
                           MethodDefinition preConditionDefinition,
                           MethodDefinition conditionDefinition,
@@ -85,7 +81,6 @@ public final class RuleDefinition implements Definition, Comparable<RuleDefiniti
         this.ruleClass = ruleClass;
         this.inline = inline;
         this.description = description;
-        this.order = order;
         this.sourceDefinition = sourceDefinition;
         this.preConditionDefinition = preConditionDefinition;
         this.conditionDefinition = conditionDefinition;
@@ -130,10 +125,6 @@ public final class RuleDefinition implements Definition, Comparable<RuleDefiniti
         Assert.isTrue(RuleUtils.isValidName(name), "Rule name must match ["
                 + RuleUtils.NAME_REGEX + "] Given [" + name + "]");
         this.name = name;
-    }
-
-    public int getOrder() {
-        return order;
     }
 
     void setDescription(String description) {
@@ -199,18 +190,11 @@ public final class RuleDefinition implements Definition, Comparable<RuleDefiniti
     }
 
     @Override
-    public int compareTo(RuleDefinition other) {
-        int result = order.compareTo(other.getOrder());
-        return result != 0 ? result : getName().compareTo(other.getName());
-    }
-
-    @Override
     public String toString() {
         return "RuleDefinition{" +
                 "name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", inline=" + inline +
-                ", order=" + order +
                 ", sourceDefinition=" + sourceDefinition +
                 ", ruleClass=" + ruleClass +
                 ", preConditionDefinition=" + preConditionDefinition +

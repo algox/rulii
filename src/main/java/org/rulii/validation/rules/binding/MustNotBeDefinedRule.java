@@ -20,10 +20,7 @@ package org.rulii.validation.rules.binding;
 import org.rulii.annotation.*;
 import org.rulii.bind.match.MatchByTypeMatchingStrategy;
 import org.rulii.context.RuleContext;
-import org.rulii.validation.RuleViolationBuilder;
-import org.rulii.validation.RuleViolations;
-import org.rulii.validation.Severity;
-import org.rulii.validation.ValidationRule;
+import org.rulii.validation.*;
 
 /**
  * Validation Rule to make sure the the given BindingName is NOT defined.
@@ -57,9 +54,10 @@ public class MustNotBeDefinedRule extends ValidationRule {
     @Otherwise
     public void otherwise(@Param(matchUsing = MatchByTypeMatchingStrategy.class) RuleContext ruleContext,
                           @Param(matchUsing = MatchByTypeMatchingStrategy.class) RuleViolations ruleViolations) {
-        RuleViolationBuilder builder = createRuleViolationBuilder()
+        RuleViolationBuilder builder = RuleViolation.builder().with(this)
                 .param("bindingName", bindingName);
-        ruleViolations.add(builder.build(ruleContext.getMessageResolver(), ruleContext.getMessageFormatter(), ruleContext.getLocale()));
+        //ruleContext.getMessageResolver(), ruleContext.getMessageFormatter(), ruleContext.getLocale()
+        ruleViolations.add(builder.build());
     }
 
     public String getBindingName() {

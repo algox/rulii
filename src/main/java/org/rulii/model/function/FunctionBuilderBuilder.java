@@ -39,6 +39,7 @@ import java.util.function.Predicate;
  * @author Max Arulananthan
  * @since 1.0
  * @see Function
+ *
  */
 public final class FunctionBuilderBuilder {
 
@@ -126,7 +127,7 @@ public final class FunctionBuilderBuilder {
         Method candidate = BridgeMethodResolver.findBridgedMethod(candidates[0]);
         RunnableBuilder.MethodInfo methodInfo = RunnableBuilder.load(target, candidate);
 
-        FunctionBuilder result = (FunctionBuilder<T>) new FunctionBuilder(methodInfo.getTarget(), methodInfo.getDefinition());
+        FunctionBuilder result = (FunctionBuilder<T>) new FunctionBuilder(methodInfo.target(), methodInfo.definition());
 
         if (name != null) result.name(name);
 

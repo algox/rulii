@@ -27,6 +27,7 @@ import org.rulii.lib.spring.util.Assert;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 public final class RuleViolationBuilderBuilder {
 
@@ -53,6 +54,41 @@ public final class RuleViolationBuilderBuilder {
      */
     public RuleViolationBuilder with(String ruleName) {
         return new RuleViolationBuilder(ruleName);
+    }
+
+    /**
+     * Builds a RuleViolation object based on the provided rule name and error code.
+     *
+     * @param ruleName The name of the rule.
+     * @param errorCode The violation error code.
+     * @return The constructed RuleViolation object.
+     */
+    public RuleViolation build(String ruleName, String errorCode) {
+        return with(ruleName, errorCode).build();
+    }
+
+    /**
+     * Builds a RuleViolation object with the specified rule name, error code, and message.
+     *
+     * @param ruleName The name of the rule.
+     * @param errorCode The violation error code.
+     * @param message The error message.
+     * @return The constructed RuleViolation object.
+     */
+    public RuleViolation build(String ruleName, String errorCode, String message) {
+        return with(ruleName, errorCode).errorMessage(message).build();
+    }
+
+    /**
+     * Creates a new RuleViolationBuilder object with the specified rule name.
+     *
+     * @param ruleName The name of the rule.
+     * @param errorCode violation error code.
+     * @return A RuleViolationBuilder object.
+     */
+    public RuleViolationBuilder with(String ruleName, String errorCode) {
+        RuleViolationBuilder builder = with(ruleName);
+        return builder.errorCode(errorCode);
     }
 
     /**

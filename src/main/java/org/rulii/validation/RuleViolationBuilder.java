@@ -23,10 +23,7 @@ import org.rulii.text.MessageFormatter;
 import org.rulii.text.MessageResolver;
 import org.rulii.text.ParameterInfo;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * The RuleViolationBuilder class is used to build RuleViolation objects.
@@ -37,12 +34,13 @@ import java.util.Objects;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 public class RuleViolationBuilder {
 
     private final String ruleName;
     private String errorCode = null;
-    private Severity severity = null;
+    private Severity severity = Severity.ERROR;
     private String errorMessage = null;
     private String defaultMessage = null;
     private final List<ParameterInfo> params = new ArrayList<>();
@@ -60,6 +58,7 @@ public class RuleViolationBuilder {
      * @return The RuleViolationBuilder instance.
      */
     public RuleViolationBuilder errorCode(String errorCode) {
+        Assert.hasText(errorCode, "errorCode cannot be null/empty.");
         this.errorCode = errorCode;
         return this;
     }
@@ -110,13 +109,12 @@ public class RuleViolationBuilder {
     }
 
     /**
-     * Clears the parameters stored in the RuleViolationBuilder.
+     * Builds a RuleViolation object based on the provided rule name, error code, severity, error message, and parameters.
      *
-     * @return The RuleViolationBuilder instance.
+     * @return The constructed RuleViolation object.
      */
-    public RuleViolationBuilder clearParams() {
-        this.params.clear();
-        return this;
+    public RuleViolation build() {
+        return new RuleViolation(ruleName, errorCode, severity, errorMessage, getRuleParameters(params));
     }
 
     /**
@@ -126,7 +124,7 @@ public class RuleViolationBuilder {
      * @return a RuleViolation object
      */
     public RuleViolation build(RuleContext context) {
-        return build(context.getMessageResolver(), context.getMessageFormatter() , context.getLocale());
+        return build(context.getMessageResolver(), context.getMessageFormatter(), context.getLocale());
     }
 
     /**
@@ -141,42 +139,26 @@ public class RuleViolationBuilder {
      * @return a RuleViolation object
      */
     public RuleViolation build(MessageResolver messageResolver, MessageFormatter messageFormatter, Locale locale) {
-        String message = resolveErrorMessage(messageResolver, locale);
-        RuleViolation result = new RuleViolation(ruleName, errorCode, severity,
-                message != null
-                        ? messageFormatter != null
-                            ? messageFormatter.format(locale, message, params.toArray(new ParameterInfo[params.size()]))
-                            : message
-                        : null);
+        Assert.hasText(errorCode, "errorCode cannot be empty/null.");
+        String message = errorMessage != null
+                ? errorMessage
+                : messageResolver != null ? messageResolver.resolve(locale, errorCode, defaultMessage) : defaultMessage;
 
-        addRuleParameters(result, params);
-        return result;
+        if (message != null && messageFormatter != null) {
+            message = messageFormatter.format(locale, message, params.toArray(new ParameterInfo[0]));
+        }
+
+        return new RuleViolation(ruleName, errorCode, severity, message, getRuleParameters(params));
     }
 
     /**
-     * Resolves the error message using the provided MessageResolver and Locale.
+     * Generates the rule parameters to a given RuleViolation object.
      *
-     * @param messageResolver the MessageResolver used to resolve the error message
-     * @param locale the Locale used for message resolution
-     * @return the resolved error message, or null if no message is found
-     */
-    private String resolveErrorMessage(MessageResolver messageResolver, Locale locale) {
-        if (errorMessage != null) return errorMessage;
-        return messageResolver != null ? messageResolver.resolve(locale, errorCode, defaultMessage) : null;
-    }
-
-    /**
-     * Adds the rule parameters to a given RuleViolation object.
-     *
-     * @param error The RuleViolation object to which the parameters will be added.
      * @param parameters The list of ParameterInfo objects containing the parameter name and value.
      */
-    private void addRuleParameters(RuleViolation error, List<ParameterInfo> parameters) {
-        parameters.stream()
-                .filter(Objects::nonNull)
-                .forEach(m -> error.param(m.getName(),
-                        m.getValue() != null
-                                ? m.getValue().toString()
-                                : null));
+    private Map<String, String> getRuleParameters(List<ParameterInfo> parameters) {
+        Map<String, String> result = new LinkedHashMap<>();
+        parameters.forEach(param -> result.put(param.getName(), param.getValue() != null ? param.getValue().toString() : null));
+        return result;
     }
 }

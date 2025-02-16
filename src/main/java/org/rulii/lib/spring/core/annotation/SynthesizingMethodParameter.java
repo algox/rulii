@@ -22,7 +22,6 @@ import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 
-import org.rulii.annotation.AliasFor;
 import org.rulii.lib.spring.core.MethodParameter;
 
 /**
@@ -35,7 +34,6 @@ import org.rulii.lib.spring.core.MethodParameter;
  * @see AnnotationUtils#synthesizeAnnotation
  * @see AnnotationUtils#synthesizeAnnotationArray
  */
-
 public class SynthesizingMethodParameter extends MethodParameter {
 
 	/**

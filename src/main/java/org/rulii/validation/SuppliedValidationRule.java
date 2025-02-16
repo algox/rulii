@@ -40,6 +40,7 @@ import java.util.Map;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 @Rule
 public class SuppliedValidationRule extends ValidationRule {
@@ -66,13 +67,14 @@ public class SuppliedValidationRule extends ValidationRule {
                 ruleContext.getBindings(), ruleContext.getMatchingStrategy(), ruleContext.getConverterRegistry(),
                 ruleContext.getObjectFactory());
         Map<String, Object> params = RuleUtils.convert(matches, values);
-        RuleViolationBuilder builder = createRuleViolationBuilder();
+        RuleViolationBuilder builder = RuleViolation.builder().with(this);
 
         for (Map.Entry<String, Object> entry : params.entrySet()) {
             builder.param(entry.getKey(), entry.getValue());
         }
 
-        ruleViolations.add(builder.build(ruleContext.getMessageResolver(), ruleContext.getMessageFormatter(), ruleContext.getLocale()));
+        //ruleContext.getMessageResolver(), ruleContext.getMessageFormatter(), ruleContext.getLocale()
+        ruleViolations.add(builder.build());
     }
 
 }

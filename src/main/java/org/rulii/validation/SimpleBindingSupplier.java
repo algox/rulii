@@ -17,7 +17,7 @@
  */
 package org.rulii.validation;
 
-import org.rulii.context.RuleContext;
+import org.rulii.bind.Bindings;
 import org.rulii.lib.apache.StringUtils;
 import org.rulii.lib.spring.util.Assert;
 
@@ -27,6 +27,7 @@ import org.rulii.lib.spring.util.Assert;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 public final class SimpleBindingSupplier implements BindingSupplier {
 
@@ -56,12 +57,12 @@ public final class SimpleBindingSupplier implements BindingSupplier {
     }
 
     @Override
-    public String getName(RuleContext context) {
+    public String getName(Bindings bindings) {
         return bindingName;
     }
 
     @Override
-    public String getParentName(RuleContext context) {
+    public String getParentName(Bindings bindings) {
         return parentBindingName;
     }
 

@@ -27,7 +27,6 @@ import java.util.stream.Collectors;
 import org.rulii.lib.spring.core.BridgeMethodResolver;
 import org.rulii.lib.spring.lang.Nullable;
 import org.rulii.lib.spring.util.MultiValueMap;
-import org.rulii.annotation.AliasFor;
 
 /**
  * General utility methods for finding annotations, meta-annotations, and
@@ -89,7 +88,6 @@ import org.rulii.annotation.AliasFor;
  * @see AnnotationUtils
  * @see BridgeMethodResolver
  */
-
 public abstract class AnnotatedElementUtils {
 
 	/**

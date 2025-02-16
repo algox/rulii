@@ -16,15 +16,14 @@
 
 package org.rulii.lib.spring.core.annotation;
 
-import java.lang.reflect.AnnotatedElement;
-import java.util.Arrays;
-import java.util.List;
-
 import org.rulii.lib.spring.core.DecoratingProxy;
 import org.rulii.lib.spring.core.OrderComparator;
 import org.rulii.lib.spring.core.Ordered;
 import org.rulii.lib.spring.lang.Nullable;
-import org.rulii.annotation.Order;
+
+import java.lang.reflect.AnnotatedElement;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * {@code AnnotationAwareOrderComparator} is an extension of
@@ -45,7 +44,6 @@ import org.rulii.annotation.Order;
  * @see Order
  * @see javax.annotation.Priority
  */
-
 public class AnnotationAwareOrderComparator extends OrderComparator {
 
 	/**

@@ -18,11 +18,12 @@
 package org.rulii.rule;
 
 import org.rulii.context.RuleContext;
+import org.rulii.model.Definable;
+import org.rulii.model.Identifiable;
 import org.rulii.model.Runnable;
-import org.rulii.model.*;
+import org.rulii.model.UnrulyException;
 import org.rulii.model.action.Action;
 import org.rulii.model.condition.Condition;
-import org.rulii.util.Ordered;
 
 import java.util.List;
 
@@ -40,9 +41,8 @@ import java.util.List;
  *
  * @author Max Arulananthan
  * @since 1.0
- *
  */
-public interface Rule extends Runnable<RuleResult>, Identifiable, Ordered, Definable<RuleDefinition>, ScopeDefining {
+public interface Rule extends Runnable<RuleResult>, Identifiable, Definable<RuleDefinition> {
 
     static RuleBuilder builder() {
         return RuleBuilder.getInstance();
@@ -95,8 +95,4 @@ public interface Rule extends Runnable<RuleResult>, Identifiable, Ordered, Defin
      */
     Action getOtherwiseAction();
 
-    @Override
-    default int getOrder() {
-        return getDefinition().getOrder();
-    }
 }

@@ -17,6 +17,8 @@
  */
 package org.rulii.annotation;
 
+import org.rulii.lib.spring.core.annotation.AliasFor;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -29,6 +31,7 @@ import java.lang.annotation.Target;
  * @author Max Arulananthan
  * @since 1.0
  * @see Action
+ *
  */
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)

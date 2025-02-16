@@ -19,7 +19,6 @@ package org.rulii.rule;
 
 import org.rulii.lib.apache.commons.logging.Log;
 import org.rulii.lib.apache.commons.logging.LogFactory;
-import org.rulii.lib.spring.core.Ordered;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.MethodDefinition;
 import org.rulii.model.SourceDefinition;
@@ -40,7 +39,6 @@ import java.util.List;
  *
  * @author Max Arulananthan
  * @since 1.0
- *
  */
 public abstract class AbstractRuleBuilder<T> {
 
@@ -50,7 +48,6 @@ public abstract class AbstractRuleBuilder<T> {
     private Class<T> ruleClass;
     private String name;
     private String description;
-    private int order = Ordered.LOWEST_PRECEDENCE;
     private Condition preCondition = null;
     private Condition condition;
     private Action otherwiseAction;
@@ -100,17 +97,6 @@ public abstract class AbstractRuleBuilder<T> {
      */
     public AbstractRuleBuilder<T> description(String description) {
         this.description = description;
-        return this;
-    }
-
-    /**
-     * Sets the order value of this AbstractRuleBuilder.
-     *
-     * @param order the desired order value for the rule.
-     * @return the AbstractRuleBuilder instance with the updated order value.
-     */
-    public AbstractRuleBuilder<T> order(int order) {
-        this.order = order;
         return this;
     }
 
@@ -183,10 +169,6 @@ public abstract class AbstractRuleBuilder<T> {
         return description;
     }
 
-    protected Integer getOrder() {
-        return order;
-    }
-
     protected Condition getPreCondition() {
         return preCondition;
     }
@@ -217,16 +199,13 @@ public abstract class AbstractRuleBuilder<T> {
     protected RuleDefinition buildRuleDefinition() {
         Assert.notNull(getName(), "Rule Name cannot be null");
 
-        // Sort Then Action per Order
-        thenActions.sort(new RunnableComparator());
-
         List<MethodDefinition> thenActionDefinitions = new ArrayList<>(thenActions.size());
 
         for (Action thenAction : thenActions) {
             thenActionDefinitions.add(thenAction.getDefinition());
         }
 
-        return new RuleDefinition(getRuleClass(), inline, getName(), getDescription(), getOrder(),
+        return new RuleDefinition(getRuleClass(), inline, getName(), getDescription(),
                 SourceDefinition.build(),
                 getConditionDefinition(getPreCondition()),
                 getConditionDefinition(getCondition()),

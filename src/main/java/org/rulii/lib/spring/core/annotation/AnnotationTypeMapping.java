@@ -33,7 +33,6 @@ import org.rulii.lib.spring.lang.Nullable;
 import org.rulii.lib.spring.util.ObjectUtils;
 import org.rulii.lib.spring.util.ReflectionUtils;
 import org.rulii.lib.spring.util.StringUtils;
-import org.rulii.annotation.AliasFor;
 import org.rulii.lib.spring.core.annotation.AnnotationTypeMapping.MirrorSets.MirrorSet;
 
 /**
@@ -45,7 +44,6 @@ import org.rulii.lib.spring.core.annotation.AnnotationTypeMapping.MirrorSets.Mir
  * @since 5.2
  * @see AnnotationTypeMappings
  */
-
 final class
 AnnotationTypeMapping {
 

@@ -20,6 +20,7 @@ package org.rulii.annotation;
 import org.rulii.bind.Bindings;
 import org.rulii.bind.match.BindingMatch;
 import org.rulii.bind.match.BindingMatchingStrategy;
+import org.rulii.lib.spring.core.annotation.AliasFor;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -35,6 +36,7 @@ import java.util.List;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)

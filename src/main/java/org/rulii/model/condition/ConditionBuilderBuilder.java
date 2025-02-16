@@ -34,7 +34,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -44,6 +43,7 @@ import java.util.function.Predicate;
  * @author Max Arulananthan
  * @since 1.0
  * @see Action
+ *
  */
 public final class ConditionBuilderBuilder {
 
@@ -149,12 +149,12 @@ public final class ConditionBuilderBuilder {
         Method candidate = BridgeMethodResolver.findBridgedMethod(candidates[0]);
         RunnableBuilder.MethodInfo methodInfo = RunnableBuilder.load(target, candidate);
 
-        if (!boolean.class.equals(methodInfo.getDefinition().getReturnType()) &&
-                !Boolean.class.equals(methodInfo.getDefinition().getReturnType())) {
-            throw new UnrulyException("Conditions must return a boolean [" + methodInfo.getDefinition().getMethod() + "]");
+        if (!boolean.class.equals(methodInfo.definition().getReturnType()) &&
+                !Boolean.class.equals(methodInfo.definition().getReturnType())) {
+            throw new UnrulyException("Conditions must return a boolean [" + methodInfo.definition().getMethod() + "]");
         }
 
-        ConditionBuilder result = new ConditionBuilder(methodInfo.getTarget(), methodInfo.getDefinition());
+        ConditionBuilder result = new ConditionBuilder(methodInfo.target(), methodInfo.definition());
 
         if (name != null) result.name(name);
 

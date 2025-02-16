@@ -18,43 +18,49 @@
 package org.rulii.validation;
 
 import org.rulii.bind.Binding;
-import org.rulii.context.RuleContext;
+import org.rulii.bind.Bindings;
+import org.rulii.bind.NoSuchBindingException;
+import org.rulii.lib.spring.util.Assert;
 
 /**
  * Represents a supplier of bindings for rule evaluation.
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 @FunctionalInterface
 public interface BindingSupplier {
 
     /**
-     * Retrieves the name for the given rule context.
+     * Retrieves the name for the given bindings.
      *
-     * @param context The rule context to get the name from. Cannot be null.
+     * @param bindings The bindings to get the name from. Cannot be null.
      * @return The name associated with the rule context.
      */
-    String getName(RuleContext context);
+    String getName(Bindings bindings);
 
     /**
-     * Retrieves the name of the parent from the given rule context.
+     * Retrieves the name of the parent from the given bindings.
      *
-     * @param context The rule context to get the parent name from. Cannot be null.
+     * @param bindings The bindings to get the parent name from. Cannot be null.
      * @return The parent name associated with the rule context.
      */
-    default String getParentName(RuleContext context) {
+    default String getParentName(Bindings bindings) {
         return null;
     }
 
     /**
-     * Retrieves the value associated with the given rule context.
+     * Retrieves the value associated with the bindings.
      *
-     * @param context The rule context to retrieve the value from. Cannot be null.
+     * @param bindings The bindings to retrieve the value from. Cannot be null.
      * @return The value associated with the rule context, or null if no value is found.
      */
-    default Object getValue(RuleContext context) {
-        Binding<?> binding = context.getBindings().getBinding(getName(context));
-        return binding != null ? binding.getValue() : null;
+    default Object getValue(Bindings bindings) {
+        Assert.notNull(bindings, "bindings cannot be null.");
+        String bindingName = getName(bindings);
+        Binding<?> binding = bindings.getBinding(bindingName);
+        if (binding == null) throw new NoSuchBindingException(bindingName);
+        return binding.getValue();
     }
 }

@@ -18,10 +18,10 @@
 
 package org.rulii.registry;
 
-import org.rulii.model.Runnable;
 import org.rulii.lib.apache.commons.logging.Log;
 import org.rulii.lib.apache.commons.logging.LogFactory;
 import org.rulii.lib.spring.util.Assert;
+import org.rulii.model.Runnable;
 import org.rulii.rule.Rule;
 import org.rulii.ruleset.RuleSet;
 
@@ -36,6 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 public class DefaultRuleRegistry implements MutableRuleRegistry {
 
@@ -65,6 +66,7 @@ public class DefaultRuleRegistry implements MutableRuleRegistry {
         return filter(Rule.class);
     }
 
+    @SuppressWarnings("rawtypes")
     @Override
     public List<RuleSet> getRuleSets() {
         return filter(RuleSet.class);

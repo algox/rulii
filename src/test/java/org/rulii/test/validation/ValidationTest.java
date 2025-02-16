@@ -44,6 +44,7 @@ import static org.rulii.model.condition.Conditions.condition;
  * Test cases for the various Validation Rules.
  *
  * @author Max Arulananthan.
+ * @since 1.0
  */
 public class ValidationTest {
 
@@ -110,7 +111,7 @@ public class ValidationTest {
 
         RuleSet<?> rules = RuleSet.builder()
                 .with("RuleSet2", "Test Rule Set")
-                    .rule(Rule.builder().build(new NullValidationRule("value")))
+                    .rule(Rule.builder().build(new NullValidationRule("b")))
                 .build();
 
         rules.run(RuleContext.builder().with(bindings).build());

@@ -26,7 +26,6 @@ import org.rulii.validation.Severity;
 import org.rulii.validation.ValidationRuleException;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -39,7 +38,7 @@ import java.util.List;
 @Description("Value must be a valid decimal.")
 public class DecimalValidationRule extends BindingValidationRule {
 
-    private static final List<Class<?>> SUPPORTED_TYPES = Arrays.asList(CharSequence.class);
+    private static final List<Class<?>> SUPPORTED_TYPES = List.of(CharSequence.class);
 
     public static final String ERROR_CODE       = "rulii.validation.rules.DecimalValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE  = "Value must be a valid decimal. Given {0}.";

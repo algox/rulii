@@ -20,7 +20,7 @@ package org.rulii.validation;
 import org.rulii.lib.spring.util.Assert;
 
 import java.util.Collections;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -30,6 +30,7 @@ import java.util.Objects;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 public class RuleViolation {
 
@@ -37,18 +38,7 @@ public class RuleViolation {
     private final String errorCode;
     private final Severity severity;
     private final String errorMessage;
-    private final Map<String, String> params = new LinkedHashMap<>();
-
-    /**
-     * Creates a new RuleViolation with the given rule name and error code.
-     * Uses the default severity ERROR and sets the errorMessage to null.
-     *
-     * @param ruleName the name of the rule
-     * @param errorCode the error code associated with the rule
-     */
-    public RuleViolation(String ruleName, String errorCode) {
-        this(ruleName, errorCode, Severity.ERROR, null);
-    }
+    private final Map<String, String> params;
 
     /**
      * Creates a new RuleViolation with the given rule name, error code, severity, and error message.
@@ -57,15 +47,17 @@ public class RuleViolation {
      * @param errorCode the error code associated with the rule
      * @param severity the severity of the error (null defaults to Severity.ERROR)
      * @param errorMessage the error message (can be null)
+     * @param params violation parameters.
      */
-    public RuleViolation(String ruleName, String errorCode, Severity severity, String errorMessage) {
+    public RuleViolation(String ruleName, String errorCode, Severity severity, String errorMessage, Map<String, String> params) {
         super();
         Assert.notNull(ruleName, "ruleName cannot be null.");
-        Assert.notNull(errorCode, "errorCode cannot be null.");
+        Assert.hasText(errorCode, "errorCode cannot be null/empty.");
         this.ruleName = ruleName;
         this.errorCode = errorCode;
         this.severity = severity == null ? Severity.ERROR : severity;
         this.errorMessage = errorMessage;
+        this.params = Collections.unmodifiableMap(params != null ? params : new HashMap<>());
     }
 
     /**
@@ -119,32 +111,7 @@ public class RuleViolation {
      * @return rule parameters.
      */
     public Map<String, String> getParameters() {
-        if (params.isEmpty()) return null;
-        return Collections.unmodifiableMap(params);
-    }
-
-    /**
-     * Adds a new rule parameter.
-     *
-     * @param name parameter name.
-     * @param value parameter value. Null or toString() value.
-     * @return error.
-     */
-    public RuleViolation param(String name, Object value) {
-        params.put(name, value != null ? value.toString() : null);
-        return this;
-    }
-
-    /**
-     * Adds a new rule parameter.
-     *
-     * @param name parameter name.
-     * @param value parameter value.
-     * @return error.
-     */
-    public RuleViolation param(String name, String value) {
-        params.put(name, value);
-        return this;
+        return params;
     }
 
     @Override

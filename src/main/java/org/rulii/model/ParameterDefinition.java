@@ -42,12 +42,13 @@ import java.util.*;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 public final class ParameterDefinition implements Definition {
 
     private static final Map<Method, List<ParameterDefinition>> CACHE = Collections.synchronizedMap(new IdentityHashMap<>());
 
-    private int index;
+    private final int index;
     private String name;
     private String description;
     private Type type;
@@ -59,7 +60,7 @@ public final class ParameterDefinition implements Definition {
     private boolean bindingType;
     private boolean optionalType;
     private Type underlyingType;
-    private SourceDefinition sourceDefinition;
+    private final SourceDefinition sourceDefinition;
 
     private Object defaultValue = null;
 

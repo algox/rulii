@@ -49,6 +49,7 @@ import org.rulii.rule.RuleDefinitionAware;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 public abstract class ValidationRule implements RuleDefinitionAware {
 
@@ -113,15 +114,6 @@ public abstract class ValidationRule implements RuleDefinitionAware {
     public void setRuleDefinition(RuleDefinition ruleDefinition) {
         if (this.ruleDefinition != null) throw new UnrulyException("ruleDefinition cannot be modified.");
         this.ruleDefinition = ruleDefinition;
-    }
-
-    /**
-     * Creates a new RuleViolationBuilder instance.
-     *
-     * @return The created RuleViolationBuilder instance.
-     */
-    protected RuleViolationBuilder createRuleViolationBuilder() {
-        return RuleViolation.builder().with(this);
     }
 
     @Override

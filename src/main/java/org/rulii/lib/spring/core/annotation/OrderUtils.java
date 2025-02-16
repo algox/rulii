@@ -18,7 +18,6 @@ package org.rulii.lib.spring.core.annotation;
 
 import org.rulii.lib.spring.lang.Nullable;
 import org.rulii.lib.spring.util.ConcurrentReferenceHashMap;
-import org.rulii.annotation.Order;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
@@ -34,7 +33,6 @@ import java.util.Map;
  * @see Order
  * @see javax.annotation.Priority
  */
-
 public abstract class OrderUtils {
 
 	/** Cache marker for a non-annotated Class. */

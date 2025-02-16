@@ -16,8 +16,8 @@
 
 package org.rulii.lib.spring.core;
 
+import org.rulii.lib.spring.core.annotation.Order;
 import org.rulii.lib.spring.core.annotation.AnnotationAwareOrderComparator;
-import org.rulii.annotation.Order;
 
 /**
  * {@code Ordered} is an interface that can be implemented by objects that
@@ -43,7 +43,6 @@ import org.rulii.annotation.Order;
  * @see Order
  * @see AnnotationAwareOrderComparator
  */
-
 public interface Ordered {
 
 	/**

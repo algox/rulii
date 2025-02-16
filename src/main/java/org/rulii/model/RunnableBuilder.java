@@ -30,6 +30,7 @@ import java.util.Arrays;
  *
  * @author Max Arulananthan.
  * @since 1.0
+ *
  */
 public abstract class RunnableBuilder<T extends RunnableBuilder<?,?>, R extends Runnable<?>> {
 
@@ -84,6 +85,7 @@ public abstract class RunnableBuilder<T extends RunnableBuilder<?,?>, R extends 
      * @param index parameter index.
      * @return new parameter editor.
      */
+    @SuppressWarnings("unchecked")
     public ParameterDefinitionEditor<T> param(int index) {
         return ParameterDefinitionEditor.with(getDefinition().getParameterDefinition(index), this);
     }
@@ -94,6 +96,7 @@ public abstract class RunnableBuilder<T extends RunnableBuilder<?,?>, R extends 
      * @param name parameter name.
      * @return new parameter editor.
      */
+    @SuppressWarnings("unchecked")
     public ParameterDefinitionEditor<T> param(String name) {
         ParameterDefinition definition = getDefinition().getParameterDefinition(name);
 
@@ -130,7 +133,7 @@ public abstract class RunnableBuilder<T extends RunnableBuilder<?,?>, R extends 
                 parameterDefinitions[index] = ParameterDefinition.copy(implementationMethodDefinition.getParameterDefinition(i), index, false);
             }
 
-            methodDefinition = new MethodDefinition(functionMethod, false, implementationMethodDefinition.getOrder(),
+            methodDefinition = new MethodDefinition(functionMethod, false,
                     implementationMethodDefinition.getDescription(), SourceDefinition.build(),
                     implementationMethodDefinition.getReturnTypeDefinition(),
                     Arrays.asList(parameterDefinitions));
@@ -159,22 +162,5 @@ public abstract class RunnableBuilder<T extends RunnableBuilder<?,?>, R extends 
         return METHOD_RESOLVER.getImplementationMethod(c, candidate);
     }
 
-    public static class MethodInfo {
-        private final Object target;
-        private final MethodDefinition definition;
-
-        public MethodInfo(Object target, MethodDefinition definition) {
-            super();
-            this.target = target;
-            this.definition = definition;
-        }
-
-        public Object getTarget() {
-            return target;
-        }
-
-        public MethodDefinition getDefinition() {
-            return definition;
-        }
-    }
+    public record MethodInfo(Object target, MethodDefinition definition) {}
 }
