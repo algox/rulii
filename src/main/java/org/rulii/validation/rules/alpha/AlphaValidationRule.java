@@ -21,10 +21,10 @@ import org.rulii.annotation.Description;
 import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.apache.StringUtils;
+import org.rulii.model.UnrulyException;
 import org.rulii.validation.BindingSupplier;
 import org.rulii.validation.BindingValidationRule;
 import org.rulii.validation.Severity;
-import org.rulii.validation.ValidationRuleException;
 
 import java.util.List;
 
@@ -41,7 +41,7 @@ public class AlphaValidationRule extends BindingValidationRule {
 
     private static final List<Class<?>> SUPPORTED_TYPES = List.of(CharSequence.class);
 
-    public static final String ERROR_CODE       = "rulii.validation.rules.AlphaValidationRule.errorCode";
+    public static final String ERROR_CODE       = "alphaValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE  = "Value must only contain unicode letters. Given {0}.";
 
     private final boolean allowSpace;
@@ -67,7 +67,8 @@ public class AlphaValidationRule extends BindingValidationRule {
         if (value == null) return true;
 
         if (!(value instanceof CharSequence))
-            throw new ValidationRuleException("AlphaValidationRule only applies to CharSequences."
+            throw new
+                    UnrulyException("AlphaValidationRule only applies to CharSequences."
                     + "Supplied Class [" + value.getClass() + "] value [" + value + "]");
 
         return isAllowSpace() ? StringUtils.isAlphaSpace((CharSequence) value) : StringUtils.isAlpha((CharSequence) value);

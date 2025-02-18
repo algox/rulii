@@ -21,16 +21,15 @@ import org.rulii.annotation.Description;
 import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.apache.StringUtils;
+import org.rulii.model.UnrulyException;
 import org.rulii.validation.BindingSupplier;
 import org.rulii.validation.BindingValidationRule;
 import org.rulii.validation.Severity;
-import org.rulii.validation.ValidationRuleException;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
- * Validation Rule to make sure the the value only contains ASCII printable characters.
+ * Validation Rule to make sure the value only contains ASCII printable characters.
  *
  * @author Max Arulananthan
  * @since 1.0
@@ -39,9 +38,9 @@ import java.util.List;
 @Description("Value can only contains contains ASCII printable characters.")
 public class AsciiValidationRule extends BindingValidationRule {
 
-    private static final List<Class<?>> SUPPORTED_TYPES = Arrays.asList(CharSequence.class);
+    private static final List<Class<?>> SUPPORTED_TYPES = List.of(CharSequence.class);
 
-    public static final String ERROR_CODE       = "rulii.validation.rules.AsciiValidationRule.errorCode";
+    public static final String ERROR_CODE       = "asciiValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE  = "Value must only contain ASCII printable characters. Given {0}.";
 
     public AsciiValidationRule(String bindingName) {
@@ -61,7 +60,7 @@ public class AsciiValidationRule extends BindingValidationRule {
         if (value == null) return true;
 
         if (!(value instanceof CharSequence))
-            throw new ValidationRuleException("AsciiValidationRule only applies to CharSequences."
+            throw new UnrulyException("AsciiValidationRule only applies to CharSequences."
                     + "Supplied Class [" + value.getClass() + "] value [" + value + "]");
 
         return StringUtils.isAsciiPrintable((CharSequence) value);

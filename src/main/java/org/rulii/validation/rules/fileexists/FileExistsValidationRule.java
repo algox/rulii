@@ -15,18 +15,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.rulii.validation.rules.exists;
+package org.rulii.validation.rules.fileexists;
 
 import org.rulii.annotation.Description;
 import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
+import org.rulii.model.UnrulyException;
 import org.rulii.validation.BindingSupplier;
 import org.rulii.validation.BindingValidationRule;
 import org.rulii.validation.Severity;
-import org.rulii.validation.ValidationRuleException;
 
-import java.io.File;
-import java.util.Arrays;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 /**
@@ -37,23 +38,23 @@ import java.util.List;
  */
 @Rule
 @Description("File must exist.")
-public class ExistsValidationRule extends BindingValidationRule {
+public class FileExistsValidationRule extends BindingValidationRule {
 
-    public static List<Class<?>> SUPPORTED_TYPES    = Arrays.asList(File.class);
+    public static List<Class<?>> SUPPORTED_TYPES    = List.of(CharSequence.class);
 
-    public static final String ERROR_CODE       = "rulii.validation.rules.ExistsValidationRule.errorCode";
-    public static final String DEFAULT_MESSAGE  = "File must exist.";
+    public static final String ERROR_CODE       = "fileExistsValidationRule.errorCode";
+    public static final String DEFAULT_MESSAGE  = "File {0} does not exist.";
 
-    public ExistsValidationRule(String bindingName) {
+    public FileExistsValidationRule(String bindingName) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null);
     }
 
-    public ExistsValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage) {
+    public FileExistsValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage) {
         super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
     }
 
-    public ExistsValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity,
-                                String errorMessage) {
+    public FileExistsValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity,
+                                    String errorMessage) {
         super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
     }
 
@@ -61,12 +62,13 @@ public class ExistsValidationRule extends BindingValidationRule {
     protected boolean isValid(RuleContext ruleContext, Object value) {
         if (value == null) return true;
 
-        if (!(value instanceof File)) {
-            throw new ValidationRuleException("ExistsValidationRule only applies to a File."
-                    + "Supplied Class [" + value.getClass() + "]");
-        }
+        if (!(value instanceof CharSequence))
+            throw new UnrulyException("FileExistsValidationRule only applies to CharSequences."
+                    + "Supplied Class [" + value.getClass() + "] value [" + value + "]");
 
-        return ((File) value).exists();
+        String fileName = value.toString();
+        Path path = Paths.get(fileName);
+        return Files.exists(path);
     }
 
     @Override
@@ -76,6 +78,6 @@ public class ExistsValidationRule extends BindingValidationRule {
 
     @Override
     public String toString() {
-        return "ExistsValidationRule";
+        return "FileExistsValidationRule";
     }
 }

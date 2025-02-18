@@ -32,8 +32,8 @@ import org.rulii.validation.*;
 @Description("Binding Name must exist.")
 public class MustBeDefinedRule extends ValidationRule {
 
-    private static final String ERROR_CODE      = "rulii.validation.rules.MustBeDefinedRule.errorCode";
-    private static final String DEFAULT_MESSAGE = "{0} not defined.";
+    public static final String ERROR_CODE      = "mustBeDefinedRule.errorCode";
+    public static final String DEFAULT_MESSAGE = "Binding {0} not defined.";
 
     private final String bindingName;
 
@@ -54,10 +54,10 @@ public class MustBeDefinedRule extends ValidationRule {
     @Otherwise
     public void otherwise(@Param(matchUsing = MatchByTypeMatchingStrategy.class) RuleContext ruleContext,
                           @Param(matchUsing = MatchByTypeMatchingStrategy.class) RuleViolations ruleViolations) {
-        RuleViolationBuilder builder = RuleViolation.builder().with(this)
+        RuleViolationBuilder builder = RuleViolation.builder()
+                .with(this)
                 .param("bindingName", bindingName);
-        //ruleContext.getMessageResolver(), ruleContext.getMessageFormatter(), ruleContext.getLocale())
-        ruleViolations.add(builder.build());
+        ruleViolations.add(builder.build(ruleContext));
     }
 
     public String getBindingName() {

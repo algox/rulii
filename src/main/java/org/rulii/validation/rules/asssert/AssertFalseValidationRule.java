@@ -20,12 +20,11 @@ package org.rulii.validation.rules.asssert;
 import org.rulii.annotation.Description;
 import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
+import org.rulii.model.UnrulyException;
 import org.rulii.validation.BindingSupplier;
 import org.rulii.validation.BindingValidationRule;
 import org.rulii.validation.Severity;
-import org.rulii.validation.ValidationRuleException;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -38,12 +37,12 @@ import java.util.List;
 @Description("Value must be false.")
 public class AssertFalseValidationRule extends BindingValidationRule {
 
-    private static final List<Class<?>> SUPPORTED_TYPES = Arrays.asList(boolean.class, Boolean.class);
+    private static final List<Class<?>> SUPPORTED_TYPES = List.of(boolean.class, Boolean.class);
 
-    public static final String ERROR_CODE       = "rulii.validation.rules.AssertFalseValidationRule.errorCode";
+    public static final String ERROR_CODE       = "assertFalseValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE  = "Value must be false.";
 
-    public AssertFalseValidationRule(String bindingName, String path) {
+    public AssertFalseValidationRule(String bindingName) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null);
     }
 
@@ -62,7 +61,7 @@ public class AssertFalseValidationRule extends BindingValidationRule {
         if (value == null) return true;
 
         if (!(value instanceof Boolean)) {
-            throw new ValidationRuleException("AssertFalseValidationRule only applies to a boolean."
+            throw new UnrulyException("AssertFalseValidationRule only applies to a boolean."
                     + "Supplied Class [" + value.getClass() + "]");
         }
 

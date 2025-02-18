@@ -21,16 +21,15 @@ import org.rulii.annotation.Description;
 import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.apache.validation.EmailValidator;
+import org.rulii.model.UnrulyException;
 import org.rulii.validation.BindingSupplier;
 import org.rulii.validation.BindingValidationRule;
 import org.rulii.validation.Severity;
-import org.rulii.validation.ValidationRuleException;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
- * Validation Rule to make sure the the value must match an email regex format.
+ * Validation Rule to make sure the value must match an email regex format.
  *
  * @author Max Arulananthan
  * @since 1.0
@@ -39,10 +38,10 @@ import java.util.List;
 @Description("Value must match an email regex pattern.")
 public class EmailValidationRule extends BindingValidationRule {
 
-    private static final List<Class<?>> SUPPORTED_TYPES = Arrays.asList(CharSequence.class);
+    private static final List<Class<?>> SUPPORTED_TYPES = List.of(CharSequence.class);
 
-    public static final String ERROR_CODE       = "rulii.validation.rules.EmailValidationRule.errorCode";
-    public static final String DEFAULT_MESSAGE  = "Value not a valid email address. Given {0}.";
+    public static final String ERROR_CODE       = "emailValidationRule.errorCode";
+    public static final String DEFAULT_MESSAGE  = "Invalid email address {0}.";
 
     private final boolean allowLocal;
     private final boolean allowTopLevelDomain;
@@ -73,7 +72,7 @@ public class EmailValidationRule extends BindingValidationRule {
         if (value == null) return true;
 
         if (!(value instanceof CharSequence))
-            throw new ValidationRuleException("EmailValidationRule only applies to CharSequences."
+            throw new UnrulyException("EmailValidationRule only applies to CharSequences."
                     + "Supplied Class [" + value.getClass() + "] value [" + value + "]");
 
         return validator.isValid(value.toString());

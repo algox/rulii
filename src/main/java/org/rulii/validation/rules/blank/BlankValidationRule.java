@@ -21,12 +21,11 @@ import org.rulii.annotation.Description;
 import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.apache.StringUtils;
+import org.rulii.model.UnrulyException;
 import org.rulii.validation.BindingSupplier;
 import org.rulii.validation.BindingValidationRule;
 import org.rulii.validation.Severity;
-import org.rulii.validation.ValidationRuleException;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -39,10 +38,10 @@ import java.util.List;
 @Description("Value must be blank.")
 public class BlankValidationRule extends BindingValidationRule {
 
-    private static final List<Class<?>> SUPPORTED_TYPES = Arrays.asList(CharSequence.class);
+    private static final List<Class<?>> SUPPORTED_TYPES = List.of(CharSequence.class);
 
-    public static final String ERROR_CODE       = "rulii.validation.rules.BlankValidationRule.errorCode";
-    public static final String DEFAULT_MESSAGE  = "Value must be blank.";
+    public static final String ERROR_CODE       = "blankValidationRule.errorCode";
+    public static final String DEFAULT_MESSAGE  = "Value must be blank. Given {0}.";
 
     public BlankValidationRule(String bindingName) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null);
@@ -61,7 +60,7 @@ public class BlankValidationRule extends BindingValidationRule {
         if (value == null) return true;
 
         if (!(value instanceof CharSequence))
-            throw new ValidationRuleException("BlankValidationRule only applies to CharSequences."
+            throw new UnrulyException("BlankValidationRule only applies to CharSequences."
                     + "Supplied Class [" + value.getClass() + "]");
 
         // Make sure there some text

@@ -21,17 +21,17 @@ import org.rulii.annotation.Description;
 import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.spring.util.Assert;
+import org.rulii.model.UnrulyException;
 import org.rulii.validation.BindingSupplier;
 import org.rulii.validation.BindingValidationRule;
 import org.rulii.validation.RuleViolationBuilder;
 import org.rulii.validation.Severity;
-import org.rulii.validation.ValidationRuleException;
 
 import java.util.Arrays;
 import java.util.List;
 
 /**
- * Validation Rule to make sure the the value must end with one of the given suffixes.
+ * Validation Rule to make sure the value must end with one of the given suffixes.
  *
  * @author Max Arulananthan
  * @since 1.0
@@ -40,10 +40,10 @@ import java.util.List;
 @Description("Value must end with one of the given suffixes.")
 public class EndsWithValidationRule extends BindingValidationRule {
 
-    public static List<Class<?>> SUPPORTED_TYPES    = Arrays.asList(CharSequence.class);
+    public static List<Class<?>> SUPPORTED_TYPES    = List.of(CharSequence.class);
 
-    public static final String ERROR_CODE       = "rulii.validation.rules.EndsWithValidationRule.errorCode";
-    public static final String DEFAULT_MESSAGE  = "Value must end with one of the given suffixes {1}. Given {0}.";
+    public static final String ERROR_CODE       = "endsWithValidationRule.errorCode";
+    public static final String DEFAULT_MESSAGE  = "Value {0} must end with one of the given suffixes {1}.";
 
     private final String[] suffixes;
 
@@ -72,7 +72,7 @@ public class EndsWithValidationRule extends BindingValidationRule {
         if (value == null) return true;
 
         if (!(value instanceof CharSequence))
-            throw new ValidationRuleException("EndsWithValidationRule only applies to CharSequences."
+            throw new UnrulyException("EndsWithValidationRule only applies to CharSequences."
                     + "Supplied Class [" + value.getClass() + "] value [" + value + "]");
 
         boolean result = false;

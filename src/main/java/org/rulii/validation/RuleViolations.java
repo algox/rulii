@@ -94,6 +94,15 @@ public class RuleViolations implements Iterable<RuleViolation> {
     }
 
     /**
+     * Checks if the RuleViolations container is empty.
+     *
+     * @return true if the container is empty, false otherwise.
+     */
+    public boolean isEmpty() {
+        return errors.isEmpty();
+    }
+
+    /**
      * Determines if this container has any associated errors (errors of severity FATAL or ERROR).
      *
      * @return true if this container has any errors (errors of severity FATAL or ERROR); false otherwise.

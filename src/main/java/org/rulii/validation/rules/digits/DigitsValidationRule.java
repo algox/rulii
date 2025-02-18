@@ -21,18 +21,17 @@ import org.rulii.annotation.Description;
 import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.spring.util.Assert;
+import org.rulii.model.UnrulyException;
 import org.rulii.validation.BindingSupplier;
 import org.rulii.validation.BindingValidationRule;
 import org.rulii.validation.RuleViolationBuilder;
 import org.rulii.validation.Severity;
-import org.rulii.validation.ValidationRuleException;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
 import java.util.List;
 
 /**
- * Validation Rule to make sure the the value must be within in range of maximum number of integral digits and
+ * Validation Rule to make sure the value must be within in range of maximum number of integral digits and
  * maximum number of fractional digits.
  *
  * @author Max Arulananthan
@@ -42,10 +41,10 @@ import java.util.List;
 @Description("Value must be within range of the maximum integral digits and maximum fraction digits.")
 public class DigitsValidationRule extends BindingValidationRule {
 
-    private static final List<Class<?>> SUPPORTED_TYPES = Arrays.asList(Number.class, CharSequence.class);
+    private static final List<Class<?>> SUPPORTED_TYPES = List.of(Number.class, CharSequence.class);
 
-    public static final String ERROR_CODE       = "rulii.validation.rules.DigitsValidationRule.errorCode";
-    public static final String DEFAULT_MESSAGE  = "Value must have at most {1} integral digits and {2} fraction digits. Given {0}.";
+    public static final String ERROR_CODE       = "digitsValidationRule.errorCode";
+    public static final String DEFAULT_MESSAGE  = "Invalid Number {0}. Value must have at most {1} integral digits and {2} fraction digits.";
 
     private final int maxIntegerLength;
     private final int maxFractionLength;
@@ -88,15 +87,15 @@ public class DigitsValidationRule extends BindingValidationRule {
         }
 
         if (number == null) {
-            throw new ValidationRuleException("DigitsValidationRule only applies to Numbers/CharSequences."
+            throw new UnrulyException("DigitsValidationRule only applies to Numbers/CharSequences."
                     + "Supplied Class [" + value.getClass() + "] value [" + value + "]");
         }
 
 
         int integerLength = number.precision() - number.scale();
-        int fractionLength = number.scale() < 0 ? 0 : number.scale();
+        int fractionLength = Math.max(number.scale(), 0);
 
-        return (maxIntegerLength >= integerLength && maxFractionLength >= fractionLength);
+        return maxIntegerLength >= integerLength && maxFractionLength >= fractionLength;
     }
 
     @Override

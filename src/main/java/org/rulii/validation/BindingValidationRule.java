@@ -26,6 +26,7 @@ import org.rulii.context.RuleContext;
 import org.rulii.lib.apache.commons.logging.Log;
 import org.rulii.lib.apache.commons.logging.LogFactory;
 import org.rulii.lib.spring.util.Assert;
+import org.rulii.model.UnrulyException;
 
 import java.util.List;
 
@@ -93,13 +94,11 @@ public abstract class BindingValidationRule extends ValidationRule {
      */
     @PreCondition
     public boolean checkType(@Param(matchUsing = MatchByTypeMatchingStrategy.class) RuleContext ruleContext) {
-        if (ruleContext == null) throw new IllegalStateException("RuleContext not defined.");
+        if (ruleContext == null) throw new UnrulyException("RuleContext not defined.");
 
         Object value = getBindingValue(ruleContext);
 
-        boolean result = value == null || isSupported(value.getClass());
-        if (!result) LOG.warn("value is null or not supported.");
-        return result;
+        return value == null || isSupported(value.getClass());
     }
 
     /**
@@ -110,7 +109,7 @@ public abstract class BindingValidationRule extends ValidationRule {
      */
     @Given
     public boolean isValid(@Param(matchUsing = MatchByTypeMatchingStrategy.class) RuleContext ruleContext) {
-        if (ruleContext == null) throw new IllegalStateException("RuleContext not defined.");
+        if (ruleContext == null) throw new UnrulyException("RuleContext not defined.");
         return isValid(ruleContext, getBindingValue(ruleContext));
     }
 
@@ -123,8 +122,8 @@ public abstract class BindingValidationRule extends ValidationRule {
     @Otherwise
     public void otherwise(@Param(matchUsing = MatchByTypeMatchingStrategy.class) RuleContext ruleContext,
                           @Param(matchUsing = MatchByTypeMatchingStrategy.class) RuleViolations ruleViolations) {
-        if (ruleContext == null) throw new IllegalStateException("RuleContext not defined.");
-        if (ruleViolations == null) throw new IllegalStateException("RuleViolations not defined. Please define org.rulii.validation.RuleViolations binding and try again.");
+        if (ruleContext == null) throw new UnrulyException("RuleContext not defined.");
+        if (ruleViolations == null) throw new UnrulyException("RuleViolations not defined. Please define org.rulii.validation.RuleViolations binding and try again.");
 
         Object value = getBindingValue(ruleContext);
         RuleViolationBuilder builder = RuleViolation.builder().with(this);
@@ -134,8 +133,7 @@ public abstract class BindingValidationRule extends ValidationRule {
         if (parentName != null) builder.param("parent", parentName);
 
         customizeViolation(ruleContext, builder);
-        //ruleContext.getMessageResolver(), ruleContext.getMessageFormatter(), ruleContext.getLocale())
-        ruleViolations.add(builder.build());
+        ruleViolations.add(builder.build(ruleContext));
     }
 
     /**

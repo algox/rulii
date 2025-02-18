@@ -20,12 +20,11 @@ package org.rulii.validation.rules.asssert;
 import org.rulii.annotation.Description;
 import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
+import org.rulii.model.UnrulyException;
 import org.rulii.validation.BindingSupplier;
 import org.rulii.validation.BindingValidationRule;
 import org.rulii.validation.Severity;
-import org.rulii.validation.ValidationRuleException;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -38,9 +37,9 @@ import java.util.List;
 @Description("Value must be true.")
 public class AssertTrueValidationRule extends BindingValidationRule {
 
-    private static final List<Class<?>> SUPPORTED_TYPES = Arrays.asList(boolean.class, Boolean.class);
+    private static final List<Class<?>> SUPPORTED_TYPES = List.of(boolean.class, Boolean.class);
 
-    public static final String ERROR_CODE       = "rulii.validation.rules.AssertTrueValidationRule.errorCode";
+    public static final String ERROR_CODE       = "assertTrueValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE  = "Value must be true.";
 
     public AssertTrueValidationRule(String bindingName) {
@@ -62,7 +61,7 @@ public class AssertTrueValidationRule extends BindingValidationRule {
         if (value == null) return true;
 
         if (!(value instanceof Boolean)) {
-            throw new ValidationRuleException("AssertTrueValidationRule only applies to a boolean."
+            throw new UnrulyException("AssertTrueValidationRule only applies to a boolean."
                     + "Supplied Class [" + value.getClass() + "]");
         }
 

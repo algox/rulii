@@ -23,7 +23,7 @@ import org.rulii.context.RuleContext;
 import org.rulii.validation.*;
 
 /**
- * Validation Rule to make sure the the given BindingName is NOT defined.
+ * Validation Rule to make sure the given BindingName is NOT defined.
  *
  * @author Max Arulananthan
  * @since 1.0
@@ -32,8 +32,8 @@ import org.rulii.validation.*;
 @Description("Binding Name must NOT exist.")
 public class MustNotBeDefinedRule extends ValidationRule {
 
-    private static final String ERROR_CODE      = "rulii.validation.rules.MustNotBeDefinedRule.errorCode";
-    private static final String DEFAULT_MESSAGE = "Binding {0} must not be defined.";
+    public static final String ERROR_CODE      = "mustNotBeDefinedRule.errorCode";
+    public static final String DEFAULT_MESSAGE = "Binding {0} must not be defined.";
 
     private final String bindingName;
 
@@ -54,10 +54,10 @@ public class MustNotBeDefinedRule extends ValidationRule {
     @Otherwise
     public void otherwise(@Param(matchUsing = MatchByTypeMatchingStrategy.class) RuleContext ruleContext,
                           @Param(matchUsing = MatchByTypeMatchingStrategy.class) RuleViolations ruleViolations) {
-        RuleViolationBuilder builder = RuleViolation.builder().with(this)
+        RuleViolationBuilder builder = RuleViolation.builder()
+                .with(this)
                 .param("bindingName", bindingName);
-        //ruleContext.getMessageResolver(), ruleContext.getMessageFormatter(), ruleContext.getLocale()
-        ruleViolations.add(builder.build());
+        ruleViolations.add(builder.build(ruleContext));
     }
 
     public String getBindingName() {

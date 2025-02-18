@@ -21,16 +21,15 @@ import org.rulii.annotation.Description;
 import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.apache.StringUtils;
+import org.rulii.model.UnrulyException;
 import org.rulii.validation.BindingSupplier;
 import org.rulii.validation.BindingValidationRule;
 import org.rulii.validation.Severity;
-import org.rulii.validation.ValidationRuleException;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
- * Validation Rule to make sure the the value only contains alphanumeric letters (or spaces).
+ * Validation Rule to make sure the value only contains alphanumeric letters (or spaces).
  *
  * @author Max Arulananthan
  * @since 1.0
@@ -39,9 +38,9 @@ import java.util.List;
 @Description("Value can only contain unicode alphanumeric letters/spaces.")
 public class AlphaNumericValidationRule extends BindingValidationRule {
 
-    private static final List<Class<?>> SUPPORTED_TYPES = Arrays.asList(CharSequence.class);
+    private static final List<Class<?>> SUPPORTED_TYPES = List.of(CharSequence.class);
 
-    public static final String ERROR_CODE       = "rulii.validation.rules.AlphaNumericValidationRule.errorCode";
+    public static final String ERROR_CODE       = "alphaNumericValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE  = "Value must only contain alphanumeric letters. Given {0}.";
 
     private final boolean allowSpace;
@@ -67,7 +66,7 @@ public class AlphaNumericValidationRule extends BindingValidationRule {
         if (value == null) return true;
 
         if (!(value instanceof CharSequence))
-            throw new ValidationRuleException("AlphaNumericValidationRule only applies to CharSequences."
+            throw new UnrulyException("AlphaNumericValidationRule only applies to CharSequences."
                     + "Supplied Class [" + value.getClass() + "] value [" + value + "]");
 
         return isAllowSpace() ? StringUtils.isAlphanumericSpace((CharSequence) value) : StringUtils.isAlphanumeric((CharSequence) value);

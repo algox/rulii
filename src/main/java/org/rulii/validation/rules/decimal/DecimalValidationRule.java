@@ -20,10 +20,10 @@ package org.rulii.validation.rules.decimal;
 import org.rulii.annotation.Description;
 import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
+import org.rulii.model.UnrulyException;
 import org.rulii.validation.BindingSupplier;
 import org.rulii.validation.BindingValidationRule;
 import org.rulii.validation.Severity;
-import org.rulii.validation.ValidationRuleException;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -40,8 +40,8 @@ public class DecimalValidationRule extends BindingValidationRule {
 
     private static final List<Class<?>> SUPPORTED_TYPES = List.of(CharSequence.class);
 
-    public static final String ERROR_CODE       = "rulii.validation.rules.DecimalValidationRule.errorCode";
-    public static final String DEFAULT_MESSAGE  = "Value must be a valid decimal. Given {0}.";
+    public static final String ERROR_CODE       = "decimalValidationRule.errorCode";
+    public static final String DEFAULT_MESSAGE  = "Invalid decimal {0}.";
 
     private final boolean allowSpace;
 
@@ -65,7 +65,7 @@ public class DecimalValidationRule extends BindingValidationRule {
         if (value == null) return true;
 
         if (!(value instanceof CharSequence))
-            throw new ValidationRuleException("DecimalValidationRule only applies to CharSequences."
+            throw new UnrulyException("DecimalValidationRule only applies to CharSequences."
                     + "Supplied Class [" + value.getClass() + "] value [" + value + "]");
 
         String stringValue = isAllowSpace() ? value.toString().trim() : value.toString();
