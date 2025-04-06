@@ -26,6 +26,9 @@ import org.rulii.lib.apache.commons.logging.Log;
 import org.rulii.lib.apache.commons.logging.LogFactory;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.UnrulyException;
+import org.rulii.rule.Rule;
+import org.rulii.validation.RuleViolations;
+import org.rulii.validation.ValidationException;
 
 import java.util.UUID;
 
@@ -44,6 +47,42 @@ public abstract class RuleSetExecutionStrategyTemplate<T> implements RuleSetExec
 
     protected RuleSetExecutionStrategyTemplate() {
         super();
+    }
+
+    /**
+     * Runs input validators for the given rule set and rule context.
+     *
+     * @param ruleSet the rule set to validate (must not be null)
+     * @param ruleContext the rule context representing the current context (must not be null)
+     * @throws ValidationException if input validation fails
+     */
+    protected void runInputValidators(RuleSet<?> ruleSet, RuleContext ruleContext) throws ValidationException {
+        Assert.notNull(ruleSet, "ruleSet cannot be null.");
+        Assert.notNull(ruleContext, "ruleContext cannot be null.");
+
+        if (ruleSet.getInputValidators() == null || ruleSet.getInputValidators().isEmpty()) return;
+
+        NamedScope scope = ruleContext.getBindings().addScope();
+        RuleViolations violations = new RuleViolations();
+
+        try {
+            ruleContext.getBindings().bind("ruleViolations", violations);
+
+            for (Rule inputValidator : ruleSet.getInputValidationRules()) {
+                inputValidator.run(ruleContext);
+            }
+
+        } catch (Exception e) {
+            throw new ValidationException("RuleSet [" + ruleSet.getName() + "] input validation failed.", e, violations);
+        } finally {
+            ruleContext.getBindings().removeScope(scope);
+        }
+
+        ruleContext.getTracer().fireOnRuleSetInputCheck(ruleSet, violations);
+
+        if (violations.hasSevereErrors()) {
+            throw new ValidationException("Input validation failed for RuleSet [" + ruleSet.getName() + "]", violations);
+        }
     }
 
     /**

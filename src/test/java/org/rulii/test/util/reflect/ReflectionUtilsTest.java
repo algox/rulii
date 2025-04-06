@@ -17,6 +17,7 @@
  */
 package org.rulii.test.util.reflect;
 
+import jakarta.annotation.PostConstruct;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.rulii.annotation.Action;
@@ -28,7 +29,6 @@ import org.rulii.model.function.TriFunction;
 import org.rulii.util.reflect.LambdaUtils;
 import org.rulii.util.reflect.ReflectionUtils;
 
-import javax.annotation.PostConstruct;
 import java.io.Serializable;
 import java.lang.invoke.SerializedLambda;
 import java.lang.reflect.Method;

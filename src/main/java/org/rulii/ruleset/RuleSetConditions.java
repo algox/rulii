@@ -108,7 +108,7 @@ public final class RuleSetConditions {
      *
      * @return the Condition instance representing the behavior to stop when at least one condition fails or skipped items exceed the given threshold
      */
-    public static Condition stopWhenOneFailsOrSKipped() {
+    public static Condition stopWhenOneFailsOrSkipped() {
         return stopOnFailCount(1).or(stopOnSkipCount(1));
     }
 
@@ -205,7 +205,6 @@ public final class RuleSetConditions {
                     for (Rule rule : ruleSet) {
                         if (rule.isTrue(ruleContext)) {
                             count++;
-                            break;
                         }
                     }
 

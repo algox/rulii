@@ -18,10 +18,6 @@
 package org.rulii.util;
 
 import java.time.*;
-import java.time.chrono.HijrahDate;
-import java.time.chrono.JapaneseDate;
-import java.time.chrono.MinguoDate;
-import java.time.chrono.ThaiBuddhistDate;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -32,6 +28,7 @@ import java.util.Map;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 public final class TimeComparator {
 
@@ -51,10 +48,6 @@ public final class TimeComparator {
         comparators.put(Year.class, (TemporalComparator<Year>) TimeComparator::compare);
         comparators.put(YearMonth.class, (TemporalComparator<YearMonth>) TimeComparator::compare);
         comparators.put(ZonedDateTime.class, (TemporalComparator<ZonedDateTime>) TimeComparator::compare);
-        comparators.put(HijrahDate.class, (TemporalComparator<HijrahDate>) TimeComparator::compare);
-        comparators.put(JapaneseDate.class, (TemporalComparator<JapaneseDate>) TimeComparator::compare);
-        comparators.put(MinguoDate.class, (TemporalComparator<MinguoDate>) TimeComparator::compare);
-        comparators.put(ThaiBuddhistDate.class, (TemporalComparator<ThaiBuddhistDate>) TimeComparator::compare);
     }
 
     private TimeComparator() {
@@ -90,7 +83,8 @@ public final class TimeComparator {
      *         a positive value if the value is after the current time, or {@code null} if a comparator could not be found
      */
     public static int compare(Calendar value, Clock clock) {
-        return value.toInstant().compareTo(clock.instant());
+        Long millis = value.getTimeInMillis();
+        return millis.compareTo(clock.millis());
     }
 
     /**
@@ -115,7 +109,7 @@ public final class TimeComparator {
      *         or a positive integer if the value is after the current instant
      */
     public static int compare(java.sql.Date value, Clock clock) {
-        return value.toInstant().compareTo(clock.instant());
+        return value.compareTo(new Date(clock.millis()));
     }
 
     /**
@@ -236,54 +230,6 @@ public final class TimeComparator {
      */
     public static int compare(ZonedDateTime value, Clock clock) {
         return value.compareTo(ZonedDateTime.now(clock));
-    }
-
-    /**
-     * Compares the given HijrahDate value with the current time using a specified Clock.
-     *
-     * @param value the HijrahDate value to compare
-     * @param clock the Clock to use for comparison
-     * @return 0 if the value is equal to the current time, a negative value if the value is before the current time,
-     *         a positive value if the value is after the current time
-     */
-    public static int compare(HijrahDate value, Clock clock) {
-        return value.compareTo(HijrahDate.now(clock));
-    }
-
-    /**
-     * Compares the given JapaneseDate value with the current time using a specified Clock.
-     *
-     * @param value the JapaneseDate value to compare
-     * @param clock the Clock to use for comparison
-     * @return 0 if the value is equal to the current time, a negative value if the value is before the current time,
-     *         a positive value if the value is after the current time
-     */
-    public static int compare(JapaneseDate value, Clock clock) {
-        return value.compareTo(JapaneseDate.now(clock));
-    }
-
-    /**
-     * Compares the given MinguoDate value with the current time using the specified Clock.
-     *
-     * @param value the MinguoDate value to compare
-     * @param clock the Clock to use for comparison
-     * @return 0 if the value is equal to the current time, a negative value if the value is before the current time,
-     *         a positive value if the value is after the current time
-     */
-    public static int compare(MinguoDate value, Clock clock) {
-        return value.compareTo(MinguoDate.now(clock));
-    }
-
-    /**
-     * Compares the given ThaiBuddhistDate value with the current time using a suitable comparator.
-     *
-     * @param value the ThaiBuddhistDate value to compare
-     * @param clock the clock to use for comparison
-     * @return 0 if the value is equal to the current time, a negative value if the value is before the current time,
-     *         a positive value if the value is after the current time, or null if a comparator could not be found
-     */
-    public static int compare(ThaiBuddhistDate value, Clock clock) {
-        return value.compareTo(ThaiBuddhistDate.now(clock));
     }
 
     /**

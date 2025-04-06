@@ -158,6 +158,16 @@ public class RuleViolations implements Iterable<RuleViolation> {
     }
 
     /**
+     * Retrieves the RuleViolation object at the specified index.
+     *
+     * @param index the index of the RuleViolation object to retrieve
+     * @return the RuleViolation object at the specified index
+     */
+    public RuleViolation getViolation(int index) {
+        return errors.get(index);
+    }
+
+    /**
      * Returns all the associated violation.
      *
      * @return Rule Violations.
@@ -184,7 +194,10 @@ public class RuleViolations implements Iterable<RuleViolation> {
     @Override
     public String toString() {
         StringBuilder result = new StringBuilder("Violations [");
-        errors.forEach(error -> result.append(error.toString()).append(System.lineSeparator()).append("]"));
+        for (int i = 0; i < errors.size(); i++) {
+            result.append(errors.get(i).toString()).append("]");
+            if (i < errors.size() - 1) result.append(System.lineSeparator());
+        }
         return result.toString();
     }
 }

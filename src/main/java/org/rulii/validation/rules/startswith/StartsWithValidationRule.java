@@ -21,11 +21,7 @@ import org.rulii.annotation.Description;
 import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.spring.util.Assert;
-import org.rulii.validation.BindingSupplier;
-import org.rulii.validation.BindingValidationRule;
-import org.rulii.validation.RuleViolationBuilder;
-import org.rulii.validation.Severity;
-import org.rulii.validation.ValidationRuleException;
+import org.rulii.validation.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -35,17 +31,18 @@ import java.util.List;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 @Rule
 @Description("Value must start with one of the given prefixes.")
 public class StartsWithValidationRule extends BindingValidationRule {
 
-    public static List<Class<?>> SUPPORTED_TYPES    = Arrays.asList(CharSequence.class);
+    public static List<Class<?>> SUPPORTED_TYPES    = List.of(CharSequence.class);
 
-    public static final String ERROR_CODE       = "rulii.validation.rules.StartsWithValidationRule.errorCode";
-    public static final String DEFAULT_MESSAGE  = "Value must start with one of the given prefixes {1}. Given {0}.";
+    public static final String ERROR_CODE       = "startsWithValidationRule.errorCode";
+    public static final String DEFAULT_MESSAGE  = "Value {0} must start with one of the given prefixes {1}.";
 
-    private String[] prefixes;
+    private final String[] prefixes;
 
     public StartsWithValidationRule(String bindingName, String...prefixes) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null, prefixes);

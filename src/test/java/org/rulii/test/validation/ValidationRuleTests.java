@@ -19,6 +19,7 @@ package org.rulii.test.validation;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.rulii.context.RuleContext;
 import org.rulii.model.UnrulyException;
 import org.rulii.rule.Rule;
 import org.rulii.rule.RuleResult;
@@ -38,9 +39,34 @@ import org.rulii.validation.rules.digits.DigitsValidationRule;
 import org.rulii.validation.rules.email.EmailValidationRule;
 import org.rulii.validation.rules.endswith.EndsWithValidationRule;
 import org.rulii.validation.rules.fileexists.FileExistsValidationRule;
+import org.rulii.validation.rules.future.FutureOrPresentValidationRule;
+import org.rulii.validation.rules.future.FutureValidationRule;
+import org.rulii.validation.rules.in.InValidationRule;
+import org.rulii.validation.rules.lowercase.LowerCaseValidationRule;
+import org.rulii.validation.rules.max.DecimalMaxValidationRule;
+import org.rulii.validation.rules.max.MaxValidationRule;
+import org.rulii.validation.rules.min.DecimalMinValidationRule;
+import org.rulii.validation.rules.min.MinValidationRule;
+import org.rulii.validation.rules.negative.NegativeOrZeroValidationRule;
+import org.rulii.validation.rules.negative.NegativeValidationRule;
+import org.rulii.validation.rules.notblank.NotBlankValidationRule;
+import org.rulii.validation.rules.notempty.NotEmptyValidationRule;
+import org.rulii.validation.rules.notnull.NotNullValidationRule;
+import org.rulii.validation.rules.nulll.NullValidationRule;
+import org.rulii.validation.rules.numeric.NumericValidationRule;
+import org.rulii.validation.rules.past.PastOrPresentValidationRule;
+import org.rulii.validation.rules.past.PastValidationRule;
+import org.rulii.validation.rules.pattern.PatternValidationRule;
+import org.rulii.validation.rules.positive.PositiveOrZeroValidationRule;
+import org.rulii.validation.rules.positive.PositiveValidationRule;
+import org.rulii.validation.rules.size.SizeValidationRule;
+import org.rulii.validation.rules.startswith.StartsWithValidationRule;
+import org.rulii.validation.rules.uppercase.UpperCaseValidationRule;
+import org.rulii.validation.rules.url.UrlValidationRule;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
+import java.time.*;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -98,7 +124,7 @@ public class ValidationRuleTests {
         RuleViolation violation = errors.getViolations().get(0);
         assertEquals(AlphaValidationRule.ERROR_CODE, violation.getErrorCode());
         assertEquals(Severity.ERROR, violation.getSeverity());
-        assertEquals("Value must only contain unicode letters. Given abc~.", violation.getErrorMessage());
+        assertEquals("Value abc~ must only contain unicode letters.", violation.getErrorMessage());
     }
 
     @Test
@@ -119,8 +145,9 @@ public class ValidationRuleTests {
     public void alphaTest5() {
         AlphaValidationRule validationRule = new AlphaValidationRule("value");
         Rule rule = Rule.builder().build(validationRule);
-        Assertions.assertThrows(UnrulyException.class, rule::run);
-        RuleResult result = rule.run(value -> null);
+        RuleResult result = rule.run();
+        assertTrue(result.status().isSkipped());
+        result = rule.run(value -> null);
         assertTrue(result.status().isPass());
     }
 
@@ -174,7 +201,7 @@ public class ValidationRuleTests {
         RuleViolation violation = errors.getViolations().get(0);
         assertEquals(AlphaNumericValidationRule.ERROR_CODE, violation.getErrorCode());
         assertEquals(Severity.ERROR, violation.getSeverity());
-        assertEquals("Value must only contain alphanumeric letters. Given abc1~.", violation.getErrorMessage());
+        assertEquals("Value abc1~ must only contain alphanumeric letters.", violation.getErrorMessage());
     }
 
     @Test
@@ -195,8 +222,9 @@ public class ValidationRuleTests {
     public void alphaNumericTest5() {
         AlphaNumericValidationRule validationRule = new AlphaNumericValidationRule("value");
         Rule rule = Rule.builder().build(validationRule);
-        Assertions.assertThrows(UnrulyException.class, rule::run);
-        RuleResult result = rule.run(value -> null);
+        RuleResult result = rule.run();
+        assertTrue(result.status().isSkipped());
+        result = rule.run(value -> null);
         assertTrue(result.status().isPass());
     }
 
@@ -249,7 +277,7 @@ public class ValidationRuleTests {
         RuleViolation violation = errors.getViolations().get(0);
         assertEquals(AsciiValidationRule.ERROR_CODE, violation.getErrorCode());
         assertEquals(Severity.ERROR, violation.getSeverity());
-        assertEquals("Value must only contain ASCII printable characters. Given abc1é.", violation.getErrorMessage());
+        assertEquals("Value abc1é must only contain ASCII printable characters.", violation.getErrorMessage());
     }
 
     @Test
@@ -270,8 +298,9 @@ public class ValidationRuleTests {
     public void asciiTest5() {
         AsciiValidationRule validationRule = new AsciiValidationRule("value");
         Rule rule = Rule.builder().build(validationRule);
-        Assertions.assertThrows(UnrulyException.class, rule::run);
-        RuleResult result = rule.run(value -> null);
+        RuleResult result = rule.run();
+        assertTrue(result.status().isSkipped());
+        result = rule.run(value -> null);
         assertTrue(result.status().isPass());
     }
 
@@ -345,8 +374,9 @@ public class ValidationRuleTests {
     public void assertFalseTest5() {
         AssertFalseValidationRule validationRule = new AssertFalseValidationRule("value");
         Rule rule = Rule.builder().build(validationRule);
-        Assertions.assertThrows(UnrulyException.class, rule::run);
-        RuleResult result = rule.run(value -> null);
+        RuleResult result = rule.run();
+        assertTrue(result.status().isSkipped());
+        result = rule.run(value -> null);
         assertTrue(result.status().isPass());
     }
 
@@ -421,8 +451,9 @@ public class ValidationRuleTests {
     public void assertTrueTest5() {
         AssertTrueValidationRule validationRule = new AssertTrueValidationRule("value");
         Rule rule = Rule.builder().build(validationRule);
-        Assertions.assertThrows(UnrulyException.class, rule::run);
-        RuleResult result = rule.run(value -> null);
+        RuleResult result = rule.run();
+        assertTrue(result.status().isSkipped());
+        result = rule.run(value -> null);
         assertTrue(result.status().isPass());
     }
 
@@ -563,7 +594,7 @@ public class ValidationRuleTests {
         RuleViolation violation = errors.getViolations().get(0);
         assertEquals(BlankValidationRule.ERROR_CODE, violation.getErrorCode());
         assertEquals(Severity.ERROR, violation.getSeverity());
-        assertEquals("Value must be blank. Given zzzz.", violation.getErrorMessage());
+        assertEquals("Value zzzz must be blank.", violation.getErrorMessage());
     }
 
     @Test
@@ -584,8 +615,9 @@ public class ValidationRuleTests {
     public void blankTest5() {
         BlankValidationRule validationRule = new BlankValidationRule("value");
         Rule rule = Rule.builder().build(validationRule);
-        Assertions.assertThrows(UnrulyException.class, rule::run);
-        RuleResult result = rule.run(value -> null);
+        RuleResult result = rule.run();
+        assertTrue(result.status().isSkipped());
+        result = rule.run(value -> null);
         assertTrue(result.status().isPass());
     }
 
@@ -662,8 +694,9 @@ public class ValidationRuleTests {
     public void decimalTest5() {
         DecimalValidationRule validationRule = new DecimalValidationRule("value");
         Rule rule = Rule.builder().build(validationRule);
-        Assertions.assertThrows(UnrulyException.class, rule::run);
-        RuleResult result = rule.run(value -> null);
+        RuleResult result = rule.run();
+        assertTrue(result.status().isSkipped());
+        result = rule.run(value -> null);
         assertTrue(result.status().isPass());
     }
 
@@ -744,8 +777,9 @@ public class ValidationRuleTests {
     public void digitsTest5() {
         DigitsValidationRule validationRule = new DigitsValidationRule("value", 2, 2);
         Rule rule = Rule.builder().build(validationRule);
-        Assertions.assertThrows(UnrulyException.class, rule::run);
-        RuleResult result = rule.run(value -> null);
+        RuleResult result = rule.run();
+        assertTrue(result.status().isSkipped());
+        result = rule.run(value -> null);
         assertTrue(result.status().isPass());
     }
 
@@ -828,8 +862,9 @@ public class ValidationRuleTests {
     public void emailTest5() {
         EmailValidationRule validationRule = new EmailValidationRule("value", true, false);
         Rule rule = Rule.builder().build(validationRule);
-        Assertions.assertThrows(UnrulyException.class, rule::run);
-        RuleResult result = rule.run(value -> null);
+        RuleResult result = rule.run();
+        assertTrue(result.status().isSkipped());
+        result = rule.run(value -> null);
         assertTrue(result.status().isPass());
     }
 
@@ -913,8 +948,9 @@ public class ValidationRuleTests {
     public void endsWithTest5() {
         EndsWithValidationRule validationRule = new EndsWithValidationRule("value", "yyy");
         Rule rule = Rule.builder().build(validationRule);
-        Assertions.assertThrows(UnrulyException.class, rule::run);
-        RuleResult result = rule.run(value -> null);
+        RuleResult result = rule.run();
+        assertTrue(result.status().isSkipped());
+        result = rule.run(value -> null);
         assertTrue(result.status().isPass());
     }
 
@@ -969,7 +1005,8 @@ public class ValidationRuleTests {
 
     @Test
     public void fileExistsTest4() {
-        Rule rule = Rule.builder().build(new FileExistsValidationRule("value", "fileExistsWithError1", Severity.FATAL, "File Exists With Error Message"));
+        Rule rule = Rule.builder().build(new FileExistsValidationRule("value", "fileExistsWithError1", Severity.FATAL,
+                "File Exists With Error Message"));
         RuleViolations errors = new RuleViolations();
         RuleResult result = rule.run(ruleViolations -> errors, value -> "d:/temp/xxx.123");
         assertTrue(result.status().isFail());
@@ -985,8 +1022,9 @@ public class ValidationRuleTests {
     public void fileExistsTest5() {
         FileExistsValidationRule validationRule = new FileExistsValidationRule("value");
         Rule rule = Rule.builder().build(validationRule);
-        Assertions.assertThrows(UnrulyException.class, rule::run);
-        RuleResult result = rule.run(value -> null);
+        RuleResult result = rule.run();
+        assertTrue(result.status().isSkipped());
+        result = rule.run(value -> null);
         assertTrue(result.status().isPass());
     }
 
@@ -998,4 +1036,714 @@ public class ValidationRuleTests {
         assertTrue(result.status().isSkipped());
     }
 
+    @Test
+    public void futureOrPresentTest1() {
+        FutureOrPresentValidationRule validationRule = new FutureOrPresentValidationRule("value");
+        Clock fixedClock = Clock.fixed(Instant.now(), ZoneId.systemDefault());
+
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {}
+
+        RuleResult result = runDateTest(validationRule, fixedClock, new Date(fixedClock.millis() + 1));
+        assertTrue(result.status().isPass());
+
+        result = runDateTest(validationRule, fixedClock, fixedClock.instant());
+        assertTrue(result.status().isPass());
+
+        result = runDateTest(validationRule, fixedClock, new java.sql.Date(fixedClock.millis() - 1));
+        assertTrue(result.status().isFail());
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(fixedClock.millis());
+        result = runDateTest(validationRule, fixedClock, calendar);
+        assertTrue(result.status().isPass());
+
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(fixedClock.millis() - 1);
+        result = runDateTest(validationRule, fixedClock, cal);
+        assertTrue(result.status().isFail());
+
+        result = runDateTest(validationRule, fixedClock, LocalDateTime.now());
+        assertTrue(result.status().isPass());
+
+        result = runDateTest(validationRule, fixedClock, LocalTime.now());
+        assertTrue(result.status().isPass());
+
+        result = runDateTest(validationRule, fixedClock, OffsetDateTime.now());
+        assertTrue(result.status().isPass());
+
+        result = runDateTest(validationRule, fixedClock, OffsetTime.now());
+        assertTrue(result.status().isPass());
+
+        result = runDateTest(validationRule, fixedClock, MonthDay.now());
+        assertTrue(result.status().isPass());
+
+        result = runDateTest(validationRule, fixedClock, Year.now());
+        assertTrue(result.status().isPass());
+
+        result = runDateTest(validationRule, fixedClock, YearMonth.now());
+        assertTrue(result.status().isPass());
+
+        result = runDateTest(validationRule, fixedClock, ZonedDateTime.now());
+        assertTrue(result.status().isPass());
+
+        result = runDateTest(validationRule, fixedClock, Calendar.getInstance());
+        assertTrue(result.status().isPass());
+
+        result = runDateTest(validationRule, fixedClock, Instant.now());
+        assertTrue(result.status().isPass());
+    }
+
+    @Test
+    public void pastOrPresentTest1() {
+        PastOrPresentValidationRule validationRule = new PastOrPresentValidationRule("value");
+        Clock fixedClock = Clock.fixed(Instant.now(), ZoneId.systemDefault());
+
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {}
+
+        RuleResult result = runDateTest(validationRule, fixedClock, new Date(fixedClock.millis() - 1));
+        assertTrue(result.status().isPass());
+
+        result = runDateTest(validationRule, fixedClock, fixedClock.instant());
+        assertTrue(result.status().isPass());
+
+        result = runDateTest(validationRule, fixedClock, new java.sql.Date(fixedClock.millis() + 1));
+        assertTrue(result.status().isFail());
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(fixedClock.millis());
+        result = runDateTest(validationRule, fixedClock, calendar);
+        assertTrue(result.status().isPass());
+
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(fixedClock.millis() + 1);
+        result = runDateTest(validationRule, fixedClock, cal);
+        assertTrue(result.status().isFail());
+
+        result = runDateTest(validationRule, fixedClock, LocalDateTime.now());
+        assertTrue(result.status().isFail());
+
+        result = runDateTest(validationRule, fixedClock, LocalTime.now());
+        assertTrue(result.status().isFail());
+
+        result = runDateTest(validationRule, fixedClock, OffsetDateTime.now());
+        assertTrue(result.status().isFail());
+
+        result = runDateTest(validationRule, fixedClock, OffsetTime.now());
+        assertTrue(result.status().isFail());
+
+        result = runDateTest(validationRule, fixedClock, MonthDay.now());
+        assertTrue(result.status().isPass());
+
+        result = runDateTest(validationRule, fixedClock, Year.now());
+        assertTrue(result.status().isPass());
+
+        result = runDateTest(validationRule, fixedClock, YearMonth.now());
+        assertTrue(result.status().isPass());
+
+        result = runDateTest(validationRule, fixedClock, ZonedDateTime.now());
+        assertTrue(result.status().isFail());
+
+        result = runDateTest(validationRule, fixedClock, Calendar.getInstance());
+        assertTrue(result.status().isFail());
+
+        result = runDateTest(validationRule, fixedClock, Instant.now());
+        assertTrue(result.status().isFail());
+    }
+
+    @Test
+    public void futureTest1() {
+        FutureValidationRule validationRule = new FutureValidationRule("value");
+        Clock fixedClock = Clock.fixed(Instant.now(), ZoneId.systemDefault());
+
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {}
+
+        RuleResult result = runDateTest(validationRule, fixedClock, new Date(fixedClock.millis() + 1));
+        assertTrue(result.status().isPass());
+
+        result = runDateTest(validationRule, fixedClock, fixedClock.instant());
+        assertTrue(result.status().isFail());
+
+        result = runDateTest(validationRule, fixedClock, new java.sql.Date(fixedClock.millis() - 1));
+        assertTrue(result.status().isFail());
+
+        result = runDateTest(validationRule, fixedClock, new java.sql.Date(fixedClock.millis() + 1));
+        assertTrue(result.status().isPass());
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(fixedClock.millis() + 1);
+        result = runDateTest(validationRule, fixedClock, calendar);
+        assertTrue(result.status().isPass());
+
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(fixedClock.millis() - 1);
+        result = runDateTest(validationRule, fixedClock, cal);
+        assertTrue(result.status().isFail());
+
+        result = runDateTest(validationRule, fixedClock, LocalDateTime.now());
+        assertTrue(result.status().isPass());
+
+        result = runDateTest(validationRule, fixedClock, LocalTime.now());
+        assertTrue(result.status().isPass());
+
+        result = runDateTest(validationRule, fixedClock, OffsetDateTime.now());
+        assertTrue(result.status().isPass());
+
+        result = runDateTest(validationRule, fixedClock, OffsetTime.now());
+        assertTrue(result.status().isPass());
+
+        result = runDateTest(validationRule, fixedClock, MonthDay.now());
+        assertTrue(result.status().isFail());
+
+        result = runDateTest(validationRule, fixedClock, Year.now());
+        assertTrue(result.status().isFail());
+
+        result = runDateTest(validationRule, fixedClock, YearMonth.now());
+        assertTrue(result.status().isFail());
+
+        result = runDateTest(validationRule, fixedClock, ZonedDateTime.now());
+        assertTrue(result.status().isPass());
+
+        result = runDateTest(validationRule, fixedClock, Calendar.getInstance());
+        assertTrue(result.status().isPass());
+
+        result = runDateTest(validationRule, fixedClock, Instant.now());
+        assertTrue(result.status().isPass());
+    }
+
+    @Test
+    public void pastTest1() {
+        PastValidationRule validationRule = new PastValidationRule("value");
+        Clock fixedClock = Clock.fixed(Instant.now(), ZoneId.systemDefault());
+
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {}
+
+        RuleResult result = runDateTest(validationRule, fixedClock, new Date(fixedClock.millis() - 1));
+        assertTrue(result.status().isPass());
+
+        result = runDateTest(validationRule, fixedClock, fixedClock.instant());
+        assertTrue(result.status().isFail());
+
+        result = runDateTest(validationRule, fixedClock, new java.sql.Date(fixedClock.millis() + 1));
+        assertTrue(result.status().isFail());
+
+        result = runDateTest(validationRule, fixedClock, new java.sql.Date(fixedClock.millis() - 1));
+        assertTrue(result.status().isPass());
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(fixedClock.millis() - 1);
+        result = runDateTest(validationRule, fixedClock, calendar);
+        assertTrue(result.status().isPass());
+
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(fixedClock.millis() + 1);
+        result = runDateTest(validationRule, fixedClock, cal);
+        assertTrue(result.status().isFail());
+
+        result = runDateTest(validationRule, fixedClock, LocalDateTime.now());
+        assertTrue(result.status().isFail());
+
+        result = runDateTest(validationRule, fixedClock, LocalTime.now());
+        assertTrue(result.status().isFail());
+
+        result = runDateTest(validationRule, fixedClock, OffsetDateTime.now());
+        assertTrue(result.status().isFail());
+
+        result = runDateTest(validationRule, fixedClock, OffsetTime.now());
+        assertTrue(result.status().isFail());
+
+        result = runDateTest(validationRule, fixedClock, MonthDay.now());
+        assertTrue(result.status().isFail());
+
+        result = runDateTest(validationRule, fixedClock, Year.now());
+        assertTrue(result.status().isFail());
+
+        result = runDateTest(validationRule, fixedClock, YearMonth.now());
+        assertTrue(result.status().isFail());
+
+        result = runDateTest(validationRule, fixedClock, ZonedDateTime.now());
+        assertTrue(result.status().isFail());
+
+        result = runDateTest(validationRule, fixedClock, Calendar.getInstance());
+        assertTrue(result.status().isFail());
+
+        result = runDateTest(validationRule, fixedClock, Instant.now());
+        assertTrue(result.status().isFail());
+    }
+
+    private RuleResult runDateTest(Object ruleObject, Clock fixedClock, Object dateValue) {
+        RuleContext context = RuleContext.builder()
+                .with(value -> dateValue, violations -> new RuleViolations())
+                .clock(fixedClock).build();
+        Rule rule = Rule.builder().build(ruleObject);
+        return rule.run(context);
+    }
+
+    @Test
+    public void futureOrPresentTest2() {
+        FutureOrPresentValidationRule validationRule = new FutureOrPresentValidationRule("value");
+        Rule rule = Rule.builder().build(validationRule);
+        RuleResult result = rule.run(value -> LocalDate.now().plusDays(1));
+        assertTrue(result.status().isPass());
+
+        RuleViolations errors = new RuleViolations();
+        result = rule.run(ruleViolations -> errors, value -> LocalDate.now().minusDays(1));
+        assertTrue(result.status().isFail());
+        assertTrue(errors.hasErrors());
+        assertEquals(1, errors.getViolations().size());
+        RuleViolation violation = errors.getViolations().get(0);
+        assertEquals(FutureOrPresentValidationRule.ERROR_CODE, violation.getErrorCode());
+        assertEquals(Severity.ERROR, violation.getSeverity());
+    }
+
+    @Test
+    public void inValidationRuleTest() {
+        List<String> values = List.of("a", "b", "c");
+        InValidationRule validationRule = new InValidationRule("value", values);
+        Rule rule = Rule.builder().build(validationRule);
+        RuleResult result = rule.run(value -> "b");
+        assertTrue(result.status().isPass());
+
+        RuleViolations errors = new RuleViolations();
+        result = rule.run(ruleViolations -> errors, value -> "xxx");
+        assertTrue(result.status().isFail());
+        assertTrue(errors.hasSevereErrors());
+        assertEquals(1, errors.getViolations().size());
+        RuleViolation violation = errors.getViolations().get(0);
+        assertEquals(InValidationRule.ERROR_CODE, violation.getErrorCode());
+        assertEquals(Severity.ERROR, violation.getSeverity());
+        assertEquals("Value xxx not found in one of the given values " + values + ".", violation.getErrorMessage());
+    }
+
+    @Test
+    public void lowerCaseValidationRuleTest() {
+        LowerCaseValidationRule validationRule = new LowerCaseValidationRule("value");
+        Rule rule = Rule.builder().build(validationRule);
+        RuleResult result = rule.run(value -> "bdkflgdlskfgwerioslvxzvcnsldkfjsdklf");
+        assertTrue(result.status().isPass());
+
+        RuleViolations errors = new RuleViolations();
+        result = rule.run(ruleViolations -> errors, value -> "HJKHSJKA");
+        assertTrue(result.status().isFail());
+        assertTrue(errors.hasSevereErrors());
+        assertEquals(1, errors.getViolations().size());
+        RuleViolation violation = errors.getViolations().get(0);
+        assertEquals(LowerCaseValidationRule.ERROR_CODE, violation.getErrorCode());
+        assertEquals(Severity.ERROR, violation.getSeverity());
+        assertEquals("Value HJKHSJKA must be in lowercase.", violation.getErrorMessage());
+    }
+
+    @Test
+    public void decimalMaxValidationRuleTest() {
+        DecimalMaxValidationRule validationRule = new DecimalMaxValidationRule("value", new BigDecimal("1000.00"), true);
+        Rule rule = Rule.builder().build(validationRule);
+        RuleResult result = rule.run(value -> "999.99");
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> 999.99);
+        assertTrue(result.status().isPass());
+
+        RuleViolations errors = new RuleViolations();
+        result = rule.run(ruleViolations -> errors, value -> "1000.001");
+        assertTrue(result.status().isFail());
+        assertTrue(errors.hasSevereErrors());
+        assertEquals(1, errors.getViolations().size());
+        RuleViolation violation = errors.getViolations().get(0);
+        assertEquals(DecimalMaxValidationRule.ERROR_CODE, violation.getErrorCode());
+        assertEquals(Severity.ERROR, violation.getSeverity());
+        assertEquals("Value 1000.001 must not be less than or equal to 1,000.", violation.getErrorMessage());
+    }
+
+    @Test
+    public void maxValidationRuleTest() {
+        MaxValidationRule validationRule = new MaxValidationRule("value", 1000);
+        Rule rule = Rule.builder().build(validationRule);
+        RuleResult result = rule.run(value -> "999");
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> 999.99);
+        assertTrue(result.status().isPass());
+
+        RuleViolations errors = new RuleViolations();
+        result = rule.run(ruleViolations -> errors, value -> 1001);
+        assertTrue(result.status().isFail());
+        assertTrue(errors.hasSevereErrors());
+        assertEquals(1, errors.getViolations().size());
+        RuleViolation violation = errors.getViolations().get(0);
+        assertEquals(MaxValidationRule.ERROR_CODE, violation.getErrorCode());
+        assertEquals(Severity.ERROR, violation.getSeverity());
+        assertEquals("Value 1,001 must not be less than or equal to 1,000.", violation.getErrorMessage());
+    }
+
+    @Test
+    public void decimalMinValidationRuleTest() {
+        DecimalMinValidationRule validationRule = new DecimalMinValidationRule("value", new BigDecimal("1000.00"), true);
+        Rule rule = Rule.builder().build(validationRule);
+        RuleResult result = rule.run(value -> "1001");
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> 5000);
+        assertTrue(result.status().isPass());
+
+        RuleViolations errors = new RuleViolations();
+        result = rule.run(ruleViolations -> errors, value -> "999");
+        assertTrue(result.status().isFail());
+        assertTrue(errors.hasSevereErrors());
+        assertEquals(1, errors.getViolations().size());
+        RuleViolation violation = errors.getViolations().get(0);
+        assertEquals(DecimalMinValidationRule.ERROR_CODE, violation.getErrorCode());
+        assertEquals(Severity.ERROR, violation.getSeverity());
+        assertEquals("Value 999 must be greater than or equal to 1,000.", violation.getErrorMessage());
+    }
+
+    @Test
+    public void minValidationRuleTest() {
+        MinValidationRule validationRule = new MinValidationRule("value", 1000);
+        Rule rule = Rule.builder().build(validationRule);
+        RuleResult result = rule.run(value -> "1099");
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> 1999.99);
+        assertTrue(result.status().isPass());
+
+        RuleViolations errors = new RuleViolations();
+        result = rule.run(ruleViolations -> errors, value -> 10);
+        assertTrue(result.status().isFail());
+        assertTrue(errors.hasSevereErrors());
+        assertEquals(1, errors.getViolations().size());
+        RuleViolation violation = errors.getViolations().get(0);
+        assertEquals(MinValidationRule.ERROR_CODE, violation.getErrorCode());
+        assertEquals(Severity.ERROR, violation.getSeverity());
+        assertEquals("Value 10 must be greater than or equal to 1,000.", violation.getErrorMessage());
+    }
+
+    @Test
+    public void negativeOrZeroValidationRuleTest() {
+        NegativeOrZeroValidationRule validationRule = new NegativeOrZeroValidationRule("value");
+        Rule rule = Rule.builder().build(validationRule);
+        RuleResult result = rule.run(value -> "0");
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> -50);
+        assertTrue(result.status().isPass());
+
+        RuleViolations errors = new RuleViolations();
+        result = rule.run(ruleViolations -> errors, value -> 10);
+        assertTrue(result.status().isFail());
+        assertTrue(errors.hasSevereErrors());
+        assertEquals(1, errors.getViolations().size());
+        RuleViolation violation = errors.getViolations().get(0);
+        assertEquals(NegativeOrZeroValidationRule.ERROR_CODE, violation.getErrorCode());
+        assertEquals(Severity.ERROR, violation.getSeverity());
+        assertEquals("Value 10 must be less than or equal to 0.", violation.getErrorMessage());
+    }
+
+    @Test
+    public void negativeValidationRuleTest() {
+        NegativeValidationRule validationRule = new NegativeValidationRule("value");
+        Rule rule = Rule.builder().build(validationRule);
+        RuleResult result = rule.run(value -> "-1");
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> -50);
+        assertTrue(result.status().isPass());
+
+        RuleViolations errors = new RuleViolations();
+        result = rule.run(ruleViolations -> errors, value -> 0);
+        assertTrue(result.status().isFail());
+        assertTrue(errors.hasSevereErrors());
+        assertEquals(1, errors.getViolations().size());
+        RuleViolation violation = errors.getViolations().get(0);
+        assertEquals(NegativeValidationRule.ERROR_CODE, violation.getErrorCode());
+        assertEquals(Severity.ERROR, violation.getSeverity());
+        assertEquals("Value 0 must be less than 0.", violation.getErrorMessage());
+    }
+
+    @Test
+    public void notBlankValidationRuleTest() {
+        NotBlankValidationRule validationRule = new NotBlankValidationRule("value");
+        Rule rule = Rule.builder().build(validationRule);
+        RuleResult result = rule.run(value -> "hello world!");
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> "    w   ");
+        assertTrue(result.status().isPass());
+
+        RuleViolations errors = new RuleViolations();
+        result = rule.run(ruleViolations -> errors, value -> "    ");
+        assertTrue(result.status().isFail());
+        assertTrue(errors.hasSevereErrors());
+        assertEquals(1, errors.getViolations().size());
+        RuleViolation violation = errors.getViolations().get(0);
+        assertEquals(NotBlankValidationRule.ERROR_CODE, violation.getErrorCode());
+        assertEquals(Severity.ERROR, violation.getSeverity());
+        assertEquals("Value must not be blank.", violation.getErrorMessage());
+    }
+
+    @Test
+    public void notEmptyValidationRuleTest() {
+        NotEmptyValidationRule validationRule = new NotEmptyValidationRule("value");
+        Rule rule = Rule.builder().build(validationRule);
+        RuleResult result = rule.run(value -> new boolean[] {true});
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> new boolean[] {}, violations -> new RuleViolations());
+        assertTrue(result.status().isFail());
+
+        result = rule.run(value -> new byte[] {1});
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> new byte[] {}, violations -> new RuleViolations());
+        assertTrue(result.status().isFail());
+
+        result = rule.run(value -> new char[] {'c'});
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> new char[] {}, violations -> new RuleViolations());
+        assertTrue(result.status().isFail());
+
+        result = rule.run(value -> new double[] {10.00});
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> new double[] {}, violations -> new RuleViolations());
+        assertTrue(result.status().isFail());
+
+        result = rule.run(value -> new float[] {5.00f});
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> new float[] {}, violations -> new RuleViolations());
+        assertTrue(result.status().isFail());
+
+        result = rule.run(value -> new int[] {50});
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> new int[] {}, violations -> new RuleViolations());
+        assertTrue(result.status().isFail());
+
+        result = rule.run(value -> new long[] {100121});
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> new long[] {}, violations -> new RuleViolations());
+        assertTrue(result.status().isFail());
+
+        result = rule.run(value -> new short[] {12});
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> new short[] {}, violations -> new RuleViolations());
+        assertTrue(result.status().isFail());
+
+        result = rule.run(value -> new Object[] {true});
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> new Object[] {}, violations -> new RuleViolations());
+        assertTrue(result.status().isFail());
+
+        result = rule.run(value -> List.of(1,2,3));
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> List.of(), violations -> new RuleViolations());
+        assertTrue(result.status().isFail());
+
+        result = rule.run(value -> new HashSet<>(List.of(1,2,3)));
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> new HashSet<>(), violations -> new RuleViolations());
+        assertTrue(result.status().isFail());
+
+        Map<String, String> map = new HashMap<>();
+        map.put("key", "value");
+
+        result = rule.run(value -> map);
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> new HashMap<>(), violations -> new RuleViolations());
+        assertTrue(result.status().isFail());
+
+        result = rule.run(value -> "123");
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> "", violations -> new RuleViolations());
+        assertTrue(result.status().isFail());
+    }
+
+    @Test
+    public void notNullValidationRuleTest() {
+        NotNullValidationRule validationRule = new NotNullValidationRule("value");
+        Rule rule = Rule.builder().build(validationRule);
+        RuleResult result = rule.run(value -> new Object());
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> null, violations -> new RuleViolations());
+        assertTrue(result.status().isFail());
+    }
+
+    @Test
+    public void nullValidationRuleTest() {
+        NullValidationRule validationRule = new NullValidationRule("value");
+        Rule rule = Rule.builder().build(validationRule);
+        RuleResult result = rule.run(value -> null);
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> "test", violations -> new RuleViolations());
+        assertTrue(result.status().isFail());
+    }
+
+    @Test
+    public void numericValidationRuleTest() {
+        NumericValidationRule validationRule = new NumericValidationRule("value");
+        Rule rule = Rule.builder().build(validationRule);
+        RuleResult result = rule.run(value -> "12345");
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> "test", violations -> new RuleViolations());
+        assertTrue(result.status().isFail());
+
+        validationRule = new NumericValidationRule("value", "error1", Severity.ERROR, "error message", true);
+        rule = Rule.builder().build(validationRule);
+        result = rule.run(value -> "123 45");
+        assertTrue(result.status().isPass());
+    }
+
+    @Test
+    public void patternValidationRuleTest() {
+        PatternValidationRule validationRule = new PatternValidationRule("value", "^((\\(\\d{3}\\))|\\d{3})[- .]?\\d{3}[- .]?\\d{4}$");
+        Rule rule = Rule.builder().build(validationRule);
+        RuleResult result = rule.run(value -> "(202) 555-0125");
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> "test", violations -> new RuleViolations());
+        assertTrue(result.status().isFail());
+    }
+
+    @Test
+    public void positiveOrZeroValidationRuleTest() {
+        PositiveOrZeroValidationRule validationRule = new PositiveOrZeroValidationRule("value");
+        Rule rule = Rule.builder().build(validationRule);
+        RuleResult result = rule.run(value -> "555");
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> 555);
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> 0);
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> "0");
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> "-1", violations -> new RuleViolations());
+        assertTrue(result.status().isFail());
+        result = rule.run(value -> -1, violations -> new RuleViolations());
+        assertTrue(result.status().isFail());
+    }
+
+    @Test
+    public void positiveValidationRuleTest() {
+        PositiveValidationRule validationRule = new PositiveValidationRule("value");
+        Rule rule = Rule.builder().build(validationRule);
+        RuleResult result = rule.run(value -> "555");
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> 555);
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> 0, violations -> new RuleViolations());
+        assertTrue(result.status().isFail());
+        result = rule.run(value -> "0", violations -> new RuleViolations());
+        assertTrue(result.status().isFail());
+        result = rule.run(value -> "-1", violations -> new RuleViolations());
+        assertTrue(result.status().isFail());
+        result = rule.run(value -> -1, violations -> new RuleViolations());
+        assertTrue(result.status().isFail());
+    }
+
+    @Test
+    public void sizeValidationRuleTest() {
+        SizeValidationRule validationRule = new SizeValidationRule("value", 2, 5);
+        Rule rule = Rule.builder().build(validationRule);
+        RuleResult result = rule.run(value -> new boolean[] {true, false});
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> new boolean[] {true}, violations -> new RuleViolations());
+        assertTrue(result.status().isFail());
+
+        result = rule.run(value -> new byte[] {1,2,3});
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> new byte[] {}, violations -> new RuleViolations());
+        assertTrue(result.status().isFail());
+
+        result = rule.run(value -> new char[] {'c','d','e'});
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> new char[] {'a','b','c','d','e','f'}, violations -> new RuleViolations());
+        assertTrue(result.status().isFail());
+
+        result = rule.run(value -> new double[] {10.00, 20.00});
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> new double[] {}, violations -> new RuleViolations());
+        assertTrue(result.status().isFail());
+
+        result = rule.run(value -> new float[] {5.00f, 4.00f});
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> new float[] {}, violations -> new RuleViolations());
+        assertTrue(result.status().isFail());
+
+        result = rule.run(value -> new int[] {50,100, 120});
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> new int[] {}, violations -> new RuleViolations());
+        assertTrue(result.status().isFail());
+
+        result = rule.run(value -> new long[] {100121,50001});
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> new long[] {}, violations -> new RuleViolations());
+        assertTrue(result.status().isFail());
+
+        result = rule.run(value -> new short[] {12,33,45});
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> new short[] {}, violations -> new RuleViolations());
+        assertTrue(result.status().isFail());
+
+        result = rule.run(value -> new Object[] {true, false});
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> new Object[] {true, false, false, false, false, false}, violations -> new RuleViolations());
+        assertTrue(result.status().isFail());
+
+        result = rule.run(value -> List.of(1,2,3));
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> List.of(), violations -> new RuleViolations());
+        assertTrue(result.status().isFail());
+
+        result = rule.run(value -> new HashSet<>(List.of(1,2,3)));
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> new HashSet<>(), violations -> new RuleViolations());
+        assertTrue(result.status().isFail());
+
+        Map<String, String> map = new HashMap<>();
+        map.put("key1", "value");
+        map.put("key2", "value");
+        map.put("key3", "value");
+
+        result = rule.run(value -> map);
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> new HashMap<>(), violations -> new RuleViolations());
+        assertTrue(result.status().isFail());
+
+        result = rule.run(value -> "123");
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> "", violations -> new RuleViolations());
+        assertTrue(result.status().isFail());
+    }
+
+    @Test
+    public void startsWithValidationRuleTest() {
+        StartsWithValidationRule validationRule = new StartsWithValidationRule("value", "xxx", "yyy");
+        Rule rule = Rule.builder().build(validationRule);
+        RuleResult result = rule.run(value -> "xxxabcde");
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> "yyy");
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> "abc", violations -> new RuleViolations());
+        assertTrue(result.status().isFail());
+    }
+
+    @Test
+    public void upperCaseValidationRuleTest() {
+        UpperCaseValidationRule validationRule = new UpperCaseValidationRule("value");
+        Rule rule = Rule.builder().build(validationRule);
+        RuleResult result = rule.run(value -> "ABCDE");
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> "JKSDFHJKSDFHK");
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> "abc", violations -> new RuleViolations());
+        assertTrue(result.status().isFail());
+    }
+
+    @Test
+    public void UrlValidationRuleTest() {
+        UrlValidationRule validationRule = new UrlValidationRule("value");
+        Rule rule = Rule.builder().build(validationRule);
+        RuleResult result = rule.run(value -> "http://www.google.com");
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> "http://www.apple.com");
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> "ftp://www.yahoo.com");
+        assertTrue(result.status().isPass());
+        result = rule.run(value -> "abc", violations -> new RuleViolations());
+        assertTrue(result.status().isFail());
+    }
 }

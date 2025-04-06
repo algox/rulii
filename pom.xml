@@ -13,8 +13,8 @@
     <inceptionYear>2025</inceptionYear>
 
     <organization>
-        <name>algorithmx</name>
-        <url>http://www.algorithmx.com</url>
+        <name>rulii</name>
+        <url>http://www.rulii.org</url>
     </organization>
 
     <issueManagement>
@@ -31,30 +31,28 @@
     </licenses>
 
     <properties>
-
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
-        <commons.logging.version>1.1.1</commons.logging.version>
-        <logback.classic.version>1.5.3</logback.classic.version>
-        <log4j.verion>2.23.1</log4j.verion>
-        <slf4j.version>2.0.12</slf4j.version>
-        <junit.version>5.11.4</junit.version>
-        <javax.annotation-api.version>1.3.2</javax.annotation-api.version>
-        <apache.commons.verion>3.9</apache.commons.verion>
+        <jakarta.annotation.api.version>3.0.0</jakarta.annotation.api.version>
+        <slf4j.version>2.0.17</slf4j.version>
+        <log4j.verion>2.24.3</log4j.verion>
+        <logback.classic.version>1.5.18</logback.classic.version>
+        <junit.version>5.12.1</junit.version>
 
-        <version.maven-compiler-plugin>3.6.0</version.maven-compiler-plugin>
-        <version.maven-resources-plugin>3.0.1</version.maven-resources-plugin>
+        <version.maven-compiler-plugin>3.14.0</version.maven-compiler-plugin>
+        <version.maven-resources-plugin>3.3.1</version.maven-resources-plugin>
         <version.maven-source-plugin>3.0.1</version.maven-source-plugin>
-        <version.maven-javadoc-plugin>3.6.3</version.maven-javadoc-plugin>
+        <version.maven-javadoc-plugin>3.11.2</version.maven-javadoc-plugin>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <dependencies>
 
         <dependency>
-            <groupId>javax.annotation</groupId>
-            <artifactId>javax.annotation-api</artifactId>
-            <version>${javax.annotation-api.version}</version>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+            <version>${jakarta.annotation.api.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -80,15 +78,8 @@
 
         <dependency>
             <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
+            <artifactId>junit-jupiter-engine</artifactId>
             <version>${junit.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>${apache.commons.verion}</version>
             <scope>test</scope>
         </dependency>
 
@@ -154,7 +145,7 @@
         <developer>
             <name>Max Arulananthan</name>
             <id>max.arulananthan</id>
-            <email>max.arul@algorithmx.com</email>
+            <email>max.arulananthan@rulii.org</email>
             <organization>Algorithmx Inc.</organization>
             <roles>
                 <role>Founder</role>

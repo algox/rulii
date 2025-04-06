@@ -22,30 +22,26 @@ import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.util.NumberComparator;
-import org.rulii.validation.BindingSupplier;
-import org.rulii.validation.BindingValidationRule;
-import org.rulii.validation.RuleViolationBuilder;
-import org.rulii.validation.Severity;
-import org.rulii.validation.ValidationRuleException;
+import org.rulii.validation.*;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
 import java.util.List;
 
 /**
- * Validation Rule to make sure the the value is less the desired Max.
+ * Validation Rule to make sure the value is less the desired Max.
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 @Rule
 @Description("Value is less than the desired Max.")
 public class DecimalMaxValidationRule extends BindingValidationRule {
 
-    public static List<Class<?>> SUPPORTED_TYPES    = Arrays.asList(Number.class, CharSequence.class);
+    public static List<Class<?>> SUPPORTED_TYPES    = List.of(Number.class, CharSequence.class);
 
-    public static final String ERROR_CODE       = "rulii.validation.rules.DecimalMaxValidationRule.errorCode";
-    public static final String DEFAULT_MESSAGE  = "Value must be less than or equal to {1}. Given {0}.";
+    public static final String ERROR_CODE       = "decimalMaxValidationRule.errorCode";
+    public static final String DEFAULT_MESSAGE  = "Value {0} must not be less than or equal to {1}.";
 
     private final BigDecimal max;
     private final boolean inclusive;
@@ -91,11 +87,7 @@ public class DecimalMaxValidationRule extends BindingValidationRule {
                     + "Supplied Class [" + value.getClass() + "] value [" + value + "]");
 
         Integer result = NumberComparator.compare(number, max);
-        return result == null
-                ? true
-                : isInclusive()
-                    ? result <= 0
-                    : result < 0;
+        return result == null || (isInclusive() ? result <= 0 : result < 0);
     }
 
     @Override

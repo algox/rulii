@@ -21,29 +21,11 @@ import org.rulii.annotation.Description;
 import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
 import org.rulii.util.TimeComparator;
-import org.rulii.validation.BindingSupplier;
-import org.rulii.validation.BindingValidationRule;
-import org.rulii.validation.RuleViolationBuilder;
-import org.rulii.validation.Severity;
-import org.rulii.validation.ValidationRuleException;
+import org.rulii.validation.*;
 
-import java.sql.Date;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.MonthDay;
-import java.time.OffsetDateTime;
-import java.time.OffsetTime;
-import java.time.Year;
-import java.time.YearMonth;
-import java.time.ZonedDateTime;
-import java.time.chrono.HijrahDate;
-import java.time.chrono.JapaneseDate;
-import java.time.chrono.MinguoDate;
-import java.time.chrono.ThaiBuddhistDate;
-import java.util.Arrays;
+import java.time.*;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -51,18 +33,18 @@ import java.util.List;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 @Rule
 @Description("Value must be in the present or in the past.")
 public class PastOrPresentValidationRule extends BindingValidationRule {
 
-    public static List<Class<?>> SUPPORTED_TYPES    = Arrays.asList(Calendar.class, Date.class, Date.class, Instant.class,
+    public static List<Class<?>> SUPPORTED_TYPES    = List.of(Calendar.class, Date.class, java.sql.Date.class, Instant.class,
             LocalDate.class, LocalDateTime.class, LocalTime.class, MonthDay.class, OffsetDateTime.class,
-            OffsetTime.class, Year.class, YearMonth.class, ZonedDateTime.class, HijrahDate.class, JapaneseDate.class,
-            MinguoDate.class, ThaiBuddhistDate.class);
+            OffsetTime.class, Year.class, YearMonth.class, ZonedDateTime.class);
 
-    public static final String ERROR_CODE       = "rulii.validation.rules.PastOrPresentValidationRule.errorCode";
-    public static final String DEFAULT_MESSAGE  = "Value must be in the present or in the past. Given {0}. Current clock {1}.";
+    public static final String ERROR_CODE       = "pastOrPresentValidationRule.errorCode";
+    public static final String DEFAULT_MESSAGE  = "Value {0} must be in the present or in the past. Current clock {1}.";
 
     public PastOrPresentValidationRule(String bindingName) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null);

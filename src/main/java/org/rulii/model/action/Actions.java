@@ -38,7 +38,7 @@ public final class Actions {
      *
      * @return do nothing action.
      */
-    public static Action emptyAction() {
+    public static Action EMPTY_ACTION() {
         return EMPTY_ACTION;
     }
 

@@ -33,6 +33,16 @@ public class ValidationException extends UnrulyException {
 
     private final RuleViolations violations;
 
+    public ValidationException(String message, RuleViolations violations) {
+        super(message);
+        this.violations = violations;
+    }
+
+    public ValidationException(String message, Throwable cause, RuleViolations violations) {
+        super(message, cause);
+        this.violations = violations;
+    }
+
     /**
      * This method creates a new instance of the ValidationException class with the given RuleViolations object.
      *

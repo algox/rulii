@@ -21,14 +21,9 @@ import org.rulii.annotation.Description;
 import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.spring.util.Assert;
-import org.rulii.validation.BindingSupplier;
-import org.rulii.validation.BindingValidationRule;
-import org.rulii.validation.RuleViolationBuilder;
-import org.rulii.validation.Severity;
-import org.rulii.validation.ValidationRuleException;
+import org.rulii.validation.*;
 
 import java.lang.reflect.Array;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -38,16 +33,17 @@ import java.util.Map;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 @Rule
 @Description("Size is between the given min and max values.")
 public class SizeValidationRule extends BindingValidationRule {
 
-    public static List<Class<?>> SUPPORTED_TYPES    = Arrays.asList(boolean[].class, byte[].class, char[].class, double[].class, float[].class,
+    public static List<Class<?>> SUPPORTED_TYPES    = List.of(boolean[].class, byte[].class, char[].class, double[].class, float[].class,
             int[].class, long[].class, short[].class, Object[].class, Collection.class, Map.class, CharSequence.class);
 
-    public static final String ERROR_CODE       = "rulii.validation.rules.SizeValidationRule.errorCode";
-    public static final String DEFAULT_MESSAGE  = "Value must be between {1} and {2}. Given {0}.";
+    public static final String ERROR_CODE       = "sizeValidationRule.errorCode";
+    public static final String DEFAULT_MESSAGE  = "Value {0} must be between {1} and {2}.";
 
     private final int min;
     private final int max;
@@ -77,6 +73,12 @@ public class SizeValidationRule extends BindingValidationRule {
     }
 
     @Override
+    public boolean isSupported(Class<?> type) {
+        return Collection.class.isAssignableFrom(type) || CharSequence.class.isAssignableFrom(type)
+                || Map.class.isAssignableFrom(type) || type.isArray();
+    }
+
+    @Override
     protected boolean isValid(RuleContext ruleContext, Object value) {
 
         if (value == null) return true;
@@ -84,8 +86,8 @@ public class SizeValidationRule extends BindingValidationRule {
         Integer size = null;
 
         if (value instanceof CharSequence) size = getSize((CharSequence) value);
-        if (value instanceof Collection) size = getSize((Collection) value);
-        if (value instanceof Map) size = getSize((Map) value);
+        if (value instanceof Collection) size = getSize((Collection<?>) value);
+        if (value instanceof Map) size = getSize((Map<?,?>) value);
         if (value.getClass().isArray()) size = getSize(value);
 
         if (size == null) {
@@ -107,11 +109,11 @@ public class SizeValidationRule extends BindingValidationRule {
         return Array.getLength(value);
     }
 
-    private int getSize(Collection collection) {
+    private int getSize(Collection<?> collection) {
         return collection.size();
     }
 
-    private int getSize(Map map) {
+    private int getSize(Map<?,?> map) {
         return map.size();
     }
 

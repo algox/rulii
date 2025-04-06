@@ -33,6 +33,7 @@ import java.util.List;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 @Rule
 @Description("Value can only contain unicode alphanumeric letters/spaces.")
@@ -41,7 +42,7 @@ public class AlphaNumericValidationRule extends BindingValidationRule {
     private static final List<Class<?>> SUPPORTED_TYPES = List.of(CharSequence.class);
 
     public static final String ERROR_CODE       = "alphaNumericValidationRule.errorCode";
-    public static final String DEFAULT_MESSAGE  = "Value must only contain alphanumeric letters. Given {0}.";
+    public static final String DEFAULT_MESSAGE  = "Value {0} must only contain alphanumeric letters.";
 
     private final boolean allowSpace;
 

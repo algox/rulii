@@ -24,6 +24,7 @@ import org.rulii.model.action.Action;
 import org.rulii.model.condition.Condition;
 import org.rulii.model.function.Function;
 import org.rulii.rule.Rule;
+import org.rulii.validation.ValidationRule;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -101,6 +102,20 @@ public interface RuleSet<T> extends Runnable<T>, Identifiable, Iterable<Rule>, D
     RuleSetDefinition getDefinition();
 
     /**
+     * Retrieves the list of input validation rules used within the RuleSet for performing validation on input values or objects.
+     *
+     * @return a List of ValidationRule instances representing the input validators defined in the RuleSet.
+     */
+    List<ValidationRule> getInputValidators();
+
+    /**
+     * Retrieves the list of input validation rules used within the RuleSet for performing validation on input values or objects.
+     *
+     * @return a List of Rule instances representing the input validation rules defined in the RuleSet.
+     */
+    List<Rule> getInputValidationRules();
+
+    /**
      * Returns the Condition (if one exists) to be met before the execution of the Rules.
      *
      * @return pre-check before execution of the Rules.
@@ -149,7 +164,7 @@ public interface RuleSet<T> extends Runnable<T>, Identifiable, Iterable<Rule>, D
      * @param name the name of the Rule to be retrieved.
      * @return the Rule with the specified name, or null if no such Rule exists.
      */
-    Rule get(String name);
+    Rule getRule(String name);
 
     /**
      * Retrieves a Rule from the RuleSet based on its index position.
@@ -158,7 +173,7 @@ public interface RuleSet<T> extends Runnable<T>, Identifiable, Iterable<Rule>, D
      * @return the Rule at the specified index.
      * @throws IndexOutOfBoundsException if the index is out of range.
      */
-    Rule get(int index);
+    Rule getRule(int index);
 
     /**
      * Retrieves the list of rules within the RuleSet.

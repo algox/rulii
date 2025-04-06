@@ -33,6 +33,7 @@ import java.util.List;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 @Rule
 @Description("Value must be blank.")
@@ -41,7 +42,7 @@ public class BlankValidationRule extends BindingValidationRule {
     private static final List<Class<?>> SUPPORTED_TYPES = List.of(CharSequence.class);
 
     public static final String ERROR_CODE       = "blankValidationRule.errorCode";
-    public static final String DEFAULT_MESSAGE  = "Value must be blank. Given {0}.";
+    public static final String DEFAULT_MESSAGE  = "Value {0} must be blank.";
 
     public BlankValidationRule(String bindingName) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null);

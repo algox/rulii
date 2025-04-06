@@ -17,6 +17,7 @@
  */
 package org.rulii.util.reflect;
 
+import jakarta.annotation.PostConstruct;
 import org.rulii.bind.Binding;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.apache.ClassUtils;
@@ -27,7 +28,6 @@ import org.rulii.lib.spring.util.Assert;
 import org.rulii.lib.spring.util.StringUtils;
 import org.rulii.model.UnrulyException;
 
-import javax.annotation.PostConstruct;
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;

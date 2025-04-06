@@ -103,7 +103,7 @@ public class Placeholder implements Comparable<Placeholder> {
     }
 
     public boolean hasOptions() {
-        return options.size() > 0;
+        return !options.isEmpty();
     }
 
     public String getMessageFormatText(int index) {

@@ -15,18 +15,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.rulii.trace;
+package org.rulii.validation;
 
-import org.rulii.rule.RuleListener;
-import org.rulii.ruleset.RuleSetListener;
+import org.rulii.annotation.Description;
+import org.rulii.annotation.Rule;
+import org.rulii.annotation.Then;
 
 /**
- * This interface extends both RuleListener and RuleSetListener interfaces
- * to combine event listeners for rule and ruleset execution within the framework.
+ * Rule to throw ValidationException if there are any violations.
  *
  * @author Max Arulananthan
  * @since 1.0
- *
  */
-public interface RuliiListener extends RuleListener, RuleSetListener {
+@Rule()
+@Description("Rule to throw ValidationException if there are any violations.")
+public class ValidationExceptionThrowingRule {
+
+    public ValidationExceptionThrowingRule() {
+        super();
+    }
+
+    @Then
+    public void then(RuleViolations violations) {
+        if (violations == null || violations.isEmpty()) return;
+        // Check if there are any ERROR or FATAL_ERROR errors.
+        if (violations.hasSevereErrors()) throw new ValidationException(violations);
+    }
 }

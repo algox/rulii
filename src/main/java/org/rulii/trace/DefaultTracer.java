@@ -17,8 +17,6 @@
  */
 package org.rulii.trace;
 
-import org.rulii.bind.Binding;
-import org.rulii.bind.BindingListener;
 import org.rulii.bind.NamedScope;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.action.Action;
@@ -30,16 +28,24 @@ import org.rulii.rule.RuleResult;
 import org.rulii.ruleset.RuleSet;
 import org.rulii.ruleset.RuleSetExecutionStatus;
 import org.rulii.ruleset.RuleSetListener;
+import org.rulii.validation.RuleViolations;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+
 /**
- * Default implementation of the Tracer interface used for tracing events and actions within a rule execution framework.
+ * DefaultTracer is an implementation of the Tracer interface.
+ * It allows adding and removing listeners for rules and rule sets,
+ * and provides methods to fire events when different rule and rule set related actions occur.
+ * The DefaultTracer maintains separate sets of RuleListener and RuleSetListener for event handling.
+ *
+ * @author Max Arulananthan
+ * @since 1.0
+ *
  */
 public class DefaultTracer implements Tracer {
 
-    private final Set<BindingListener> bindingListeners = new LinkedHashSet<>();
     private final Set<RuleListener> ruleListeners = new LinkedHashSet<>();
     private final Set<RuleSetListener> ruleSetListeners = new LinkedHashSet<>();
 
@@ -48,66 +54,47 @@ public class DefaultTracer implements Tracer {
     }
 
     @Override
-    public void addBindingListener(BindingListener listener) {
+    public void addListener(RuliiListener listener) {
         Assert.notNull(listener, "listener cannot be null.");
-        bindingListeners.add(listener);
+        addListener(listener);
+        addListener(listener);
     }
 
     @Override
-    public boolean removeBindingListener(BindingListener listener) {
+    public void removeListener(RuliiListener listener) {
         Assert.notNull(listener, "listener cannot be null.");
-        return bindingListeners.remove(listener);
+        removeListener(listener);
+        removeListener(listener);
     }
 
     @Override
-    public void addRuleListener(RuleListener listener) {
+    public void addListener(RuleListener listener) {
         Assert.notNull(listener, "listener cannot be null.");
         ruleListeners.add(listener);
     }
 
     @Override
-    public boolean removeRuleListener(RuleListener listener) {
+    public boolean removeListener(RuleListener listener) {
         Assert.notNull(listener, "listener cannot be null.");
         return ruleListeners.remove(listener);
     }
 
     @Override
-    public void addRuleSetListener(RuleSetListener listener) {
+    public void addListener(RuleSetListener listener) {
         Assert.notNull(listener, "listener cannot be null.");
         ruleSetListeners.add(listener);
     }
 
     @Override
-    public boolean removeRuleSetListener(RuleSetListener listener) {
+    public boolean removeListener(RuleSetListener listener) {
         Assert.notNull(listener, "listener cannot be null.");
         return ruleSetListeners.remove(listener);
     }
 
     @Override
     public void clear() {
-        bindingListeners.clear();
         ruleListeners.clear();
         ruleSetListeners.clear();
-    }
-
-    @Override
-    public void fireOnBind(Binding<?> binding) {
-        bindingListeners.forEach(listener -> listener.onBind(binding));
-    }
-
-    @Override
-    public void fireOnScopeAdd(String name) {
-        bindingListeners.forEach(listener -> listener.onScopeAdd(name));
-    }
-
-    @Override
-    public void fireOnScopeRemove(NamedScope scope) {
-        bindingListeners.forEach(listener -> listener.onScopeRemove(scope));
-    }
-
-    @Override
-    public void fireOnChange(Binding<?> binding, Object oldValue, Object newValue) {
-        bindingListeners.forEach(listener -> listener.onChange(binding, oldValue, newValue));
     }
 
     @Override
@@ -122,17 +109,17 @@ public class DefaultTracer implements Tracer {
 
     @Override
     public void fireOnRuleConditionCheck(Rule rule, Condition condition, boolean result) {
-        ruleListeners.forEach(listener -> listener.onConditionCheck(rule, condition, result));
+        ruleListeners.forEach(listener -> listener.onGiven(rule, condition, result));
     }
 
     @Override
     public void fireOnRuleAction(Rule rule, Action action) {
-        ruleListeners.forEach(listener -> listener.onAction(rule, action));
+        ruleListeners.forEach(listener -> listener.onThen(rule, action));
     }
 
     @Override
     public void fireOnRuleOtherwiseAction(Rule rule, Action action) {
-        ruleListeners.forEach(listener -> listener.onOtherwiseAction(rule, action));
+        ruleListeners.forEach(listener -> listener.onOtherwise(rule, action));
     }
 
     @Override
@@ -148,6 +135,11 @@ public class DefaultTracer implements Tracer {
     @Override
     public void fireOnRuleSetStart(RuleSet<?> ruleSet, NamedScope ruleSetScope) {
         ruleSetListeners.forEach(listener -> listener.onRuleSetStart(ruleSet, ruleSetScope));
+    }
+
+    @Override
+    public void fireOnRuleSetInputCheck(RuleSet<?> ruleSet, RuleViolations violations) {
+        ruleSetListeners.forEach(listener -> listener.onRuleSetInputCheck(ruleSet, violations));
     }
 
     @Override
@@ -193,7 +185,6 @@ public class DefaultTracer implements Tracer {
     @Override
     public String toString() {
         return "DefaultTracer{" +
-                "bindingListeners=" + bindingListeners.size() +
                 ", ruleListeners=" + ruleListeners.size() +
                 ", ruleSetListeners=" + ruleSetListeners.size() +
                 '}';

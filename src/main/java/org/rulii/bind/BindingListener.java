@@ -22,6 +22,7 @@ package org.rulii.bind;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 public interface BindingListener extends BindingValueListener {
 
@@ -35,14 +36,14 @@ public interface BindingListener extends BindingValueListener {
     /**
      * Callback method triggered when a named scope is added.
      *
-     * @param name the name of the scope that is being added
+     * @param scope the scope that is being added.
      */
-    default void onScopeAdd(String name) {}
+    default void onScopeAdd(NamedScope scope) {}
 
     /**
      * Callback method triggered when a named scope is removed.
      *
-     * @param scope the named scope that is being removed
+     * @param scope the named scope that is being removed.
      */
     default void onScopeRemove(NamedScope scope) {}
 }

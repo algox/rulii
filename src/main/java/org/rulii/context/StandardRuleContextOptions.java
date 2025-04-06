@@ -20,11 +20,8 @@ package org.rulii.context;
 import org.rulii.bind.match.BindingMatchingStrategy;
 import org.rulii.bind.match.ParameterResolver;
 import org.rulii.convert.ConverterRegistry;
-import org.rulii.registry.RuleRegistry;
 import org.rulii.text.MessageFormatter;
 import org.rulii.text.MessageResolver;
-import org.rulii.trace.DefaultTracer;
-import org.rulii.trace.Tracer;
 import org.rulii.util.reflect.ObjectFactory;
 
 import java.time.Clock;
@@ -55,12 +52,10 @@ public class StandardRuleContextOptions implements RuleContextOptions {
     private final ParameterResolver parameterResolver = ParameterResolver.builder().build();
     private final MessageFormatter messageFormatter = MessageFormatter.builder().build();
     private final ConverterRegistry converterRegistry = ConverterRegistry.builder().build();
-    private final RuleRegistry ruleRegistry = RuleRegistry.builder().build();
     private final ObjectFactory objectFactory = ObjectFactory.builder().build();
     private final Clock clock = Clock.systemDefaultZone();
     private final Locale locale = Locale.getDefault();
     private final MessageResolver messageResolver = MessageResolver.builder().build();
-    private final Tracer tracer = Tracer.builder().build();
 
     public StandardRuleContextOptions() {
         super();
@@ -101,18 +96,8 @@ public class StandardRuleContextOptions implements RuleContextOptions {
     }
 
     @Override
-    public Tracer getTracer() {
-        return tracer;
-    }
-
-    @Override
     public ConverterRegistry getConverterRegistry() {
         return converterRegistry;
-    }
-
-    @Override
-    public RuleRegistry getRuleRegistry() {
-        return ruleRegistry;
     }
 
     @Override
@@ -137,12 +122,10 @@ public class StandardRuleContextOptions implements RuleContextOptions {
                 ", parameterResolver=" + parameterResolver +
                 ", messageFormatter=" + messageFormatter +
                 ", converterRegistry=" + converterRegistry +
-                ", ruleRegistry=" + ruleRegistry +
                 ", objectFactory=" + objectFactory +
                 ", clock=" + clock +
                 ", locale=" + locale +
                 ", messageResolver=" + messageResolver +
-                ", tracer=" + tracer +
                 '}';
     }
 }

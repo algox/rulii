@@ -33,6 +33,7 @@ import java.util.List;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 @Rule
 @Description("Value must match an email regex pattern.")
@@ -46,6 +47,10 @@ public class EmailValidationRule extends BindingValidationRule {
     private final boolean allowLocal;
     private final boolean allowTopLevelDomain;
     private final EmailValidator validator;
+
+    public EmailValidationRule(String bindingName) {
+        this(bindingName, ERROR_CODE, Severity.ERROR, null, true, true);
+    }
 
     public EmailValidationRule(String bindingName, boolean allowLocal, boolean allowTopLevelDomain) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null, allowLocal, allowTopLevelDomain);

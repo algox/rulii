@@ -112,7 +112,7 @@ public abstract class ValidationRule implements RuleDefinitionAware {
 
     @Override
     public void setRuleDefinition(RuleDefinition ruleDefinition) {
-        if (this.ruleDefinition != null) throw new UnrulyException("ruleDefinition cannot be modified.");
+        if (this.ruleDefinition != null && !this.ruleDefinition.equals(ruleDefinition)) throw new UnrulyException("ruleDefinition cannot be modified.");
         this.ruleDefinition = ruleDefinition;
     }
 

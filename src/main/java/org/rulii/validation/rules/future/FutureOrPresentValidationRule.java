@@ -20,29 +20,15 @@ package org.rulii.validation.rules.future;
 import org.rulii.annotation.Description;
 import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
+import org.rulii.model.UnrulyException;
 import org.rulii.util.TimeComparator;
 import org.rulii.validation.BindingSupplier;
 import org.rulii.validation.BindingValidationRule;
 import org.rulii.validation.RuleViolationBuilder;
 import org.rulii.validation.Severity;
-import org.rulii.validation.ValidationRuleException;
 
 import java.sql.Date;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.MonthDay;
-import java.time.OffsetDateTime;
-import java.time.OffsetTime;
-import java.time.Year;
-import java.time.YearMonth;
-import java.time.ZonedDateTime;
-import java.time.chrono.HijrahDate;
-import java.time.chrono.JapaneseDate;
-import java.time.chrono.MinguoDate;
-import java.time.chrono.ThaiBuddhistDate;
-import java.util.Arrays;
+import java.time.*;
 import java.util.Calendar;
 import java.util.List;
 
@@ -51,18 +37,18 @@ import java.util.List;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 @Rule
 @Description("Value must be in the present or in the future.")
 public class FutureOrPresentValidationRule extends BindingValidationRule {
 
-    public static List<Class<?>> SUPPORTED_TYPES    = Arrays.asList(Calendar.class, Date.class, Date.class, Instant.class,
+    public static List<Class<?>> SUPPORTED_TYPES    = List.of(Calendar.class, Date.class, java.util.Date.class, Instant.class,
             LocalDate.class, LocalDateTime.class, LocalTime.class, MonthDay.class, OffsetDateTime.class,
-            OffsetTime.class, Year.class, YearMonth.class, ZonedDateTime.class, HijrahDate.class, JapaneseDate.class,
-            MinguoDate.class, ThaiBuddhistDate.class);
+            OffsetTime.class, Year.class, YearMonth.class, ZonedDateTime.class);
 
-    public static final String ERROR_CODE       = "rulii.validation.rules.FutureOrPresentValidationRule.errorCode";
-    public static final String DEFAULT_MESSAGE  = "Value must be in the present or in the future. Given {0}. Current clock {1}.";
+    public static final String ERROR_CODE       = "futureOrPresentValidationRule.errorCode";
+    public static final String DEFAULT_MESSAGE  = "Value {0} must be in the present or in the future. Current clock {1}.";
 
     public FutureOrPresentValidationRule(String bindingName) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null);
@@ -85,7 +71,7 @@ public class FutureOrPresentValidationRule extends BindingValidationRule {
         Integer result = TimeComparator.compare(value, ruleContext.getClock());
 
         if (result == null) {
-            throw new ValidationRuleException("FutureOrPresentRule only applies to Date related classes. Supported Types ["
+            throw new UnrulyException("FutureOrPresentRule only applies to Date related classes. Supported Types ["
                     + SUPPORTED_TYPES + "] Supplied Class [" + value.getClass() + "] value [" + value + "]");
         }
 

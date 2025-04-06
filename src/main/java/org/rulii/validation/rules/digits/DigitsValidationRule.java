@@ -36,6 +36,7 @@ import java.util.List;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 @Rule
 @Description("Value must be within range of the maximum integral digits and maximum fraction digits.")

@@ -31,10 +31,11 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Validation Rule to make sure the the value is less than or equal 0.
+ * Validation Rule to make sure the value is less than or equal 0.
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 @Rule
 @Description("Value is less than or equal 0.")
@@ -42,8 +43,8 @@ public class NegativeOrZeroValidationRule extends BindingValidationRule {
 
     public static List<Class<?>> SUPPORTED_TYPES = Arrays.asList(Number.class, CharSequence.class);
 
-    public static final String ERROR_CODE = "rulii.validation.rules.NegativeOrZeroValidationRule.errorCode";
-    public static final String DEFAULT_MESSAGE = "Value must be less than or equal to 0. Given {0}.";
+    public static final String ERROR_CODE = "negativeOrZeroValidationRule.errorCode";
+    public static final String DEFAULT_MESSAGE = "Value {0} must be less than or equal to 0.";
 
     public NegativeOrZeroValidationRule(String bindingName) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null);
@@ -78,7 +79,7 @@ public class NegativeOrZeroValidationRule extends BindingValidationRule {
                     + "Supplied Class [" + value.getClass() + "] value [" + value + "]");
 
         Integer result = NumberComparator.signum(number);
-        return result == null ? true : result <= 0;
+        return result == null || result <= 0;
     }
 
     @Override

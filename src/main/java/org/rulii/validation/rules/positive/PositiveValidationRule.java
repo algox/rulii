@@ -27,7 +27,6 @@ import org.rulii.validation.Severity;
 import org.rulii.validation.ValidationRuleException;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -35,15 +34,16 @@ import java.util.List;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 @Rule
 @Description("Value is greater than 0.")
 public class PositiveValidationRule extends BindingValidationRule {
 
-    public static List<Class<?>> SUPPORTED_TYPES    = Arrays.asList(Number.class, CharSequence.class);
+    public static List<Class<?>> SUPPORTED_TYPES    = List.of(Number.class, CharSequence.class);
 
-    public static final String ERROR_CODE      = "rulii.validation.rules.PositiveValidationRule.errorCode";
-    public static final String DEFAULT_MESSAGE = "Value must be greater than 0. Given {0}.";
+    public static final String ERROR_CODE      = "positiveValidationRule.errorCode";
+    public static final String DEFAULT_MESSAGE = "Value {0} must be greater than 0.";
 
     public PositiveValidationRule(String bindingName) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null);
@@ -78,7 +78,7 @@ public class PositiveValidationRule extends BindingValidationRule {
                     + "Supplied Class [" + value.getClass() + "] value [" + value + "]");
 
         Integer result = NumberComparator.signum(number);
-        return result == null ? true : result > 0;
+        return result == null || result > 0;
     }
 
     @Override

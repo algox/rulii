@@ -26,25 +26,25 @@ import org.rulii.validation.BindingValidationRule;
 import org.rulii.validation.Severity;
 import org.rulii.validation.ValidationRuleException;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
- * Validation Rule to make sure the the value must be all in lowercase.
+ * Validation Rule to make sure the value must be all in lowercase.
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 @Rule
 @Description("Value must be all in lowercase.")
 public class LowerCaseValidationRule extends BindingValidationRule {
 
-    public static final List<Class<?>> SUPPORTED_TYPES    = Arrays.asList(CharSequence.class);
+    public static final List<Class<?>> SUPPORTED_TYPES    = List.of(CharSequence.class);
 
-    public static final String ERROR_CODE       = "rulii.validation.rules.LowerCaseValidationRule.errorCode";
-    public static final String DEFAULT_MESSAGE  = "Value must be all in lowercase. Given {0}.";
+    public static final String ERROR_CODE       = "lowerCaseValidationRule.errorCode";
+    public static final String DEFAULT_MESSAGE  = "Value {0} must be in lowercase.";
 
-    public LowerCaseValidationRule(String bindingName, String path) {
+    public LowerCaseValidationRule(String bindingName) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null);
     }
 

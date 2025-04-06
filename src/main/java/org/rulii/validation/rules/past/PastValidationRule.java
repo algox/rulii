@@ -21,28 +21,10 @@ import org.rulii.annotation.Description;
 import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
 import org.rulii.util.TimeComparator;
-import org.rulii.validation.BindingSupplier;
-import org.rulii.validation.BindingValidationRule;
-import org.rulii.validation.RuleViolationBuilder;
-import org.rulii.validation.Severity;
-import org.rulii.validation.ValidationRuleException;
+import org.rulii.validation.*;
 
 import java.sql.Date;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.MonthDay;
-import java.time.OffsetDateTime;
-import java.time.OffsetTime;
-import java.time.Year;
-import java.time.YearMonth;
-import java.time.ZonedDateTime;
-import java.time.chrono.HijrahDate;
-import java.time.chrono.JapaneseDate;
-import java.time.chrono.MinguoDate;
-import java.time.chrono.ThaiBuddhistDate;
-import java.util.Arrays;
+import java.time.*;
 import java.util.Calendar;
 import java.util.List;
 
@@ -51,18 +33,18 @@ import java.util.List;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 @Rule
 @Description("Value must be in the past.")
 public class PastValidationRule extends BindingValidationRule {
 
-    public static List<Class<?>> SUPPORTED_TYPES    = Arrays.asList(Calendar.class, Date.class, java.util.Date.class, Instant.class,
+    public static List<Class<?>> SUPPORTED_TYPES    = List.of(Calendar.class, Date.class, java.util.Date.class, Instant.class,
             LocalDate.class, LocalDateTime.class, LocalTime.class, MonthDay.class, OffsetDateTime.class,
-            OffsetTime.class, Year.class, YearMonth.class, ZonedDateTime.class, HijrahDate.class, JapaneseDate.class,
-            MinguoDate.class, ThaiBuddhistDate.class);
+            OffsetTime.class, Year.class, YearMonth.class, ZonedDateTime.class);
 
-    public static final String ERROR_CODE       = "rulii.validation.rules.PastValidationRule.errorCode";
-    public static final String DEFAULT_MESSAGE  = "Value must be in the past. Given {0}. Current clock {1}.";
+    public static final String ERROR_CODE       = "pastValidationRule.errorCode";
+    public static final String DEFAULT_MESSAGE  = "Value {0} must be in the past. Current clock {1}.";
 
     public PastValidationRule(String bindingName) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null);

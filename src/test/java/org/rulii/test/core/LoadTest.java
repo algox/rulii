@@ -113,7 +113,7 @@ public class LoadTest {
                 .name("TestRule2")
                 .given(Condition.builder().with((Integer i, String text) -> i > 100 && text != null).build())
                 .description("Some rule for testing")
-                .then(Actions.emptyAction())
+                .then(Actions.EMPTY_ACTION())
                 .build();
         RuleDefinition def = rule.getDefinition();
 
@@ -151,7 +151,7 @@ public class LoadTest {
                 .given(Condition.builder().with((Integer i, String text) -> i > 100 && text != null).build())
                 .preCondition(Condition.builder().with((Integer x) -> x > 10).build())
                 .description("Some rule for testing")
-                .then(Actions.emptyAction())
+                .then(Actions.EMPTY_ACTION())
                 .build();
         RuleDefinition def = rule.getDefinition();
 
@@ -187,7 +187,7 @@ public class LoadTest {
         Rule rule = Rule.builder()
                 .name("TestRule2", "Some rule for testing")
                 .given(Condition.builder().with((Integer i, String text) -> i > 100 && text != null).build())
-                .then(Actions.emptyAction())
+                .then(Actions.EMPTY_ACTION())
                 .build();
         RuleDefinition def = rule.getDefinition();
 

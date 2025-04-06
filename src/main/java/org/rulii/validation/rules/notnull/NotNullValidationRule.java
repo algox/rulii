@@ -24,7 +24,6 @@ import org.rulii.validation.BindingSupplier;
 import org.rulii.validation.BindingValidationRule;
 import org.rulii.validation.Severity;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -32,15 +31,16 @@ import java.util.List;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 @Rule
 @Description("Value cannot be null.")
 public class NotNullValidationRule extends BindingValidationRule {
 
-    public static List<Class<?>> SUPPORTED_TYPES    = Arrays.asList(Object.class);
+    public static List<Class<?>> SUPPORTED_TYPES    = List.of(Object.class);
 
-    public static final String ERROR_CODE       = "rulii.validation.rules.NotNullValidationRule.errorCode";
-    public static final String DEFAULT_MESSAGE  = "Value cannot be null.";
+    public static final String ERROR_CODE       = "notNullValidationRule.errorCode";
+    public static final String DEFAULT_MESSAGE  = "Value must not be null.";
 
     public NotNullValidationRule(String bindingName) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null);

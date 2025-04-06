@@ -33,6 +33,7 @@ import java.util.List;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 @Rule
 @Description("Value can only contains contains ASCII printable characters.")
@@ -41,7 +42,7 @@ public class AsciiValidationRule extends BindingValidationRule {
     private static final List<Class<?>> SUPPORTED_TYPES = List.of(CharSequence.class);
 
     public static final String ERROR_CODE       = "asciiValidationRule.errorCode";
-    public static final String DEFAULT_MESSAGE  = "Value must only contain ASCII printable characters. Given {0}.";
+    public static final String DEFAULT_MESSAGE  = "Value {0} must only contain ASCII printable characters.";
 
     public AsciiValidationRule(String bindingName) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null);

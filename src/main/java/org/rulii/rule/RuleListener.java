@@ -54,7 +54,7 @@ public interface RuleListener extends EventListener {
      * @param condition the condition being evaluated
      * @param result the result of the condition evaluation
      */
-    default void onConditionCheck(Rule rule, Condition condition, boolean result) {};
+    default void onGiven(Rule rule, Condition condition, boolean result) {};
 
     /**
      * This method is called when an action is triggered in relation to a rule execution.
@@ -62,7 +62,7 @@ public interface RuleListener extends EventListener {
      * @param rule the rule associated with the action
      * @param action the action being triggered
      */
-    default void onAction(Rule rule, Action action) {};
+    default void onThen(Rule rule, Action action) {};
 
     /**
      * This method is called when an otherwise action is triggered in relation to a rule execution if no other conditions are met.
@@ -70,7 +70,7 @@ public interface RuleListener extends EventListener {
      * @param rule the rule associated with the otherwise action
      * @param action the otherwise action being triggered
      */
-    default void onOtherwiseAction(Rule rule, Action action) {};
+    default void onOtherwise(Rule rule, Action action) {};
 
     /**
      * This method is called when an error occurs during the execution of a rule.

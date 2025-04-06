@@ -32,20 +32,22 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Validation Rule to make sure the value is not empty (ie. arrays/collections/maps/strings have at least one item).
+ * Validation Rule to make sure the value is not empty (i.e. arrays/collections/maps/strings have at least one item).
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 @Rule
 @Description("Value must not be empty.")
 public class NotEmptyValidationRule extends BindingValidationRule {
 
-    public static List<Class<?>> SUPPORTED_TYPES    = Arrays.asList(boolean[].class, byte[].class, char[].class, double[].class, float[].class,
-            int[].class, long[].class, short[].class, Object[].class, Collection.class, Map.class, CharSequence.class);
+    public static List<Class<?>> SUPPORTED_TYPES    = Arrays.asList(boolean[].class, byte[].class, char[].class,
+            double[].class, float[].class, int[].class, long[].class, short[].class, Object[].class,
+            Collection.class, Map.class, CharSequence.class);
 
-    public static final String ERROR_CODE       = "rulii.validation.rules.NotEmptyValidationRule.errorCode";
-    public static final String DEFAULT_MESSAGE  = "Value cannot be empty.";
+    public static final String ERROR_CODE       = "notEmptyValidationRule.errorCode";
+    public static final String DEFAULT_MESSAGE  = "Value {0} must not be empty.";
 
     public NotEmptyValidationRule(String bindingName) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null);
@@ -59,6 +61,13 @@ public class NotEmptyValidationRule extends BindingValidationRule {
         super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
     }
 
+    @Override
+    public boolean isSupported(Class<?> type) {
+        return Collection.class.isAssignableFrom(type) || CharSequence.class.isAssignableFrom(type)
+                || Map.class.isAssignableFrom(type) || type.isArray();
+    }
+
+    @SuppressWarnings("rawtypes")
     @Override
     protected boolean isValid(RuleContext ruleContext, Object value) {
         if (value == null) return true;
@@ -82,11 +91,13 @@ public class NotEmptyValidationRule extends BindingValidationRule {
         return length > 0;
     }
 
+    @SuppressWarnings("rawtypes")
     private boolean isValid(Collection collection) {
         int length = collection.size();
         return length > 0;
     }
 
+    @SuppressWarnings("rawtypes")
     private boolean isValid(Map map) {
         int length = map.size();
         return length > 0;

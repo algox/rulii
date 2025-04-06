@@ -83,7 +83,7 @@ public class DefaultScopedBindings implements ScopedBindings {
 
         // Fire the Scope listeners
         for (BindingListener listener : listeners) {
-            listener.onScopeAdd(name);
+            listener.onScopeAdd(result);
         }
 
         return result;

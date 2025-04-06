@@ -25,6 +25,7 @@ import org.rulii.model.condition.Condition;
 import org.rulii.model.function.Function;
 import org.rulii.rule.Rule;
 import org.rulii.util.RuleUtils;
+import org.rulii.validation.ValidationRule;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -50,6 +51,8 @@ import java.util.concurrent.TimeUnit;
 public class RulingFamily<T> implements RuleSet<T> {
 
     private final RuleSetDefinition ruleSetDefinition;
+    private final List<ValidationRule> inputValidators;
+    private final List<Rule> inputValidationRules;
     private final Condition preCondition;
     private final Action initializer;
     private final Action finalizer;
@@ -61,6 +64,7 @@ public class RulingFamily<T> implements RuleSet<T> {
     private final RuleSetExecutionStrategy<CompletableFuture<T>> asyncStrategy;
 
     public RulingFamily(RuleSetDefinition ruleSetDefinition,
+                        List<ValidationRule> inputValidators,
                         Condition preCondition,
                         Condition stopCondition,
                         Action initializer,
@@ -72,6 +76,8 @@ public class RulingFamily<T> implements RuleSet<T> {
         Assert.notNull(rules, "rules cannot be null.");
         this.ruleSetDefinition = ruleSetDefinition;
         this.rules.addAll(rules);
+        this.inputValidators = inputValidators != null ? Collections.unmodifiableList(inputValidators) : Collections.emptyList();
+        this.inputValidationRules = transform(inputValidators);
         this.preCondition = preCondition;
         this.stopCondition = stopCondition;
         this.initializer = initializer;
@@ -109,7 +115,7 @@ public class RulingFamily<T> implements RuleSet<T> {
     }
 
     @Override
-    public Rule get(String name) {
+    public Rule getRule(String name) {
         Assert.notNull(name, "name cannot be null.");
         Rule result = null;
 
@@ -123,6 +129,17 @@ public class RulingFamily<T> implements RuleSet<T> {
         return result;
     }
 
+    private List<Rule> transform(List<ValidationRule> inputValidators) {
+        if (inputValidators == null || inputValidators.isEmpty()) return Collections.emptyList();
+
+        List<Rule> result = new LinkedList<>();
+        for (ValidationRule validationRule : inputValidators) {
+            result.add(Rule.builder().build(validationRule));
+        }
+
+        return result;
+    }
+
     @Override
     public String getName() {
         return getDefinition().getName();
@@ -131,6 +148,16 @@ public class RulingFamily<T> implements RuleSet<T> {
     @Override
     public String getDescription() {
         return description;
+    }
+
+    @Override
+    public List<ValidationRule> getInputValidators() {
+        return inputValidators;
+    }
+
+    @Override
+    public List<Rule> getInputValidationRules() {
+        return inputValidationRules;
     }
 
     @Override
@@ -159,7 +186,7 @@ public class RulingFamily<T> implements RuleSet<T> {
     }
 
     @Override
-    public Rule get(int index) {
+    public Rule getRule(int index) {
         return rules.get(index);
     }
 
@@ -189,11 +216,12 @@ public class RulingFamily<T> implements RuleSet<T> {
 
         result.append("RuleSet : ").append(getName());
         result.append(System.lineSeparator());
+        result.append("Input Validators : ").append(getInputValidators());
         result.append(RuleUtils.TAB);
-        if (getPreCondition() != null) result.append("pre : " + getPreCondition().getDescription());
+        if (getPreCondition() != null) result.append("pre : ").append(getPreCondition().getDescription());
         result.append(System.lineSeparator());
         result.append(RuleUtils.TAB);
-        if (getStopCondition() != null) result.append("stop : " + getStopCondition().getDescription());
+        if (getStopCondition() != null) result.append("stop : ").append(getStopCondition().getDescription());
         result.append(System.lineSeparator());
         result.append(RuleUtils.TAB);
         result.append("Rules");

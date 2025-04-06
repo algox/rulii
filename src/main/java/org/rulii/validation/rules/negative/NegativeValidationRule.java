@@ -35,15 +35,16 @@ import java.util.List;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 @Rule
-@Description("Value is less than 0.")
+@Description("Value must be less than 0.")
 public class NegativeValidationRule extends BindingValidationRule {
 
     public static List<Class<?>> SUPPORTED_TYPES    = Arrays.asList(Number.class, CharSequence.class);
 
-    public static final String ERROR_CODE       = "rulii.validation.rules.NegativeValidationRule.errorCode";
-    public static final String DEFAULT_MESSAGE  = "Value must be less than 0. Given {0}.";
+    public static final String ERROR_CODE       = "negativeValidationRule.errorCode";
+    public static final String DEFAULT_MESSAGE  = "Value {0} must be less than 0.";
 
     public NegativeValidationRule(String bindingName) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null);
@@ -78,7 +79,7 @@ public class NegativeValidationRule extends BindingValidationRule {
                     + "Supplied Class [" + value.getClass() + "] value [" + value + "]");
 
         Integer result = NumberComparator.signum(number);
-        return result == null ? true : result < 0;
+        return result == null || result < 0;
     }
 
     @Override

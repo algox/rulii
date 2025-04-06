@@ -26,23 +26,23 @@ import org.rulii.validation.BindingValidationRule;
 import org.rulii.validation.Severity;
 import org.rulii.validation.ValidationRuleException;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
- * Validation Rule to make sure the value is not blank (ie. it has some text).
+ * Validation Rule to make sure the value is not blank (i.e. it has some text).
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 @Rule
 @Description("Value cannot be blank.")
 public class NotBlankValidationRule extends BindingValidationRule {
 
-    public static List<Class<?>> SUPPORTED_TYPES    = Arrays.asList(CharSequence.class);
+    public static List<Class<?>> SUPPORTED_TYPES    = List.of(CharSequence.class);
 
-    public static final String ERROR_CODE       = "rulii.validation.rules.NotBlankValidationRule.errorCode";
-    public static final String DEFAULT_MESSAGE  = "Value cannot be blank.";
+    public static final String ERROR_CODE       = "notBlankValidationRule.errorCode";
+    public static final String DEFAULT_MESSAGE  = "Value must not be blank.";
 
     public NotBlankValidationRule(String bindingName) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null);

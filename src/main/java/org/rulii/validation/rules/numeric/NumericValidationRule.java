@@ -26,23 +26,23 @@ import org.rulii.validation.BindingValidationRule;
 import org.rulii.validation.Severity;
 import org.rulii.validation.ValidationRuleException;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
- * Validation Rule to make sure the the value is numeric.
+ * Validation Rule to make sure the value is numeric.
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 @Rule
 @Description("Value must be numeric.")
 public class NumericValidationRule extends BindingValidationRule {
 
-    public static List<Class<?>> SUPPORTED_TYPES    = Arrays.asList(CharSequence.class);
+    public static List<Class<?>> SUPPORTED_TYPES    = List.of(CharSequence.class);
 
-    public static final String ERROR_CODE       = "rulii.validation.rules.NumericValidationRule.errorCode";
-    public static final String DEFAULT_MESSAGE  = "Value must be numeric. Given {0}.";
+    public static final String ERROR_CODE       = "numericValidationRule.errorCode";
+    public static final String DEFAULT_MESSAGE  = "Value {0} must be numeric.";
 
     private final boolean allowSpace;
 

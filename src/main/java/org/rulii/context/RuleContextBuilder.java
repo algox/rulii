@@ -22,7 +22,6 @@ import org.rulii.bind.match.BindingMatchingStrategy;
 import org.rulii.bind.match.ParameterResolver;
 import org.rulii.convert.ConverterRegistry;
 import org.rulii.lib.spring.util.Assert;
-import org.rulii.registry.RuleRegistry;
 import org.rulii.text.MessageFormatter;
 import org.rulii.text.MessageResolver;
 import org.rulii.trace.Tracer;
@@ -49,11 +48,10 @@ public class RuleContextBuilder {
     private MessageResolver messageResolver;
     private MessageFormatter messageFormatter;
     private ObjectFactory objectFactory;
-    private Tracer tracer;
     private ConverterRegistry converterRegistry;
-    private RuleRegistry ruleRegistry;
     private Clock clock;
     private Locale locale;
+    private Tracer tracer = Tracer.builder().build();
     private ExecutorService executorService = DEFAULT_EXECUTOR_SERVICE;
 
     RuleContextBuilder() {
@@ -75,7 +73,6 @@ public class RuleContextBuilder {
         this.objectFactory = context.getObjectFactory();
         this.tracer = context.getTracer();
         this.converterRegistry = context.getConverterRegistry();
-        this.ruleRegistry = context.getRuleRegistry();
         this.clock = context.getClock();
         this.locale = context.getLocale();
         this.bindings = context.getBindings();
@@ -89,10 +86,8 @@ public class RuleContextBuilder {
         this.messageFormatter = options.getMessageFormatter();
         this.objectFactory = options.getObjectFactory();
         this.converterRegistry = options.getConverterRegistry();
-        this.ruleRegistry = options.getRuleRegistry();
         this.clock = options.getClock();
         this.locale = options.getLocale();
-        this.tracer = options.getTracer();
         this.executorService = options.getExecutorService();
     }
 
@@ -205,18 +200,6 @@ public class RuleContextBuilder {
     }
 
     /**
-     * Sets the RuleRegistry for the RuleContextBuilder.
-     *
-     * @param ruleRegistry the RuleRegistry to be set
-     * @return a RuleContextBuilder instance for method chaining
-     */
-    public RuleContextBuilder ruleRegistry(RuleRegistry ruleRegistry) {
-        Assert.notNull(ruleRegistry, "ruleRegistry cannot be null.");
-        this.ruleRegistry = ruleRegistry;
-        return this;
-    }
-
-    /**
      * Sets the locale for the RuleContextBuilder.
      *
      * @param locale The locale to be set.
@@ -284,10 +267,6 @@ public class RuleContextBuilder {
         return converterRegistry;
     }
 
-    public RuleRegistry getRuleRegistry() {
-        return ruleRegistry;
-    }
-
     public Clock getClock() {
         return clock;
     }
@@ -312,7 +291,7 @@ public class RuleContextBuilder {
 
         RuleContext result  = new RuleContext(scopedBindings, locale, matchingStrategy, parameterResolver,
                 messageResolver, messageFormatter, objectFactory, tracer,
-                converterRegistry, ruleRegistry, clock, executorService);
+                converterRegistry, clock, executorService);
 
         // Make the Bindings are avail.
         ((PromiscuousBinder) (scopedBindings.getRootScope().getBindings())).promiscuousBind(Binding.builder()

@@ -26,7 +26,6 @@ import org.rulii.validation.BindingValidationRule;
 import org.rulii.validation.Severity;
 import org.rulii.validation.ValidationRuleException;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -34,15 +33,16 @@ import java.util.List;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 @Rule
 @Description("Value must be all in uppercase.")
 public class UpperCaseValidationRule extends BindingValidationRule {
 
-    public static List<Class<?>> SUPPORTED_TYPES    = Arrays.asList(CharSequence.class);
+    public static List<Class<?>> SUPPORTED_TYPES    = List.of(CharSequence.class);
 
-    public static final String ERROR_CODE       = "rulii.validation.rules.UpperCaseValidationRule.errorCode";
-    public static final String DEFAULT_MESSAGE  = "Value must be all in uppercase. Given {0}.";
+    public static final String ERROR_CODE       = "upperCaseValidationRule.errorCode";
+    public static final String DEFAULT_MESSAGE  = "Value {0} must be in uppercase.";
 
     public UpperCaseValidationRule(String bindingName) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null);

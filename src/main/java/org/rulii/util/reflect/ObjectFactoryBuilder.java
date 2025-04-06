@@ -30,7 +30,7 @@ public final class ObjectFactoryBuilder {
      * It provides methods to configure the builder and create an ObjectFactory instance.
      */
     public ObjectFactoryBuilder() {
-        this(true);
+        this(false);
     }
 
     public ObjectFactoryBuilder(boolean useCache) {

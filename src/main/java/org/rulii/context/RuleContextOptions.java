@@ -20,10 +20,8 @@ package org.rulii.context;
 import org.rulii.bind.match.BindingMatchingStrategy;
 import org.rulii.bind.match.ParameterResolver;
 import org.rulii.convert.ConverterRegistry;
-import org.rulii.registry.RuleRegistry;
 import org.rulii.text.MessageFormatter;
 import org.rulii.text.MessageResolver;
-import org.rulii.trace.Tracer;
 import org.rulii.util.reflect.ObjectFactory;
 
 import java.time.Clock;
@@ -99,17 +97,6 @@ public interface RuleContextOptions {
     ObjectFactory getObjectFactory();
 
     /**
-     * Retrieves the Tracer instance associated with the current context.
-     * The Tracer is used to monitor and log events that occur during the
-     * rule execution process, such as binding changes, rule execution stages,
-     * and the lifecycle of rule sets. It provides methods to add or remove
-     * various listeners and to trigger specific tracing events.
-     *
-     * @return the Tracer for tracking and logging rule execution events.
-     */
-    Tracer getTracer();
-
-    /**
      * Retrieves the ConverterRegistry instance associated with the current context.
      * The ConverterRegistry is responsible for managing and providing converters
      * that facilitate the transformation of objects between different types.
@@ -118,14 +105,6 @@ public interface RuleContextOptions {
      * @return the ConverterRegistry for handling type conversions.
      */
     ConverterRegistry getConverterRegistry();
-
-    /**
-     * Retrieves the RuleRegistry instance associated with the current context.
-     * The RuleRegistry is responsible for managing and storing rules and rule sets.
-     *
-     * @return the RuleRegistry instance for accessing and managing rules and rule sets.
-     */
-    RuleRegistry getRuleRegistry();
 
     /**
      * Retrieves the Clock instance associated with the current context.
@@ -150,7 +129,7 @@ public interface RuleContextOptions {
     /**
      * Retrieves the ExecutorService instance associated with the current context.
      * The ExecutorService is responsible for managing and executing asynchronous
-     * tasks, enabling multi-threaded operations within the framework.
+     * tasks, enabling multithreaded operations within the framework.
      *
      * @return the ExecutorService used for managing and executing asynchronous tasks.
      */

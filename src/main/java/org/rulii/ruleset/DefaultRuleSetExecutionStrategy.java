@@ -19,10 +19,12 @@ package org.rulii.ruleset;
 
 import org.rulii.bind.NamedScope;
 import org.rulii.context.RuleContext;
+import org.rulii.lib.spring.core.NestedExceptionUtils;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.UnrulyException;
 import org.rulii.rule.Rule;
 import org.rulii.rule.RuleResult;
+import org.rulii.validation.ValidationException;
 
 /**
  * Default rule set execution strategy for running a set of rules in a specified order.
@@ -38,9 +40,13 @@ public class DefaultRuleSetExecutionStrategy<T> extends RuleSetExecutionStrategy
         super();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public T run(RuleSet<?> ruleSet, RuleContext ruleContext) throws UnrulyException {
         Assert.notNull(ruleContext, "context cannot be null");
+        // Run the input validators first (if any)
+        runInputValidators(ruleSet, ruleContext);
+        // Continue to run the ruleset
         RuleSetExecutionStatus ruleSetStatus = new RuleSetExecutionStatus();
         // Create a new Scope for the RuleSet to use
         NamedScope ruleSetScope = createRuleSetScope(ruleSet, ruleContext, ruleSetStatus);
@@ -53,16 +59,25 @@ public class DefaultRuleSetExecutionStrategy<T> extends RuleSetExecutionStrategy
             ruleSetStatus.setPreConditionCheck(preConditionCheck);
             // RuleSet did not pass the precondition; Do not execute the rules.
             if (!preConditionCheck) {
-                if (getLogger().isDebugEnabled()) getLogger().debug("RuleSet [" + ruleSet.getName() + "] pre-condition check failed. RuleSet is skipped.");
-                return null;
+                if (getLogger().isDebugEnabled())
+                    getLogger().debug("RuleSet [" + ruleSet.getName() + "] pre-condition check failed. RuleSet is skipped.");
+                return (T) ruleSetStatus;
             }
             // Run the rules
             runRules(ruleSet, ruleContext, ruleSetStatus);
             return extractResult(ruleSet, ruleContext, ruleSetStatus);
         } catch (Exception e) {
-            getLogger().error("RuleSet [" + ruleSet.getName() + "] execution caused an error.", e);
-            ruleContext.getTracer().fireOnRuleSetError(ruleSet, ruleSetStatus, e);
-            throw new UnrulyException("Error trying to run RuleSet [" + ruleSet.getName() + "]", e);
+            Throwable rootCause = NestedExceptionUtils.getRootCause(e);
+
+            // Check if we got an expected ValidationException then rethrow it
+            if (rootCause instanceof ValidationException) {
+                throw (ValidationException) rootCause;
+            } else {
+                getLogger().error("RuleSet [" + ruleSet.getName() + "] execution caused an error.", e);
+                ruleContext.getTracer().fireOnRuleSetError(ruleSet, ruleSetStatus, e);
+                throw new UnrulyException("Error trying to run RuleSet [" + ruleSet.getName() + "]", e);
+            }
+
         } finally {
             removeRuleSetScope(ruleContext, ruleSetScope);
             ruleContext.getTracer().fireOnRuleSetEnd(ruleSet, ruleSetScope, ruleSetStatus);

@@ -27,6 +27,7 @@ import org.rulii.validation.*;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 @Rule
 @Description("Binding Name must NOT exist.")

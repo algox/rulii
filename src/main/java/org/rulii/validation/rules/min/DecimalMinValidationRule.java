@@ -22,30 +22,26 @@ import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.util.NumberComparator;
-import org.rulii.validation.BindingSupplier;
-import org.rulii.validation.BindingValidationRule;
-import org.rulii.validation.RuleViolationBuilder;
-import org.rulii.validation.Severity;
-import org.rulii.validation.ValidationRuleException;
+import org.rulii.validation.*;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
 import java.util.List;
 
 /**
- * Validation Rule to make sure the the value is greater than the desired Min.
+ * Validation Rule to make sure the value is greater than the desired Min.
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 @Rule
 @Description("Value is greater than the desired Min.")
 public class DecimalMinValidationRule extends BindingValidationRule {
 
-    public static List<Class<?>> SUPPORTED_TYPES    = Arrays.asList(Number.class, CharSequence.class);
+    public static List<Class<?>> SUPPORTED_TYPES    = List.of(Number.class, CharSequence.class);
 
-    public static final String ERROR_CODE       = "rulii.validation.rules.DecimalMinValidationRule.errorCode";
-    public static final String DEFAULT_MESSAGE  = "Value must be greater than or equal to {1}. Given {0}.";
+    public static final String ERROR_CODE       = "decimalMinValidationRule.errorCode";
+    public static final String DEFAULT_MESSAGE  = "Value {0} must be greater than or equal to {1}.";
 
     private final BigDecimal min;
     private final boolean inclusive;
@@ -92,11 +88,7 @@ public class DecimalMinValidationRule extends BindingValidationRule {
                     + "Supplied Class [" + value.getClass() + "] value [" + value + "]");
 
         Integer result = NumberComparator.compare(number, min);
-        return result == null
-                ? true
-                : isInclusive()
-                    ? result >= 0
-                    : result > 0;
+        return result == null || (isInclusive() ? result >= 0 : result > 0);
     }
 
     @Override

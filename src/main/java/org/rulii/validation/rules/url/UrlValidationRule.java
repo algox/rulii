@@ -20,14 +20,11 @@ package org.rulii.validation.rules.url;
 import org.rulii.annotation.Description;
 import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
-import org.rulii.lib.apache.validation.RegexValidator;
 import org.rulii.lib.apache.validation.UrlValidator;
-import org.rulii.validation.BindingSupplier;
 import org.rulii.validation.BindingValidationRule;
 import org.rulii.validation.Severity;
 import org.rulii.validation.ValidationRuleException;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -35,38 +32,26 @@ import java.util.List;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 @Rule
 @Description("Value must match a Url regex pattern.")
 public class UrlValidationRule extends BindingValidationRule {
 
-    public static List<Class<?>> SUPPORTED_TYPES    = Arrays.asList(CharSequence.class);
+    public static List<Class<?>> SUPPORTED_TYPES    = List.of(CharSequence.class);
 
-    public static final String ERROR_CODE       = "rulii.validation.rules.UrlValidationRule.errorCode";
-    public static final String DEFAULT_MESSAGE  = "Value not a valid Url. Given {0}.";
+    public static final String ERROR_CODE       = "urlValidationRule.errorCode";
+    public static final String DEFAULT_MESSAGE  = "Value {0} is not a valid Url";
 
-    private String[] schemes;
-    private String[] patterns;
-    private UrlValidator validator;
+    private final UrlValidator validator;
 
-    public UrlValidationRule(String bindingName, String[] schemes, String...patterns) {
-        this(bindingName, ERROR_CODE, Severity.ERROR, null, schemes, patterns);
+    public UrlValidationRule(String bindingName) {
+        this(bindingName, ERROR_CODE, Severity.ERROR, null);
     }
 
-    public UrlValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage,
-                             String[] schemes, String...patterns) {
+    public UrlValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage) {
         super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
-        this.schemes = schemes;
-        this.patterns = patterns;
-        this.validator = new UrlValidator(schemes, patterns != null ? new RegexValidator(patterns) : null, 0L);
-    }
-
-    public UrlValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity,
-                             String errorMessage, String[] schemes, String...patterns) {
-        super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
-        this.schemes = schemes;
-        this.patterns = patterns;
-        this.validator = new UrlValidator(schemes, patterns != null ? new RegexValidator(patterns) : null, 0L);
+        this.validator = new UrlValidator();
     }
 
     @Override
@@ -81,14 +66,6 @@ public class UrlValidationRule extends BindingValidationRule {
         return validator.isValid(value.toString());
     }
 
-    public String[] getSchemes() {
-        return schemes;
-    }
-
-    public String[] getPatterns() {
-        return patterns;
-    }
-
     @Override
     public List<Class<?>> getSupportedTypes() {
         return SUPPORTED_TYPES;
@@ -96,9 +73,6 @@ public class UrlValidationRule extends BindingValidationRule {
 
     @Override
     public String toString() {
-        return "UrlValidationRule{" +
-                "schemes=" + Arrays.toString(schemes) +
-                ", patterns=" + Arrays.toString(patterns) +
-                '}';
+        return "UrlValidationRule";
     }
 }

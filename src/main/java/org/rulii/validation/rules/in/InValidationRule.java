@@ -26,38 +26,38 @@ import org.rulii.validation.BindingValidationRule;
 import org.rulii.validation.RuleViolationBuilder;
 import org.rulii.validation.Severity;
 
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 /**
- * Validation Rule to make sure the the value is in the given set.
+ * Validation Rule to make sure the value is in the given collection.
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 @Rule
-@Description("Value must be in the given set.")
+@Description("Value must be in the given collection.")
 public class InValidationRule extends BindingValidationRule {
 
-    public static List<Class<?>> SUPPORTED_TYPES    = Arrays.asList(Object.class);
+    public static List<Class<?>> SUPPORTED_TYPES    = List.of(Object.class);
 
-    public static final String ERROR_CODE       = "rulii.validation.rules.InValidationRule.errorCode";
-    public static final String DEFAULT_MESSAGE  = "Value must be in one of the given values {1}. Given {0}.";
+    public static final String ERROR_CODE       = "inValidationRule.errorCode";
+    public static final String DEFAULT_MESSAGE  = "Value {0} not found in one of the given values {1}.";
 
-    private final Set<?> values;
+    private final Collection<?> values;
 
-    public InValidationRule(String bindingName, Set<?> values) {
+    public InValidationRule(String bindingName, Collection<?> values) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null, values);
     }
 
-    public InValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage, Set<?> values) {
+    public InValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage, Collection<?> values) {
         super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
         Assert.notNull(values, "values cannot be null.");
         this.values = values;
     }
 
-    public InValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity, String errorMessage, Set<?> values) {
+    public InValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity, String errorMessage, Collection<?> values) {
         super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
         Assert.notNull(values, "values cannot be null.");
         this.values = values;
@@ -78,14 +78,14 @@ public class InValidationRule extends BindingValidationRule {
         return SUPPORTED_TYPES;
     }
 
-    public Set<?> getValues() {
+    public Collection<?> getValues() {
         return values;
     }
 
     @Override
     public String toString() {
-        return "EndsWithValidationRule{"
-                + "values=" + values.toString()
-                + "}";
+        return "InValidationRule{" +
+                "values=" + values +
+                '}';
     }
 }

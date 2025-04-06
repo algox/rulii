@@ -23,7 +23,6 @@ import org.rulii.bind.match.ParameterResolver;
 import org.rulii.convert.ConverterRegistry;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.Immutator;
-import org.rulii.registry.RuleRegistry;
 import org.rulii.text.MessageFormatter;
 import org.rulii.text.MessageResolver;
 import org.rulii.trace.Tracer;
@@ -59,7 +58,6 @@ public class RuleContext implements Immutator<RuleContext> {
     private final ObjectFactory objectFactory;
     private final Tracer tracer;
     private final ConverterRegistry converterRegistry;
-    private final RuleRegistry ruleRegistry;
     private final Clock clock;
     private final ExecutorService executorService;
 
@@ -67,7 +65,7 @@ public class RuleContext implements Immutator<RuleContext> {
                 ParameterResolver parameterResolver, MessageResolver messageResolver,
                 MessageFormatter messageFormatter, ObjectFactory objectFactory,
                 Tracer tracer, ConverterRegistry converterRegistry,
-                RuleRegistry ruleRegistry, Clock clock, ExecutorService executorService) {
+                Clock clock, ExecutorService executorService) {
         super();
         Assert.notNull(bindings, "bindings cannot be null.");
         Assert.notNull(locale, "locale cannot be null.");
@@ -78,7 +76,6 @@ public class RuleContext implements Immutator<RuleContext> {
         Assert.notNull(objectFactory, "objectFactory cannot be null.");
         Assert.notNull(tracer, "tracer cannot be null.");
         Assert.notNull(converterRegistry, "converterRegistry cannot be null.");
-        Assert.notNull(ruleRegistry, "ruleRegistry cannot be null.");
         Assert.notNull(clock, "clock cannot be null.");
         Assert.notNull(executorService, "executorService cannot be null.");
         this.bindings = bindings;
@@ -90,7 +87,6 @@ public class RuleContext implements Immutator<RuleContext> {
         this.objectFactory = objectFactory;
         this.tracer = tracer;
         this.converterRegistry = converterRegistry;
-        this.ruleRegistry = ruleRegistry;
         this.clock = clock;
         this.executorService = executorService;
     }
@@ -167,15 +163,6 @@ public class RuleContext implements Immutator<RuleContext> {
     }
 
     /**
-     * Retrieves the RuleRegistry instance associated with this RuleContext.
-     *
-     * @return the RuleRegistry instance linked to this RuleContext. Cannot be null.
-     */
-    public RuleRegistry getRuleRegistry() {
-        return ruleRegistry;
-    }
-
-    /**
      * Returns the locale associated with this RuleContext.
      *
      * @return the locale of the RuleContext
@@ -223,7 +210,7 @@ public class RuleContext implements Immutator<RuleContext> {
     @Override
     public RuleContext asImmutable() {
         return new RuleContext(bindings.asImmutable(), locale, matchingStrategy, parameterResolver, messageResolver,
-                messageFormatter, objectFactory, tracer, converterRegistry, ruleRegistry, clock, executorService);
+                messageFormatter, objectFactory, tracer, converterRegistry, clock, executorService);
     }
 
     @Override
@@ -240,7 +227,6 @@ public class RuleContext implements Immutator<RuleContext> {
                 ", objectFactory=" + objectFactory +
                 ", tracer=" + tracer +
                 ", converterRegistry=" + converterRegistry +
-                ", ruleRegistry=" + ruleRegistry +
                 ", clock=" + clock  +
                 ", executorService=" + executorService +
                 '}';

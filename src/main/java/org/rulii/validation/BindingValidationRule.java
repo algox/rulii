@@ -21,6 +21,7 @@ import org.rulii.annotation.Given;
 import org.rulii.annotation.Otherwise;
 import org.rulii.annotation.Param;
 import org.rulii.annotation.PreCondition;
+import org.rulii.bind.NoSuchBindingException;
 import org.rulii.bind.match.MatchByTypeMatchingStrategy;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.apache.commons.logging.Log;
@@ -96,9 +97,13 @@ public abstract class BindingValidationRule extends ValidationRule {
     public boolean checkType(@Param(matchUsing = MatchByTypeMatchingStrategy.class) RuleContext ruleContext) {
         if (ruleContext == null) throw new UnrulyException("RuleContext not defined.");
 
-        Object value = getBindingValue(ruleContext);
-
-        return value == null || isSupported(value.getClass());
+        try {
+            Object value = getBindingValue(ruleContext);
+            return value == null || isSupported(value.getClass());
+        } catch (NoSuchBindingException e) {
+            // Skip it.
+            return false;
+        }
     }
 
     /**

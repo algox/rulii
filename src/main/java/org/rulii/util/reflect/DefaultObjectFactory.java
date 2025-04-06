@@ -42,7 +42,7 @@ public class DefaultObjectFactory implements ObjectFactory {
     private final boolean useCache;
 
     public DefaultObjectFactory() {
-        this(true);
+        this(false);
     }
 
     public DefaultObjectFactory(boolean useCache) {
