@@ -7,10 +7,9 @@
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>Rulii</name>
+    <name>rulii</name>
     <description>Business Rule Engine</description>
     <url>https://github.com/algox/rulii</url>
-    <inceptionYear>2025</inceptionYear>
 
     <organization>
         <name>rulii</name>
@@ -26,24 +25,24 @@
         <license>
             <name>Apache License, Version 2.0</name>
             <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-            <distribution>repo</distribution>
         </license>
     </licenses>
 
     <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
+
         <jakarta.annotation.api.version>3.0.0</jakarta.annotation.api.version>
         <slf4j.version>2.0.17</slf4j.version>
         <log4j.verion>2.24.3</log4j.verion>
         <logback.classic.version>1.5.18</logback.classic.version>
         <junit.version>5.12.1</junit.version>
 
-        <version.maven-compiler-plugin>3.14.0</version.maven-compiler-plugin>
-        <version.maven-resources-plugin>3.3.1</version.maven-resources-plugin>
-        <version.maven-source-plugin>3.0.1</version.maven-source-plugin>
-        <version.maven-javadoc-plugin>3.11.2</version.maven-javadoc-plugin>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
+        <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
+        <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
+        <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
     </properties>
 
     <dependencies>
@@ -90,7 +89,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>${version.maven-compiler-plugin}</version>
+                <version>${maven-compiler-plugin.version}</version>
                 <configuration>
                     <encoding>UTF-8</encoding>
                     <source>17</source>
@@ -101,7 +100,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
-                <version>${version.maven-resources-plugin}</version>
+                <version>${maven-resources-plugin.version}</version>
                 <configuration>
                     <encoding>UTF-8</encoding>
                 </configuration>
@@ -109,7 +108,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>${version.maven-source-plugin}</version>
+                <version>${maven-source-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -122,7 +121,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>${version.maven-javadoc-plugin}</version>
+                <version>${maven-javadoc-plugin.version}</version>
                 <configuration>
                     <encoding>UTF-8</encoding>
                     <excludePackageNames>org.rulii.lib.*</excludePackageNames>
@@ -137,19 +136,22 @@
                     </execution>
                 </executions>
             </plugin>
-
         </plugins>
     </build>
 
     <developers>
         <developer>
             <name>Max Arulananthan</name>
-            <id>max.arulananthan</id>
             <email>max.arulananthan@rulii.org</email>
             <organization>Algorithmx Inc.</organization>
-            <roles>
-                <role>Founder</role>
-            </roles>
+            <organizationUrl>http://www.algorithmx.com</organizationUrl>
         </developer>
     </developers>
+
+    <scm>
+        <connection>scm:git:https://github.com/algox/rulii.git</connection>
+        <developerConnection>scm:git:https://github.com/algox/rulii.git</developerConnection>
+        <url>https://github.com/algox/rulii</url>
+    </scm>
+
 </project>
