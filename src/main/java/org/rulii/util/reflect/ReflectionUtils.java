@@ -17,7 +17,6 @@
  */
 package org.rulii.util.reflect;
 
-import jakarta.annotation.PostConstruct;
 import org.rulii.bind.Binding;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.apache.ClassUtils;
@@ -37,7 +36,6 @@ import java.lang.invoke.MethodHandles;
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 /**
  * Reflection related utility methods.
@@ -70,6 +68,22 @@ public final class ReflectionUtils {
     private static long DEFAULT_LONG;
     private static short DEFAULT_SHORT;
 
+    private static Class<? extends Annotation> POST_CONSTRUCT_ANNOTATION_1 = null;
+    private static Class<? extends Annotation> POST_CONSTRUCT_ANNOTATION_2 = null;
+
+    static {
+
+        try {
+            //noinspection unchecked
+            POST_CONSTRUCT_ANNOTATION_1 = (Class<? extends Annotation>) Class.forName("javax.annotation.PostConstruct");
+        } catch (Exception ignored) {}
+
+        try {
+            //noinspection unchecked
+            POST_CONSTRUCT_ANNOTATION_2 = (Class<? extends Annotation>) Class.forName("jakarta.annotation.PostConstruct");
+        } catch (Exception ignored) {}
+    }
+
     static {
         DEFAULT_VALUE_MAP.put(boolean.class, DEFAULT_BOOLEAN);
         DEFAULT_VALUE_MAP.put(byte.class, DEFAULT_BYTE);
@@ -81,6 +95,8 @@ public final class ReflectionUtils {
         DEFAULT_VALUE_MAP.put(short.class, DEFAULT_SHORT);
         DEFAULT_VALUE_MAP.put(void.class, null);
     }
+
+
 
     private ReflectionUtils() {
         super();
@@ -107,10 +123,14 @@ public final class ReflectionUtils {
      */
     public static Method getPostConstructMethods(Class<?> c) {
         Assert.notNull(c, "c cannot be null");
+
+        if (POST_CONSTRUCT_ANNOTATION_1 == null && POST_CONSTRUCT_ANNOTATION_2 == null) return null;
+
         List<Method> postConstructors = Arrays.stream(c.getDeclaredMethods())
                 .filter(method -> void.class.equals(method.getReturnType()) &&
                         method.getParameterCount() == 0 && method.getExceptionTypes().length == 0 &&
-                        method.getAnnotation(PostConstruct.class) != null).collect(Collectors.toList());
+                        (POST_CONSTRUCT_ANNOTATION_1 != null && method.getAnnotation(POST_CONSTRUCT_ANNOTATION_1) != null)
+                        || (POST_CONSTRUCT_ANNOTATION_2 != null && method.getAnnotation(POST_CONSTRUCT_ANNOTATION_2) != null)).toList();
 
         // More than one post constructor
         if (postConstructors.size() > 1) {

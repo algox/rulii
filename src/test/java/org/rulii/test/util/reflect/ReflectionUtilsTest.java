@@ -91,8 +91,21 @@ public class ReflectionUtilsTest {
 
     @Test
     public void postConstructorTest3() {
-        Method postConstructor = ReflectionUtils.getPostConstructMethods(ErrorClass.class);
-        Assertions.assertNull(postConstructor);
+        Assertions.assertThrows(UnrulyException.class, () -> {
+            ReflectionUtils.getPostConstructMethods(ErrorClass.class);
+        });
+    }
+
+    @Test
+    public void postConstructorTest4() {
+        Method postConstructor = ReflectionUtils.getPostConstructMethods(PostConstruct1.class);
+        Assertions.assertNotNull(postConstructor);
+    }
+
+    @Test
+    public void postConstructorTest5() {
+        Method postConstructor = ReflectionUtils.getPostConstructMethods(PostConstruct2.class);
+        Assertions.assertNotNull(postConstructor);
     }
 
     @Test
@@ -208,6 +221,26 @@ public class ReflectionUtilsTest {
         private void init3() throws Exception {
             //
         }
+    }
+
+    private static class PostConstruct1 {
+
+        public PostConstruct1() {
+            super();
+        }
+
+        @PostConstruct
+        private void init() {}
+    }
+
+    private static class PostConstruct2 {
+
+        public PostConstruct2() {
+            super();
+        }
+
+        @javax.annotation.PostConstruct
+        private void init() {}
     }
 
     private abstract static class TestClass<A, B> extends BaseClass1 {
