@@ -8,6 +8,7 @@
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-orange.svg)][Apache 2.0 License]
 [![Maven Central Version](https://img.shields.io/maven-central/v/org.rulii/rulii)][Rulii Maven Central]
+[![Javadoc](https://javadoc.io/badge2/org.rulii/rulii/1.0.0/javadoc.svg)](https://javadoc.io/doc/org.rulii/rulii/1.0.0)
 ![Build](https://github.com/algox/rulii/actions/workflows/maven.yml/badge.svg)
 
 ## What is it?
