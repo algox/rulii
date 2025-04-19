@@ -1,3 +1,20 @@
+/*
+ * This software is licensed under the Apache 2 license, quoted below.
+ *
+ * Copyright (c) 1999-2025, Algorithmx Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.rulii.test.trace;
 
 import org.junit.jupiter.api.Assertions;
@@ -28,6 +45,14 @@ import org.rulii.validation.rules.uppercase.UpperCaseValidationRule;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * Class representing TraceTest.
+ *
+ * This class contains a series of test methods annotated with @Test.
+ *
+ * @author Max Arulananthan
+ * @since 1.0
+ */
 public class TraceTest {
 
     public TraceTest() {
@@ -439,11 +464,11 @@ public class TraceTest {
                 .inputValidator(new NotNullValidationRule("preConditionFlag"))
                 .preCondition(Conditions.condition((Boolean preConditionFlag) -> preConditionFlag))
                 .initializer(Actions.action((Binding<Integer> value) -> value.setValue(0)))
-                .validationRule(new AlphaNumericValidationRule("a"))
-                .validationRule(new NotEmptyValidationRule("a"))
-                .validationRule(new NotNullValidationRule("b"))
-                .validationRule(new NumericValidationRule("b"))
-                .validationRule(new UpperCaseValidationRule("c"))
+                .rule(new AlphaNumericValidationRule("a"))
+                .rule(new NotEmptyValidationRule("a"))
+                .rule(new NotNullValidationRule("b"))
+                .rule(new NumericValidationRule("b"))
+                .rule(new UpperCaseValidationRule("c"))
                 .finalizer(Actions.action((Binding<Integer> value) -> value.setValue(100)))
                 .build();
 
@@ -516,11 +541,11 @@ public class TraceTest {
     @Test
     public void test12() {
         RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
-                .validationRule(new AlphaNumericValidationRule("a"))
-                .validationRule(new NotEmptyValidationRule("a"))
-                .validationRule(new NotNullValidationRule("b"))
-                .validationRule(new NumericValidationRule("b"))
-                .validationRule(new UpperCaseValidationRule("c"))
+                .rule(new AlphaNumericValidationRule("a"))
+                .rule(new NotEmptyValidationRule("a"))
+                .rule(new NotNullValidationRule("b"))
+                .rule(new NumericValidationRule("b"))
+                .rule(new UpperCaseValidationRule("c"))
                 .stopCondition(RuleSetConditions.stopWhenOneFailsOrSkipped())
                 .validating()
                 .build();
@@ -544,11 +569,11 @@ public class TraceTest {
     @Test
     public void test13() {
         RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
-                .validationRule(new AlphaNumericValidationRule("a"))
-                .validationRule(new NotEmptyValidationRule("a"))
-                .validationRule(new NotNullValidationRule("b"))
-                .validationRule(new NumericValidationRule("b"))
-                .validationRule(new UpperCaseValidationRule("c"))
+                .rule(new AlphaNumericValidationRule("a"))
+                .rule(new NotEmptyValidationRule("a"))
+                .rule(new NotNullValidationRule("b"))
+                .rule(new NumericValidationRule("b"))
+                .rule(new UpperCaseValidationRule("c"))
                 .stopCondition(RuleSetConditions.stopWhenOneFails())
                 .validating()
                 .build();

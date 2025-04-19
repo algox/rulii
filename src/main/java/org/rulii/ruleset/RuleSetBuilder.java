@@ -41,6 +41,7 @@ import java.util.*;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 public class RuleSetBuilder {
 
@@ -309,7 +310,7 @@ public class RuleSetBuilder {
      * @param rule the validation rule to be added
      * @return the RuleSetBuilder instance with the added validation rule
      */
-    public RuleSetBuilder validationRule(ValidationRule rule) {
+    public RuleSetBuilder rule(ValidationRule rule) {
         return rule(Rule.builder().build(rule));
     }
 
@@ -320,7 +321,7 @@ public class RuleSetBuilder {
      * @param rule the validation rule to be added. Must not be null.
      * @return the RuleSetBuilder instance with the added validation rule at the specified index
      */
-    public RuleSetBuilder validationRule(int index, ValidationRule rule) {
+    public RuleSetBuilder rule(int index, ValidationRule rule) {
         return rule(index, Rule.builder().build(rule));
     }
 

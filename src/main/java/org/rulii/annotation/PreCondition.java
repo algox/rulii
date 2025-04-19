@@ -17,27 +17,18 @@
  */
 package org.rulii.annotation;
 
-import org.rulii.lib.spring.core.annotation.AliasFor;
-
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * Annotation to mark the Pre-Condition method of a Rule. A Pre-Condition must be met before the Rule is run.
  *
  * @author Max Arulananthan
  * @since 1.0
- *
  */
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Condition
 public @interface PreCondition {
 
-    @AliasFor(annotation = Condition.class, attribute = "name")
     String name() default "preCondition";
 }

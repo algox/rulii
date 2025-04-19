@@ -41,6 +41,7 @@ import java.util.Optional;
  * Test cases related to ReflectionUtils.
  *
  * @author Max Arulananthan
+ * @since 1.0
  */
 public class ReflectionUtilsTest {
 
@@ -125,8 +126,9 @@ public class ReflectionUtilsTest {
     public void isAnnotatedTest3() throws NoSuchMethodException {
         Method method1 = TestClass.class.getDeclaredMethod("execute", Map.class);
         Assertions.assertTrue(ReflectionUtils.isAnnotated(method1, Action.class));
+
         Method method2 = TestClass.class.getDeclaredMethod("execute", List.class);
-        Assertions.assertTrue(ReflectionUtils.isAnnotated(method2, Action.class));
+        Assertions.assertTrue(ReflectionUtils.isAnnotated(method2, Then.class));
     }
 
     @Test
@@ -145,10 +147,12 @@ public class ReflectionUtilsTest {
         Method method5 = BaseClass2.class.getDeclaredMethod("init");
         List<Method> methods = Arrays.asList(ReflectionUtils.getMethodsWithAnnotation(TestClass.class, Action.class));
         Assertions.assertTrue(methods.contains(method1));
-        Assertions.assertTrue(methods.contains(method2));
-        Assertions.assertTrue(methods.contains(method3));
-        Assertions.assertTrue(methods.contains(method4));
+        Assertions.assertFalse(methods.contains(method3));
+        Assertions.assertFalse(methods.contains(method4));
         Assertions.assertFalse(methods.contains(method5));
+
+        List<Method> thenMethods = Arrays.asList(ReflectionUtils.getMethodsWithAnnotation(TestClass.class, Then.class));
+        Assertions.assertTrue(thenMethods.contains(method2));
     }
 
     @Test

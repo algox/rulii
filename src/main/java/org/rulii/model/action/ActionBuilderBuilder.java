@@ -42,7 +42,6 @@ import java.util.function.Predicate;
  * @author Max Arulananthan
  * @since 1.0
  * @see Action
- *
  */
 public final class ActionBuilderBuilder {
 
@@ -121,15 +120,12 @@ public final class ActionBuilderBuilder {
 
         }
 
-        // Sort the methods by Order
-        //Arrays.sort(candidates, new MethodComparator());
-
         Action[] result = new Action[candidates.length];
 
         for (int i = 0; i < candidates.length; i++) {
             // See if its bridged method
             Method candidate = BridgeMethodResolver.findBridgedMethod(candidates[i]);
-            String name = extractName(candidate);
+            String name = extractName(candidate, annotationClass);
             ActionBuilder builder = with(target, MethodDefinition.load(candidate, true, SourceDefinition.build()));
             if (name != null) builder.name(name);
             result[i] = builder.build();
@@ -344,7 +340,7 @@ public final class ActionBuilderBuilder {
                     + Arrays.toString(candidates) + "]");
         }
 
-        String name = extractName(candidates[0]);
+        String name = extractName(candidates[0], org.rulii.annotation.Action.class);
         Method candidate = BridgeMethodResolver.findBridgedMethod(candidates[0]);
         RunnableBuilder.MethodInfo methodInfo = RunnableBuilder.load(target, candidate);
 
@@ -359,10 +355,16 @@ public final class ActionBuilderBuilder {
         return result;
     }
 
-    private static String extractName(Method method) {
+    private static String extractName(Method method, Class<? extends Annotation> annotationClass) {
         Assert.notNull(method, "method cannot be null.");
-        org.rulii.annotation.Action action = AnnotationUtils.getAnnotation(method, org.rulii.annotation.Action.class);
+        Annotation action = AnnotationUtils.getAnnotation(method, annotationClass);
         if (action == null) return method.getName();
-        return org.rulii.annotation.Action.NOT_APPLICABLE.equals(action.name()) ? method.getName() : action.name();
+        return getAnnotationNameAttribute(method, action);
+    }
+
+    private static String getAnnotationNameAttribute(Method method, Annotation action) {
+        Map<String, Object> attribs = AnnotationUtils.getAnnotationAttributes(action);
+        String name = attribs.containsKey("name") ? attribs.get("name").toString() : org.rulii.annotation.Action.NOT_APPLICABLE;
+        return org.rulii.annotation.Action.NOT_APPLICABLE.equals(name) ? method.getName() : name;
     }
 }

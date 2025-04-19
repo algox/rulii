@@ -57,6 +57,7 @@ import static org.rulii.model.function.Functions.function;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 public class RuleSetTest {
 
@@ -389,11 +390,11 @@ public class RuleSetTest {
     @Test
     public void test14() {
         RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
-                .validationRule(new AlphaNumericValidationRule("a"))
-                .validationRule(new NotEmptyValidationRule("a"))
-                .validationRule(new NotNullValidationRule("b"))
-                .validationRule(new NumericValidationRule("b"))
-                .validationRule(new UpperCaseValidationRule("c"))
+                .rule(new AlphaNumericValidationRule("a"))
+                .rule(new NotEmptyValidationRule("a"))
+                .rule(new NotNullValidationRule("b"))
+                .rule(new NumericValidationRule("b"))
+                .rule(new UpperCaseValidationRule("c"))
                 .validating()
                 .build();
 
@@ -409,11 +410,11 @@ public class RuleSetTest {
     @Test
     public void test15() {
         RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
-                .validationRule(new AlphaNumericValidationRule("a"))
-                .validationRule(new NotEmptyValidationRule("a"))
-                .validationRule(new NotNullValidationRule("b"))
-                .validationRule(new NumericValidationRule("b"))
-                .validationRule(new UpperCaseValidationRule("c"))
+                .rule(new AlphaNumericValidationRule("a"))
+                .rule(new NotEmptyValidationRule("a"))
+                .rule(new NotNullValidationRule("b"))
+                .rule(new NumericValidationRule("b"))
+                .rule(new UpperCaseValidationRule("c"))
                 .stopCondition(RuleSetConditions.stopOnPassCount(2))
                 .validating()
                 .build();
@@ -424,11 +425,11 @@ public class RuleSetTest {
     @Test
     public void test16() {
         RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
-                .validationRule(new AlphaNumericValidationRule("a"))
-                .validationRule(new NotEmptyValidationRule("a"))
-                .validationRule(new NotNullValidationRule("b"))
-                .validationRule(new NumericValidationRule("b"))
-                .validationRule(new UpperCaseValidationRule("c"))
+                .rule(new AlphaNumericValidationRule("a"))
+                .rule(new NotEmptyValidationRule("a"))
+                .rule(new NotNullValidationRule("b"))
+                .rule(new NumericValidationRule("b"))
+                .rule(new UpperCaseValidationRule("c"))
                 .stopCondition(RuleSetConditions.stopWhenOnePasses())
                 .validating()
                 .build();
@@ -439,11 +440,11 @@ public class RuleSetTest {
     @Test
     public void test17() {
         RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
-                .validationRule(new AlphaNumericValidationRule("a"))
-                .validationRule(new NotEmptyValidationRule("a"))
-                .validationRule(new NotNullValidationRule("b"))
-                .validationRule(new NumericValidationRule("b"))
-                .validationRule(new UpperCaseValidationRule("c"))
+                .rule(new AlphaNumericValidationRule("a"))
+                .rule(new NotEmptyValidationRule("a"))
+                .rule(new NotNullValidationRule("b"))
+                .rule(new NumericValidationRule("b"))
+                .rule(new UpperCaseValidationRule("c"))
                 .stopCondition(RuleSetConditions.stopOnFailCount(2))
                 .validating()
                 .build();
@@ -458,11 +459,11 @@ public class RuleSetTest {
     @Test
     public void test18() {
         RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
-                .validationRule(new AlphaNumericValidationRule("a"))
-                .validationRule(new NotEmptyValidationRule("a"))
-                .validationRule(new NotNullValidationRule("b"))
-                .validationRule(new NumericValidationRule("b"))
-                .validationRule(new UpperCaseValidationRule("c"))
+                .rule(new AlphaNumericValidationRule("a"))
+                .rule(new NotEmptyValidationRule("a"))
+                .rule(new NotNullValidationRule("b"))
+                .rule(new NumericValidationRule("b"))
+                .rule(new UpperCaseValidationRule("c"))
                 .stopCondition(RuleSetConditions.stopWhenOneFails())
                 .validating()
                 .build();
@@ -477,11 +478,11 @@ public class RuleSetTest {
     @Test
     public void test19() {
         RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
-                .validationRule(new AlphaNumericValidationRule("a"))
-                .validationRule(new NotEmptyValidationRule("a"))
-                .validationRule(new NotNullValidationRule("b"))
-                .validationRule(new NumericValidationRule("b"))
-                .validationRule(new UpperCaseValidationRule("c"))
+                .rule(new AlphaNumericValidationRule("a"))
+                .rule(new NotEmptyValidationRule("a"))
+                .rule(new NotNullValidationRule("b"))
+                .rule(new NumericValidationRule("b"))
+                .rule(new UpperCaseValidationRule("c"))
                 .stopCondition(RuleSetConditions.stopOnSkipCount(2))
                 .validating()
                 .build();
@@ -492,11 +493,11 @@ public class RuleSetTest {
     @Test
     public void test20() {
         RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
-                .validationRule(new AlphaNumericValidationRule("a"))
-                .validationRule(new NotEmptyValidationRule("a"))
-                .validationRule(new NotNullValidationRule("b"))
-                .validationRule(new NumericValidationRule("b"))
-                .validationRule(new UpperCaseValidationRule("c"))
+                .rule(new AlphaNumericValidationRule("a"))
+                .rule(new NotEmptyValidationRule("a"))
+                .rule(new NotNullValidationRule("b"))
+                .rule(new NumericValidationRule("b"))
+                .rule(new UpperCaseValidationRule("c"))
                 .stopCondition(RuleSetConditions.stopWhenOneFailsOrSkipped())
                 .validating()
                 .build();
@@ -508,11 +509,11 @@ public class RuleSetTest {
     public void test21() {
         RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
                 .preCondition(RuleSetConditions.allMustPass())
-                .validationRule(new AlphaNumericValidationRule("a"))
-                .validationRule(new NotEmptyValidationRule("a"))
-                .validationRule(new NotNullValidationRule("b"))
-                .validationRule(new NumericValidationRule("b"))
-                .validationRule(new UpperCaseValidationRule("c"))
+                .rule(new AlphaNumericValidationRule("a"))
+                .rule(new NotEmptyValidationRule("a"))
+                .rule(new NotNullValidationRule("b"))
+                .rule(new NumericValidationRule("b"))
+                .rule(new UpperCaseValidationRule("c"))
                 .validating()
                 .build();
         RuleSetExecutionStatus result = ruleSet.run(a -> "abc", b -> "333", c -> "A");
@@ -523,11 +524,11 @@ public class RuleSetTest {
     public void test22() {
         RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
                 .preCondition(RuleSetConditions.oneMustPass())
-                .validationRule(new AlphaNumericValidationRule("a"))
-                .validationRule(new NotEmptyValidationRule("a"))
-                .validationRule(new NotNullValidationRule("b"))
-                .validationRule(new NumericValidationRule("b"))
-                .validationRule(new UpperCaseValidationRule("c"))
+                .rule(new AlphaNumericValidationRule("a"))
+                .rule(new NotEmptyValidationRule("a"))
+                .rule(new NotNullValidationRule("b"))
+                .rule(new NumericValidationRule("b"))
+                .rule(new UpperCaseValidationRule("c"))
                 .validating()
                 .build();
         RuleSetExecutionStatus result = ruleSet.run(a -> "abc", b -> "333", c -> "A");
@@ -538,11 +539,11 @@ public class RuleSetTest {
     public void test23() {
         RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
                 .preCondition(RuleSetConditions.noneCanPass())
-                .validationRule(new AlphaNumericValidationRule("a"))
-                .validationRule(new NotEmptyValidationRule("a"))
-                .validationRule(new NotNullValidationRule("b"))
-                .validationRule(new NumericValidationRule("b"))
-                .validationRule(new UpperCaseValidationRule("c"))
+                .rule(new AlphaNumericValidationRule("a"))
+                .rule(new NotEmptyValidationRule("a"))
+                .rule(new NotNullValidationRule("b"))
+                .rule(new NumericValidationRule("b"))
+                .rule(new UpperCaseValidationRule("c"))
                 .validating()
                 .build();
         RuleSetExecutionStatus result = ruleSet.run();
@@ -553,11 +554,11 @@ public class RuleSetTest {
     public void test24() {
         RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
                 .preCondition(RuleSetConditions.onlyOneCanPass())
-                .validationRule(new AlphaNumericValidationRule("a"))
-                .validationRule(new NotEmptyValidationRule("a"))
-                .validationRule(new NotNullValidationRule("b"))
-                .validationRule(new NumericValidationRule("b"))
-                .validationRule(new UpperCaseValidationRule("c"))
+                .rule(new AlphaNumericValidationRule("a"))
+                .rule(new NotEmptyValidationRule("a"))
+                .rule(new NotNullValidationRule("b"))
+                .rule(new NumericValidationRule("b"))
+                .rule(new UpperCaseValidationRule("c"))
                 .build();
         RuleSetExecutionStatus result = ruleSet.run(c -> "ABC");
         Assertions.assertEquals(result.size(), 5);
@@ -567,11 +568,11 @@ public class RuleSetTest {
     public void test25() {
         RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
                 .preCondition(RuleSetConditions.allMustPass())
-                .validationRule(new AlphaNumericValidationRule("a"))
-                .validationRule(new NotEmptyValidationRule("a"))
-                .validationRule(new NotNullValidationRule("b"))
-                .validationRule(new NumericValidationRule("b"))
-                .validationRule(new UpperCaseValidationRule("c"))
+                .rule(new AlphaNumericValidationRule("a"))
+                .rule(new NotEmptyValidationRule("a"))
+                .rule(new NotNullValidationRule("b"))
+                .rule(new NumericValidationRule("b"))
+                .rule(new UpperCaseValidationRule("c"))
                 .validating()
                 .build();
         RuleSetExecutionStatus result = ruleSet.run(c -> "ABC");
@@ -583,11 +584,11 @@ public class RuleSetTest {
     public void test26() {
         RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
                 .preCondition(RuleSetConditions.oneMustPass())
-                .validationRule(new AlphaNumericValidationRule("a"))
-                .validationRule(new NotEmptyValidationRule("a"))
-                .validationRule(new NotNullValidationRule("b"))
-                .validationRule(new NumericValidationRule("b"))
-                .validationRule(new UpperCaseValidationRule("c"))
+                .rule(new AlphaNumericValidationRule("a"))
+                .rule(new NotEmptyValidationRule("a"))
+                .rule(new NotNullValidationRule("b"))
+                .rule(new NumericValidationRule("b"))
+                .rule(new UpperCaseValidationRule("c"))
                 .validating()
                 .build();
         RuleSetExecutionStatus result = ruleSet.run();
@@ -599,11 +600,11 @@ public class RuleSetTest {
     public void test27() {
         RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
                 .preCondition(RuleSetConditions.noneCanPass())
-                .validationRule(new AlphaNumericValidationRule("a"))
-                .validationRule(new NotEmptyValidationRule("a"))
-                .validationRule(new NotNullValidationRule("b"))
-                .validationRule(new NumericValidationRule("b"))
-                .validationRule(new UpperCaseValidationRule("c"))
+                .rule(new AlphaNumericValidationRule("a"))
+                .rule(new NotEmptyValidationRule("a"))
+                .rule(new NotNullValidationRule("b"))
+                .rule(new NumericValidationRule("b"))
+                .rule(new UpperCaseValidationRule("c"))
                 .validating()
                 .build();
         RuleSetExecutionStatus result = ruleSet.run(c -> "ABC");
@@ -615,11 +616,11 @@ public class RuleSetTest {
     public void test28() {
         RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
                 .preCondition(RuleSetConditions.onlyOneCanPass())
-                .validationRule(new AlphaNumericValidationRule("a"))
-                .validationRule(new NotEmptyValidationRule("a"))
-                .validationRule(new NotNullValidationRule("b"))
-                .validationRule(new NumericValidationRule("b"))
-                .validationRule(new UpperCaseValidationRule("c"))
+                .rule(new AlphaNumericValidationRule("a"))
+                .rule(new NotEmptyValidationRule("a"))
+                .rule(new NotNullValidationRule("b"))
+                .rule(new NumericValidationRule("b"))
+                .rule(new UpperCaseValidationRule("c"))
                 .build();
         RuleSetExecutionStatus result = ruleSet.run(a -> "abc", b -> "333", c -> "A");
         Assertions.assertFalse(result.isPreConditionCheck());
@@ -629,11 +630,11 @@ public class RuleSetTest {
     @Test
     public void test29() throws ExecutionException, InterruptedException {
         RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
-                .validationRule(new AlphaNumericValidationRule("a"))
-                .validationRule(new NotEmptyValidationRule("a"))
-                .validationRule(new NotNullValidationRule("b"))
-                .validationRule(new NumericValidationRule("b"))
-                .validationRule(new UpperCaseValidationRule("c"))
+                .rule(new AlphaNumericValidationRule("a"))
+                .rule(new NotEmptyValidationRule("a"))
+                .rule(new NotNullValidationRule("b"))
+                .rule(new NumericValidationRule("b"))
+                .rule(new UpperCaseValidationRule("c"))
                 .build();
 
         CompletableFuture<RuleSetExecutionStatus> future = ruleSet.runAsync(RuleContext.builder().build(a -> "abc", b -> "333", c -> "A"));
@@ -645,11 +646,11 @@ public class RuleSetTest {
     @Test
     public void test30() throws ExecutionException, InterruptedException {
         RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
-                .validationRule(new AlphaNumericValidationRule("a"))
-                .validationRule(new NotEmptyValidationRule("a"))
-                .validationRule(new NotNullValidationRule("b"))
-                .validationRule(new NumericValidationRule("b"))
-                .validationRule(new UpperCaseValidationRule("c"))
+                .rule(new AlphaNumericValidationRule("a"))
+                .rule(new NotEmptyValidationRule("a"))
+                .rule(new NotNullValidationRule("b"))
+                .rule(new NumericValidationRule("b"))
+                .rule(new UpperCaseValidationRule("c"))
                 .build();
 
         CompletableFuture<RuleSetExecutionStatus> future = ruleSet.runAsync(RuleContext.builder().build(a -> "abc", b -> "333", c -> "A"));
@@ -662,11 +663,11 @@ public class RuleSetTest {
     @Test
     public void test31() throws ExecutionException, InterruptedException {
         RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
-                .validationRule(new AlphaNumericValidationRule("a"))
-                .validationRule(new NotEmptyValidationRule("a"))
-                .validationRule(new NotNullValidationRule("b"))
-                .validationRule(new NumericValidationRule("b"))
-                .validationRule(new UpperCaseValidationRule("c"))
+                .rule(new AlphaNumericValidationRule("a"))
+                .rule(new NotEmptyValidationRule("a"))
+                .rule(new NotNullValidationRule("b"))
+                .rule(new NumericValidationRule("b"))
+                .rule(new UpperCaseValidationRule("c"))
                 .finalizer(action(() -> {
                     try {
                         Thread.sleep(250);

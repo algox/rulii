@@ -35,6 +35,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 
 /**
@@ -43,7 +44,6 @@ import java.util.function.Predicate;
  * @author Max Arulananthan
  * @since 1.0
  * @see Action
- *
  */
 public final class ConditionBuilderBuilder {
 
@@ -122,7 +122,7 @@ public final class ConditionBuilderBuilder {
         Condition[] result = new Condition[candidates.length];
 
         for (int i = 0; i < candidates.length; i++) {
-            String name = extractName(candidates[0]);
+            String name = extractName(candidates[0], annotationClass);
             Method candidate = BridgeMethodResolver.findBridgedMethod(candidates[0]);
             ConditionBuilder builder = with(target, MethodDefinition.load(candidate, true, SourceDefinition.build()));
             if (name != null) builder.name(name);
@@ -145,7 +145,7 @@ public final class ConditionBuilderBuilder {
                     + Arrays.toString(candidates) + "]");
         }
 
-        String name = extractName(candidates[0]);
+        String name = extractName(candidates[0], org.rulii.annotation.Condition.class);
         Method candidate = BridgeMethodResolver.findBridgedMethod(candidates[0]);
         RunnableBuilder.MethodInfo methodInfo = RunnableBuilder.load(target, candidate);
 
@@ -326,10 +326,16 @@ public final class ConditionBuilderBuilder {
         return withCondition(condition);
     }
 
-    private static String extractName(Method method) {
+    private static String extractName(Method method, Class<? extends Annotation> annotationClass) {
         Assert.notNull(method, "method cannot be null.");
-        org.rulii.annotation.Condition condition = AnnotationUtils.getAnnotation(method, org.rulii.annotation.Condition.class);
+        Annotation condition = AnnotationUtils.getAnnotation(method, annotationClass);
         if (condition == null) return method.getName();
-        return org.rulii.annotation.Condition.NOT_APPLICABLE.equals(condition.name()) ? method.getName() : condition.name();
+        return getAnnotationNameAttribute(method, condition);
+    }
+
+    private static String getAnnotationNameAttribute(Method method, Annotation condition) {
+        Map<String, Object> attribs = AnnotationUtils.getAnnotationAttributes(condition);
+        String name = attribs.containsKey("name") ? attribs.get("name").toString() : org.rulii.annotation.Condition.NOT_APPLICABLE;
+        return org.rulii.annotation.Condition.NOT_APPLICABLE.equals(name) ? method.getName() : name;
     }
 }

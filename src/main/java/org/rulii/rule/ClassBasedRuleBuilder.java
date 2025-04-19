@@ -24,6 +24,7 @@ import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.UnrulyException;
 import org.rulii.model.action.Action;
 import org.rulii.model.condition.Condition;
+import org.rulii.util.RuleUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +36,7 @@ import java.util.List;
  *
  * @author Max Arulananthan
  * @since 1.0
+ *
  */
 public class ClassBasedRuleBuilder<T> extends AbstractRuleBuilder<T> {
 
@@ -81,7 +83,7 @@ public class ClassBasedRuleBuilder<T> extends AbstractRuleBuilder<T> {
 
         return rule == null ? ruleClass.getSimpleName() :
                 Rule.NOT_APPLICABLE.equals(rule.value())
-                        ? ruleClass.getSimpleName()
+                        ? RuleUtils.getDefaultRuleName(ruleClass)
                         : rule.value();
     }
 

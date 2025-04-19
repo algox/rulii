@@ -17,28 +17,18 @@
  */
 package org.rulii.annotation;
 
-import org.rulii.lib.spring.core.annotation.AliasFor;
-
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * Annotation to mark the Otherwise method of a Rule. It is the Else condition in a Rule.
  *
  * @author Max Arulananthan
  * @since 1.0
- * @see Action
- *
  */
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Action
 public @interface Otherwise {
 
-    @AliasFor(annotation = Action.class, attribute = "name")
     String name() default "otherwise";
 }
