@@ -20,6 +20,7 @@ package org.rulii.registry;
 
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.Runnable;
+import org.rulii.model.UnrulyException;
 import org.rulii.rule.Rule;
 import org.rulii.ruleset.RuleSet;
 
@@ -111,6 +112,23 @@ public interface RuleRegistry {
     }
 
     /**
+     * Retrieves a Rule object based on the provided ruleClass.
+     *
+     * @param <T> the type of the ruleClass
+     * @param ruleClass the class of the Rule to retrieve
+     * @return the Rule object matching the ruleClass, or null if not found
+     * @throws IllegalArgumentException if ruleClass is null
+     */
+    default <T> Rule getRule(Class<T> ruleClass) {
+        Assert.notNull(ruleClass, "ruleClass cannot be null.");
+        List<Rule> matches = getRules(ruleClass);
+
+        if (matches.size() > 1) throw new UnrulyException("No unique Rule match. Multiple Rule(s) match class [" + ruleClass + "]. Matches [" + matches + "]");
+
+        return matches.isEmpty() ? null : matches.get(0);
+    }
+
+    /**
      * Retrieves a list of Rule objects that have the specified ruleClass.
      *
      * @param <T>       the ruleClass type
@@ -118,9 +136,9 @@ public interface RuleRegistry {
      * @return a list of Rule objects with the specified ruleClass
      * @throws IllegalArgumentException if ruleClass is null
      */
-    default <T> List<Rule> getRule(Class<T> ruleClass) {
+    default <T> List<Rule> getRules(Class<T> ruleClass) {
         Assert.notNull(ruleClass, "ruleClass cannot be null.");
-        return getRules((Rule rule) -> rule.getDefinition().getRuleClass().equals(ruleClass));
+        return getRules((Rule rule) -> rule.getTarget() != null && rule.getTarget().getClass().equals(ruleClass));
     }
 
     /**
