@@ -222,11 +222,16 @@ public class RuleSetTest {
 
         RuleSet<?> ruleSet = RuleSet.builder().with("TestRuleSet")
                 .description("Some Description")
-                .inputValidator(notNullValidationRule)
-                .inputValidators(notEmptyValidationRule)
-                .inputValidators(sizeValidationRule)
-                .inputValidators(urlValidationRule)
-                .inputValidators(emailValidationRule)
+                .param("a", String.class)
+                .param("b", String.class)
+                .param("c", List.class)
+                .param("d", String.class)
+                .param("e", String.class)
+                .rule(notNullValidationRule)
+                .rule(notEmptyValidationRule)
+                .rule(sizeValidationRule)
+                .rule(urlValidationRule)
+                .rule(emailValidationRule)
                 .build();
 
         ruleSet.run(a -> "abcd", b -> "123", c -> List.of(1, 2, 3), d -> "http://www.google.ca", e -> "test@test.com");
@@ -236,11 +241,12 @@ public class RuleSetTest {
     public void test7() {
         RuleSet<?> ruleSet = RuleSet.builder().with("TestRuleSet")
                 .description("Some Description")
-                .inputValidator(new NotNullValidationRule("a"))
-                .inputValidators(new NotEmptyValidationRule("b"))
-                .inputValidators(new SizeValidationRule("c", 1, 5))
-                .inputValidators(new UrlValidationRule("d"))
-                .inputValidators(new EmailValidationRule("e"))
+                .rule(new NotNullValidationRule("a"))
+                .rule(new NotEmptyValidationRule("b"))
+                .rule(new SizeValidationRule("c", 1, 5))
+                .rule(new UrlValidationRule("d"))
+                .rule(new EmailValidationRule("e"))
+                .validating()
                 .build();
 
         ValidationException validationException = null;
@@ -264,8 +270,8 @@ public class RuleSetTest {
     public void test8() {
         RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
                 .preCondition(Conditions.FALSE())
-                .inputValidator(new NotNullValidationRule("a"))
                 .initializer(Actions.action((Binding<Integer> a) -> a.setValue(100)))
+                .rule(new NotNullValidationRule("a"))
                 .build();
 
         Bindings bindings = Bindings.builder().scoped();
@@ -279,7 +285,7 @@ public class RuleSetTest {
     public void test9() {
         RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
                 .preCondition(Conditions.TRUE())
-                .inputValidator(new NotNullValidationRule("a"))
+                .rule(new NotNullValidationRule("a"))
                 .initializer(Actions.action((Binding<Integer> a) -> a.setValue(100)))
                 .build();
 
@@ -294,7 +300,7 @@ public class RuleSetTest {
     public void test10() {
         RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
                 .preCondition(Conditions.TRUE())
-                .inputValidator(new NotNullValidationRule("a"))
+                .rule(new NotNullValidationRule("a"))
                 .initializer(Actions.action((Binding<Integer> a) -> a.setValue(100)))
                 .finalizer(Actions.action((Binding<Integer> a) -> a.setValue(0)))
                 .build();
@@ -309,11 +315,11 @@ public class RuleSetTest {
     @Test
     public void test11() {
         RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
-                .inputValidator(new NotNullValidationRule("a"))
-                .inputValidator(new NotNullValidationRule("b"))
-                .inputValidator(new NotNullValidationRule("violations"))
                 .preCondition(Conditions.TRUE())
                 .initializer(Actions.action((Binding<Integer> a) -> a.setValue(100)))
+                .rule(new NotNullValidationRule("a"))
+                .rule(new NotNullValidationRule("b"))
+                .rule(new NotNullValidationRule("violations"))
                 .rule(Rule.builder().build(new NotEmptyValidationRule("b")))
                 .rule(Rule.builder().build(new ValidationExceptionThrowingRule()))
                 .finalizer(Actions.action((Binding<Integer> a) -> a.setValue(0)))
@@ -334,10 +340,10 @@ public class RuleSetTest {
     @Test
     public void test12() {
         RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
-                .inputValidator(new NotNullValidationRule("a"))
-                .inputValidator(new NotNullValidationRule("b"))
-                .inputValidator(new NotNullValidationRule("violations"))
                 .initializer(Actions.action((Binding<Integer> a) -> a.setValue(100)))
+                .rule(new NotNullValidationRule("a"))
+                .rule(new NotNullValidationRule("b"))
+                .rule(new NotNullValidationRule("violations"))
                 .rule(Rule.builder().build(new NotEmptyValidationRule("b")))
                 .rule(Rule.builder().build(new ValidationExceptionThrowingRule()))
                 .finalizer(Actions.action((Binding<Integer> a) -> a.setValue(0)))
@@ -351,14 +357,14 @@ public class RuleSetTest {
 
         Assertions.assertEquals(updatedRuleSet.getRule(0).getTarget().getClass(), EmailValidationRule.class);
         Assertions.assertEquals(updatedRuleSet.getRule(1).getTarget().getClass(), UrlValidationRule.class);
-        Assertions.assertEquals(updatedRuleSet.getRule(2).getTarget().getClass(), NotEmptyValidationRule.class);
-        Assertions.assertEquals(updatedRuleSet.getRule(3).getTarget().getClass(), ValidationExceptionThrowingRule.class);
+        Assertions.assertEquals(updatedRuleSet.getRule(2).getTarget().getClass(), NotNullValidationRule.class);
+        Assertions.assertEquals(updatedRuleSet.getRule(6).getTarget().getClass(), ValidationExceptionThrowingRule.class);
     }
 
     @Test
     public void test13() {
         RuleSet<Integer> ruleSet = RuleSet.builder().with("TestRuleSet")
-                .inputValidator(new NotNullValidationRule("a"))
+                .rule(new NotNullValidationRule("a"))
                 .initializer(Actions.action((Binding<Integer> a) -> a.setValue(0)))
                 .rule(Rule.builder()
                         .name("Rule1")
@@ -644,7 +650,7 @@ public class RuleSetTest {
     }
 
     @Test
-    public void test30() throws ExecutionException, InterruptedException {
+    public void test30() {
         RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
                 .rule(new AlphaNumericValidationRule("a"))
                 .rule(new NotEmptyValidationRule("a"))
@@ -661,7 +667,7 @@ public class RuleSetTest {
     }
 
     @Test
-    public void test31() throws ExecutionException, InterruptedException {
+    public void test31() {
         RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
                 .rule(new AlphaNumericValidationRule("a"))
                 .rule(new NotEmptyValidationRule("a"))

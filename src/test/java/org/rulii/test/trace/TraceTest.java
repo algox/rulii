@@ -461,7 +461,6 @@ public class TraceTest {
     @Test
     public void test11() {
         RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
-                .inputValidator(new NotNullValidationRule("preConditionFlag"))
                 .preCondition(Conditions.condition((Boolean preConditionFlag) -> preConditionFlag))
                 .initializer(Actions.action((Binding<Integer> value) -> value.setValue(0)))
                 .rule(new AlphaNumericValidationRule("a"))

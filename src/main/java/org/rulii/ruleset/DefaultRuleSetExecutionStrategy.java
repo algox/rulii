@@ -44,12 +44,12 @@ public class DefaultRuleSetExecutionStrategy<T> extends RuleSetExecutionStrategy
     @Override
     public T run(RuleSet<?> ruleSet, RuleContext ruleContext) throws UnrulyException {
         Assert.notNull(ruleContext, "context cannot be null");
-        // Run the input validators first (if any)
-        runInputValidators(ruleSet, ruleContext);
         // Continue to run the ruleset
         RuleSetExecutionStatus ruleSetStatus = new RuleSetExecutionStatus();
         // Create a new Scope for the RuleSet to use
         NamedScope ruleSetScope = createRuleSetScope(ruleSet, ruleContext, ruleSetStatus);
+        // Check the input parameters
+        checkInputParameters(ruleSet, ruleContext);
         ruleContext.getTracer().fireOnRuleSetStart(ruleSet, ruleSetScope);
         if (getLogger().isDebugEnabled()) getLogger().debug("RuleSet [" + ruleSet.getName() + "] Execution. Scope [" +  ruleSetScope.getName() + "] created.");
 

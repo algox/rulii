@@ -26,9 +26,6 @@ import org.rulii.lib.apache.commons.logging.Log;
 import org.rulii.lib.apache.commons.logging.LogFactory;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.UnrulyException;
-import org.rulii.rule.Rule;
-import org.rulii.validation.RuleViolations;
-import org.rulii.validation.ValidationException;
 
 import java.util.UUID;
 
@@ -50,38 +47,35 @@ public abstract class RuleSetExecutionStrategyTemplate<T> implements RuleSetExec
     }
 
     /**
-     * Runs input validators for the given rule set and rule context.
+     * Checks the input parameters associated with the given RuleSet and performs validation on each parameter.
      *
-     * @param ruleSet the rule set to validate (must not be null)
-     * @param ruleContext the rule context representing the current context (must not be null)
-     * @throws ValidationException if input validation fails
+     * @param ruleSet    the RuleSet for which input parameters need to be checked (must not be null).
+     * @param ruleContext the RuleContext containing the runtime context information (must not be null).
      */
-    protected void runInputValidators(RuleSet<?> ruleSet, RuleContext ruleContext) throws ValidationException {
-        Assert.notNull(ruleSet, "ruleSet cannot be null.");
-        Assert.notNull(ruleContext, "ruleContext cannot be null.");
+    protected void checkInputParameters(RuleSet<?> ruleSet, RuleContext ruleContext) {
+        ruleSet.getInputParameters().forEach(parameter -> checkInputParameter(parameter, ruleSet, ruleContext));
+    }
 
-        if (ruleSet.getInputValidators() == null || ruleSet.getInputValidators().isEmpty()) return;
+    /**
+     * Checks the input parameter based on the provided InputParameter, RuleSet, and RuleContext.
+     * Throws UnrulyException if the required parameter is missing or if the specified type does not match.
+     * Sets the default value if specified and the binding is null.
+     *
+     * @param parameter    the InputParameter to check (must not be null)
+     * @param ruleSet      the RuleSet associated with the parameter (must not be null)
+     * @param ruleContext  the RuleContext containing the runtime context information (must not be null)
+     */
+    protected void checkInputParameter(InputParameter<?> parameter, RuleSet<?> ruleSet, RuleContext ruleContext) {
+        Binding<?> binding = ruleContext.getBindings().getBinding(parameter.name());
 
-        NamedScope scope = ruleContext.getBindings().addScope();
-        RuleViolations violations = new RuleViolations();
+        // check the required param
+        if (parameter.required() && (binding == null || !binding.isAssignable(parameter.type())))
+            throw new UnrulyException("RuleSet [" + ruleSet.getName() + "] requires input parameter ["
+                    + parameter.name() + "] type [" + parameter.type() + "]");
 
-        try {
-            ruleContext.getBindings().bind("ruleViolations", violations);
-
-            for (Rule inputValidator : ruleSet.getInputValidationRules()) {
-                inputValidator.run(ruleContext);
-            }
-
-        } catch (Exception e) {
-            throw new ValidationException("RuleSet [" + ruleSet.getName() + "] input validation failed.", e, violations);
-        } finally {
-            ruleContext.getBindings().removeScope(scope);
-        }
-
-        ruleContext.getTracer().fireOnRuleSetInputCheck(ruleSet, violations);
-
-        if (violations.hasSevereErrors()) {
-            throw new ValidationException("Input validation failed for RuleSet [" + ruleSet.getName() + "]", violations);
+        // Set the default value
+        if (parameter.defaultValue() != null && binding == null) {
+            ruleContext.getBindings().bind(parameter.name(), parameter.defaultValue());
         }
     }
 

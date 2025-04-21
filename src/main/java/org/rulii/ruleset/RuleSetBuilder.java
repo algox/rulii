@@ -47,7 +47,7 @@ public class RuleSetBuilder {
 
     private String name;
     private String description = null;
-    private final List<ValidationRule> inputValidators = new LinkedList<>();
+    private final List<InputParameter> inputParameters = new LinkedList<>();
     private Condition preCondition = null;
     private Condition stopCondition = null;
     private Action initializer = null;
@@ -87,7 +87,6 @@ public class RuleSetBuilder {
         Assert.notNull(rules, "rules cannot be null.");
         name(rules.getName());
         description(rules.getDescription());
-        if (rules.getInputValidators() != null) inputValidators(rules.getInputValidators());
         if (rules.getPreCondition() != null) preCondition(rules.getPreCondition());
         if (rules.getStopCondition() != null) stopCondition(rules.getStopCondition());
         if (rules.getInitializer() != null) initializer(rules.getInitializer());
@@ -121,56 +120,47 @@ public class RuleSetBuilder {
     }
 
     /**
-     * Adds a validation rule to the input validators of this RuleSetBuilder.
+     * Adds a parameter to the RuleSetBuilder for defining input parameters.
      *
-     * @param validator the validation rule to add. Must not be null.
+     * @param name the name of the parameter. Must not be empty or null.
+     * @param type the Class representing the type of the parameter. Must not be null.
+     * @param required specifies if the parameter is required or optional.
      * @return this RuleSetBuilder instance for method chaining.
      */
-    public RuleSetBuilder inputValidator(ValidationRule validator) {
-        Assert.notNull(validator, "validator cannot be null.");
-        this.inputValidators.add(validator);
+    public <T> RuleSetBuilder param(String name, Class<T> type, boolean required) {
+        Assert.hasText(name, "name cannot be empty/null.");
+        Assert.notNull(type, "type cannot be null.");
+        this.inputParameters.add(new InputParameter<>(name, type, required, null));
         return this;
     }
 
     /**
-     * Sets the input validators for this RuleSetBuilder.
+     * Adds a parameter to the RuleSetBuilder for defining input parameters.
      *
-     * @param validators the array of ValidationRule objects to set as input validators. Must not be null.
-     * @return this RuleSetBuilder instance for method chaining
+     * @param name the name of the parameter. Must not be empty or null.
+     * @param type the Class representing the type of the parameter. Must not be null.
+     * @return this RuleSetBuilder instance for method chaining.
      */
-    public RuleSetBuilder inputValidators(ValidationRule...validators) {
-        Assert.notNullArray(validators, "validators cannot be null.");
-        Arrays
-                .stream(validators)
-                .filter(Objects::nonNull)
-                .forEach(this::inputValidator);
-        return this;
+    public <T> RuleSetBuilder param(String name, Class<T> type) {
+        return param(name, type, true);
     }
 
     /**
-     * Sets the input validators for this RuleSetBuilder.
+     * Adds a parameter to the RuleSetBuilder for defining input parameters.
      *
-     * @param validators a collection of ValidationRule objects to set as input validators. Must not be null.
+     * @param <T> the generic type for the parameter value
+     * @param name the name of the parameter. Must not be empty or null.
+     * @param type the Class representing the type of the parameter. Must not be null.
+     * @param defaultValue the default value for the parameter.
      * @return this RuleSetBuilder instance for method chaining
      */
-    public RuleSetBuilder inputValidators(Collection<ValidationRule> validators) {
-        Assert.notNull(validators, "validators cannot be null.");
-        validators
-                .stream()
-                .filter(Objects::nonNull)
-                .forEach(this::inputValidator);
+    public <T> RuleSetBuilder param(String name, Class<T> type, T defaultValue) {
+        Assert.hasText(name, "name cannot be empty/null.");
+        Assert.notNull(type, "type cannot be null.");
+        this.inputParameters.add(new InputParameter<>(name, type, false, defaultValue));
         return this;
     }
 
-    /**
-     * Clears all input validators set for this RuleSetBuilder instance.
-     *
-     * @return this RuleSetBuilder instance for method chaining
-     */
-    public RuleSetBuilder clearInputValidators() {
-        this.inputValidators.clear();
-        return this;
-    }
     /**
      * PreCondition(Optional) Condition to be met before the execution of the RuleSet.
      *
@@ -423,7 +413,7 @@ public class RuleSetBuilder {
      */
     @SuppressWarnings("unchecked")
     public <T> RuleSet<T> build() {
-        return new RulingFamily<>(buildRuleSetDefinition(), getInputValidators(), getPreCondition(), getStopCondition(),
+        return new RulingFamily<>(buildRuleSetDefinition(), getInputParameters(), getPreCondition(), getStopCondition(),
                 getInitializer(), getFinalizer(), (Function<T>) getResultExtractor(), Collections.unmodifiableList(getRules()));
     }
 
@@ -435,8 +425,8 @@ public class RuleSetBuilder {
         return description;
     }
 
-    public List<ValidationRule> getInputValidators() {
-        return Collections.unmodifiableList(inputValidators);
+    public List<InputParameter> getInputParameters() {
+        return Collections.unmodifiableList(inputParameters);
     }
 
     public Condition getPreCondition() {
@@ -464,7 +454,7 @@ public class RuleSetBuilder {
         return "RuleSetBuilder{" +
                 "name='" + name + '\'' +
                 ", description='" + description + '\'' +
-                ", inputValidators=" + inputValidators +
+                ", inputParameters=" + inputParameters +
                 ", preCondition=" + preCondition +
                 ", stopCondition=" + stopCondition +
                 ", initializer=" + initializer +

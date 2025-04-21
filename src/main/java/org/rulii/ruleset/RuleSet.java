@@ -24,7 +24,6 @@ import org.rulii.model.action.Action;
 import org.rulii.model.condition.Condition;
 import org.rulii.model.function.Function;
 import org.rulii.rule.Rule;
-import org.rulii.validation.ValidationRule;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -102,18 +101,11 @@ public interface RuleSet<T> extends Runnable<T>, Identifiable, Iterable<Rule>, D
     RuleSetDefinition getDefinition();
 
     /**
-     * Retrieves the list of input validation rules used within the RuleSet for performing validation on input values or objects.
+     * Retrieves the list of input parameters used within the RuleSet.
      *
-     * @return a List of ValidationRule instances representing the input validators defined in the RuleSet.
+     * @return a List of InputParameter instances representing the input parameters defined in the RuleSet.
      */
-    List<ValidationRule> getInputValidators();
-
-    /**
-     * Retrieves the list of input validation rules used within the RuleSet for performing validation on input values or objects.
-     *
-     * @return a List of Rule instances representing the input validation rules defined in the RuleSet.
-     */
-    List<Rule> getInputValidationRules();
+    List<InputParameter> getInputParameters();
 
     /**
      * Returns the Condition (if one exists) to be met before the execution of the Rules.
