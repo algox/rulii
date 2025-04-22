@@ -17,6 +17,8 @@
  */
 package org.rulii.ruleset;
 
+import java.util.Objects;
+
 /**
  * Represents an input parameter with a name, type, required flag, and default value.
  *
@@ -25,4 +27,28 @@ package org.rulii.ruleset;
  * @author Max Arulananthan
  * @since 1.1
  */
-public record InputParameter<T>(String name, Class<T> type, boolean required, T defaultValue) {}
+public record InputParameter<T>(String name, Class<T> type, boolean required, T defaultValue) {
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        InputParameter<?> that = (InputParameter<?>) o;
+        return Objects.equals(name, that.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name);
+    }
+
+    @Override
+    public String toString() {
+        return "InputParameter{" +
+                "name='" + name + '\'' +
+                ", type=" + type +
+                ", required=" + required +
+                ", defaultValue=" + defaultValue +
+                '}';
+    }
+}

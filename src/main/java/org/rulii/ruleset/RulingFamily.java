@@ -51,7 +51,7 @@ public class RulingFamily<T> implements RuleSet<T> {
 
     private final RuleSetDefinition ruleSetDefinition;
 
-    private final List<InputParameter> inputParameters;
+    private final List<InputParameter<?>> inputParameters;
     private final Condition preCondition;
     private final Action initializer;
     private final Action finalizer;
@@ -63,7 +63,7 @@ public class RulingFamily<T> implements RuleSet<T> {
     private final RuleSetExecutionStrategy<CompletableFuture<T>> asyncStrategy;
 
     public RulingFamily(RuleSetDefinition ruleSetDefinition,
-                        List<InputParameter> inputParameters,
+                        List<InputParameter<?>> inputParameters,
                         Condition preCondition,
                         Condition stopCondition,
                         Action initializer,
@@ -138,7 +138,7 @@ public class RulingFamily<T> implements RuleSet<T> {
     }
 
     @Override
-    public List<InputParameter> getInputParameters() {
+    public List<InputParameter<?>> getInputParameters() {
         return inputParameters;
     }
 

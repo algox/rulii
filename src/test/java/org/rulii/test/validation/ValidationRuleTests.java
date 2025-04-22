@@ -29,7 +29,9 @@ import org.rulii.validation.Severity;
 import org.rulii.validation.rules.alpha.AlphaValidationRule;
 import org.rulii.validation.rules.alphnumeric.AlphaNumericValidationRule;
 import org.rulii.validation.rules.ascii.AsciiValidationRule;
+import org.rulii.validation.rules.asssert.AssertEqualsValidationRule;
 import org.rulii.validation.rules.asssert.AssertFalseValidationRule;
+import org.rulii.validation.rules.asssert.AssertNotEqualsValidationRule;
 import org.rulii.validation.rules.asssert.AssertTrueValidationRule;
 import org.rulii.validation.rules.binding.MustBeDefinedRule;
 import org.rulii.validation.rules.binding.MustNotBeDefinedRule;
@@ -463,6 +465,145 @@ public class ValidationRuleTests {
         Rule rule = Rule.builder().build(validationRule);
         RuleResult result = rule.run(value -> "test");
         assertTrue(result.status().isSkipped());
+    }
+
+    @Test
+    public void assertEqualsTest1() {
+        AssertEqualsValidationRule validationRule = new AssertEqualsValidationRule("value", 123);
+        Rule rule = Rule.builder().build(validationRule);
+        RuleResult result = rule.run(value -> 123);
+        assertTrue(result.status().isPass());
+    }
+
+    @Test
+    public void assertEqualsTest2() {
+        AssertEqualsValidationRule validationRule = new AssertEqualsValidationRule("value", 123,
+                "error.3", Severity.ERROR, "Assert Equals Error Message");
+        Rule rule = Rule.builder().build(validationRule);
+
+        RuleResult result = rule.run(value -> 123);
+        assertTrue(result.status().isPass());
+
+        RuleViolations errors = new RuleViolations();
+        result = rule.run(ruleViolations -> errors, value -> 321);
+        assertTrue(result.status().isFail());
+        assertTrue(errors.hasErrors());
+        assertEquals(1, errors.getViolations().size());
+        RuleViolation violation = errors.getViolations().get(0);
+        assertEquals("error.3", violation.getErrorCode());
+        assertEquals(Severity.ERROR, violation.getSeverity());
+        assertEquals("Assert Equals Error Message", violation.getErrorMessage());
+    }
+
+    @Test
+    public void assertEqualsTest3() {
+        Rule rule = Rule.builder().build(new AssertEqualsValidationRule("value", "abc"));
+        RuleResult result = rule.run(value -> "abc");
+        assertTrue(result.status().isPass());
+
+        RuleViolations errors = new RuleViolations();
+        result = rule.run(ruleViolations -> errors, value -> 123);
+        assertTrue(result.status().isFail());
+        assertTrue(errors.hasErrors());
+        assertEquals(1, errors.getViolations().size());
+        RuleViolation violation = errors.getViolations().get(0);
+        assertEquals(AssertEqualsValidationRule.ERROR_CODE, violation.getErrorCode());
+        assertEquals(Severity.ERROR, violation.getSeverity());
+        assertEquals("Value [123] must be equal [abc].", violation.getErrorMessage());
+    }
+
+    @Test
+    public void assertEqualsTest4() {
+        Rule rule = Rule.builder().build(new AssertEqualsValidationRule("value", 123, "assertEqualsError1", Severity.FATAL, "Assert Equals Error Message"));
+        RuleViolations errors = new RuleViolations();
+        RuleResult result = rule.run(ruleViolations -> errors, value -> 211);
+        assertTrue(result.status().isFail());
+        assertTrue(errors.hasSevereErrors());
+        assertEquals(1, errors.getViolations().size());
+        RuleViolation violation = errors.getViolations().get(0);
+        assertEquals("assertEqualsError1", violation.getErrorCode());
+        assertEquals(Severity.FATAL, violation.getSeverity());
+        assertEquals("Assert Equals Error Message", violation.getErrorMessage());
+    }
+
+    @Test
+    public void assertEqualsTest5() {
+        AssertEqualsValidationRule validationRule = new AssertEqualsValidationRule("value", 1200);
+        Rule rule = Rule.builder().build(validationRule);
+        RuleResult result = rule.run();
+        assertTrue(result.status().isSkipped());
+        result = rule.run(value -> 1200);
+        assertTrue(result.status().isPass());
+    }
+
+    @Test
+    public void assertNotEqualsTest1() {
+        AssertNotEqualsValidationRule validationRule = new AssertNotEqualsValidationRule("value", 123);
+        Rule rule = Rule.builder().build(validationRule);
+        RuleResult result = rule.run(value -> 321);
+        assertTrue(result.status().isPass());
+    }
+
+    @Test
+    public void assertNotEqualsTest2() {
+        AssertNotEqualsValidationRule validationRule = new AssertNotEqualsValidationRule("value", 123,
+                "error.3", Severity.ERROR, "Assert Not Equals Error Message");
+        Rule rule = Rule.builder().build(validationRule);
+
+        RuleResult result = rule.run(value -> 321);
+        assertTrue(result.status().isPass());
+
+        RuleViolations errors = new RuleViolations();
+        result = rule.run(ruleViolations -> errors, value -> 123);
+        assertTrue(result.status().isFail());
+        assertTrue(errors.hasErrors());
+        assertEquals(1, errors.getViolations().size());
+        RuleViolation violation = errors.getViolations().get(0);
+        assertEquals("error.3", violation.getErrorCode());
+        assertEquals(Severity.ERROR, violation.getSeverity());
+        assertEquals("Assert Not Equals Error Message", violation.getErrorMessage());
+    }
+
+    @Test
+    public void assertNotEqualsTest3() {
+        Rule rule = Rule.builder().build(new AssertNotEqualsValidationRule("value", "abc"));
+        RuleResult result = rule.run(value -> "ccc");
+        assertTrue(result.status().isPass());
+
+        RuleViolations errors = new RuleViolations();
+        result = rule.run(ruleViolations -> errors, value -> "abc");
+        assertTrue(result.status().isFail());
+        assertTrue(errors.hasErrors());
+        assertEquals(1, errors.getViolations().size());
+        RuleViolation violation = errors.getViolations().get(0);
+        assertEquals(AssertNotEqualsValidationRule.ERROR_CODE, violation.getErrorCode());
+        assertEquals(Severity.ERROR, violation.getSeverity());
+        assertEquals("Value [abc] must not equal [abc].", violation.getErrorMessage());
+    }
+
+    @Test
+    public void assertNotEqualsTest4() {
+        Rule rule = Rule.builder().build(new AssertNotEqualsValidationRule("value", 123,
+                "assertNotEqualsError1", Severity.FATAL, "Assert Not Equals Error Message"));
+        RuleViolations errors = new RuleViolations();
+        RuleResult result = rule.run(ruleViolations -> errors, value -> 123);
+        assertTrue(result.status().isFail());
+        assertTrue(errors.hasSevereErrors());
+        assertEquals(1, errors.getViolations().size());
+        RuleViolation violation = errors.getViolations().get(0);
+        assertEquals("assertNotEqualsError1", violation.getErrorCode());
+        assertEquals(Severity.FATAL, violation.getSeverity());
+        assertEquals("Assert Not Equals Error Message", violation.getErrorMessage());
+    }
+
+    @Test
+    public void assertNotEqualsTest5() {
+        AssertNotEqualsValidationRule validationRule = new AssertNotEqualsValidationRule("value", 1200);
+        Rule rule = Rule.builder().build(validationRule);
+        RuleResult result = rule.run();
+        assertTrue(result.status().isSkipped());
+        result = rule.run(value -> 1201);
+        assertTrue(result.status().isPass());
     }
 
     @Test

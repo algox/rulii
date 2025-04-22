@@ -105,7 +105,7 @@ public interface RuleSet<T> extends Runnable<T>, Identifiable, Iterable<Rule>, D
      *
      * @return a List of InputParameter instances representing the input parameters defined in the RuleSet.
      */
-    List<InputParameter> getInputParameters();
+    List<InputParameter<?>> getInputParameters();
 
     /**
      * Returns the Condition (if one exists) to be met before the execution of the Rules.

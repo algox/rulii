@@ -17,7 +17,6 @@
  */
 package org.rulii.ruleset;
 
-import org.rulii.bind.Bindings;
 import org.rulii.bind.ReservedBindings;
 import org.rulii.bind.match.MatchByTypeMatchingStrategy;
 import org.rulii.context.RuleContext;
@@ -47,7 +46,7 @@ public class RuleSetBuilder {
 
     private String name;
     private String description = null;
-    private final List<InputParameter> inputParameters = new LinkedList<>();
+    private final Set<InputParameter<?>> inputParameters = new LinkedHashSet<>();
     private Condition preCondition = null;
     private Condition stopCondition = null;
     private Action initializer = null;
@@ -321,12 +320,8 @@ public class RuleSetBuilder {
      * @return this RuleSetBuilder instance for method chaining
      */
     public RuleSetBuilder validating() {
-        // Add the error container.
-        initializer(Action.builder().with((Bindings bindings, RuleViolations ruleViolations) -> {
-                    if (ruleViolations == null) bindings.bind("ruleViolations", new RuleViolations());
-                })
-                .param(0).matchUsing(MatchByTypeMatchingStrategy.class).build()
-                .build());
+        // Make ruleViolations are defined
+        param("ruleViolations", RuleViolations.class, new RuleViolations());
         // Throw a ValidationException if there are any errors during the run.
         finalizer(Action.builder().with((RuleViolations ruleViolations) -> {
                     if (ruleViolations.hasSevereErrors()) throw new ValidationException("RuleSet [" + getName()
@@ -425,8 +420,8 @@ public class RuleSetBuilder {
         return description;
     }
 
-    public List<InputParameter> getInputParameters() {
-        return Collections.unmodifiableList(inputParameters);
+    public List<InputParameter<?>> getInputParameters() {
+        return inputParameters.stream().toList();
     }
 
     public Condition getPreCondition() {

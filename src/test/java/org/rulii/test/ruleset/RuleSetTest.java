@@ -22,8 +22,10 @@ import org.junit.jupiter.api.Test;
 import org.rulii.bind.Binding;
 import org.rulii.bind.Bindings;
 import org.rulii.context.RuleContext;
+import org.rulii.model.UnrulyException;
 import org.rulii.model.action.Actions;
 import org.rulii.model.condition.Conditions;
+import org.rulii.model.function.Functions;
 import org.rulii.rule.Rule;
 import org.rulii.ruleset.RuleSet;
 import org.rulii.ruleset.RuleSetBuilder;
@@ -34,6 +36,8 @@ import org.rulii.validation.ValidationException;
 import org.rulii.validation.ValidationExceptionThrowingRule;
 import org.rulii.validation.ValidationRule;
 import org.rulii.validation.rules.alphnumeric.AlphaNumericValidationRule;
+import org.rulii.validation.rules.asssert.AssertEqualsValidationRule;
+import org.rulii.validation.rules.asssert.AssertNotEqualsValidationRule;
 import org.rulii.validation.rules.email.EmailValidationRule;
 import org.rulii.validation.rules.notempty.NotEmptyValidationRule;
 import org.rulii.validation.rules.notnull.NotNullValidationRule;
@@ -686,5 +690,82 @@ public class RuleSetTest {
                             100, TimeUnit.MILLISECONDS);
                     future.get();
                 });
+    }
+
+    @Test
+    public void test32() {
+        RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder()
+                .with("TestRuleSet")
+                .param("a", String.class)
+                .build();
+
+        Assertions.assertThrowsExactly(UnrulyException.class, () -> ruleSet.run());
+    }
+
+    @Test
+    public void test33() {
+        RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder()
+                .with("TestRuleSet")
+                .param("a", String.class)
+                .build();
+
+        ruleSet.run(a -> "Hello world!");
+    }
+
+    @Test
+    public void test34() {
+        RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder()
+                .with("TestRuleSet")
+                .param("a", String.class)
+                .build();
+
+        Assertions.assertThrowsExactly(UnrulyException.class, () -> ruleSet.run(a -> 123));
+    }
+
+    @Test
+    public void test35() {
+        RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder()
+                .with("TestRuleSet")
+                .param("a", String.class, "hello world!")
+                .build();
+
+        ruleSet.run();
+    }
+
+    @Test
+    public void test36() {
+        RuleSet<String> ruleSet = RuleSet.builder()
+                .with("TestRuleSet")
+                .param("a", String.class, "hello world!")
+                .resultExtractor(Functions.function((String a) -> a))
+                .build();
+
+        String value = ruleSet.run();
+        Assertions.assertEquals(value, "hello world!");
+    }
+
+    @Test
+    public void test37() {
+        RuleSet<String> ruleSet = RuleSet.builder()
+                .with("TestRuleSet")
+                .param("a", String.class, "hello world!")
+                .resultExtractor(Functions.function((String a) -> a))
+                .build();
+
+        String value = ruleSet.run(a -> "new value");
+        Assertions.assertEquals(value, "new value");
+    }
+
+    @Test
+    public void test38() {
+        RuleSet<String> ruleSet = RuleSet.builder()
+                .with("TestRuleSet")
+                .param("a", String.class, "hello world!")
+                .rule(new AssertEqualsValidationRule("a", "hello world!"))
+                .rule(new AssertNotEqualsValidationRule("a", "abc"))
+                .validating()
+                .build();
+
+        ruleSet.run();
     }
 }
