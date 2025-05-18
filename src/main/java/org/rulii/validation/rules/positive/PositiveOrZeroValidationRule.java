@@ -45,14 +45,45 @@ public class PositiveOrZeroValidationRule extends BindingValidationRule {
     public static final String ERROR_CODE       = "positiveOrZeroValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE  = "Value {0} must be greater than or equal to 0.";
 
+    /**
+     * Constructs a new PositiveOrZeroValidationRule with the specified binding name and default error code, severity, and error message.
+     *
+     * @param bindingName the name of the binding to validate
+     */
     public PositiveOrZeroValidationRule(String bindingName) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null);
     }
 
+    /**
+     * Constructs a new PositiveOrZeroValidationRule with the specified binding name, error code, severity, and error message.
+     *
+     * @param bindingName the name of the binding to validate
+     * @param errorCode the error code to be used for validation failure
+     */
+    public PositiveOrZeroValidationRule(String bindingName, String errorCode) {
+        this(bindingName, errorCode, Severity.ERROR, null);
+    }
+
+    /**
+     * Constructs a new PositiveOrZeroValidationRule with the specified binding name, error code, severity, and error message.
+     *
+     * @param bindingName the name of the binding to validate
+     * @param errorCode the error code to be used for validation failure
+     * @param severity the severity of the error
+     * @param errorMessage the error message to display if the validation rule fails
+     */
     public PositiveOrZeroValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage) {
         super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
     }
 
+    /**
+     * Constructs a new PositiveOrZeroValidationRule with the specified binding supplier, error code, severity, and error message.
+     *
+     * @param bindingSupplier the supplier of bindings for rule evaluation. Must not be null.
+     * @param errorCode the error code associated with the validation rule.
+     * @param severity the severity of the error.
+     * @param errorMessage the error message that will be displayed if the validation rule fails.
+     */
     public PositiveOrZeroValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity, String errorMessage) {
         super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
     }

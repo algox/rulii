@@ -50,14 +50,46 @@ public class FutureOrPresentValidationRule extends BindingValidationRule {
     public static final String ERROR_CODE       = "futureOrPresentValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE  = "Value {0} must be in the present or in the future. Current clock {1}.";
 
+    /**
+     * Constructs a new FutureOrPresentValidationRule with the specified binding name,
+     * using the default error code, severity, and error message.
+     *
+     * @param bindingName the name of the binding for the validation rule
+     */
     public FutureOrPresentValidationRule(String bindingName) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null);
     }
 
+    /**
+     * Constructs a new FutureOrPresentValidationRule with the specified binding name and error code.
+     *
+     * @param bindingName the name of the binding for the validation rule
+     * @param errorCode the error code for the validation rule
+     */
+    public FutureOrPresentValidationRule(String bindingName, String errorCode) {
+        this(bindingName, errorCode, Severity.ERROR, null);
+    }
+
+    /**
+     * Constructs a new FutureOrPresentValidationRule with the specified binding name, error code, severity, and error message.
+     *
+     * @param bindingName the name of the binding for the validation rule
+     * @param errorCode the error code associated with the validation rule
+     * @param severity the severity of the error
+     * @param errorMessage the error message that will be displayed if the validation rule fails
+     */
     public FutureOrPresentValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage) {
         super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
     }
 
+    /**
+     * Represents a validation rule that checks if a date is in the future or present.
+     *
+     * @param bindingSupplier The supplier of bindings for rule evaluation. Must not be null.
+     * @param errorCode The error code associated with the validation rule.
+     * @param severity The severity of the error.
+     * @param errorMessage The error message that will be displayed if the validation rule fails.
+     */
     public FutureOrPresentValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity,
                                          String errorMessage) {
         super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);

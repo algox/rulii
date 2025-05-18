@@ -38,10 +38,33 @@ public class MustNotBeDefinedRule extends ValidationRule {
 
     private final String bindingName;
 
+    /**
+     * This class represents a validation rule to ensure that a specific BindingName is not defined.
+     *
+     * @param bindingName the name of the binding to be checked for existence
+     */
     public MustNotBeDefinedRule(String bindingName) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null);
     }
 
+    /**
+     * Constructs a new MustNotBeDefinedRule with the specified binding name and error code.
+     *
+     * @param bindingName the name of the binding to be checked for existence
+     * @param errorCode   the error code associated with the rule
+     */
+    public MustNotBeDefinedRule(String bindingName, String errorCode) {
+        this(bindingName, errorCode, Severity.ERROR, null);
+    }
+
+    /**
+     * Constructs a new MustNotBeDefinedRule with the specified binding name, error code, severity, and error message.
+     *
+     * @param bindingName   the name of the binding to be checked for existence
+     * @param errorCode     the error code associated with the rule
+     * @param severity      the severity of the rule
+     * @param errorMessage  the error message to be displayed if the validation rule fails
+     */
     public MustNotBeDefinedRule(String bindingName, String errorCode, Severity severity, String errorMessage) {
         super(errorCode, severity, errorMessage, DEFAULT_MESSAGE);
         this.bindingName = bindingName;

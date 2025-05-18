@@ -44,14 +44,47 @@ public class LowerCaseValidationRule extends BindingValidationRule {
     public static final String ERROR_CODE       = "lowerCaseValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE  = "Value {0} must be in lowercase.";
 
+    /**
+     * Constructor for LowerCaseValidationRule.
+     *
+     * @param bindingName The name of the binding to apply the validation rule on.
+     */
     public LowerCaseValidationRule(String bindingName) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null);
     }
 
+    /**
+     * Initializes a new LowerCaseValidationRule with the specified binding name and error code.
+     *
+     * @param bindingName The name of the binding to apply the validation rule on.
+     * @param errorCode The error code for this validation rule.
+     */
+    public LowerCaseValidationRule(String bindingName, String errorCode) {
+        this(bindingName, errorCode, Severity.ERROR, null);
+    }
+
+    /**
+     *
+     * Constructor for LowerCaseValidationRule.
+     * Validates that the given input value is all in lowercase.
+     *
+     * @param bindingName The name of the binding to apply the validation rule on.
+     * @param errorCode The error code associated with the validation rule.
+     * @param severity The severity of the error if the validation rule fails.
+     * @param errorMessage The custom error message to display if the validation rule fails.
+     */
     public LowerCaseValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage) {
         super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
     }
 
+    /**
+     * Represents a Validation Rule to ensure that the value must be all lowercase.
+     *
+     * @param bindingSupplier The supplier of bindings for rule evaluation. Must not be null.
+     * @param errorCode The error code associated with the validation rule.
+     * @param severity The severity of the error if the validation rule fails.
+     * @param errorMessage The custom error message to display if the validation rule fails.
+     */
     public LowerCaseValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity, String errorMessage) {
         super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
     }

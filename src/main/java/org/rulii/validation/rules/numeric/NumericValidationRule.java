@@ -46,16 +46,50 @@ public class NumericValidationRule extends BindingValidationRule {
 
     private final boolean allowSpace;
 
+    /**
+     * Constructs a NumericValidationRule with the specified binding name.
+     *
+     * @param bindingName the name of the binding
+     */
     public NumericValidationRule(String bindingName) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null, false);
     }
 
+    /**
+     * Constructs a NumericValidationRule with the specified binding name, error code, and option to allow spaces in the value.
+     *
+     * @param bindingName the name of the binding
+     * @param errorCode the error code to be used for validation failure
+     * @param allowSpace flag indicating whether spaces are allowed in the value
+     */
+    public NumericValidationRule(String bindingName, String errorCode, boolean allowSpace) {
+        this(bindingName, errorCode, Severity.ERROR, null, allowSpace);
+    }
+
+    /**
+     * Constructs a NumericValidationRule with the specified parameters.
+     *
+     * @param bindingName the name of the binding
+     * @param errorCode the error code to be used for validation failure
+     * @param severity the severity of the error
+     * @param errorMessage the error message that will be displayed if the validation rule fails
+     * @param allowSpace flag indicating whether spaces are allowed in the value
+     */
     public NumericValidationRule(String bindingName, String errorCode, Severity severity,
                                  String errorMessage, boolean allowSpace) {
         super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
         this.allowSpace = allowSpace;
     }
 
+    /**
+     * Represents a validation rule specifically designed for checking numeric values.
+     *
+     * @param bindingSupplier The supplier of bindings for rule evaluation. Must not be null.
+     * @param errorCode The error code associated with the validation rule.
+     * @param severity The severity of the error.
+     * @param errorMessage The error message that will be displayed if the validation rule fails.
+     * @param allowSpace Flag indicating whether spaces are allowed in the numeric value.
+     */
     public NumericValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity,
                                  String errorMessage, boolean allowSpace) {
         super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);

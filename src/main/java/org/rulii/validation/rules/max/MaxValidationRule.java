@@ -43,16 +43,52 @@ public class MaxValidationRule extends BindingValidationRule {
 
     private final long max;
 
+    /**
+     * Constructs a MaxValidationRule with the specified binding name and maximum value.
+     * The rule ensures that the value bound to the specified binding name does not exceed the maximum value.
+     *
+     * @param bindingName the name of the binding to which the rule applies
+     * @param max the maximum value allowed for the binding
+     */
     public MaxValidationRule(String bindingName, long max) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null, max);
     }
 
+    /**
+     * Constructs a MaxValidationRule with the specified binding name, error code, and maximum value.
+     *
+     * @param bindingName the name of the binding to which the rule applies
+     * @param errorCode the error code associated with the validation rule
+     * @param max the maximum value allowed for the binding
+     */
+    public MaxValidationRule(String bindingName, String errorCode, long max) {
+        this(bindingName, errorCode, Severity.ERROR, null, max);
+    }
+
+    /**
+     * Constructs a MaxValidationRule with the specified binding name, error code, severity, error message, and maximum value.
+     *
+     * @param bindingName the name of the binding to which the rule applies
+     * @param errorCode the error code associated with the validation rule
+     * @param severity the severity of the error
+     * @param errorMessage the error message that will be displayed if the validation rule fails
+     * @param max the maximum value allowed for the binding
+     */
     public MaxValidationRule(String bindingName, String errorCode, Severity severity,
                              String errorMessage, long max) {
         super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
         this.max = max;
     }
 
+    /**
+     * Constructs a MaxValidationRule with the specified BindingSupplier, error code, severity, error message, and maximum value.
+     *
+     * @param bindingSupplier The supplier of bindings for rule evaluation. Must not be null.
+     * @param errorCode The error code associated with the validation rule.
+     * @param severity The severity of the error.
+     * @param errorMessage The error message that will be displayed if the validation rule fails.
+     * @param max The maximum value allowed for the binding.
+     */
     public MaxValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity, String errorMessage, long max) {
         super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
         this.max = max;

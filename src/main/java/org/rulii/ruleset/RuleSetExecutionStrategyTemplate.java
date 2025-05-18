@@ -75,7 +75,7 @@ public abstract class RuleSetExecutionStrategyTemplate<T> implements RuleSetExec
 
         // Set the default value
         if (parameter.defaultValue() != null && binding == null) {
-            ruleContext.getBindings().bind(parameter.name(), parameter.defaultValue());
+            ruleContext.getBindings().bind(parameter.name(), parameter.defaultValue().apply(ruleContext));
         }
     }
 

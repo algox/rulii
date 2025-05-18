@@ -43,15 +43,47 @@ public class AssertFalseValidationRule extends BindingValidationRule {
     public static final String ERROR_CODE       = "assertFalseValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE  = "Value must be false.";
 
+    /**
+     * Constructor for the AssertFalseValidationRule class.
+     *
+     * @param bindingName the name of the binding to be validated
+     */
     public AssertFalseValidationRule(String bindingName) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null);
     }
 
+    /**
+     * Initializes a new AssertFalseValidationRule with the provided binding name and error code.
+     * This constructor sets the severity to ERROR and the error message to null.
+     *
+     * @param bindingName the name of the binding to be validated
+     * @param errorCode the error code associated with the validation rule
+     */
+    public AssertFalseValidationRule(String bindingName, String errorCode) {
+        this(bindingName, errorCode, Severity.ERROR, null);
+    }
+
+    /**
+     * Constructor for AssertFalseValidationRule class.
+     *
+     * @param bindingName the name of the binding to be validated
+     * @param errorCode the error code associated with the validation rule
+     * @param severity the severity of the error
+     * @param errorMessage the error message that will be displayed if the validation rule fails
+     */
     public AssertFalseValidationRule(String bindingName, String errorCode,
                                      Severity severity, String errorMessage) {
         super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
     }
 
+    /**
+     * Constructor for the AssertFalseValidationRule class.
+     *
+     * @param bindingSupplier The supplier of bindings for rule evaluation. Must not be null.
+     * @param errorCode The error code associated with the validation rule.
+     * @param severity The severity of the error.
+     * @param errorMessage The error message that will be displayed if the validation rule fails.
+     */
     public AssertFalseValidationRule(BindingSupplier bindingSupplier, String errorCode,
                                      Severity severity, String errorMessage) {
         super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);

@@ -50,10 +50,39 @@ public class DigitsValidationRule extends BindingValidationRule {
     private final int maxIntegerLength;
     private final int maxFractionLength;
 
+    /**
+     * Constructs a new DigitsValidationRule with the specified parameters.
+     *
+     * @param bindingName the name of the binding to validate
+     * @param maxIntegerLength the maximum number of integral digits allowed
+     * @param maxFractionLength the maximum number of fractional digits allowed
+     */
     public DigitsValidationRule(String bindingName, int maxIntegerLength, int maxFractionLength) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null, maxIntegerLength, maxFractionLength);
     }
 
+    /**
+     * Constructs a new DigitsValidationRule with the specified parameters.
+     *
+     * @param bindingName the name of the binding to validate
+     * @param errorCode the error code to associate with validation failures
+     * @param maxIntegerLength the maximum number of integral digits allowed
+     * @param maxFractionLength the maximum number of fractional digits allowed
+     */
+    public DigitsValidationRule(String bindingName, String errorCode, int maxIntegerLength, int maxFractionLength) {
+        this(bindingName, errorCode, Severity.ERROR, null, maxIntegerLength, maxFractionLength);
+    }
+
+    /**
+     * Constructs a new DigitsValidationRule with the specified parameters.
+     *
+     * @param bindingName the name of the binding to validate
+     * @param errorCode the error code to associate with validation failures
+     * @param severity the severity of the error
+     * @param errorMessage the error message that will be displayed if the validation rule fails
+     * @param maxIntegerLength the maximum number of integral digits allowed
+     * @param maxFractionLength the maximum number of fractional digits allowed
+     */
     public DigitsValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage,
                                 int maxIntegerLength, int maxFractionLength) {
         super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
@@ -63,6 +92,16 @@ public class DigitsValidationRule extends BindingValidationRule {
         this.maxFractionLength = maxFractionLength;
     }
 
+    /**
+     * Initializes a new DigitsValidationRule with the specified parameters.
+     *
+     * @param bindingSupplier  The supplier of bindings for rule evaluation. Must not be null.
+     * @param errorCode        The error code associated with the validation rule.
+     * @param severity         The severity of the error.
+     * @param errorMessage     The error message that will be displayed if the validation rule fails.
+     * @param maxIntegerLength The maximum number of integral digits allowed.
+     * @param maxFractionLength The maximum number of fractional digits allowed.
+     */
     public DigitsValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity,
                                 String errorMessage, int maxIntegerLength, int maxFractionLength) {
         super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);

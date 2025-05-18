@@ -45,14 +45,45 @@ public class PositiveValidationRule extends BindingValidationRule {
     public static final String ERROR_CODE      = "positiveValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE = "Value {0} must be greater than 0.";
 
+    /**
+     * Constructs a new PositiveValidationRule with the given binding name and default error code, severity, and error message.
+     *
+     * @param bindingName the name of the binding for the validation rule
+     */
     public PositiveValidationRule(String bindingName) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null);
     }
 
+    /**
+     * Constructs a new PositiveValidationRule with the given binding name and error code.
+     *
+     * @param bindingName the name of the binding for the validation rule
+     * @param errorCode the error code to be used for this validation rule
+     */
+    public PositiveValidationRule(String bindingName, String errorCode) {
+        this(bindingName, errorCode, Severity.ERROR,null);
+    }
+
+    /**
+     * Constructs a new PositiveValidationRule with the specified binding name, error code, severity, and error message.
+     *
+     * @param bindingName the name of the binding for the validation rule
+     * @param errorCode the error code associated with the validation rule
+     * @param severity the severity of the error
+     * @param errorMessage the error message to display if the validation rule fails
+     */
     public PositiveValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage) {
         super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
     }
 
+    /**
+     * Represents a validation rule that checks if a value is positive (greater than zero).
+     *
+     * @param bindingSupplier The supplier of bindings for rule evaluation. Must not be null.
+     * @param errorCode The error code associated with the validation rule.
+     * @param severity The severity of the error.
+     * @param errorMessage The error message that will be displayed if the validation rule fails.
+     */
     public PositiveValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity, String errorMessage) {
         super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
     }

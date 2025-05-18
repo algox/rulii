@@ -47,14 +47,45 @@ public class FutureValidationRule extends BindingValidationRule {
     public static final String ERROR_CODE       = "futureValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE  = "Value {0} must be in the future. Current clock {1}.";
 
+    /**
+     * Constructs a new FutureValidationRule with the provided binding name.
+     *
+     * @param bindingName the name of the binding to apply the rule to
+     */
     public FutureValidationRule(String bindingName) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null);
     }
 
+    /**
+     * Constructs a new FutureValidationRule with the provided binding name, error code, and sets severity to ERROR if not specified.
+     *
+     * @param bindingName the name of the binding to apply the rule to
+     * @param errorCode the error code to be used for this rule
+     */
+    public FutureValidationRule(String bindingName, String errorCode) {
+        this(bindingName, errorCode, Severity.ERROR, null);
+    }
+
+    /**
+     * Constructs a new FutureValidationRule with the provided parameters.
+     *
+     * @param bindingName the name of the binding to apply the rule to
+     * @param errorCode the error code to be used for this rule
+     * @param severity the severity level of the error
+     * @param errorMessage the error message to be displayed if the validation rule fails
+     */
     public FutureValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage) {
         super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
     }
 
+    /**
+     * Constructs a new FutureValidationRule with the provided parameters.
+     *
+     * @param bindingSupplier The supplier of bindings for rule evaluation. Must not be null.
+     * @param errorCode The error code associated with the validation rule.
+     * @param severity The severity of the error.
+     * @param errorMessage The error message that will be displayed if the validation rule fails.
+     */
     public FutureValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity, String errorMessage) {
         super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
     }

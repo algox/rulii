@@ -45,18 +45,54 @@ public class AssertNotEqualsValidationRule extends BindingValidationRule {
     public static final String DEFAULT_MESSAGE  = "Value [{0}] must not equal [{1}].";
 
     private final Object value;
+
+    /**
+     * Constructs a validation rule to ensure that the given value does not match the specified input value.
+     *
+     * @param bindingName The name of the binding for this validation rule
+     * @param value The value that the binding value should not equal
+     */
     public AssertNotEqualsValidationRule(String bindingName, Object value) {
-        this(bindingName, value, ERROR_CODE, Severity.ERROR, null);
+        this(bindingName, ERROR_CODE, Severity.ERROR, null, value);
     }
 
-    public AssertNotEqualsValidationRule(String bindingName, Object value, String errorCode,
-                                         Severity severity, String errorMessage) {
+    /**
+     * Constructs an AssertNotEqualsValidationRule with the provided binding name, error code, and value.
+     *
+     * @param bindingName The name of the binding for this validation rule
+     * @param errorCode The error code associated with the validation rule
+     * @param value The value that the binding value should not equal
+     */
+    public AssertNotEqualsValidationRule(String bindingName, String errorCode, Object value) {
+        this(bindingName, errorCode, Severity.ERROR, null, value);
+    }
+
+    /**
+     * Constructs a validation rule to ensure that the value does not match the specified input value.
+     *
+     * @param bindingName The name of the binding for this validation rule
+     * @param errorCode The error code associated with the validation rule
+     * @param severity The severity of the error
+     * @param errorMessage The error message that will be displayed if the validation rule fails
+     * @param value The value that the binding value should not equal
+     */
+    public AssertNotEqualsValidationRule(String bindingName, String errorCode,
+                                         Severity severity, String errorMessage, Object value) {
         super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
         this.value = value;
     }
 
-    public AssertNotEqualsValidationRule(Object value, BindingSupplier bindingSupplier, String errorCode,
-                                         Severity severity, String errorMessage) {
+    /**
+     * Constructs an AssertNotEqualsValidationRule with the specified parameters.
+     *
+     * @param bindingSupplier The supplier of bindings for rule evaluation. Must not be null.
+     * @param errorCode The error code associated with the validation rule. Not null.
+     * @param severity The severity of the error. Not null.
+     * @param errorMessage The error message to be displayed if the validation rule fails.
+     * @param value The value that the binding value should not equal.
+     */
+    public AssertNotEqualsValidationRule(BindingSupplier bindingSupplier, String errorCode,
+                                         Severity severity, String errorMessage, Object value) {
         super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
         this.value = value;
     }

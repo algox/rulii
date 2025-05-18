@@ -46,14 +46,47 @@ public class NegativeValidationRule extends BindingValidationRule {
     public static final String ERROR_CODE       = "negativeValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE  = "Value {0} must be less than 0.";
 
+    /**
+     * Constructs a NegativeValidationRule with the specified binding name, default error code, error severity,
+     * and error message.
+     *
+     * @param bindingName the name of the binding to apply the validation rule
+     */
     public NegativeValidationRule(String bindingName) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null);
     }
 
+    /**
+     * Constructs a NegativeValidationRule with the specified binding name and error code.
+     * The rule will be set to have an error severity and no custom error message.
+     *
+     * @param bindingName the name of the binding to apply the validation rule
+     * @param errorCode the error code to be used when the rule is violated
+     */
+    public NegativeValidationRule(String bindingName, String errorCode) {
+        this(bindingName, errorCode, Severity.ERROR, null);
+    }
+
+    /**
+     * Constructs a NegativeValidationRule with the specified binding name, error code, severity, and error message.
+     *
+     * @param bindingName   the name of the binding to apply the validation rule
+     * @param errorCode     the error code to be used when the rule is violated
+     * @param severity      the severity of the error
+     * @param errorMessage  the error message to display if the validation rule fails
+     */
     public NegativeValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage) {
         super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
     }
 
+    /**
+     * Represents a validation rule that checks if a value is negative.
+     *
+     * @param bindingSupplier The supplier of bindings for rule evaluation. Must not be null.
+     * @param errorCode The error code associated with the validation rule.
+     * @param severity The severity of the error.
+     * @param errorMessage The error message that will be displayed if the validation rule fails.
+     */
     public NegativeValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity, String errorMessage) {
         super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
     }

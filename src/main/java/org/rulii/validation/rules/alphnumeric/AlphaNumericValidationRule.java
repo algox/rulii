@@ -46,16 +46,52 @@ public class AlphaNumericValidationRule extends BindingValidationRule {
 
     private final boolean allowSpace;
 
+    /**
+     * Constructs a new AlphaNumericValidationRule.
+     *
+     * @param bindingName The name of the binding associated with this validation rule.
+     */
     public AlphaNumericValidationRule(String bindingName) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null, true);
     }
 
+    /**
+     * Constructs a new AlphaNumericValidationRule.
+     *
+     * @param bindingName The name of the binding associated with this validation rule.
+     * @param errorCode The error code for the validation rule.
+     * @param allowSpace A boolean indicating whether spaces are allowed in the value.
+     */
+    public AlphaNumericValidationRule(String bindingName, String errorCode,  boolean allowSpace) {
+        this(bindingName, errorCode, Severity.ERROR, null, allowSpace);
+    }
+
+    /**
+     * Constructs a new AlphaNumericValidationRule.
+     *
+     * @param bindingName The name of the binding associated with this validation rule.
+     * @param errorCode The error code for the validation rule.
+     * @param severity The severity of the error.
+     * @param errorMessage The error message that will be displayed if the validation rule fails.
+     * @param allowSpace A boolean indicating whether spaces are allowed in the value.
+     */
     public AlphaNumericValidationRule(String bindingName, String errorCode, Severity severity,
                                       String errorMessage, boolean allowSpace) {
         super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
         this.allowSpace = allowSpace;
     }
 
+    /**
+     * Represents a validation rule for ensuring that the provided input consists of only alphanumeric characters.
+     * Spaces may be allowed based on the specified parameter.
+     * Extends BindingValidationRule for binding validation.
+     *
+     * @param bindingSupplier The supplier of bindings for rule evaluation. Must not be null.
+     * @param errorCode The error code associated with the validation rule.
+     * @param severity The severity of the error.
+     * @param errorMessage The error message to display if the validation rule fails.
+     * @param allowSpace A boolean indicating whether spaces are allowed in the input.
+     */
     public AlphaNumericValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity,
                                       String errorMessage, boolean allowSpace) {
         super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);

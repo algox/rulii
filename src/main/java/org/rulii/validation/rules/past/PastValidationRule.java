@@ -46,14 +46,45 @@ public class PastValidationRule extends BindingValidationRule {
     public static final String ERROR_CODE       = "pastValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE  = "Value {0} must be in the past. Current clock {1}.";
 
+    /**
+     * Constructor for creating a PastValidationRule object.
+     *
+     * @param bindingName the name to bind the rule to
+     */
     public PastValidationRule(String bindingName) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null);
     }
 
+    /**
+     * Constructor for creating a PastValidationRule object with the specified binding name and error code.
+     *
+     * @param bindingName the name to bind the rule to
+     * @param errorCode the error code associated with the rule
+     */
+    public PastValidationRule(String bindingName, String errorCode) {
+        this(bindingName, errorCode, Severity.ERROR, null);
+    }
+
+    /**
+     * Constructor for creating a PastValidationRule object.
+     *
+     * @param bindingName the name to bind the rule to
+     * @param errorCode the error code associated with the rule
+     * @param severity the severity level of the error
+     * @param errorMessage the custom error message to display
+     */
     public PastValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage) {
         super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
     }
 
+    /**
+     * Constructs a PastValidationRule object.
+     *
+     * @param bindingSupplier the supplier of bindings for rule evaluation
+     * @param errorCode the error code associated with the validation rule
+     * @param severity the severity of the error
+     * @param errorMessage the error message that will be displayed if the validation rule fails
+     */
     public PastValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity, String errorMessage) {
         super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
     }

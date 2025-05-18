@@ -477,8 +477,8 @@ public class ValidationRuleTests {
 
     @Test
     public void assertEqualsTest2() {
-        AssertEqualsValidationRule validationRule = new AssertEqualsValidationRule("value", 123,
-                "error.3", Severity.ERROR, "Assert Equals Error Message");
+        AssertEqualsValidationRule validationRule = new AssertEqualsValidationRule("value",
+                "error.3", Severity.ERROR, "Assert Equals Error Message", 123);
         Rule rule = Rule.builder().build(validationRule);
 
         RuleResult result = rule.run(value -> 123);
@@ -514,7 +514,7 @@ public class ValidationRuleTests {
 
     @Test
     public void assertEqualsTest4() {
-        Rule rule = Rule.builder().build(new AssertEqualsValidationRule("value", 123, "assertEqualsError1", Severity.FATAL, "Assert Equals Error Message"));
+        Rule rule = Rule.builder().build(new AssertEqualsValidationRule("value", "assertEqualsError1", Severity.FATAL, "Assert Equals Error Message", 123));
         RuleViolations errors = new RuleViolations();
         RuleResult result = rule.run(ruleViolations -> errors, value -> 211);
         assertTrue(result.status().isFail());
@@ -546,8 +546,8 @@ public class ValidationRuleTests {
 
     @Test
     public void assertNotEqualsTest2() {
-        AssertNotEqualsValidationRule validationRule = new AssertNotEqualsValidationRule("value", 123,
-                "error.3", Severity.ERROR, "Assert Not Equals Error Message");
+        AssertNotEqualsValidationRule validationRule = new AssertNotEqualsValidationRule("value",
+                "error.3", Severity.ERROR, "Assert Not Equals Error Message", 123);
         Rule rule = Rule.builder().build(validationRule);
 
         RuleResult result = rule.run(value -> 321);
@@ -583,8 +583,8 @@ public class ValidationRuleTests {
 
     @Test
     public void assertNotEqualsTest4() {
-        Rule rule = Rule.builder().build(new AssertNotEqualsValidationRule("value", 123,
-                "assertNotEqualsError1", Severity.FATAL, "Assert Not Equals Error Message"));
+        Rule rule = Rule.builder().build(new AssertNotEqualsValidationRule("value",
+                "assertNotEqualsError1", Severity.FATAL, "Assert Not Equals Error Message", 123));
         RuleViolations errors = new RuleViolations();
         RuleResult result = rule.run(ruleViolations -> errors, value -> 123);
         assertTrue(result.status().isFail());

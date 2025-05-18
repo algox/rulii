@@ -44,14 +44,45 @@ public class BlankValidationRule extends BindingValidationRule {
     public static final String ERROR_CODE       = "blankValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE  = "Value {0} must be blank.";
 
+    /**
+     * Constructor for creating a BlankValidationRule with the specified binding name.
+     *
+     * @param bindingName the name of the binding to be validated
+     */
     public BlankValidationRule(String bindingName) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null);
     }
 
+    /**
+     * Constructor for creating a BlankValidationRule with the specified binding name and error code.
+     *
+     * @param bindingName the name of the binding to be validated
+     * @param errorCode the error code associated with the validation rule
+     */
+    public BlankValidationRule(String bindingName, String errorCode) {
+        super(bindingName, errorCode, Severity.ERROR, null);
+    }
+
+    /**
+     * Creates a BlankValidationRule instance with the specified parameters.
+     *
+     * @param bindingName   The name of the binding to be validated
+     * @param errorCode     The error code associated with the validation rule
+     * @param severity      The severity of the error
+     * @param errorMessage  The error message to display if the validation rule fails
+     */
     public BlankValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage) {
         super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
     }
 
+    /**
+     * Creates a validation rule to ensure the value is blank.
+     *
+     * @param bindingSupplier The supplier of bindings for rule evaluation. Must not be null.
+     * @param errorCode The error code associated with the validation rule.
+     * @param severity The severity of the error.
+     * @param errorMessage The error message that will be displayed if the validation rule fails.
+     */
     public BlankValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity, String errorMessage) {
         super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
     }

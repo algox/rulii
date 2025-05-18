@@ -57,7 +57,7 @@ public class PropertyBindingLoader<T> extends AbstractBindingLoader<PropertyDesc
         Assert.notNull(bean, "bean cannot be null.");
         Assert.notNull(getNameGenerator(), "name generator cannot be null.");
 
-        logger.info("Loading Bean [" + bean.getClass().getName() + "] Properties into Bindings.");
+        logger.debug("Loading Bean [" + bean.getClass().getName() + "] Properties into Bindings.");
 
         try {
             BeanInfo beanInfo = Introspector.getBeanInfo(bean.getClass());

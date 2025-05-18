@@ -51,7 +51,7 @@ public class MapBindingLoader extends AbstractBindingLoader<String, Map<String, 
     public void load(Bindings bindings, Map<String, Object> map) {
         Assert.notNull(map, "map cannot be null.");
 
-        logger.info("Loading Map into Bindings.");
+        logger.debug("Loading Map into Bindings.");
 
         for (Map.Entry<String, Object> entry : map.entrySet()) {
             if (getFilter() != null && !getFilter().test(entry.getKey())) continue;

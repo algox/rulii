@@ -726,7 +726,7 @@ public class RuleSetTest {
     public void test35() {
         RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder()
                 .with("TestRuleSet")
-                .param("a", String.class, "hello world!")
+                .param("a", String.class, function(() -> "hello world!"))
                 .build();
 
         ruleSet.run();
@@ -736,7 +736,7 @@ public class RuleSetTest {
     public void test36() {
         RuleSet<String> ruleSet = RuleSet.builder()
                 .with("TestRuleSet")
-                .param("a", String.class, "hello world!")
+                .param("a", String.class, function(() -> "hello world!"))
                 .resultExtractor(Functions.function((String a) -> a))
                 .build();
 
@@ -748,7 +748,7 @@ public class RuleSetTest {
     public void test37() {
         RuleSet<String> ruleSet = RuleSet.builder()
                 .with("TestRuleSet")
-                .param("a", String.class, "hello world!")
+                .param("a", String.class, function(() -> "hello world!"))
                 .resultExtractor(Functions.function((String a) -> a))
                 .build();
 
@@ -760,7 +760,7 @@ public class RuleSetTest {
     public void test38() {
         RuleSet<String> ruleSet = RuleSet.builder()
                 .with("TestRuleSet")
-                .param("a", String.class, "hello world!")
+                .param("a", String.class, function(() -> "hello world!"))
                 .rule(new AssertEqualsValidationRule("a", "hello world!"))
                 .rule(new AssertNotEqualsValidationRule("a", "abc"))
                 .validating()

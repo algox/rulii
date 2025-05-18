@@ -63,7 +63,7 @@ public class FieldBindingLoader<T> extends AbstractBindingLoader<Field, T> {
     public void load(Bindings bindings, T bean) {
         Assert.notNull(bean, "bean cannot be null.");
 
-        logger.info("Loading Class [" + bean.getClass().getName() + "] Field(s) into Bindings.");
+        logger.debug("Loading Class [" + bean.getClass().getName() + "] Field(s) into Bindings.");
 
         Class<?> type = bean.getClass();
         List<Field> fields = getClassFields(type);

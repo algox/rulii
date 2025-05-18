@@ -42,15 +42,45 @@ public class NotNullValidationRule extends BindingValidationRule {
     public static final String ERROR_CODE       = "notNullValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE  = "Value must not be null.";
 
+    /**
+     * Constructs a new NotNullValidationRule with the specified binding name.
+     *
+     * @param bindingName the name of the binding to apply the validation rule to
+     */
     public NotNullValidationRule(String bindingName) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null);
     }
 
-    public NotNullValidationRule(String bindingName, String errorCode,
-                                 Severity severity, String errorMessage) {
+    /**
+     * Constructs a new NotNullValidationRule with the specified binding name, error code, and default severity.
+     *
+     * @param bindingName the name of the binding to apply the validation rule to
+     * @param errorCode the error code to be associated with the validation rule
+     */
+    public NotNullValidationRule(String bindingName, String errorCode) {
+        this(bindingName, errorCode, Severity.ERROR, null);
+    }
+
+    /**
+     * Constructs a new NotNullValidationRule with the specified parameters.
+     *
+     * @param bindingName the name of the binding to apply the validation rule to
+     * @param errorCode the error code to be associated with the validation rule
+     * @param severity the severity of the error
+     * @param errorMessage the error message that will be displayed if the validation rule fails
+     */
+    public NotNullValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage) {
         super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
     }
 
+    /**
+     * Constructs a new NotNullValidationRule with the specified parameters.
+     *
+     * @param bindingSupplier the supplier of bindings for rule evaluation, must not be null
+     * @param errorCode the error code associated with the validation rule
+     * @param severity the severity of the error
+     * @param errorMessage the error message that will be displayed if the validation rule fails
+     */
     public NotNullValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity, String errorMessage) {
         super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
     }

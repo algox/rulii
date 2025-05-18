@@ -44,14 +44,45 @@ public class UpperCaseValidationRule extends BindingValidationRule {
     public static final String ERROR_CODE       = "upperCaseValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE  = "Value {0} must be in uppercase.";
 
+    /**
+     * Constructor for creating an UpperCaseValidationRule object with the specified binding name.
+     *
+     * @param bindingName the name of the binding for this validation rule
+     */
     public UpperCaseValidationRule(String bindingName) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null);
     }
 
+    /**
+     * Constructs an UpperCaseValidationRule object with the specified binding name, error code, and default severity.
+     *
+     * @param bindingName the name of the binding for this validation rule
+     * @param errorCode the error code associated with this validation rule
+     */
+    public UpperCaseValidationRule(String bindingName, String errorCode) {
+        this(bindingName, errorCode, Severity.ERROR, null);
+    }
+
+    /**
+     * Creates a UpperCaseValidationRule object with the specified parameters.
+     *
+     * @param bindingName   the name of the binding for this validation rule
+     * @param errorCode     the error code associated with this validation rule
+     * @param severity      the severity of the error
+     * @param errorMessage  the error message to be displayed if the validation fails
+     */
     public UpperCaseValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage) {
         super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
     }
 
+    /**
+     * Creates a validation rule to ensure that the value provided is all in uppercase.
+     *
+     * @param bindingSupplier The supplier of bindings for rule evaluation. Must not be null.
+     * @param errorCode The error code associated with the validation rule.
+     * @param severity The severity of the error.
+     * @param errorMessage The error message to be displayed if the validation rule fails.
+     */
     public UpperCaseValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity, String errorMessage) {
         super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
     }

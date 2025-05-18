@@ -48,10 +48,39 @@ public class SizeValidationRule extends BindingValidationRule {
     private final int min;
     private final int max;
 
+    /**
+     * Constructor for SizeValidationRule class.
+     *
+     * @param bindingName the name of the binding
+     * @param min the minimum size allowed
+     * @param max the maximum size allowed
+     */
     public SizeValidationRule(String bindingName, int min, int max) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null, min, max);
     }
 
+    /**
+     * Constructor for SizeValidationRule class.
+     *
+     * @param bindingName the name of the binding
+     * @param errorCode the error code
+     * @param min the minimum size allowed
+     * @param max the maximum size allowed
+     */
+    public SizeValidationRule(String bindingName, String errorCode, int min, int max) {
+        this(bindingName, errorCode, Severity.ERROR, null, min, max);
+    }
+
+    /**
+     * Constructor for SizeValidationRule class.
+     *
+     * @param bindingName the name of the binding
+     * @param errorCode the error code
+     * @param severity the severity of the error
+     * @param errorMessage the error message to display
+     * @param min the minimum size allowed
+     * @param max the maximum size allowed
+     */
     public SizeValidationRule(String bindingName, String errorCode, Severity severity,
                               String errorMessage, int min, int max) {
         super(bindingName, errorCode, severity, errorMessage);
@@ -62,6 +91,16 @@ public class SizeValidationRule extends BindingValidationRule {
         this.max = max;
     }
 
+    /**
+     * Initializes a SizeValidationRule with the specified parameters.
+     *
+     * @param bindingSupplier The supplier of bindings for rule evaluation. Must not be null.
+     * @param errorCode       The error code associated with the validation rule.
+     * @param severity        The severity of the error.
+     * @param errorMessage    The error message that will be displayed if the validation rule fails.
+     * @param min             The minimum size allowed. Must be greater than or equal to 0.
+     * @param max             The maximum size allowed. Must be greater than or equal to 0 and greater than min.
+     */
     public SizeValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity,
                               String errorMessage, int min, int max) {
         super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);

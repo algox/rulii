@@ -38,10 +38,33 @@ public class MustBeDefinedRule extends ValidationRule {
 
     private final String bindingName;
 
+    /**
+     * Constructs a new MustBeDefinedRule with the given binding name.
+     *
+     * @param bindingName the name of the binding to be validated
+     */
     public MustBeDefinedRule(String bindingName) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null);
     }
 
+    /**
+     * Creates a new MustBeDefinedRule with the given binding name and error code.
+     *
+     * @param bindingName the name of the binding to be validated
+     * @param errorCode the error code associated with the rule
+     */
+    public MustBeDefinedRule(String bindingName, String errorCode) {
+        this(bindingName, errorCode, Severity.ERROR, null);
+    }
+
+    /**
+     * Constructs a new MustBeDefinedRule with the specified parameters.
+     *
+     * @param bindingName the name of the binding to be validated
+     * @param errorCode the error code associated with the rule
+     * @param severity the severity level of the rule
+     * @param errorMessage the custom error message for the rule
+     */
     public MustBeDefinedRule(String bindingName, String errorCode, Severity severity, String errorMessage) {
         super(errorCode, severity, errorMessage, DEFAULT_MESSAGE);
         this.bindingName = bindingName;

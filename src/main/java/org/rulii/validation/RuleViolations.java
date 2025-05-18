@@ -193,11 +193,12 @@ public class RuleViolations implements Iterable<RuleViolation> {
 
     @Override
     public String toString() {
-        StringBuilder result = new StringBuilder("Violations [");
+        StringBuilder result = new StringBuilder("Rule Violations [");
         for (int i = 0; i < errors.size(); i++) {
-            result.append(errors.get(i).toString()).append("]");
+            result.append("[").append(errors.get(i).toString()).append("]");
             if (i < errors.size() - 1) result.append(System.lineSeparator());
         }
+        result.append("]");
         return result.toString();
     }
 }

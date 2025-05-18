@@ -17,6 +17,8 @@
  */
 package org.rulii.ruleset;
 
+import org.rulii.model.function.Function;
+
 import java.util.Objects;
 
 /**
@@ -27,7 +29,7 @@ import java.util.Objects;
  * @author Max Arulananthan
  * @since 1.1
  */
-public record InputParameter<T>(String name, Class<T> type, boolean required, T defaultValue) {
+public record InputParameter<T>(String name, Class<T> type, boolean required, Function<T> defaultValue) {
 
     @Override
     public boolean equals(Object o) {

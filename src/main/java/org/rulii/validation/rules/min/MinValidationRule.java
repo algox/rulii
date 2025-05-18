@@ -44,15 +44,50 @@ public class MinValidationRule extends BindingValidationRule {
 
     private final long min;
 
+    /**
+     * Constructs a MinValidationRule with the specified binding name and minimum value.
+     *
+     * @param bindingName the name of the binding to apply the rule to
+     * @param min the minimum value that the binding must be greater than or equal to
+     */
     public MinValidationRule(String bindingName, long min) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null, min);
     }
 
+    /**
+     * Constructs a MinValidationRule with the specified binding information and minimum value.
+     *
+     * @param bindingName the name of the binding to apply the rule to
+     * @param errorCode the error code to use if validation fails
+     * @param min the minimum value that the binding must be greater than or equal to
+     */
+    public MinValidationRule(String bindingName, String errorCode, long min) {
+        this(bindingName, errorCode, Severity.ERROR, null, min);
+    }
+
+    /**
+     * Constructs a MinValidationRule with the specified binding information and minimum value.
+     *
+     * @param bindingName the name of the binding to apply the rule to
+     * @param errorCode the error code to use if validation fails
+     * @param severity the severity of the error
+     * @param errorMessage the error message that will be displayed if the validation rule fails
+     * @param min the minimum value that the binding must be greater than or equal to
+     */
     public MinValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage, long min) {
         super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
         this.min = min;
     }
 
+    /**
+     * Constructs a MinValidationRule with the specified BindingSupplier, error code, severity, default error message, and minimum value.
+     *
+     * @param bindingSupplier the supplier of bindings for rule evaluation
+     * @param errorCode the error code associated with the validation rule
+     * @param severity the severity of the error
+     * @param defaultMessage the default error message to be used if errorMessage is null
+     * @param min the minimum value that the binding must be greater than or equal to
+     */
     public MinValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity, String defaultMessage, long min) {
         super(bindingSupplier, errorCode, severity, DEFAULT_MESSAGE, defaultMessage);
         this.min = min;

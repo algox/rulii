@@ -43,15 +43,46 @@ public class AssertTrueValidationRule extends BindingValidationRule {
     public static final String ERROR_CODE       = "assertTrueValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE  = "Value must be true.";
 
+    /**
+     * Constructs a new AssertTrueValidationRule with the specified binding name.
+     *
+     * @param bindingName the name of the binding to validate
+     */
     public AssertTrueValidationRule(String bindingName) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null);
     }
 
+    /**
+     * Constructs a new AssertTrueValidationRule with the specified binding name, error code, and severity level.
+     *
+     * @param bindingName   the name of the binding to validate
+     * @param errorCode     the error code to use if validation fails
+     */
+    public AssertTrueValidationRule(String bindingName, String errorCode) {
+        this(bindingName, errorCode, Severity.ERROR, null);
+    }
+
+    /**
+     * Constructs a new AssertTrueValidationRule with the specified parameters.
+     *
+     * @param bindingName   the name of the binding to validate
+     * @param errorCode     the error code associated with the validation rule
+     * @param severity      the severity level of the error (FATAL, ERROR, WARNING, INFO)
+     * @param errorMessage  the custom error message to display if the validation fails
+     */
     public AssertTrueValidationRule(String bindingName, String errorCode,
                                     Severity severity, String errorMessage) {
         super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
     }
 
+    /**
+     * Instantiates a new AssertTrueValidationRule with the specified parameters.
+     *
+     * @param bindingSupplier The supplier of bindings for rule evaluation. Must not be null.
+     * @param errorCode       The error code associated with the validation rule.
+     * @param severity        The severity level of the error (FATAL, ERROR, WARNING, INFO).
+     * @param errorMessage    The custom error message to display if the validation fails. Can be null.
+     */
     public AssertTrueValidationRule(BindingSupplier bindingSupplier, String errorCode,
                                     Severity severity, String errorMessage) {
         super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);

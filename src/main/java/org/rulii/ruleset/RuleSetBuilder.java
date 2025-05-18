@@ -25,6 +25,7 @@ import org.rulii.model.SourceDefinition;
 import org.rulii.model.action.Action;
 import org.rulii.model.condition.Condition;
 import org.rulii.model.function.Function;
+import org.rulii.model.function.Functions;
 import org.rulii.rule.Rule;
 import org.rulii.rule.RuleDefinition;
 import org.rulii.util.RuleUtils;
@@ -153,7 +154,7 @@ public class RuleSetBuilder {
      * @param defaultValue the default value for the parameter.
      * @return this RuleSetBuilder instance for method chaining
      */
-    public <T> RuleSetBuilder param(String name, Class<T> type, T defaultValue) {
+    public <T> RuleSetBuilder param(String name, Class<T> type, Function<T> defaultValue) {
         Assert.hasText(name, "name cannot be empty/null.");
         Assert.notNull(type, "type cannot be null.");
         this.inputParameters.add(new InputParameter<>(name, type, false, defaultValue));
@@ -321,7 +322,7 @@ public class RuleSetBuilder {
      */
     public RuleSetBuilder validating() {
         // Make ruleViolations are defined
-        param("ruleViolations", RuleViolations.class, new RuleViolations());
+        param("ruleViolations", RuleViolations.class, Functions.function(() -> new RuleViolations()));
         // Throw a ValidationException if there are any errors during the run.
         finalizer(Action.builder().with((RuleViolations ruleViolations) -> {
                     if (ruleViolations.hasSevereErrors()) throw new ValidationException("RuleSet [" + getName()

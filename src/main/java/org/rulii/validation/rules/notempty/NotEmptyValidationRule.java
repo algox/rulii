@@ -49,14 +49,45 @@ public class NotEmptyValidationRule extends BindingValidationRule {
     public static final String ERROR_CODE       = "notEmptyValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE  = "Value {0} must not be empty.";
 
+    /**
+     * Constructor for creating a NotEmptyValidationRule with the specified binding name, default error code, severity, and error message.
+     *
+     * @param bindingName the name of the binding to validate
+     */
     public NotEmptyValidationRule(String bindingName) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null);
     }
 
+    /**
+     * Creates a NotEmptyValidationRule with the specified binding name, error code, using the default error severity (ERROR) and no custom error message.
+     *
+     * @param bindingName the name of the binding to validate
+     * @param errorCode the error code to be used if validation fails
+     */
+    public NotEmptyValidationRule(String bindingName, String errorCode) {
+        this(bindingName, errorCode, Severity.ERROR, null);
+    }
+
+    /**
+     * Creates a NotEmptyValidationRule with the specified binding name, error code, severity, and error message.
+     *
+     * @param bindingName the name of the binding to validate
+     * @param errorCode the error code to be used if validation fails
+     * @param severity the severity of the error
+     * @param errorMessage the error message that will be displayed if the validation rule fails
+     */
     public NotEmptyValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage) {
         super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
     }
 
+    /**
+     * Creates a NotEmptyValidationRule with the specified binding supplier, error code, severity, error message, and default message.
+     *
+     * @param bindingSupplier the supplier of bindings for rule evaluation. Must not be null.
+     * @param errorCode the error code associated with the validation rule.
+     * @param severity the severity of the error.
+     * @param errorMessage the error message that will be displayed if the validation rule fails.
+     */
     public NotEmptyValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity, String errorMessage) {
         super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
     }

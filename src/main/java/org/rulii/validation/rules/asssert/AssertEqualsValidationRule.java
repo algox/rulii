@@ -45,18 +45,54 @@ public class AssertEqualsValidationRule extends BindingValidationRule {
     public static final String DEFAULT_MESSAGE  = "Value [{0}] must be equal [{1}].";
 
     private final Object value;
+
+    /**
+     * This method creates an instance of AssertEqualsValidationRule with the provided binding name and value.
+     *
+     * @param bindingName the name of the binding for this validation rule
+     * @param value the value that should be matched for validation
+     */
     public AssertEqualsValidationRule(String bindingName, Object value) {
-        this(bindingName, value, ERROR_CODE, Severity.ERROR, null);
+        this(bindingName, ERROR_CODE, Severity.ERROR, null, value);
     }
 
-    public AssertEqualsValidationRule(String bindingName, Object value, String errorCode,
-                                      Severity severity, String errorMessage) {
+    /**
+     * Constructs a new AssertEqualsValidationRule with the provided binding name, error code, and value.
+     *
+     * @param bindingName the name of the binding for this validation rule
+     * @param errorCode the error code associated with the validation rule
+     * @param value the value that should be matched for validation
+     */
+    public AssertEqualsValidationRule(String bindingName, String errorCode, Object value) {
+        this(bindingName, errorCode, Severity.ERROR, null, value);
+    }
+
+    /**
+     * Initializes a new instance of AssertEqualsValidationRule with the specified parameters.
+     *
+     * @param bindingName the name of the binding for this validation rule
+     * @param errorCode the error code associated with the validation rule
+     * @param severity the severity of the error
+     * @param errorMessage the error message to display if the validation fails
+     * @param value the value that should be matched for validation
+     */
+    public AssertEqualsValidationRule(String bindingName, String errorCode,
+                                      Severity severity, String errorMessage, Object value) {
         super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
         this.value = value;
     }
 
-    public AssertEqualsValidationRule(Object value, BindingSupplier bindingSupplier, String errorCode,
-                                      Severity severity, String errorMessage) {
+    /**
+     * Constructs an AssertEqualsValidationRule with the specified parameters.
+     *
+     * @param bindingSupplier the supplier of bindings for rule evaluation. Must not be null.
+     * @param errorCode the error code associated with the validation rule.
+     * @param severity the severity of the error.
+     * @param errorMessage the error message that will be displayed if the validation rule fails.
+     * @param value the value that should be matched for validation.
+     */
+    public AssertEqualsValidationRule(BindingSupplier bindingSupplier, String errorCode,
+                                      Severity severity, String errorMessage, Object value) {
         super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
         this.value = value;
     }

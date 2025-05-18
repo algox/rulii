@@ -45,16 +45,50 @@ public class AlphaValidationRule extends BindingValidationRule {
 
     private final boolean allowSpace;
 
+    /**
+     * Constructs a new AlphaValidationRule with the specified binding name, using default error code, severity, and error message.
+     *
+     * @param bindingName the name of the binding to apply the validation rule on
+     */
     public AlphaValidationRule(String bindingName) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null, true);
     }
 
+    /**
+     * Constructor for creating a new AlphaValidationRule instance with the provided binding name, error code, and flag to allow spaces.
+     *
+     * @param bindingName the name of the binding to apply the validation rule on
+     * @param errorCode the error code to be used if validation fails
+     * @param allowSpace a boolean flag indicating whether spaces are allowed in the value
+     */
+    public AlphaValidationRule(String bindingName, String errorCode, boolean allowSpace) {
+        this(bindingName, errorCode, Severity.ERROR, null, allowSpace);
+    }
+
+    /**
+     * Constructs a new AlphaValidationRule instance with the specified parameters.
+     *
+     * @param bindingName the name of the binding to apply the validation rule on
+     * @param errorCode the error code to be used if validation fails
+     * @param severity the severity of the error
+     * @param errorMessage the error message that will be displayed if the validation rule fails
+     * @param allowSpace a boolean flag indicating whether spaces are allowed in the value
+     */
     public AlphaValidationRule(String bindingName, String errorCode, Severity severity,
                                String errorMessage, boolean allowSpace) {
         super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
         this.allowSpace = allowSpace;
     }
 
+    /**
+     * Constructs a new AlphaValidationRule with the specified binding supplier, error code, severity, error message, and flag to allow spaces.
+     *
+     * @param bindingSupplier The supplier of bindings for rule evaluation. Must not be null.
+     * @param errorCode The error code associated with the validation rule.
+     * @param severity The severity of the error.
+     * @param errorMessage The error message that will be displayed if the validation rule fails.
+     * @param allowSpace A boolean flag indicating whether spaces are allowed in the value.
+     */
     public AlphaValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity,
                                String errorMessage, boolean allowSpace) {
         super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);

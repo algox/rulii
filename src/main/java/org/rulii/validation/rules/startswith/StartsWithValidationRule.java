@@ -44,10 +44,37 @@ public class StartsWithValidationRule extends BindingValidationRule {
 
     private final String[] prefixes;
 
+    /**
+     * Creates a StartsWithValidationRule with the given binding name and prefixes to validate against.
+     *
+     * @param bindingName the name of the binding to apply the validation rule
+     * @param prefixes the prefixes that the value must start with to pass validation
+     */
     public StartsWithValidationRule(String bindingName, String...prefixes) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null, prefixes);
     }
 
+    /**
+     * Creates a StartsWithValidationRule with the given binding name, error code, and prefixes to validate against.
+     *
+     * @param bindingName the name of the binding to apply the validation rule
+     * @param errorCode the error code to use if the validation fails
+     * @param prefixes the prefixes that the value must start with to pass validation
+     */
+    public StartsWithValidationRule(String bindingName, String errorCode, List<String> prefixes) {
+        this(bindingName, errorCode, Severity.ERROR, null, prefixes.toArray(new String[0]));
+    }
+
+    /**
+     * Creates a StartsWithValidationRule with the given binding name, error code, severity, error message,
+     * and prefixes to validate against.
+     *
+     * @param bindingName the name of the binding to apply the validation rule
+     * @param errorCode the error code to use if the validation fails
+     * @param severity the severity of the error
+     * @param errorMessage the error message that will be displayed if the validation rule fails
+     * @param prefixes the prefixes that the value must start with to pass validation
+     */
     public StartsWithValidationRule(String bindingName, String errorCode, Severity severity,
                                     String errorMessage, String...prefixes) {
         super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
@@ -55,6 +82,15 @@ public class StartsWithValidationRule extends BindingValidationRule {
         this.prefixes = prefixes;
     }
 
+    /**
+     * Represents a validation rule that checks if the value starts with any of the specified prefixes.
+     *
+     * @param bindingSupplier The supplier of bindings for rule evaluation. Must not be null.
+     * @param errorCode The error code associated with the validation rule.
+     * @param severity The severity of the error.
+     * @param errorMessage The error message that will be displayed if the validation rule fails.
+     * @param prefixes The prefixes that the value must start with to pass validation.
+     */
     public StartsWithValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity,
                                     String errorMessage, String... prefixes) {
         super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);

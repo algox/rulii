@@ -46,14 +46,54 @@ public class PatternValidationRule extends BindingValidationRule {
     private final boolean caseSensitive;
     private final RegexValidator validator;
 
+    /**
+     * Create a new PatternValidationRule with the specified binding name and pattern.
+     * This constructor sets the error code to a default value, severity to ERROR, error message to null, case sensitivity to true,
+     * to create a new instance of PatternValidationRule.
+     *
+     * @param bindingName the name of the binding
+     * @param pattern the regular expression pattern to be validated against
+     */
     public PatternValidationRule(String bindingName, String pattern) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null, true, pattern);
     }
 
+    /**
+     * Represents a validation rule based on a specified pattern.
+     * This rule is used to validate if a given input matches a specific regular expression pattern.
+     *
+     * @param bindingName the name of the binding for this rule
+     * @param caseSensitive whether the pattern matching should be case sensitive
+     * @param pattern the regular expression pattern to be validated against
+     */
     public PatternValidationRule(String bindingName, boolean caseSensitive, String pattern) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null, caseSensitive, pattern);
     }
 
+    /**
+     * Represents a validation rule based on a specified pattern.
+     * This rule is used to validate if a given input matches a specific regular expression pattern.
+     *
+     * @param bindingName the name of the binding for this rule
+     * @param errorCode    the error code to be used if the validation fails
+     * @param caseSensitive whether the pattern matching should be case sensitive
+     * @param pattern the regular expression pattern to be validated against
+     */
+    public PatternValidationRule(String bindingName, String errorCode, boolean caseSensitive, String pattern) {
+        this(bindingName, errorCode, Severity.ERROR, null, caseSensitive, pattern);
+    }
+
+    /**
+     * Represents a validation rule based on a specified pattern.
+     * This rule is used to validate if a given input matches a specific regular expression pattern.
+     *
+     * @param bindingName   The name of the binding for this rule.
+     * @param errorCode     The error code to be used if the validation fails.
+     * @param severity      The severity of the error.
+     * @param errorMessage  The error message that will be displayed if the validation rule fails.
+     * @param caseSensitive Whether the pattern matching should be case sensitive.
+     * @param pattern       The regular expression pattern to be validated against.
+     */
     public PatternValidationRule(String bindingName, String errorCode, Severity severity,
                                  String errorMessage, boolean caseSensitive, String pattern) {
         super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
@@ -63,6 +103,17 @@ public class PatternValidationRule extends BindingValidationRule {
         this.validator = new RegexValidator(pattern, caseSensitive);
     }
 
+    /**
+     * Represents a validation rule based on a specified pattern.
+     * Used to validate if a given input matches a specific regular expression pattern.
+     *
+     * @param bindingSupplier The supplier of bindings for rule evaluation. Must not be null.
+     * @param errorCode The error code associated with the validation rule.
+     * @param severity The severity of the error.
+     * @param errorMessage The error message that will be displayed if the validation rule fails.
+     * @param caseSensitive Whether the pattern matching should be case sensitive.
+     * @param pattern The regular expression pattern to be validated against. Cannot be null.
+     */
     public PatternValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity,
                                  String errorMessage, boolean caseSensitive, String pattern) {
         super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);

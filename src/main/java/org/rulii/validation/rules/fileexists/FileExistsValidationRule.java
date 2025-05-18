@@ -46,14 +46,45 @@ public class FileExistsValidationRule extends BindingValidationRule {
     public static final String ERROR_CODE       = "fileExistsValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE  = "File {0} does not exist.";
 
+    /**
+     * Creates a FileExistsValidationRule with the specified binding name.
+     *
+     * @param bindingName the name of the binding for this rule
+     */
     public FileExistsValidationRule(String bindingName) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null);
     }
 
+    /**
+     * Creates a FileExistsValidationRule with the specified binding name and error code. The severity is set to ERROR by default.
+     *
+     * @param bindingName the name of the binding for this rule
+     * @param errorCode the error code associated with this rule
+     */
+    public FileExistsValidationRule(String bindingName, String errorCode) {
+        this(bindingName, errorCode, Severity.ERROR, null);
+    }
+
+    /**
+     * Creates a FileExistsValidationRule with the specified parameters.
+     *
+     * @param bindingName the name of the binding for this rule
+     * @param errorCode the error code associated with this rule
+     * @param severity the severity of the error
+     * @param errorMessage the error message to be displayed if the validation rule fails
+     */
     public FileExistsValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage) {
         super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
     }
 
+    /**
+     * Represents a validation rule used to ensure that a file exists.
+     *
+     * @param bindingSupplier The supplier of bindings for rule evaluation. Must not be null.
+     * @param errorCode The error code associated with the validation rule.
+     * @param severity The severity of the error.
+     * @param errorMessage The error message that will be displayed if the validation rule fails.
+     */
     public FileExistsValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity,
                                     String errorMessage) {
         super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);

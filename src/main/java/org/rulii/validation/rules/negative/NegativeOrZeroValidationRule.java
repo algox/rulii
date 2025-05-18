@@ -46,14 +46,45 @@ public class NegativeOrZeroValidationRule extends BindingValidationRule {
     public static final String ERROR_CODE = "negativeOrZeroValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE = "Value {0} must be less than or equal to 0.";
 
+    /**
+     * Represents a Validation Rule to ensure that the value is less than or equal to zero.
+     *
+     * @param bindingName the name of the binding to apply the validation rule
+     */
     public NegativeOrZeroValidationRule(String bindingName) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null);
     }
 
+    /**
+     * Constructs a new NegativeOrZeroValidationRule with the specified binding name and error code.
+     *
+     * @param bindingName the name of the binding to apply the validation rule
+     * @param errorCode the error code associated with the validation rule
+     */
+    public NegativeOrZeroValidationRule(String bindingName, String errorCode) {
+        this(bindingName, errorCode, Severity.ERROR, null);
+    }
+
+    /**
+     * Represents a validation rule to ensure that the value is less than or equal to 0.
+     *
+     * @param bindingName the name of the binding to apply the validation rule
+     * @param errorCode the error code associated with the validation rule
+     * @param severity the severity of the error
+     * @param errorMessage the error message that will be displayed if the validation rule fails
+     */
     public NegativeOrZeroValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage) {
         super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
     }
 
+    /**
+     * Represents a Validation Rule to ensure that the value is less than or equal to zero.
+     *
+     * @param bindingSupplier the supplier of bindings for rule evaluation
+     * @param errorCode the error code associated with the validation rule
+     * @param severity the severity of the error
+     * @param errorMessage the error message that will be displayed if the validation rule fails
+     */
     public NegativeOrZeroValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity, String errorMessage) {
         super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
     }

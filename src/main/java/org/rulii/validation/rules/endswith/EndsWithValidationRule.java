@@ -48,10 +48,36 @@ public class EndsWithValidationRule extends BindingValidationRule {
 
     private final String[] suffixes;
 
+    /**
+     * Constructs a new EndsWithValidationRule with the specified binding name and suffixes.
+     *
+     * @param bindingName the name of the binding to validate (not null)
+     * @param suffixes the suffixes that the value must end with (not null, not empty)
+     */
     public EndsWithValidationRule(String bindingName, String...suffixes) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null, suffixes);
     }
 
+    /**
+     * Constructs a new EndsWithValidationRule instance with the provided parameters.
+     *
+     * @param bindingName the name of the binding to validate (not null)
+     * @param errorCode the error code associated with this validation rule
+     * @param suffixes the suffixes that the value must end with (not null)
+     */
+    public EndsWithValidationRule(String bindingName, String errorCode, List<String> suffixes) {
+        this(bindingName, errorCode, Severity.ERROR, null, suffixes.toArray(new String[0]));
+    }
+
+    /**
+     * Constructs a new EndsWithValidationRule.
+     *
+     * @param bindingName the name of the binding to validate (not null)
+     * @param errorCode the error code associated with this validation rule
+     * @param severity the severity of the error (not null)
+     * @param errorMessage the error message that will be displayed if the validation rule fails
+     * @param suffixes the suffixes that the value must end with (not null)
+     */
     public EndsWithValidationRule(String bindingName, String errorCode, Severity severity,
                                   String errorMessage, String...suffixes) {
         super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
@@ -59,6 +85,16 @@ public class EndsWithValidationRule extends BindingValidationRule {
         this.suffixes = suffixes;
     }
 
+    /**
+     *
+     * Constructs a new EndsWithValidationRule with the specified binding supplier, error code, severity, error message, and suffixes.
+     *
+     * @param bindingSupplier the supplier of bindings for rule evaluation (not null)
+     * @param errorCode the error code associated with this validation rule
+     * @param severity the severity of the error
+     * @param errorMessage the error message that will be displayed if the validation rule fails
+     * @param suffixes the suffixes that the value must end with (not null, not empty)
+     */
     public EndsWithValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity,
                                   String errorMessage, String...suffixes) {
         super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);

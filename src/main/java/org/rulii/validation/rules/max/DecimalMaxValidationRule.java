@@ -46,10 +46,39 @@ public class DecimalMaxValidationRule extends BindingValidationRule {
     private final BigDecimal max;
     private final boolean inclusive;
 
+    /**
+     * Constructs a new DecimalMaxValidationRule with the specified parameters.
+     *
+     * @param bindingName the name of the binding
+     * @param max the maximum value allowed in the validation
+     * @param inclusive true if the maximum value is inclusive, false otherwise
+     */
     public DecimalMaxValidationRule(String bindingName, BigDecimal max, boolean inclusive) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null, max, inclusive);
     }
 
+    /**
+     * Constructs a new DecimalMaxValidationRule with the specified parameters.
+     *
+     * @param bindingName the name of the binding
+     * @param errorCode the error code associated with the validation rule
+     * @param max the maximum value allowed in the validation
+     * @param inclusive true if the maximum value is inclusive, false otherwise
+     */
+    public DecimalMaxValidationRule(String bindingName, String errorCode, BigDecimal max, boolean inclusive) {
+        this(bindingName, errorCode, Severity.ERROR, null, max, inclusive);
+    }
+
+    /**
+     * Initializes a DecimalMaxValidationRule with the specified parameters.
+     *
+     * @param bindingName   the name of the binding
+     * @param errorCode     the error code associated with the validation rule
+     * @param severity      the severity of the error
+     * @param errorMessage  the error message to be displayed in case of validation failure
+     * @param max           the maximum value allowed in the validation
+     * @param inclusive     true if the maximum value is inclusive, false otherwise
+     */
     public DecimalMaxValidationRule(String bindingName, String errorCode, Severity severity,
                                     String errorMessage, BigDecimal max, boolean inclusive) {
         super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
@@ -58,6 +87,16 @@ public class DecimalMaxValidationRule extends BindingValidationRule {
         this.inclusive = inclusive;
     }
 
+    /**
+     * Represents a validation rule for validating decimal values against a maximum threshold.
+     *
+     * @param bindingSupplier  The supplier of bindings for rule evaluation. Must not be null.
+     * @param errorCode        The error code associated with the validation rule.
+     * @param severity         The severity of the error.
+     * @param errorMessage     The error message to be displayed if the validation fails.
+     * @param max             The maximum value allowed in the validation. Must not be null.
+     * @param inclusive        True if the maximum value is inclusive, false otherwise.
+     */
     public DecimalMaxValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity,
                                     String errorMessage, BigDecimal max, boolean inclusive) {
         super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);

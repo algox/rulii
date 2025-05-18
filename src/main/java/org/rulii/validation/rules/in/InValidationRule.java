@@ -47,16 +47,51 @@ public class InValidationRule extends BindingValidationRule {
 
     private final Collection<?> values;
 
+    /**
+     * Constructs a new InValidationRule to validate that the value is in the given collection.
+     *
+     * @param bindingName the name of the binding to which this rule is applied
+     * @param values the collection of valid values to check against
+     */
     public InValidationRule(String bindingName, Collection<?> values) {
         this(bindingName, ERROR_CODE, Severity.ERROR, null, values);
     }
 
+    /**
+     * Constructs a new InValidationRule with the provided binding name, error code, and collection of values.
+     *
+     * @param bindingName the name of the binding to which this rule is applied
+     * @param errorCode the error code associated with this rule
+     * @param values the collection of valid values to check against
+     */
+    public InValidationRule(String bindingName, String errorCode, Collection<?> values) {
+        this(bindingName, errorCode, Severity.ERROR, null, values);
+    }
+
+    /**
+     * Constructs a new InValidationRule with the provided parameters.
+     *
+     * @param bindingName the name of the binding to which this rule is applied
+     * @param errorCode the error code associated with this rule
+     * @param severity the severity of the error
+     * @param errorMessage the error message to be displayed if the rule fails
+     * @param values the collection of valid values to check against
+     */
     public InValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage, Collection<?> values) {
         super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
         Assert.notNull(values, "values cannot be null.");
         this.values = values;
     }
 
+    /**
+     * Constructs a new InValidationRule to validate that the value is in the given collection.
+     *
+     * @param bindingSupplier   The supplier of bindings for rule evaluation.
+     * @param errorCode         The error code associated with the validation rule.
+     * @param severity          The severity of the error.
+     * @param errorMessage      The error message that will be displayed if the validation rule fails.
+     * @param values            The collection of valid values to check against.
+     */
     public InValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity, String errorMessage, Collection<?> values) {
         super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
         Assert.notNull(values, "values cannot be null.");
