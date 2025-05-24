@@ -497,6 +497,7 @@ public class RuleTests {
         Rule rule = Rule.builder()
                 .name("consistentDateRule")
                 .description("This Rule will validate that the from date is before the to date.")
+                .preCondition(condition((LocalDate fromDate, LocalDate toDate) -> toDate != null && fromDate != null))
                 .given(condition((LocalDate fromDate, LocalDate toDate) -> fromDate.isBefore(toDate)))
                 .otherwise(action((LocalDate fromDate, LocalDate toDate, RuleViolations violations) -> {
                     violations.add(RuleViolation.builder().build("consistentDateRule", "errorCode.100",

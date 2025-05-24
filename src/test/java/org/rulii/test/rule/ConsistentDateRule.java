@@ -38,7 +38,7 @@ public class ConsistentDateRule {
 
     @PreCondition
     public boolean check(LocalDate fromDate, LocalDate toDate) {
-        return toDate != null && fromDate != null;
+        return fromDate != null && toDate != null;
     }
 
     @Given // Condition

@@ -52,7 +52,7 @@ compile 'org.rulii:rulii:1.1.0'
 
 #### Declaratively
 
-Let's write a simple Validation Rule. Given two not null dates (fromDate, toDate), let's validate that fromDate is before toDate. 
+Let's write a simple Validation Rule. Given two non-null dates (fromDate, toDate), let's validate that fromDate is before toDate. 
 
 ```java
 @Rule
@@ -63,9 +63,9 @@ public class ConsistentDateRule {
         super();
     }
 
-    @PreCondition
+    @PreCondition // Don't run the rule if we have null values
     public boolean check(LocalDate fromDate, LocalDate toDate) {
-        return toDate != null && fromDate != null;
+        return fromDate != null && toDate != null;
     }
 
     @Given // Condition
@@ -92,6 +92,7 @@ Rule rule = Rule.builder().build(ConsistentDateRule.class);
 Rule rule = Rule.builder()
         .name("consistentDateRule")
         .description("This Rule will validate that the from date is before the to date.")
+        .preCondition(condition((LocalDate fromDate, LocalDate toDate) -> toDate != null && fromDate != null))
         .given(condition((LocalDate fromDate, LocalDate toDate) -> fromDate.isBefore(toDate)))
         .otherwise(action((LocalDate fromDate, LocalDate toDate, RuleViolations violations) -> {
             violations.add(RuleViolation.builder().build("consistentDateRule", "errorCode.100",
