@@ -27,13 +27,19 @@ import org.rulii.rule.Rule;
 import org.rulii.rule.RuleExecutionStatus;
 import org.rulii.rule.RuleResult;
 import org.rulii.util.TypeReference;
+import org.rulii.validation.RuleViolation;
+import org.rulii.validation.RuleViolations;
 
+import java.time.LocalDate;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.rulii.model.action.Actions.action;
+import static org.rulii.model.condition.Conditions.condition;
 import static org.rulii.test.rule.TestRules.*;
 
 /**
@@ -42,7 +48,6 @@ import static org.rulii.test.rule.TestRules.*;
  *
  * @author Max Arulananthan
  * @since 1.0
- *
  */
 public class RuleTests {
 
@@ -472,6 +477,41 @@ public class RuleTests {
         RuleResult result = rule.run(bindings);
         assertEquals(result.status(), RuleExecutionStatus.PASS);
         assertEquals(321, (int) bindings.getValue("newBinding"));
+    }
+
+    @Test
+    public void test46() {
+        Rule rule = Rule.builder().build(ConsistentDateRule.class);
+        Bindings bindings = Bindings.builder().standard();
+        bindings.bind("fromDate", LocalDate.of(1980, Month.JANUARY, 1));
+        bindings.bind("toDate", LocalDate.now());
+        bindings.bind("violations", new RuleViolations());
+        RuleResult result = rule.run(bindings);
+
+        assertEquals(result.status(), RuleExecutionStatus.PASS);
+        assertTrue(bindings.getValue("violations", RuleViolations.class).isEmpty());
+    }
+
+    @Test
+    public void test47() {
+        Rule rule = Rule.builder()
+                .name("consistentDateRule")
+                .description("This Rule will validate that the from date is before the to date.")
+                .given(condition((LocalDate fromDate, LocalDate toDate) -> fromDate.isBefore(toDate)))
+                .otherwise(action((LocalDate fromDate, LocalDate toDate, RuleViolations violations) -> {
+                    violations.add(RuleViolation.builder().build("consistentDateRule", "errorCode.100",
+                            "fromDate [" + fromDate + "] should be before toDate [" + toDate + "]"));
+                }))
+                .build();
+
+        Bindings bindings = Bindings.builder().standard();
+        bindings.bind("fromDate", LocalDate.of(1980, Month.JANUARY, 1));
+        bindings.bind("toDate", LocalDate.now());
+        bindings.bind("violations", new RuleViolations());
+        RuleResult result = rule.run(bindings);
+
+        assertEquals(result.status(), RuleExecutionStatus.PASS);
+        assertTrue(bindings.getValue("violations", RuleViolations.class).isEmpty());
     }
 }
 

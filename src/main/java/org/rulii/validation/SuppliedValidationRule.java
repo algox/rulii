@@ -40,7 +40,6 @@ import java.util.Map;
  *
  * @author Max Arulananthan
  * @since 1.0
- *
  */
 @Rule
 public class SuppliedValidationRule extends ValidationRule {
@@ -73,8 +72,7 @@ public class SuppliedValidationRule extends ValidationRule {
             builder.param(entry.getKey(), entry.getValue());
         }
 
-        //ruleContext.getMessageResolver(), ruleContext.getMessageFormatter(), ruleContext.getLocale()
-        ruleViolations.add(builder.build());
+        ruleViolations.add(builder.build(ruleContext));
     }
 
 }

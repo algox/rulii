@@ -18,12 +18,18 @@
 package org.rulii.test.rule;
 
 import org.rulii.annotation.*;
+import org.rulii.validation.RuleViolation;
+import org.rulii.validation.RuleViolations;
 
-import java.util.Date;
+import java.time.LocalDate;
 
+/**
+ * This Rule will validate that the from date is before the to date.
+ *
+ * @author Max Arulananthan
+ */
 @Rule
-@Description("This Rule will validate that the first date is before the second.")
-// TODO : Not used
+@Description("This Rule will validate that the from date is before the to date.")
 public class ConsistentDateRule {
 
     public ConsistentDateRule() {
@@ -31,35 +37,18 @@ public class ConsistentDateRule {
     }
 
     @PreCondition
-    public boolean check() {
-        return true;
+    public boolean check(LocalDate fromDate, LocalDate toDate) {
+        return toDate != null && fromDate != null;
     }
 
     @Given // Condition
-    public boolean isValid(Date date1, Date date2) {
-        return date1.compareTo(date2) < 0;
-    }
-
-    @Then // Action
-    public void then() {
-        System.out.println("Your dates are consistent.");
+    public boolean isValid(LocalDate fromDate, LocalDate toDate) {
+        return fromDate.isBefore(toDate);
     }
 
     @Otherwise() // Else Action
-    public void otherwise(Date date1, Date date2) {
-        System.out.println("Inconsistent dates. Date 1[" + date1 + "] Date2 [" + date2 + "]");
+    public void otherwise(LocalDate fromDate, LocalDate toDate, RuleViolations violations) {
+        violations.add(RuleViolation.builder().build("consistentDateRule", "errorCode.100",
+                "fromDate [" + fromDate + "] should be before toDate [" + toDate + "]"));
     }
-
-    /*public static void main(String[] args) {
-        org.algorithmx.rules.core.rule.Rule rule = RuleBuilder
-                .given(ConditionBuilder.build((Date date1, Date date2) -> date1.compareTo(date2) < 0))
-                .then(ActionBuilder.build(() -> System.out.println("Your dates are consistent.")))
-                .otherwise(ActionBuilder.build((Date date1, Date date2) -> System.out.println("Inconsistent dates. Date 1[" + date1 + "] Date2 [" + date2 + "]")))
-                .given(ConditionBuilder.build((Date date1, Date date2) -> date1.compareTo(date2) < 0))
-                .name("ConsistentDateRule")
-                .description("This Rule will validate that the first date is before the second.")
-                .build();
-
-        rule.run(date1 -> new Date(), date2 -> new Date());
-    }*/
 }

@@ -31,6 +31,7 @@ import org.rulii.ruleset.RuleSet;
 import org.rulii.ruleset.RuleSetBuilder;
 import org.rulii.ruleset.RuleSetConditions;
 import org.rulii.ruleset.RuleSetExecutionStatus;
+import org.rulii.test.rule.ConsistentDateRule;
 import org.rulii.validation.RuleViolations;
 import org.rulii.validation.ValidationException;
 import org.rulii.validation.ValidationExceptionThrowingRule;
@@ -61,7 +62,6 @@ import static org.rulii.model.function.Functions.function;
  *
  * @author Max Arulananthan
  * @since 1.0
- *
  */
 public class RuleSetTest {
 
@@ -767,5 +767,34 @@ public class RuleSetTest {
                 .build();
 
         ruleSet.run();
+    }
+
+    @Test
+    public void test39() {
+        RuleSet<RuleViolations> ruleSet = RuleSet.builder().with("TestRuleSet")
+                .rule(new AlphaNumericValidationRule("a"))
+                .rule(new NotEmptyValidationRule("a"))
+                .rule(new NotNullValidationRule("b"))
+                .rule(new NumericValidationRule("b"))
+                .rule(new UpperCaseValidationRule("c"))
+                .rule(Rule.builder().build(ConsistentDateRule.class))
+                .resultExtractor(function((RuleViolations violations) -> violations))
+                .build();
+
+        // Create your bindings
+        Bindings bindings = Bindings.builder().standard();
+        bindings.bind("a", "aaa");
+        bindings.bind("b", 123);
+        bindings.bind("c", "ABC");
+        bindings.bind("flag", true);
+        bindings.bind("violations", new RuleViolations());
+
+        //Run the RuleSet
+        RuleViolations violations = ruleSet.run(bindings);
+
+        // Found errors
+        if (violations.hasErrors()) {
+            throw new ValidationException(violations);
+        }
     }
 }

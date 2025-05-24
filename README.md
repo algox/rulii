@@ -1,8 +1,8 @@
-[Rulii Maven Central]:http://search.maven.org/#artifactdetails|org.rulii|rulii|1.0.0|
+[Rulii Maven Central]:http://search.maven.org/#artifactdetails|org.rulii|rulii|1.1.0|
 [Apache 2.0 License]:https://opensource.org/licenses/Apache-2.0
 
 # _Rulii_
-**Rule your code** <br/><sub> _100% Java_ &middot; _Easy to learn_ &middot; _zero dependencies_ &middot; _Simple DSL_ </sub>
+**Rule your code** <br/><sub> _100% Java_ &middot; _Zero dependencies_ &middot; _Easy to learn_ &middot; _Declarative and Functional models_ </sub>
 
 ---
 
@@ -39,49 +39,50 @@ Maven
 <dependency>
     <groupId>org.rulii</groupId>
     <artifactId>rulii</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
 </dependency>
 ```
 
 Grade
 ```groovy
-compile 'org.rulii:rulii:1.0.0'
+compile 'org.rulii:rulii:1.1.0'
 ```
 
 ## Writing Rules
 
 #### Declaratively
 
+Let's write a simple Validation Rule. Given two not null dates (fromDate, toDate), let's validate that fromDate is before toDate. 
+
 ```java
 @Rule
-@Description("Hello world Rule!")
-public class HelloWorldRule {
+@Description("This Rule will validate that the from date is before the to date.")
+public class ConsistentDateRule {
 
-    public HelloWorldRule() {
+    public ConsistentDateRule() {
         super();
     }
 
-    @Given
-    public boolean shouldSayHi(boolean flag) {
-        return flag;
+    @PreCondition
+    public boolean check(LocalDate fromDate, LocalDate toDate) {
+        return toDate != null && fromDate != null;
     }
 
-    @Then
-    public void sayHi() {
-        System.out.println("Hello World!");
+    @Given // Condition
+    public boolean isValid(LocalDate fromDate, LocalDate toDate) {
+        return fromDate.isBefore(toDate);
+    }
+
+    @Otherwise() // Else Action
+    public void otherwise(LocalDate fromDate, LocalDate toDate, RuleViolations violations) {
+        violations.add(RuleViolation.builder().build("consistentDateRule", "errorCode.100",
+                "fromDate [" + fromDate + "] should be before toDate [" + toDate + "]"));
     }
 }
 
 // Create the Rule instance
-Rule rule = Rule.builder().build(HelloWorldRule.class);
+Rule rule = Rule.builder().build(ConsistentDateRule.class);
 
-// Create your bindings
-Bindings bindings = Bindings.builder().standard();
-// We need one binding "flag"
-bindings.bind("flag", true);
-
-// Run the Rule
-RuleResult result = rule.run(bindings);
 ```
 
 #### Functionally
@@ -89,35 +90,51 @@ RuleResult result = rule.run(bindings);
 ```java
 
 Rule rule = Rule.builder()
-                .name("HelloWorldRule")
-                .description("Hello world Rule!")
-                .given(condition((Boolean flag) -> flag))
-                .then(action(() -> System.out.println("Hello World!")))
-                .build();
+        .name("consistentDateRule")
+        .description("This Rule will validate that the from date is before the to date.")
+        .given(condition((LocalDate fromDate, LocalDate toDate) -> fromDate.isBefore(toDate)))
+        .otherwise(action((LocalDate fromDate, LocalDate toDate, RuleViolations violations) -> {
+            violations.add(RuleViolation.builder().build("consistentDateRule", "errorCode.100",
+                    "fromDate [" + fromDate + "] should be before toDate [" + toDate + "]"));
+        }))
+        .build();
+```
 
+**Run the Rule**
+```java
 // Create your bindings
 Bindings bindings = Bindings.builder().standard();
-// We need one binding "flag"
-bindings.bind("flag", true);
+bindings.bind("fromDate", LocalDate.of(1980, Month.JANUARY, 1));
+bindings.bind("toDate", LocalDate.now());
+bindings.bind("violations", new RuleViolations());
 
 // Run the Rule
 RuleResult result = rule.run(bindings);
+
+if (result.status().isPass()) {
+    // Rule passed   
+} else {
+    // Rule failed    
+}
+
 ```
 
-**That's it! You have written your first Rule!**
+**That's it! You have written your first Rule.**
 
 ## Writing RuleSets
 
 ```java
 
-RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
-                .validationRule(new AlphaNumericValidationRule("a"))
-                .validationRule(new NotEmptyValidationRule("a"))
-                .validationRule(new NotNullValidationRule("b"))
-                .validationRule(new NumericValidationRule("b"))
-                .validationRule(new UpperCaseValidationRule("c"))
-                .rule(Rule.builder().build(HelloWorldRule.class))
-                .build();
+RuleSet<RuleViolations> ruleSet = RuleSet.builder()
+        .with("testRuleSet")
+        .rule(new AlphaNumericValidationRule("a"))
+        .rule(new NotEmptyValidationRule("a"))
+        .rule(new NotNullValidationRule("b"))
+        .rule(new NumericValidationRule("b"))
+        .rule(new UpperCaseValidationRule("c"))
+        .rule(Rule.builder().build(ConsistentDateRule.class))
+        .resultExtractor(function((RuleViolations violations) -> violations))
+        .build();
 
 // Create your bindings
 Bindings bindings = Bindings.builder().standard();
@@ -125,8 +142,17 @@ bindings.bind("a", "aaa");
 bindings.bind("b", 123);
 bindings.bind("c", "ABC");
 bindings.bind("flag", true);
+bindings.bind("fromDate", LocalDate.of(1980, Month.JANUARY, 1));
+bindings.bind("toDate", LocalDate.now());
+bindings.bind("violations", new RuleViolations());
 
 //Run the RuleSet
-RuleSetExecutionStatus result = ruleSet.run(bindings);
+RuleViolations violations = ruleSet.run(bindings);
+
+// Found errors
+if (violations.hasErrors()) {
+    throw new ValidationException(violations);
+}
 
 ```
+**Now you are ready to Rule your code!**
