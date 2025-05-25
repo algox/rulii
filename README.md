@@ -2,13 +2,13 @@
 [Apache 2.0 License]:https://opensource.org/licenses/Apache-2.0
 
 # _Rulii_
-**Rule your code** <br/><sub> _100% Java_ &middot; _Zero dependencies_ &middot; _Easy to learn_ &middot; _Declarative and Functional models_ </sub>
+**Rule your code** <br/><sub> _100% Java_ &middot; _Easy to learn_ &middot; _Declarative and Functional models_ &middot; _Zero dependencies_ &middot; _Spring support_ </sub>
 
 ---
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-orange.svg)][Apache 2.0 License]
 [![Maven Central Version](https://img.shields.io/maven-central/v/org.rulii/rulii)][Rulii Maven Central]
-[![Javadoc](https://javadoc.io/badge2/org.rulii/rulii/1.0.0/javadoc.svg)](https://javadoc.io/doc/org.rulii/rulii/1.0.0)
+[![Javadoc](https://javadoc.io/badge2/org.rulii/rulii/1.1.0/javadoc.svg)](https://javadoc.io/doc/org.rulii/rulii/1.1.0)
 ![Build](https://github.com/algox/rulii/actions/workflows/maven.yml/badge.svg)
 
 ## What is it?
