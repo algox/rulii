@@ -29,6 +29,7 @@ It is particularly helpful in scenarios like data validation, qualification proc
  * You can organize related rules into a RuleSet, which encourages reuse and better management of rules.
  * Rules and RuleSets are stateless, making them highly efficient and performant.
  * Lightweight with no external dependencies.
+ * **[Spring support](https://github.com/algox/rulii-spring)**
 
 
 ## Getting started
