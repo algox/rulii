@@ -51,6 +51,8 @@ compile 'org.rulii:rulii:1.1.0'
 
 ## Writing Rules
 
+**[Examples Found here](https://github.com/algox/rulii-samples)**
+
 #### Declaratively
 
 Let's write a simple Validation Rule. Given two non-null dates (fromDate, toDate), let's validate that fromDate is before toDate. 
