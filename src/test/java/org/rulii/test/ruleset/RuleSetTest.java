@@ -771,13 +771,26 @@ public class RuleSetTest {
 
     @Test
     public void test39() {
-        RuleSet<RuleViolations> ruleSet = RuleSet.builder().with("TestRuleSet")
+        RuleSet<RuleViolations> ruleSet = RuleSet.builder()
+                // RuleSet name
+                .with("testRuleSet")
+                // Description of the RuleSet
+                .description("validation rules")
+                // Input Parameter definitions
+                .param("a", String.class)
+                .param("b", Integer.class)
+                .param("c", String.class)
+                .param("violations", RuleViolations.class)
+                // Rules
                 .rule(new AlphaNumericValidationRule("a"))
                 .rule(new NotEmptyValidationRule("a"))
                 .rule(new NotNullValidationRule("b"))
                 .rule(new NumericValidationRule("b"))
                 .rule(new UpperCaseValidationRule("c"))
                 .rule(Rule.builder().build(ConsistentDateRule.class))
+                // When to stop the execution of the RuleSet
+                .stopCondition(condition((RuleViolations violations) -> violations.hasErrors()))
+                // Result of the RuleSet execution
                 .resultExtractor(function((RuleViolations violations) -> violations))
                 .build();
 
