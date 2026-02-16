@@ -89,8 +89,7 @@ public class NotBlankValidationRule extends BindingValidationRule {
 
     @Override
     protected boolean isValid(RuleContext ruleContext, Object value) {
-
-        if (value == null) return true;
+        if (value == null) return false;
 
         if (!(value instanceof CharSequence))
             throw new ValidationRuleException("NotBlankValidationRule only applies to CharSequences."

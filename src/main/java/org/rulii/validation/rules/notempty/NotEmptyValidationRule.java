@@ -101,7 +101,7 @@ public class NotEmptyValidationRule extends BindingValidationRule {
     @SuppressWarnings("rawtypes")
     @Override
     protected boolean isValid(RuleContext ruleContext, Object value) {
-        if (value == null) return true;
+        if (value == null) return false;
 
         if (value instanceof Collection) return isValid((Collection) value);
         if (value instanceof CharSequence) return isValid((CharSequence) value);
