@@ -1,19 +1,19 @@
-[Rulii Maven Central]:http://search.maven.org/#artifactdetails|org.rulii|rulii|1.1.0|
+[rulii Maven Central]:http://search.maven.org/#artifactdetails|org.rulii|rulii|1.1.0|
 [Apache 2.0 License]:https://opensource.org/licenses/Apache-2.0
 
-# _Rulii_
+# _rulii_
 **Rule your code** <br/><sub> _100% Java_ &middot; _Easy to learn_ &middot; _Declarative and Functional models_ &middot; _Zero dependencies_ &middot; _Spring support_ </sub>
 
 ---
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-orange.svg)][Apache 2.0 License]
-[![Maven Central Version](https://img.shields.io/maven-central/v/org.rulii/rulii)][Rulii Maven Central]
+[![Maven Central Version](https://img.shields.io/maven-central/v/org.rulii/rulii)][rulii Maven Central]
 [![Javadoc](https://javadoc.io/badge2/org.rulii/rulii/1.1.0/javadoc.svg)](https://javadoc.io/doc/org.rulii/rulii/1.1.0)
 ![Build](https://github.com/algox/rulii/actions/workflows/maven.yml/badge.svg)
 
 ## What is it?
 
-_Rulii_ is a Rule Engine which organizes business logic through a set of rules, each consisting of a condition and a set of action(s). 
+_rulii_ is a Rule Engine which organizes business logic through a set of rules, each consisting of a condition and a set of action(s). 
 The engine runs rules on data, identifying rules whose conditions match and then executing the corresponding actions.
 This is an alternative computational model, based on production rules that define conditions and actions, akin to "if-then" statements. 
 The engine evaluates these rules in an order it deems appropriate, allowing flexible decision-making based on conditions.
@@ -21,6 +21,7 @@ The engine evaluates these rules in an order it deems appropriate, allowing flex
 This model promotes a clear separation between business logic and data, making it easier to adapt when business rules change and simplifying the testing of those changes. 
 It is particularly helpful in scenarios like data validation, qualification processes, or calculations, where actions are triggered based on the truth or falsity of specific conditions. 
 
+### [You can find the full documentation at rulii.com](https://rulii.com)
 
 ## Features
 
