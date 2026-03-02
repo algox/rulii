@@ -23,6 +23,7 @@ import org.rulii.bind.match.ParameterResolver;
 import org.rulii.convert.ConverterRegistry;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.Immutator;
+import org.rulii.script.ScriptProcessorFactory;
 import org.rulii.text.MessageFormatter;
 import org.rulii.text.MessageResolver;
 import org.rulii.trace.Tracer;
@@ -60,12 +61,13 @@ public class RuleContext implements Immutator<RuleContext> {
     private final ConverterRegistry converterRegistry;
     private final Clock clock;
     private final ExecutorService executorService;
+    private final ScriptProcessorFactory scriptProcessorFactory;
 
     RuleContext(ScopedBindings bindings, Locale locale, BindingMatchingStrategy matchingStrategy,
                 ParameterResolver parameterResolver, MessageResolver messageResolver,
                 MessageFormatter messageFormatter, ObjectFactory objectFactory,
                 Tracer tracer, ConverterRegistry converterRegistry,
-                Clock clock, ExecutorService executorService) {
+                Clock clock, ExecutorService executorService, ScriptProcessorFactory scriptProcessorFactory) {
         super();
         Assert.notNull(bindings, "bindings cannot be null.");
         Assert.notNull(locale, "locale cannot be null.");
@@ -78,6 +80,7 @@ public class RuleContext implements Immutator<RuleContext> {
         Assert.notNull(converterRegistry, "converterRegistry cannot be null.");
         Assert.notNull(clock, "clock cannot be null.");
         Assert.notNull(executorService, "executorService cannot be null.");
+        Assert.notNull(scriptProcessorFactory, "scriptProcessorFactory cannot be null.");
         this.bindings = bindings;
         this.locale = locale;
         this.matchingStrategy = matchingStrategy;
@@ -89,6 +92,7 @@ public class RuleContext implements Immutator<RuleContext> {
         this.converterRegistry = converterRegistry;
         this.clock = clock;
         this.executorService = executorService;
+        this.scriptProcessorFactory = scriptProcessorFactory;
     }
 
     /**
@@ -207,10 +211,19 @@ public class RuleContext implements Immutator<RuleContext> {
         return executorService;
     }
 
+    /**
+     * Returns the ScriptProcessorFactory instance associated with this RuleContext.
+     *
+     * @return the ScriptProcessorFactory used for managing and finding ScriptProcessor instances
+     */
+    public ScriptProcessorFactory getScriptProcessorFactory() {
+        return scriptProcessorFactory;
+    }
+
     @Override
     public RuleContext asImmutable() {
         return new RuleContext(bindings.asImmutable(), locale, matchingStrategy, parameterResolver, messageResolver,
-                messageFormatter, objectFactory, tracer, converterRegistry, clock, executorService);
+                messageFormatter, objectFactory, tracer, converterRegistry, clock, executorService, scriptProcessorFactory);
     }
 
     @Override

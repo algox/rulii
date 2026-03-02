@@ -20,6 +20,7 @@ package org.rulii.context;
 import org.rulii.bind.match.BindingMatchingStrategy;
 import org.rulii.bind.match.ParameterResolver;
 import org.rulii.convert.ConverterRegistry;
+import org.rulii.script.ScriptProcessorFactory;
 import org.rulii.text.MessageFormatter;
 import org.rulii.text.MessageResolver;
 import org.rulii.util.reflect.ObjectFactory;
@@ -56,6 +57,7 @@ public class StandardRuleContextOptions implements RuleContextOptions {
     private final Clock clock = Clock.systemDefaultZone();
     private final Locale locale = Locale.getDefault();
     private final MessageResolver messageResolver = MessageResolver.builder().build();
+    private final ScriptProcessorFactory scriptProcessorFactory = ScriptProcessorFactory.create();
 
     public StandardRuleContextOptions() {
         super();
@@ -116,6 +118,11 @@ public class StandardRuleContextOptions implements RuleContextOptions {
     }
 
     @Override
+    public ScriptProcessorFactory getScriptProcessorFactory() {
+        return scriptProcessorFactory;
+    }
+
+    @Override
     public String toString() {
         return "StandardRuleContextOptions{" +
                 "matchingStrategy=" + matchingStrategy +
@@ -126,6 +133,7 @@ public class StandardRuleContextOptions implements RuleContextOptions {
                 ", clock=" + clock +
                 ", locale=" + locale +
                 ", messageResolver=" + messageResolver +
+                ", scriptProcessorFactory=" + scriptProcessorFactory +
                 '}';
     }
 }

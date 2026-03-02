@@ -20,6 +20,8 @@ package org.rulii.context;
 import org.rulii.bind.match.BindingMatchingStrategy;
 import org.rulii.bind.match.ParameterResolver;
 import org.rulii.convert.ConverterRegistry;
+import org.rulii.script.ScriptProcessor;
+import org.rulii.script.ScriptProcessorFactory;
 import org.rulii.text.MessageFormatter;
 import org.rulii.text.MessageResolver;
 import org.rulii.util.reflect.ObjectFactory;
@@ -134,5 +136,16 @@ public interface RuleContextOptions {
      * @return the ExecutorService used for managing and executing asynchronous tasks.
      */
     ExecutorService getExecutorService();
+
+
+    /**
+     * Retrieves the ScriptProcessorFactory instance associated with the current context.
+     * The ScriptProcessorFactory is responsible for managing and providing access to
+     * {@link ScriptProcessor} implementations for various scripting languages. It enables
+     * discovery, lookup, and registration of script processors within the framework.
+     *
+     * @return the ScriptProcessorFactory used for handling script processing tasks.
+     */
+    ScriptProcessorFactory getScriptProcessorFactory();
 
 }

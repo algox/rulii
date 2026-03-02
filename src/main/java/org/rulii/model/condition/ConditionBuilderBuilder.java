@@ -18,6 +18,8 @@
 package org.rulii.model.condition;
 
 import org.rulii.annotation.Function;
+import org.rulii.bind.Bindings;
+import org.rulii.bind.match.MatchByTypeMatchingStrategy;
 import org.rulii.lib.spring.core.BridgeMethodResolver;
 import org.rulii.lib.spring.core.annotation.AnnotationUtils;
 import org.rulii.lib.spring.util.Assert;
@@ -27,6 +29,7 @@ import org.rulii.model.SourceDefinition;
 import org.rulii.model.UnrulyException;
 import org.rulii.model.action.Action;
 import org.rulii.model.function.*;
+import org.rulii.script.Script;
 import org.rulii.util.reflect.ObjectFactory;
 import org.rulii.util.reflect.ReflectionUtils;
 
@@ -99,6 +102,39 @@ public final class ConditionBuilderBuilder {
     }
 
     /**
+     * Builds and returns a {@link Condition} object based on the provided script.
+     *
+     * The method validates the script and ensures that its execution, when invoked with bindings,
+     * returns a boolean. If the script returns null or a non-boolean value, an exception is thrown.
+     *
+     * @param script the script used to build the condition; must not be null
+     * @return the constructed {@link Condition} object
+     * @throws IllegalArgumentException if the script is null
+     * @throws UnrulyException if the script evaluation result is null or not a boolean
+     */
+    public Condition build(Script script) {
+        Assert.notNull(script, "script cannot be null.");
+
+        return Condition.builder().with((Bindings bindings) -> {
+            Assert.notNull(bindings, "bindings cannot be null.");
+            Object result = script.eval(bindings);
+
+            if (result == null) {
+                throw new UnrulyException("Condition script must return a boolean. Actual [null]. Script [" + script.getScript() + "]");
+            }
+
+            if (!(result instanceof Boolean)) {
+                throw new UnrulyException("Condition script must return a boolean. Actual ["
+                        + result.getClass().getSimpleName() + "]. Script [" + script.getScript() + "]");
+            }
+            return (Boolean) result;
+        }).param(0)
+                    .matchUsing(MatchByTypeMatchingStrategy.class)
+                .build()
+                .build();
+    }
+
+    /**
      * Introspect the given object for methods that are annotated with the required Annotation and build corresponding conditions for them.
      *
      * @param target target object
@@ -131,7 +167,7 @@ public final class ConditionBuilderBuilder {
 
         return List.of(result);
     }
-
+    
     private ConditionBuilder withCondition(Object target) {
         Method[] candidates = ReflectionUtils.getMethods(target.getClass(), FILTER);
 

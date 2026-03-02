@@ -17,6 +17,8 @@
  */
 package org.rulii.model.function;
 
+import org.rulii.bind.Bindings;
+import org.rulii.bind.match.MatchByTypeMatchingStrategy;
 import org.rulii.lib.spring.core.BridgeMethodResolver;
 import org.rulii.lib.spring.core.annotation.AnnotationUtils;
 import org.rulii.lib.spring.util.Assert;
@@ -24,6 +26,7 @@ import org.rulii.model.MethodDefinition;
 import org.rulii.model.RunnableBuilder;
 import org.rulii.model.SourceDefinition;
 import org.rulii.model.UnrulyException;
+import org.rulii.script.Script;
 import org.rulii.util.reflect.ObjectFactory;
 import org.rulii.util.reflect.ReflectionUtils;
 
@@ -61,13 +64,13 @@ public final class FunctionBuilderBuilder {
         return instance;
     }
 
-    public Function[] build(Class<?> clazz) {
+    public Function<?>[] build(Class<?> clazz) {
         Assert.notNull(clazz, "clazz cannot be null.");
         ObjectFactory objectFactory = ObjectFactory.builder().build();
         return build(clazz, objectFactory);
     }
 
-    public Function[] build(Class<?> clazz, ObjectFactory factory) {
+    public Function<?>[] build(Class<?> clazz, ObjectFactory factory) {
         return build(factory.createFunction(clazz));
     }
 
@@ -77,12 +80,12 @@ public final class FunctionBuilderBuilder {
      * @param target target object.
      * @return array of function inside the input class.
      */
-    public Function[] build(Object target) {
+    public Function<?>[] build(Object target) {
         return build(target, org.rulii.annotation.Function.class);
     }
 
     private <T> FunctionBuilder<T> with(Object target, MethodDefinition definition) {
-        return new FunctionBuilder(target, definition);
+        return new FunctionBuilder<>(target, definition);
     }
 
     /**
@@ -92,17 +95,17 @@ public final class FunctionBuilderBuilder {
      * @param annotationClass desired Function marker.            .
      * @return array of functions inside the input class.
      */
-    public Function[] build(Object target, Class<? extends Annotation> annotationClass) {
+    public Function<?>[] build(Object target, Class<? extends Annotation> annotationClass) {
         Assert.notNull(annotationClass, "annotationClass cannot be null.");
         Class<?> clazz = target.getClass();
         Method[] candidates = ReflectionUtils.getMethodsWithAnnotation(clazz, annotationClass);
 
-        Function[] result = new Function[candidates.length];
+        Function<?>[] result = new Function[candidates.length];
 
         for (int i = 0; i < candidates.length; i++) {
             String name = extractName(candidates[0]);
             Method candidate = BridgeMethodResolver.findBridgedMethod(candidates[0]);
-            FunctionBuilder builder = with(target, MethodDefinition.load(candidate, true, SourceDefinition.build()));
+            FunctionBuilder<?> builder = with(target, MethodDefinition.load(candidate, true, SourceDefinition.build()));
             if (name != null) builder.name(name);
             result[i] = builder.build();
         }
@@ -110,10 +113,28 @@ public final class FunctionBuilderBuilder {
         return result;
     }
 
+    /**
+     * Builds a Function instance based on the provided script.
+     *
+     * @param script the Script object used to evaluate bindings and generate the function
+     * @return the constructed Function instance
+     */
+    @SuppressWarnings("unchecked")
+    public <T> Function<T> build(Script script) {
+        return Function.builder().with((Bindings bindings) -> {
+                    Assert.notNull(bindings, "bindings cannot be null.");
+                    return (T) script.eval(bindings);
+                }).param(0)
+                .matchUsing(MatchByTypeMatchingStrategy.class)
+                .build()
+                .build();
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private static <T> FunctionBuilder<T> withFunction(Object target) {
         Method[] candidates = ReflectionUtils.getMethods(target.getClass(), FILTER);
 
-        if (candidates == null || candidates.length == 0) {
+        if (candidates.length == 0) {
             throw new UnrulyException("Function method not found on class [" + target.getClass() + "]");
         }
 
@@ -127,7 +148,7 @@ public final class FunctionBuilderBuilder {
         Method candidate = BridgeMethodResolver.findBridgedMethod(candidates[0]);
         RunnableBuilder.MethodInfo methodInfo = RunnableBuilder.load(target, candidate);
 
-        FunctionBuilder result = (FunctionBuilder<T>) new FunctionBuilder(methodInfo.target(), methodInfo.definition());
+        FunctionBuilder<T> result = (FunctionBuilder<T>) new FunctionBuilder(methodInfo.target(), methodInfo.definition());
 
         if (name != null) result.name(name);
 

@@ -17,6 +17,8 @@
  */
 package org.rulii.model.action;
 
+import org.rulii.bind.Bindings;
+import org.rulii.bind.match.MatchByTypeMatchingStrategy;
 import org.rulii.lib.spring.core.BridgeMethodResolver;
 import org.rulii.lib.spring.core.annotation.AnnotationUtils;
 import org.rulii.lib.spring.util.Assert;
@@ -24,6 +26,7 @@ import org.rulii.model.MethodDefinition;
 import org.rulii.model.RunnableBuilder;
 import org.rulii.model.SourceDefinition;
 import org.rulii.model.UnrulyException;
+import org.rulii.script.Script;
 import org.rulii.util.reflect.ObjectFactory;
 import org.rulii.util.reflect.ReflectionUtils;
 
@@ -134,6 +137,25 @@ public final class ActionBuilderBuilder {
         // Sort the Action(s) by order
         Arrays.sort(result, new ActionComparator(annotationClass));
         return List.of(result);
+    }
+
+    /**
+     * Builds an action using the provided script. The action will execute the script
+     * within the context of the specified bindings.
+     *
+     * @param script the script to be executed, must not be null
+     * @return a newly created {@link Action} configured with the given script
+     */
+    public Action build(Script script) {
+        Assert.notNull(script, "script cannot be null.");
+
+        return Action.builder().with((Bindings bindings) -> {
+            Assert.notNull(bindings, "bindings cannot be null.");
+            script.eval(bindings);
+        }).param(0)
+                .matchUsing(MatchByTypeMatchingStrategy.class)
+                .build()
+                .build();
     }
 
     private static class ActionComparator implements Comparator<Action> {
