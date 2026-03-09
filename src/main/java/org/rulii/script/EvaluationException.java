@@ -20,16 +20,6 @@ package org.rulii.script;
 
 import org.rulii.model.UnrulyException;
 
-/**
- * Thrown when an error occurs during the evaluation of a {@link Script}.
- *
- * <p>Wraps the underlying JSR-223 {@link javax.script.ScriptException} and preserves the
- * original source text for diagnostic purposes.</p>
- *
- * @author Max Arulananthan
- * @since 1.2
- * @see Script#eval
- */
 public class EvaluationException extends UnrulyException {
 
     private final String script;

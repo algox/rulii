@@ -1,27 +1,14 @@
 package org.rulii.script;
 
-import org.rulii.bind.Bindings;
+import org.rulii.context.RuleContext;
 import org.rulii.lib.spring.util.Assert;
+import org.rulii.model.UnrulyException;
 
-import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
-import javax.script.SimpleScriptContext;
 import java.util.Objects;
 
-/**
- * A {@link Script} backed by a pre-compiled JSR-223 {@link javax.script.CompiledScript}.
- *
- * <p>Instances are created by {@link DefaultScriptProcessor} when the underlying
- * {@link ScriptEngine} implements {@link javax.script.Compilable}. Pre-compiling avoids repeated
- * parsing overhead and is generally faster for scripts that are evaluated many times.</p>
- *
- * @author Max Arulananthan
- * @since 1.2
- * @see PlainScript
- * @see DefaultScriptProcessor
- */
-public class CompiledScript implements Script {
+public class CompiledScript<T> implements Script<T> {
 
     private final String script;
     private final ScriptEngine scriptEngine;
@@ -44,30 +31,14 @@ public class CompiledScript implements Script {
         this.compiledScript = compiledScript;
     }
 
-    /**
-     * Evaluates the pre-compiled script against the supplied {@link Bindings} and returns the result.
-     *
-     * @param <T>      the expected return type.
-     * @param bindings the variable bindings to expose to the script; must not be null.
-     * @return the value produced by the script, or {@code null} if it yields no value.
-     * @throws EvaluationException if the script throws an error during evaluation.
-     */
     @SuppressWarnings("unchecked")
     @Override
-    public <T> T eval(Bindings bindings) {
-        Assert.notNull(script, "script cannot be null.");
-
+    public T run(RuleContext ruleContext) throws UnrulyException {
         try {
-            ScriptContext scriptContext = new SimpleScriptContext();
-            scriptContext.setReader(scriptEngine.getContext().getReader());
-            scriptContext.setWriter(scriptEngine.getContext().getWriter());
-            scriptContext.setErrorWriter(scriptEngine.getContext().getErrorWriter());
-            scriptContext.setBindings(new DelegatingBindings(bindings), ScriptContext.GLOBAL_SCOPE);
-            return (T) compiledScript.eval(scriptContext);
+            return (T) scriptEngine.eval(script, ruleContext.getScriptContext(scriptEngine));
         } catch (ScriptException e) {
             throw new EvaluationException(script, e.getMessage(), e);
         }
-
     }
 
     /**
@@ -93,7 +64,7 @@ public class CompiledScript implements Script {
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
-        CompiledScript that = (CompiledScript) o;
+        CompiledScript<?> that = (CompiledScript<?>) o;
         return Objects.equals(script, that.script) && Objects.equals(compiledScript, that.compiledScript);
     }
 

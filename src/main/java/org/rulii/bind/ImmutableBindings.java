@@ -30,7 +30,7 @@ import java.util.*;
  * @author Max Arulananthan
  * @since 1.0
  */
-public class ImmutableBindings implements Bindings {
+public class ImmutableBindings implements Bindings, Map<String, Object> {
 
     private final Bindings target;
 
@@ -96,11 +96,6 @@ public class ImmutableBindings implements Bindings {
         }
 
         return result;
-    }
-
-    @Override
-    public Map<String, ?> asMap() {
-        return getTarget().asMap();
     }
 
     @Override
@@ -175,6 +170,91 @@ public class ImmutableBindings implements Bindings {
     @Override
     public boolean removeBindingListener(BindingListener listener) {
         throw new UnsupportedOperationException("Bindings are immutable.");
+    }
+
+    @Override
+    public Map<String, ?> asMap() {
+        return this;
+    }
+
+    @Override
+    public boolean containsKey(Object key) {
+        Assert.notNull(key, "key cannot be null.");
+        return contains(key.toString());
+    }
+
+    @Override
+    public boolean containsValue(Object value) {
+        for (Binding<?> binding : this) {
+            if (Objects.equals(binding.getValue(), value)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public Object get(Object key) {
+        Assert.notNull(key, "key cannot be null.");
+        return getValue(key.toString());
+    }
+
+    @Override
+    public Object put(String key, Object value) {
+        throw new UnsupportedOperationException("Bindings are immutable.");
+    }
+
+    @Override
+    public Object remove(Object key) {
+        throw new UnsupportedOperationException("Bindings does not support removal of values. Use setValue() instead.");
+    }
+
+    @Override
+    public void putAll(Map<? extends String, ?> m) {
+        throw new UnsupportedOperationException("Bindings are immutable.");
+    }
+
+    @Override
+    public void clear() {
+        throw new UnsupportedOperationException("Bindings cannot be cleared.");
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return size() == 0;
+    }
+
+    @Override
+    public Set<String> keySet() {
+        Set<String> result = new LinkedHashSet<>();
+
+        for (Binding<?> binding : this) {
+            result.add(binding.getName());
+        }
+
+        return result;
+    }
+
+    @Override
+    public Collection<Object> values() {
+        Set<Object> result = new LinkedHashSet<>();
+
+        for (Binding<?> binding : this) {
+            result.add(binding.getValue());
+        }
+
+        return result;
+    }
+
+    @Override
+    public Set<Entry<String, Object>> entrySet() {
+        Set<Entry<String, Object>> result = new LinkedHashSet<>();
+
+        for (Binding<?> binding : this) {
+            result.add(new AbstractMap.SimpleEntry<>(binding.getName(), binding.getValue()));
+        }
+
+        return result;
     }
 
     @Override

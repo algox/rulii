@@ -22,6 +22,7 @@ import org.rulii.bind.Bindings;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.spring.util.Assert;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -35,6 +36,7 @@ import java.io.Serializable;
 @FunctionalInterface
 public interface Runnable<T> extends Identifiable, Serializable {
 
+    @Serial
     long serialVersionUID = 1L;
 
     /**

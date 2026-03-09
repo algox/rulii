@@ -17,8 +17,10 @@
  */
 package org.rulii.bind;
 
+import org.rulii.lib.spring.util.Assert;
+
 import java.lang.reflect.Type;
-import java.util.List;
+import java.util.*;
 
 /**
  * Immutable version of the ScopedBindings. All functions that create Bindings/Scopes will be disabled.
@@ -26,15 +28,62 @@ import java.util.List;
  * @author Max Arulananthan
  * @since 1.0
  */
-public class ImmutableScopedBindings extends ImmutableBindings implements ScopedBindings {
+public class ImmutableScopedBindings implements ScopedBindings, Map<String, Object> {
+
+    private final ScopedBindings target;
 
     ImmutableScopedBindings(ScopedBindings bindings) {
-        super(bindings);
+        super();
+        this.target = bindings;
+    }
+
+    protected ScopedBindings getTarget() {
+        return target;
     }
 
     @Override
-    protected ScopedBindings getTarget() {
-        return (ScopedBindings) super.getTarget();
+    public <T> void bind(Binding<T> binding) {
+        throw new UnsupportedOperationException("Bindings are immutable.");
+    }
+
+    @Override
+    public <T> Binding<T> getBinding(String name) {
+        return getTarget().getBinding(name);
+    }
+
+    @Override
+    public <T> Binding<T> getBinding(String name, Type type) {
+        return getTarget().getBinding(name, type);
+    }
+
+    @Override
+    public <T> List<Binding<T>> getBindings(Type type) {
+        return getTarget().getBindings(type);
+    }
+
+    @Override
+    public int size() {
+        return getTarget().size();
+    }
+
+    @Override
+    public void addBindingListener(BindingListener listener) {
+        getTarget().addBindingListener(listener);
+    }
+
+    @Override
+    public boolean removeBindingListener(BindingListener listener) {
+        return getTarget().removeBindingListener(listener);
+    }
+
+    @Override
+    public Set<String> getNames() {
+        return getTarget().getNames();
+    }
+
+    @Override
+    public Iterator<Binding<?>> iterator() {
+        return getTarget().iterator();
     }
 
     @Override
@@ -138,5 +187,95 @@ public class ImmutableScopedBindings extends ImmutableBindings implements Scoped
     @Override
     public ImmutableScopedBindings asImmutable() {
         return this;
+    }
+
+    @Override
+    public Map<String, ?> asMap() {
+        return this;
+    }
+
+    @Override
+    public boolean containsKey(Object key) {
+        Assert.notNull(key, "key cannot be null.");
+        return contains(key.toString());
+    }
+
+    @Override
+    public boolean containsValue(Object value) {
+        for (Binding<?> binding : this) {
+            if (Objects.equals(binding.getValue(), value)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public Object get(Object key) {
+        Assert.notNull(key, "key cannot be null.");
+        return getValue(key.toString());
+    }
+
+    @Override
+    public Object put(String key, Object value) {
+        throw new UnsupportedOperationException("Bindings are immutable.");
+    }
+
+    @Override
+    public Object remove(Object key) {
+        throw new UnsupportedOperationException("Bindings does not support removal of values. Use setValue() instead.");
+    }
+
+    @Override
+    public void putAll(Map<? extends String, ?> m) {
+        throw new UnsupportedOperationException("Bindings are immutable.");
+    }
+
+    @Override
+    public void clear() {
+        throw new UnsupportedOperationException("Bindings cannot be cleared.");
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return getTarget().isEmpty();
+    }
+
+    @Override
+    public Set<String> keySet() {
+        Map<String, Binding<?>> result = new LinkedHashMap<>();
+
+        for (Binding<?> binding : this) {
+            result.putIfAbsent(binding.getName(), binding);
+        }
+
+        return result.keySet();
+    }
+
+    @Override
+    public Collection<Object> values() {
+        Map<String, Object> result = new LinkedHashMap<>();
+
+        for (Binding<?> binding : this) {
+            result.putIfAbsent(binding.getName(), binding.getValue());
+        }
+
+        return result.values();
+    }
+
+    @Override
+    public Set<Entry<String, Object>> entrySet() {
+        Map<String, Entry<String, Object>> result = new LinkedHashMap<>();
+
+        for (Binding<?> binding : this) {
+            result.putIfAbsent(binding.getName(), new AbstractMap.SimpleEntry<>(binding.getName(), binding.getValue()));
+        }
+
+        return new LinkedHashSet<>(result.values());
+    }
+
+    @Override
+    public int uniqueSize() {
+        return keySet().size();
     }
 }

@@ -1,22 +1,12 @@
 package org.rulii.script;
 
-import org.rulii.bind.Bindings;
+import org.rulii.model.Runnable;
 
-/**
- * Represents a loaded script that is ready for evaluation against a set of {@link Bindings}.
- *
- * <p>A {@code Script} is produced by a {@link ScriptProcessor} from raw source text. Depending on
- * whether the underlying engine supports compilation, the implementation may be a
- * {@link CompiledScript} (pre-compiled for faster repeated evaluation) or a {@link PlainScript}
- * (interpreted on each call to {@link #eval}).</p>
- *
- * @author Max Arulananthan
- * @since 1.2
- * @see ScriptProcessor
- * @see CompiledScript
- * @see PlainScript
- */
-public interface Script {
+public interface Script<T> extends Runnable<T> {
+
+    static ScriptBuilderBuilder builder() {
+        return ScriptBuilderBuilder.getInstance();
+    }
 
     /**
      * Returns the original source text of this script.
@@ -37,13 +27,4 @@ public interface Script {
         return false;
     }
 
-    /**
-     * Evaluates this script against the supplied {@link Bindings} and returns the result.
-     *
-     * @param <T>      the expected return type.
-     * @param bindings the variable bindings to expose to the script; must not be null.
-     * @return the value produced by the script, or {@code null} if the script yields no value.
-     * @throws EvaluationException if the script throws an error during evaluation.
-     */
-    <T> T eval(Bindings bindings);
 }

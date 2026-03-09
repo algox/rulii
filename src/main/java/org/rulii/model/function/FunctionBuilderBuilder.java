@@ -17,8 +17,8 @@
  */
 package org.rulii.model.function;
 
-import org.rulii.bind.Bindings;
 import org.rulii.bind.match.MatchByTypeMatchingStrategy;
+import org.rulii.context.RuleContext;
 import org.rulii.lib.spring.core.BridgeMethodResolver;
 import org.rulii.lib.spring.core.annotation.AnnotationUtils;
 import org.rulii.lib.spring.util.Assert;
@@ -119,11 +119,10 @@ public final class FunctionBuilderBuilder {
      * @param script the Script object used to evaluate bindings and generate the function
      * @return the constructed Function instance
      */
-    @SuppressWarnings("unchecked")
-    public <T> Function<T> build(Script script) {
-        return Function.builder().with((Bindings bindings) -> {
-                    Assert.notNull(bindings, "bindings cannot be null.");
-                    return (T) script.eval(bindings);
+    public <T> Function<T> build(Script<T> script) {
+        return Function.builder().with((RuleContext ruleContext) -> {
+                    Assert.notNull(ruleContext, "ruleContext cannot be null.");
+                    return script.run(ruleContext);
                 }).param(0)
                 .matchUsing(MatchByTypeMatchingStrategy.class)
                 .build()

@@ -17,8 +17,8 @@
  */
 package org.rulii.model.action;
 
-import org.rulii.bind.Bindings;
 import org.rulii.bind.match.MatchByTypeMatchingStrategy;
+import org.rulii.context.RuleContext;
 import org.rulii.lib.spring.core.BridgeMethodResolver;
 import org.rulii.lib.spring.core.annotation.AnnotationUtils;
 import org.rulii.lib.spring.util.Assert;
@@ -146,12 +146,12 @@ public final class ActionBuilderBuilder {
      * @param script the script to be executed, must not be null
      * @return a newly created {@link Action} configured with the given script
      */
-    public Action build(Script script) {
+    public Action build(Script<?> script) {
         Assert.notNull(script, "script cannot be null.");
 
-        return Action.builder().with((Bindings bindings) -> {
-            Assert.notNull(bindings, "bindings cannot be null.");
-            script.eval(bindings);
+        return Action.builder().with((RuleContext ruleContext) -> {
+            Assert.notNull(ruleContext, "ruleContext cannot be null.");
+            script.run(ruleContext);
         }).param(0)
                 .matchUsing(MatchByTypeMatchingStrategy.class)
                 .build()

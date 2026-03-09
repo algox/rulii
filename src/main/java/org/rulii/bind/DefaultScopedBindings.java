@@ -35,7 +35,7 @@ import static org.rulii.bind.Bindings.builder;
  * @since 1.0
  *
  */
-public class DefaultScopedBindings implements ScopedBindings {
+public class DefaultScopedBindings implements ScopedBindings, Map<String, Object> {
 
     private static final Log logger = LogFactory.getLog(DefaultScopedBindings.class);
 
@@ -354,18 +354,6 @@ public class DefaultScopedBindings implements ScopedBindings {
     }
 
     @Override
-    public Map<String, ?> asMap() {
-        List<NamedScope> scopes = getScopes();
-        Map<String, Object> result = new HashMap<>();
-
-        for (NamedScope scope : scopes) {
-            result.putAll(scope.getBindings().asMap());
-        }
-
-        return result;
-    }
-
-    @Override
     public Set<String> getNames() {
         return asMap().keySet();
     }
@@ -378,7 +366,7 @@ public class DefaultScopedBindings implements ScopedBindings {
     @Override
     public Iterator<Binding<?>> iterator() {
         List<NamedScope> scopes = getScopes();
-        Set<Binding<?>> result = new HashSet<>();
+        Set<Binding<?>> result = new LinkedHashSet<>();
 
         // Must start at root and keep adding
         for (NamedScope scope : scopes) {
@@ -443,6 +431,107 @@ public class DefaultScopedBindings implements ScopedBindings {
         }
 
         return result.toString();
+    }
+
+    @Override
+    public Map<String, ?> asMap() {
+        return this;
+    }
+
+    @Override
+    public boolean containsKey(Object key) {
+        Assert.notNull(key, "key cannot be null.");
+        return contains(key.toString());
+    }
+
+    @Override
+    public boolean containsValue(Object value) {
+        for (Binding<?> binding : this) {
+            if (Objects.equals(binding.getValue(), value)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public Object get(Object key) {
+        Assert.notNull(key, "key cannot be null.");
+        return getValue(key.toString());
+    }
+
+    @Override
+    public Object put(String key, Object value) {
+        Binding<Object> binding = getBinding(key);
+
+        if (binding != null) {
+            binding.setValue(value);
+            return value;
+        } else {
+            bind(key, value);
+        }
+
+        return null;
+    }
+
+    @Override
+    public Object remove(Object key) {
+        throw new UnsupportedOperationException("Bindings does not support removal of values. Use setValue() instead.");
+    }
+
+    @Override
+    public void putAll(Map<? extends String, ?> m) {
+        for (Entry<? extends String, ?> entry : m.entrySet()) {
+            put(entry.getKey(), entry.getValue());
+        }
+    }
+
+    @Override
+    public void clear() {
+        throw new UnsupportedOperationException("Bindings cannot be cleared.");
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return size() == 0;
+    }
+
+    @Override
+    public Set<String> keySet() {
+        Map<String, Binding<?>> result = new LinkedHashMap<>();
+
+        for (Binding<?> binding : this) {
+            result.putIfAbsent(binding.getName(), binding);
+        }
+
+        return result.keySet();
+    }
+
+    @Override
+    public Collection<Object> values() {
+        Map<String, Object> result = new LinkedHashMap<>();
+
+        for (Binding<?> binding : this) {
+            result.putIfAbsent(binding.getName(), binding.getValue());
+        }
+
+        return result.values();
+    }
+
+    @Override
+    public Set<Entry<String, Object>> entrySet() {
+        Map<String, Entry<String, Object>> result = new LinkedHashMap<>();
+
+        for (Binding<?> binding : this) {
+            result.putIfAbsent(binding.getName(), new AbstractMap.SimpleEntry<>(binding.getName(), binding.getValue()));
+        }
+
+        return new LinkedHashSet<>(result.values());
+    }
+
+    @Override
+    public int uniqueSize() {
+        return keySet().size();
     }
 
     private String getTabs(int count) {

@@ -1,28 +1,14 @@
 package org.rulii.script;
 
-import org.rulii.bind.Bindings;
+import org.rulii.context.RuleContext;
 import org.rulii.lib.spring.util.Assert;
+import org.rulii.model.UnrulyException;
 
-import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
-import javax.script.SimpleScriptContext;
 import java.util.Objects;
 
-/**
- * A {@link Script} that evaluates source text directly via a {@link ScriptEngine} without
- * pre-compilation.
- *
- * <p>Instances are created by {@link DefaultScriptProcessor} when the underlying engine does not
- * implement {@link javax.script.Compilable}. The source text is re-parsed and interpreted on every
- * call to {@link #eval}.</p>
- *
- * @author Max Arulananthan
- * @since 1.2
- * @see CompiledScript
- * @see DefaultScriptProcessor
- */
-public class PlainScript implements Script {
+public class PlainScript<T> implements Script<T> {
 
     private final ScriptEngine scriptEngine;
     private final String script;
@@ -41,23 +27,11 @@ public class PlainScript implements Script {
         this.script = script;
     }
 
-    /**
-     * Evaluates the script source against the supplied {@link Bindings} and returns the result.
-     *
-     * @param <T>      the expected return type.
-     * @param bindings the variable bindings to expose to the script; must not be null.
-     * @return the value produced by the script, or {@code null} if it yields no value.
-     * @throws EvaluationException if the script throws an error during evaluation.
-     */
     @SuppressWarnings("unchecked")
-    public <T> T eval(Bindings bindings) {
+    @Override
+    public T run(RuleContext ruleContext) throws UnrulyException {
         try {
-            ScriptContext scriptContext = new SimpleScriptContext();
-            scriptContext.setReader(scriptEngine.getContext().getReader());
-            scriptContext.setWriter(scriptEngine.getContext().getWriter());
-            scriptContext.setErrorWriter(scriptEngine.getContext().getErrorWriter());
-            scriptContext.setBindings(new DelegatingBindings(bindings), ScriptContext.GLOBAL_SCOPE);
-            return (T) scriptEngine.eval(script, scriptContext);
+            return (T) scriptEngine.eval(script, ruleContext.getScriptContext(scriptEngine));
         } catch (ScriptException e) {
             throw new EvaluationException(script, e.getMessage(), e);
         }
@@ -76,7 +50,7 @@ public class PlainScript implements Script {
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
-        PlainScript that = (PlainScript) o;
+        PlainScript<?> that = (PlainScript<?>) o;
         return Objects.equals(script, that.script);
     }
 

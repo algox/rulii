@@ -23,16 +23,22 @@ import org.rulii.bind.match.ParameterResolver;
 import org.rulii.convert.ConverterRegistry;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.Immutator;
-import org.rulii.script.ScriptProcessorFactory;
+import org.rulii.script.ScriptOptions;
 import org.rulii.text.MessageFormatter;
 import org.rulii.text.MessageResolver;
 import org.rulii.trace.Tracer;
 import org.rulii.util.reflect.ObjectFactory;
 
+import javax.script.Bindings;
+import javax.script.ScriptContext;
+import javax.script.ScriptEngine;
+import javax.script.SimpleScriptContext;
 import java.time.Clock;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -61,13 +67,16 @@ public class RuleContext implements Immutator<RuleContext> {
     private final ConverterRegistry converterRegistry;
     private final Clock clock;
     private final ExecutorService executorService;
-    private final ScriptProcessorFactory scriptProcessorFactory;
+    private final ScriptOptions scriptOptions;
+
+    private final Map<ScriptEngine, ScriptContext> scriptContexts = new ConcurrentHashMap<>();
 
     RuleContext(ScopedBindings bindings, Locale locale, BindingMatchingStrategy matchingStrategy,
                 ParameterResolver parameterResolver, MessageResolver messageResolver,
                 MessageFormatter messageFormatter, ObjectFactory objectFactory,
                 Tracer tracer, ConverterRegistry converterRegistry,
-                Clock clock, ExecutorService executorService, ScriptProcessorFactory scriptProcessorFactory) {
+                Clock clock, ExecutorService executorService,
+                ScriptOptions scriptOptions) {
         super();
         Assert.notNull(bindings, "bindings cannot be null.");
         Assert.notNull(locale, "locale cannot be null.");
@@ -80,7 +89,7 @@ public class RuleContext implements Immutator<RuleContext> {
         Assert.notNull(converterRegistry, "converterRegistry cannot be null.");
         Assert.notNull(clock, "clock cannot be null.");
         Assert.notNull(executorService, "executorService cannot be null.");
-        Assert.notNull(scriptProcessorFactory, "scriptProcessorFactory cannot be null.");
+        Assert.notNull(scriptOptions, "scriptOptions cannot be null.");
         this.bindings = bindings;
         this.locale = locale;
         this.matchingStrategy = matchingStrategy;
@@ -92,7 +101,7 @@ public class RuleContext implements Immutator<RuleContext> {
         this.converterRegistry = converterRegistry;
         this.clock = clock;
         this.executorService = executorService;
-        this.scriptProcessorFactory = scriptProcessorFactory;
+        this.scriptOptions = scriptOptions;
     }
 
     /**
@@ -211,19 +220,25 @@ public class RuleContext implements Immutator<RuleContext> {
         return executorService;
     }
 
-    /**
-     * Returns the ScriptProcessorFactory instance associated with this RuleContext.
-     *
-     * @return the ScriptProcessorFactory used for managing and finding ScriptProcessor instances
-     */
-    public ScriptProcessorFactory getScriptProcessorFactory() {
-        return scriptProcessorFactory;
+    public ScriptOptions getScriptOptions() {
+        return scriptOptions;
+    }
+
+    public ScriptContext getScriptContext(ScriptEngine scriptEngine) {
+        return scriptContexts.computeIfAbsent(scriptEngine, k -> {
+            ScriptContext scriptContext = new SimpleScriptContext();
+            Bindings scriptBindings = scriptEngine.createBindings();
+            scriptBindings.put(scriptOptions.bindingsName(), getBindings().asMap());
+            scriptBindings.put(scriptOptions.contextName(), this);
+            scriptContext.setBindings(scriptBindings, ScriptContext.ENGINE_SCOPE);
+            return scriptContext;
+        });
     }
 
     @Override
     public RuleContext asImmutable() {
         return new RuleContext(bindings.asImmutable(), locale, matchingStrategy, parameterResolver, messageResolver,
-                messageFormatter, objectFactory, tracer, converterRegistry, clock, executorService, scriptProcessorFactory);
+                messageFormatter, objectFactory, tracer, converterRegistry, clock, executorService, scriptOptions);
     }
 
     @Override

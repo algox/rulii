@@ -20,18 +20,7 @@ package org.rulii.script;
 
 import org.rulii.model.UnrulyException;
 
-/**
- * Thrown when an error occurs while loading or compiling a script.
- *
- * <p>This exception is raised by {@link ScriptProcessor#load} when the underlying JSR-223
- * {@link javax.script.Compilable} engine rejects the script source (e.g. due to a syntax error).
- * The original source text is preserved for diagnostic purposes.</p>
- *
- * @author Max Arulananthan
- * @since 1.2
- * @see ScriptProcessor#load
- */
-public class LoadScriptException extends UnrulyException {
+public class BuildScriptException extends UnrulyException {
 
     private final String script;
 
@@ -41,7 +30,7 @@ public class LoadScriptException extends UnrulyException {
      * @param script  the script source that could not be loaded; may be null.
      * @param message a human-readable description of the error.
      */
-    public LoadScriptException(String script, String message) {
+    public BuildScriptException(String script, String message) {
         super(message);
         this.script = script;
     }
@@ -53,7 +42,7 @@ public class LoadScriptException extends UnrulyException {
      * @param message a human-readable description of the error.
      * @param cause   the underlying exception; may be null.
      */
-    public LoadScriptException(String script, String message, Throwable cause) {
+    public BuildScriptException(String script, String message, Throwable cause) {
         super(message, cause);
         this.script = script;
     }

@@ -33,7 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @since 1.0
  *
  */
-public class DefaultBindings implements Bindings, PromiscuousBinder {
+public class DefaultBindings implements Bindings, PromiscuousBinder, Map<String, Object> {
 
     private static final Log logger = LogFactory.getLog(DefaultBindings.class);
 
@@ -141,17 +141,6 @@ public class DefaultBindings implements Bindings, PromiscuousBinder {
     }
 
     @Override
-    public Map<String, ?> asMap() {
-        Map<String, Object> result = new HashMap<>();
-
-        for (Binding<?> binding : this) {
-            result.put(binding.getName(), binding.getValue());
-        }
-
-        return result;
-    }
-
-    @Override
     public Set<String> getNames() {
         return bindings.keySet();
     }
@@ -183,6 +172,90 @@ public class DefaultBindings implements Bindings, PromiscuousBinder {
         for (BindingListener listener : listeners) {
             listener.onBind(binding);
         }
+    }
+
+    @Override
+    public Map<String, ?> asMap() {
+        return this;
+    }
+
+    @Override
+    public boolean containsKey(Object key) {
+        Assert.notNull(key, "key cannot be null.");
+        return contains(key.toString());
+    }
+
+    @Override
+    public boolean containsValue(Object value) {
+        for (Binding<?> binding : bindings.values()) {
+            if (Objects.equals(binding.getValue(), value)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public Object get(Object key) {
+        Assert.notNull(key, "key cannot be null.");
+        return getValue(key.toString());
+    }
+
+    @Override
+    public Object put(String key, Object value) {
+        Binding<Object> binding = getBinding(key);
+
+        if (binding != null) {
+            binding.setValue(value);
+            return value;
+        } else {
+            bind(key, value);
+        }
+
+        return null;
+    }
+
+    @Override
+    public Object remove(Object key) {
+        throw new UnsupportedOperationException("Bindings does not support removal of values. Use setValue() instead.");
+    }
+
+    @Override
+    public void putAll(Map<? extends String, ?> m) {
+        for (Entry<? extends String, ?> entry : m.entrySet()) {
+            put(entry.getKey(), entry.getValue());
+        }
+    }
+
+    @Override
+    public void clear() {
+        throw new UnsupportedOperationException("Bindings cannot be cleared.");
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return size() == 0;
+    }
+
+    @Override
+    public Set<String> keySet() {
+        Set<String> result = new LinkedHashSet<>();
+        bindings.values().forEach(binding -> result.add(binding.getName()));
+        return result;
+    }
+
+    @Override
+    public Collection<Object> values() {
+        Set<Object> result = new LinkedHashSet<>();
+        bindings.values().forEach(binding -> result.add(binding.getValue()));
+        return result;
+    }
+
+    @Override
+    public Set<Entry<String, Object>> entrySet() {
+        Set<Entry<String, Object>> result = new LinkedHashSet<>();
+        bindings.values().forEach(binding -> result.add(new AbstractMap.SimpleEntry<>(binding.getName(), binding.getValue())));
+        return result;
     }
 
     @Override

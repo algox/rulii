@@ -18,8 +18,8 @@
 package org.rulii.model.condition;
 
 import org.rulii.annotation.Function;
-import org.rulii.bind.Bindings;
 import org.rulii.bind.match.MatchByTypeMatchingStrategy;
+import org.rulii.context.RuleContext;
 import org.rulii.lib.spring.core.BridgeMethodResolver;
 import org.rulii.lib.spring.core.annotation.AnnotationUtils;
 import org.rulii.lib.spring.util.Assert;
@@ -112,12 +112,12 @@ public final class ConditionBuilderBuilder {
      * @throws IllegalArgumentException if the script is null
      * @throws UnrulyException if the script evaluation result is null or not a boolean
      */
-    public Condition build(Script script) {
+    public Condition build(Script<?> script) {
         Assert.notNull(script, "script cannot be null.");
 
-        return Condition.builder().with((Bindings bindings) -> {
-            Assert.notNull(bindings, "bindings cannot be null.");
-            Object result = script.eval(bindings);
+        return Condition.builder().with((RuleContext ruleContext) -> {
+            Assert.notNull(ruleContext, "v cannot be null.");
+            Object result = script.run(ruleContext);
 
             if (result == null) {
                 throw new UnrulyException("Condition script must return a boolean. Actual [null]. Script [" + script.getScript() + "]");

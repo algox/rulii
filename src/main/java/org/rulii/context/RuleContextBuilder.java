@@ -22,7 +22,7 @@ import org.rulii.bind.match.BindingMatchingStrategy;
 import org.rulii.bind.match.ParameterResolver;
 import org.rulii.convert.ConverterRegistry;
 import org.rulii.lib.spring.util.Assert;
-import org.rulii.script.ScriptProcessorFactory;
+import org.rulii.script.ScriptOptions;
 import org.rulii.text.MessageFormatter;
 import org.rulii.text.MessageResolver;
 import org.rulii.trace.Tracer;
@@ -54,7 +54,7 @@ public class RuleContextBuilder {
     private Locale locale;
     private Tracer tracer = Tracer.builder().build();
     private ExecutorService executorService = DEFAULT_EXECUTOR_SERVICE;
-    private ScriptProcessorFactory scriptProcessorFactory;
+    private ScriptOptions scriptOptions = ScriptOptions.DEFAULT;
 
     RuleContextBuilder() {
         this(RuleContextOptions.standard());
@@ -79,7 +79,7 @@ public class RuleContextBuilder {
         this.locale = context.getLocale();
         this.bindings = context.getBindings();
         this.executorService = context.getExecutorService();
-        this.scriptProcessorFactory = context.getScriptProcessorFactory();
+        this.scriptOptions = context.getScriptOptions();
     }
 
     protected void init(RuleContextOptions options) {
@@ -93,7 +93,7 @@ public class RuleContextBuilder {
         this.clock = options.getClock();
         this.locale = options.getLocale();
         this.executorService = options.getExecutorService();
-        this.scriptProcessorFactory = options.getScriptProcessorFactory();
+        this.scriptOptions = options.getScriptOptions();
     }
 
     /**
@@ -240,15 +240,9 @@ public class RuleContextBuilder {
         return this;
     }
 
-    /**
-     * Sets the ScriptProcessorFactory for the RuleContextBuilder.
-     *
-     * @param scriptProcessorFactory the ScriptProcessorFactory to be set; must not be null.
-     * @return the current instance of RuleContextBuilder for method chaining.
-     */
-    public RuleContextBuilder scriptProcessorFactory(ScriptProcessorFactory scriptProcessorFactory) {
-        Assert.notNull(scriptProcessorFactory, "scriptProcessorFactory cannot be null.");
-        this.scriptProcessorFactory = scriptProcessorFactory;
+    public RuleContextBuilder scriptOptions(ScriptOptions scriptOptions) {
+        Assert.notNull(scriptOptions, "scriptOptions cannot be null.");
+        this.scriptOptions = scriptOptions;
         return this;
     }
 
@@ -296,8 +290,8 @@ public class RuleContextBuilder {
         return executorService;
     }
 
-    public ScriptProcessorFactory getScriptProcessorFactory() {
-        return scriptProcessorFactory;
+    public ScriptOptions getScriptOptions() {
+        return scriptOptions;
     }
 
     /**
@@ -312,7 +306,7 @@ public class RuleContextBuilder {
 
         RuleContext result  = new RuleContext(scopedBindings, locale, matchingStrategy, parameterResolver,
                 messageResolver, messageFormatter, objectFactory, tracer,
-                converterRegistry, clock, executorService, scriptProcessorFactory);
+                converterRegistry, clock, executorService, scriptOptions);
 
         // Make the Bindings are avail.
         ((PromiscuousBinder) (scopedBindings.getRootScope().getBindings())).promiscuousBind(Binding.builder()
