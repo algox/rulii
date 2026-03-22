@@ -37,7 +37,7 @@ import java.util.List;
 public class DefaultFunction<T> extends AbstractRunnable implements Function<T> {
 
     /**
-     * Ctor taking meta information and the target object.
+     * Ctor taking meta-information and the target object.
      *
      * @param target action target.
      * @param name name of the function.
@@ -63,6 +63,8 @@ public class DefaultFunction<T> extends AbstractRunnable implements Function<T> 
             values = ruleContext.getParameterResolver().resolve(matches, getDefinition(), ruleContext.getBindings(),
                     ruleContext.getMatchingStrategy(), ruleContext.getConverterRegistry(), ruleContext.getObjectFactory());
             return apply(values.toArray());
+        } catch (UnrulyException e) {
+            throw e;
         } catch (Exception e) {
             throw new UnrulyException("Error trying to run Function : " + RuleUtils.getSignature(this, matches, values), e);
         }

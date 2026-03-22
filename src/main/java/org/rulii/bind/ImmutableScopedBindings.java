@@ -190,7 +190,7 @@ public class ImmutableScopedBindings implements ScopedBindings, Map<String, Obje
     }
 
     @Override
-    public Map<String, ?> asMap() {
+    public Map<String, Object> asMap() {
         return this;
     }
 
@@ -213,7 +213,8 @@ public class ImmutableScopedBindings implements ScopedBindings, Map<String, Obje
     @Override
     public Object get(Object key) {
         Assert.notNull(key, "key cannot be null.");
-        return getValue(key.toString());
+        Binding<Object> result = getBinding(key.toString());
+        return result != null ? result.getValue() : null;
     }
 
     @Override

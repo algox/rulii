@@ -102,9 +102,9 @@ public interface Condition extends Runnable<Boolean> {
     }
 
     /**
-     * Meta information about the Function.
+     * Meta-information about the Condition.
      *
-     * @return Function meta information.
+     * @return Condition meta-information.
      */
     @SuppressWarnings("unchecked")
     default MethodDefinition getDefinition() {

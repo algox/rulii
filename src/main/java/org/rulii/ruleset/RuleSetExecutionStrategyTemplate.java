@@ -17,10 +17,7 @@
  */
 package org.rulii.ruleset;
 
-import org.rulii.bind.Binding;
-import org.rulii.bind.NamedScope;
-import org.rulii.bind.PromiscuousBinder;
-import org.rulii.bind.ReservedBindings;
+import org.rulii.bind.*;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.apache.commons.logging.Log;
 import org.rulii.lib.apache.commons.logging.LogFactory;
@@ -212,12 +209,33 @@ public abstract class RuleSetExecutionStrategyTemplate<T> implements RuleSetExec
 
         if (ruleSet.getResultExtractor() != null) {
             try {
-                result = (T) ruleSet.getResultExtractor().apply(ruleContext.getBindings());
+                result = (T) ruleSet.getResultExtractor().apply(ruleContext);
             } catch (Exception e) {
                 throw new UnrulyException("RuleSet(" + ruleSet.getName() + ") ResultExtractor failed.", e);
             }
             if (getLogger().isDebugEnabled()) getLogger().debug("RuleSet [" + ruleSet.getName() + "] result [" + result + "]");
             ruleContext.getTracer().fireOnRuleSetResult(ruleSet, ruleSet.getResultExtractor(), ruleSetStatus);
+        }
+
+        return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    protected T handleError(RuleSet<?> ruleSet, RuleContext ruleContext, RuleSetExecutionStatus ruleSetStatus, Exception e) {
+        Assert.notNull(ruleSet, "ruleSet cannot be null.");
+        Assert.notNull(ruleContext, "ruleContext cannot be null.");
+        Assert.notNull(e, "e cannot be null.");
+
+        T result = null;
+
+        if (ruleSet.getErrorHandler() != null) {
+            ((PromiscuousBinder) ruleContext.getBindings().getCurrentScope().getBindings()).promiscuousBind(Binding.builder()
+                    .with(ReservedBindings.EXCEPTION.getName())
+                    .type(Exception.class)
+                    .isFinal(true)
+                    .value(e)
+                    .build());
+            result = (T) ruleSet.getErrorHandler().apply(ruleContext);
         }
 
         return result;

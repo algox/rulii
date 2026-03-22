@@ -229,7 +229,7 @@ public interface ScopedBindings extends Bindings {
      * @return unmodifiable Map of the Binding values.
      */
     @Override
-    Map<String, ?> asMap();
+    Map<String, Object> asMap();
 
     /**
      * Retrieves the number of Bindings in all the scopes. All Bindings are accounted for (does not account for unique names).

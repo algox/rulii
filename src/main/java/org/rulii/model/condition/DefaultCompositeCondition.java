@@ -54,6 +54,8 @@ public class DefaultCompositeCondition implements CompositeCondition {
             boolean leftResult = leftOperand.isTrue(context);
             boolean rightResult = rightOperand.isTrue(context);
             return predicate.test(leftResult, rightResult);
+        } catch (UnrulyException e) {
+            throw e;
         } catch (Exception e) {
             throw new UnrulyException("Unable to run Composite Condition.", e);
         }

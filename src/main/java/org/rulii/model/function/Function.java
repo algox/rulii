@@ -20,6 +20,8 @@ package org.rulii.model.function;
 import org.rulii.bind.BindingDeclaration;
 import org.rulii.bind.Bindings;
 import org.rulii.context.RuleContext;
+import org.rulii.model.Definable;
+import org.rulii.model.MethodDefinition;
 import org.rulii.model.Runnable;
 import org.rulii.model.UnrulyException;
 
@@ -97,5 +99,15 @@ public interface Function<T> extends Runnable<T> {
     @Override
     default String getName() {
         return "anonymous-function";
+    }
+
+    /**
+     * Meta-information about the Function.
+     *
+     * @return Function meta-information.
+     */
+    @SuppressWarnings("unchecked")
+    default MethodDefinition getDefinition() {
+        return this instanceof Definable ? ((Definable<MethodDefinition>) this).getDefinition() : null;
     }
 }

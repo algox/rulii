@@ -20,8 +20,10 @@ package org.rulii.ruleset;
 import org.rulii.bind.ReservedBindings;
 import org.rulii.bind.match.MatchByTypeMatchingStrategy;
 import org.rulii.context.RuleContext;
+import org.rulii.lib.spring.core.NestedExceptionUtils;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.SourceDefinition;
+import org.rulii.model.UnrulyException;
 import org.rulii.model.action.Action;
 import org.rulii.model.condition.Condition;
 import org.rulii.model.function.Function;
@@ -53,6 +55,17 @@ public class RuleSetBuilder {
     private Action initializer = null;
     private Action finalizer = null;
     private Function<?> resultExtractor = (RuleContext ruleContext) -> ruleContext.getBindings().getValue(ReservedBindings.RULE_SET_STATUS.getName());
+    private Function<?> errorHandler = Functions.function((RuleContext ruleContext, RuleSet<?> ruleSet, RuleSetExecutionStatus ruleSetStatus, Exception ex) ->  {
+        Throwable rootCause = NestedExceptionUtils.getRootCause(ex);
+
+        // Check if we got an expected ValidationException then rethrow it
+        if (rootCause instanceof ValidationException) {
+            throw (ValidationException) rootCause;
+        } else {
+            ruleContext.getTracer().fireOnRuleSetError(ruleSet, ruleSetStatus, ex);
+            throw new UnrulyException("Error trying to run RuleSet [" + ruleSet.getName() + "]", ex);
+        }
+    });
     private final LinkedList<Rule> ruleSetItems = new LinkedList<>();
 
     /**
@@ -218,6 +231,12 @@ public class RuleSetBuilder {
     public RuleSetBuilder resultExtractor(Function<?> resultExtractor) {
         Assert.notNull(resultExtractor, "resultExtractor cannot be null.");
         this.resultExtractor = resultExtractor;
+        return this;
+    }
+
+    public RuleSetBuilder errorHandler(Function<?> errorHandler) {
+        Assert.notNull(errorHandler, "errorHandler cannot be null.");
+        this.errorHandler = errorHandler;
         return this;
     }
 
@@ -396,9 +415,12 @@ public class RuleSetBuilder {
         });
 
         return new RuleSetDefinition(getName(), getDescription(), SourceDefinition.build(),
+                getInitializer() != null ? getInitializer().getDefinition() : null,
                 getPreCondition() != null ? getPreCondition().getDefinition() : null,
                 getStopCondition() != null ? getStopCondition().getDefinition() : null,
-                definitions.toArray(new RuleDefinition[definitions.size()]));
+                getFinalizer() != null ? getFinalizer().getDefinition() : null,
+                getResultExtractor() != null ? getResultExtractor().getDefinition() : null,
+                definitions);
     }
 
     /**
@@ -410,7 +432,8 @@ public class RuleSetBuilder {
     @SuppressWarnings("unchecked")
     public <T> RuleSet<T> build() {
         return new RulingFamily<>(buildRuleSetDefinition(), getInputParameters(), getPreCondition(), getStopCondition(),
-                getInitializer(), getFinalizer(), (Function<T>) getResultExtractor(), Collections.unmodifiableList(getRules()));
+                getInitializer(), getFinalizer(), (Function<T>) getResultExtractor(), (Function<T>) getErrorHandler(),
+                Collections.unmodifiableList(getRules()));
     }
 
     public String getName() {
@@ -443,6 +466,10 @@ public class RuleSetBuilder {
 
     public Function<?> getResultExtractor() {
         return resultExtractor;
+    }
+
+    public Function<?> getErrorHandler() {
+        return errorHandler;
     }
 
     @Override

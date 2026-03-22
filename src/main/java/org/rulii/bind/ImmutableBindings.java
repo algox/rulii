@@ -72,7 +72,12 @@ public class ImmutableBindings implements Bindings, Map<String, Object> {
     }
 
     @Override
-    public <T> void setValue(String name, T value) {
+    public <T> T setValue(String name, T value) {
+        throw new UnsupportedOperationException("Binding [" + name + "] is immutable. It cannot be edited.");
+    }
+
+    @Override
+    public <T> T setValueOrBind(String name, T value) throws NoSuchBindingException, InvalidBindingException {
         throw new UnsupportedOperationException("Binding [" + name + "] is immutable. It cannot be edited.");
     }
 
@@ -173,7 +178,7 @@ public class ImmutableBindings implements Bindings, Map<String, Object> {
     }
 
     @Override
-    public Map<String, ?> asMap() {
+    public Map<String, Object> asMap() {
         return this;
     }
 
@@ -196,7 +201,8 @@ public class ImmutableBindings implements Bindings, Map<String, Object> {
     @Override
     public Object get(Object key) {
         Assert.notNull(key, "key cannot be null.");
-        return getValue(key.toString());
+        Binding<Object> result = getBinding(key.toString());
+        return result != null ? result.getValue() : null;
     }
 
     @Override

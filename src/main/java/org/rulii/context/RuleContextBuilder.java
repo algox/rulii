@@ -22,12 +22,15 @@ import org.rulii.bind.match.BindingMatchingStrategy;
 import org.rulii.bind.match.ParameterResolver;
 import org.rulii.convert.ConverterRegistry;
 import org.rulii.lib.spring.util.Assert;
-import org.rulii.script.ScriptOptions;
+import org.rulii.script.ScriptProcessor;
+import org.rulii.script.ScriptProcessorRegistry;
+import org.rulii.script.jsr223.JSR223ScriptProcessor;
 import org.rulii.text.MessageFormatter;
 import org.rulii.text.MessageResolver;
 import org.rulii.trace.Tracer;
 import org.rulii.util.reflect.ObjectFactory;
 
+import javax.script.ScriptEngine;
 import java.time.Clock;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
@@ -54,7 +57,7 @@ public class RuleContextBuilder {
     private Locale locale;
     private Tracer tracer = Tracer.builder().build();
     private ExecutorService executorService = DEFAULT_EXECUTOR_SERVICE;
-    private ScriptOptions scriptOptions = ScriptOptions.DEFAULT;
+    private ScriptProcessorRegistry scriptProcessorRegistry;
 
     RuleContextBuilder() {
         this(RuleContextOptions.standard());
@@ -79,7 +82,7 @@ public class RuleContextBuilder {
         this.locale = context.getLocale();
         this.bindings = context.getBindings();
         this.executorService = context.getExecutorService();
-        this.scriptOptions = context.getScriptOptions();
+        this.scriptProcessorRegistry = context.getScriptProcessorRegistry();
     }
 
     protected void init(RuleContextOptions options) {
@@ -93,7 +96,7 @@ public class RuleContextBuilder {
         this.clock = options.getClock();
         this.locale = options.getLocale();
         this.executorService = options.getExecutorService();
-        this.scriptOptions = options.getScriptOptions();
+        this.scriptProcessorRegistry = options.getScriptProcessorRegistry();
     }
 
     /**
@@ -240,9 +243,21 @@ public class RuleContextBuilder {
         return this;
     }
 
-    public RuleContextBuilder scriptOptions(ScriptOptions scriptOptions) {
-        Assert.notNull(scriptOptions, "scriptOptions cannot be null.");
-        this.scriptOptions = scriptOptions;
+    public RuleContextBuilder scriptUsing(ScriptEngine scriptEngine) {
+        Assert.notNull(scriptEngine, "scriptEngine cannot be null.");
+        this.scriptProcessorRegistry.register(new JSR223ScriptProcessor(scriptEngine));
+        return this;
+    }
+
+    public RuleContextBuilder scriptUsing(ScriptProcessor scriptProcessor) {
+        Assert.notNull(scriptProcessor, "scriptProcessor cannot be null.");
+        this.scriptProcessorRegistry.register(scriptProcessor);
+        return this;
+    }
+
+    public RuleContextBuilder scriptProcessorRegistry(ScriptProcessorRegistry scriptProcessorRegistry) {
+        Assert.notNull(scriptProcessorRegistry, "scriptProcessorRegistry cannot be null.");
+        this.scriptProcessorRegistry = scriptProcessorRegistry;
         return this;
     }
 
@@ -290,8 +305,8 @@ public class RuleContextBuilder {
         return executorService;
     }
 
-    public ScriptOptions getScriptOptions() {
-        return scriptOptions;
+    public ScriptProcessorRegistry getScriptProcessorRegistry() {
+        return scriptProcessorRegistry;
     }
 
     /**
@@ -306,7 +321,7 @@ public class RuleContextBuilder {
 
         RuleContext result  = new RuleContext(scopedBindings, locale, matchingStrategy, parameterResolver,
                 messageResolver, messageFormatter, objectFactory, tracer,
-                converterRegistry, clock, executorService, scriptOptions);
+                converterRegistry, clock, executorService, scriptProcessorRegistry);
 
         // Make the Bindings are avail.
         ((PromiscuousBinder) (scopedBindings.getRootScope().getBindings())).promiscuousBind(Binding.builder()

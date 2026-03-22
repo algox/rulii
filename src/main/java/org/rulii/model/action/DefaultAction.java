@@ -66,6 +66,8 @@ public class DefaultAction extends AbstractRunnable implements Action {
             // run the action
             run(matches, values);
             return null;
+        } catch (UnrulyException e) {
+            throw e;
         } catch (Exception e) {
             throw new UnrulyException("Error trying to run Action: " + RuleUtils.getSignature(this, matches, values), e);
         }

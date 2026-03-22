@@ -20,7 +20,7 @@ package org.rulii.context;
 import org.rulii.bind.match.BindingMatchingStrategy;
 import org.rulii.bind.match.ParameterResolver;
 import org.rulii.convert.ConverterRegistry;
-import org.rulii.script.ScriptOptions;
+import org.rulii.script.ScriptProcessorRegistry;
 import org.rulii.text.MessageFormatter;
 import org.rulii.text.MessageResolver;
 import org.rulii.util.reflect.ObjectFactory;
@@ -30,13 +30,11 @@ import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 
 /**
- * Represents a set of options or configurations for the Rule Context in the system.
- * This interface provides a variety of access methods to retrieve objects and services
- * that are essential for handling rules, parameter resolution, message formatting,
- * conversion, and tracing within the context of rule execution.
- *
- * @author Max Arulananthan
- * @since 1.0
+ * Represents a set of configuration options and services used within a rule execution context.
+ * Implementations of this interface provide various utilities and strategies for managing bindings,
+ * parameter resolution, message handling, conversions, object creation, clock operations, locale settings,
+ * and task execution. This interface serves as a centralized mechanism to customize behavior
+ * and manage dependencies for rule-based operations.
  */
 public interface RuleContextOptions {
 
@@ -48,7 +46,7 @@ public interface RuleContextOptions {
      * @return an instance of StandardRuleContextOptions representing the default rule context options.
      */
     static RuleContextOptions standard() {
-        return StandardRuleContextOptions.getInstance();
+        return StandardRuleContextOptions.build();
     }
 
     /**
@@ -136,5 +134,5 @@ public interface RuleContextOptions {
      */
     ExecutorService getExecutorService();
 
-    ScriptOptions getScriptOptions();
+    ScriptProcessorRegistry getScriptProcessorRegistry();
 }

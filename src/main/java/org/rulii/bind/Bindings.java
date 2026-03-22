@@ -397,11 +397,38 @@ public interface Bindings extends Iterable<Binding<?>>, Immutator<Bindings> {
      * @throws NoSuchBindingException if Binding is not found.
      * @throws InvalidBindingException unable to edit the value.
      */
-    default <T> void setValue(String name, T value) throws NoSuchBindingException, InvalidBindingException {
-        Binding<T> result = getBinding(name);
+    default <T> T setValue(String name, T value) throws NoSuchBindingException, InvalidBindingException {
+        Binding<T> binding = getBinding(name);
         // Could not find Binding
-        if (result == null) throw new NoSuchBindingException(name);
-        result.setValue(value);
+        if (binding == null) throw new NoSuchBindingException(name);
+        T originalValue = binding.getValue();
+        binding.setValue(value);
+        return originalValue;
+    }
+
+    /**
+     * Sets the value for the specified binding name or creates a new binding with the given value
+     * if no such binding exists. If a binding exists, the current value of the binding is returned
+     * before updating it.
+     *
+     * @param <T> the type of the value associated with the binding
+     * @param name the name of the binding to set or bind
+     * @param value the value to set or bind to the specified name
+     * @return the current value of the binding if it exists, or null if the binding was newly created
+     * @throws NoSuchBindingException if the binding for the given name cannot be found and cannot be created
+     * @throws InvalidBindingException if the binding found is invalid for the provided value
+     */
+    default <T> T setValueOrBind(String name, T value) throws NoSuchBindingException, InvalidBindingException {
+        Binding<T> binding = getBinding(name);
+        T result = binding != null ? binding.getValue() : null;
+
+        if (binding == null) {
+            bind(name, value);
+        } else {
+            binding.setValue(value);
+        }
+
+        return result;
     }
 
     /**
@@ -411,8 +438,8 @@ public interface Bindings extends Iterable<Binding<?>>, Immutator<Bindings> {
      * @throws NoSuchBindingException if Binding is not found.
      * @throws InvalidBindingException unable to edit the value.
      */
-    default void setValue(BindingDeclaration<?> declaration) throws NoSuchBindingException, InvalidBindingException {
-        setValue(declaration.name(), declaration.value());
+    default <T> T setValue(BindingDeclaration<T> declaration) throws NoSuchBindingException, InvalidBindingException {
+        return setValue(declaration.name(), declaration.value());
     }
 
     /**
@@ -454,7 +481,7 @@ public interface Bindings extends Iterable<Binding<?>>, Immutator<Bindings> {
      *
      * @return unmodifiable Map of the Binding values.
      */
-    Map<String, ?> asMap();
+    Map<String, Object> asMap();
 
     /**
      * Returns back an immutable version of these Bindings.

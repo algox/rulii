@@ -18,8 +18,8 @@
 package org.rulii.ruleset;
 
 import org.rulii.context.RuleContext;
-import org.rulii.model.Runnable;
 import org.rulii.model.*;
+import org.rulii.model.Runnable;
 import org.rulii.model.action.Action;
 import org.rulii.model.condition.Condition;
 import org.rulii.model.function.Function;
@@ -142,6 +142,8 @@ public interface RuleSet<T> extends Runnable<T>, Identifiable, Iterable<Rule>, D
      * @return a Function instance that is responsible for extracting the result of this RuleSet's execution.
      */
     Function<T> getResultExtractor();
+
+    Function<T> getErrorHandler();
 
     /**
      * Size of this RuleSet (ie : number of Rules in this RuleSet)

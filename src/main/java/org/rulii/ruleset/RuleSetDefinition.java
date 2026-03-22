@@ -17,14 +17,16 @@
  */
 package org.rulii.ruleset;
 
+import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.Definition;
 import org.rulii.model.MethodDefinition;
 import org.rulii.model.SourceDefinition;
 import org.rulii.rule.RuleDefinition;
-import org.rulii.lib.spring.util.Assert;
 import org.rulii.util.RuleUtils;
 
-import java.util.Arrays;
+import java.lang.reflect.Type;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Represents a RuleSet Definition, which defines a set of rules with pre-condition and stop actions.
@@ -39,24 +41,33 @@ public final class RuleSetDefinition implements Definition {
     // Description of the RuleSet
     private final String description;
     private final SourceDefinition sourceDefinition;
+    private final MethodDefinition initActionDefinition;
     // PreCondition method details
     private final MethodDefinition preConditionDefinition;
     // StopAction method details
     private final MethodDefinition stopActionDefinition;
-    private final RuleDefinition[] definitions;
+    private final MethodDefinition finallyActionDefinition;
+    private final MethodDefinition resultActionDefinition;
+    private final List<RuleDefinition> definitions;
 
     public RuleSetDefinition(String name, String description,
                              SourceDefinition sourceDefinition,
+                             MethodDefinition initActionDefinition,
                              MethodDefinition preConditionDefinition,
                              MethodDefinition stopActionDefinition,
-                             RuleDefinition...definitions) {
+                             MethodDefinition finallyActionDefinition,
+                             MethodDefinition resultActionDefinition,
+                             List<RuleDefinition> definitions) {
         super();
         setName(name);
         this.description = description;
         this.sourceDefinition = sourceDefinition;
+        this.initActionDefinition = initActionDefinition;
         this.preConditionDefinition = preConditionDefinition;
         this.stopActionDefinition = stopActionDefinition;
-        this.definitions = definitions;
+        this.finallyActionDefinition = finallyActionDefinition;
+        this.resultActionDefinition = resultActionDefinition;
+        this.definitions = Collections.unmodifiableList(definitions);
     }
 
     @Override
@@ -69,9 +80,17 @@ public final class RuleSetDefinition implements Definition {
         return description;
     }
 
+    public Type getResultType() {
+        return resultActionDefinition != null ? resultActionDefinition.getReturnType() : null;
+    }
+
     @Override
     public SourceDefinition getSource() {
         return sourceDefinition;
+    }
+
+    public MethodDefinition getInitActionDefinition() {
+        return initActionDefinition;
     }
 
     public MethodDefinition getPreConditionDefinition() {
@@ -82,7 +101,15 @@ public final class RuleSetDefinition implements Definition {
         return stopActionDefinition;
     }
 
-    public RuleDefinition[] getDefinitions() {
+    public MethodDefinition getFinallyActionDefinition() {
+        return finallyActionDefinition;
+    }
+
+    public MethodDefinition getResultActionDefinition() {
+        return resultActionDefinition;
+    }
+
+    public List<RuleDefinition> getDefinitions() {
         return definitions;
     }
 
@@ -97,10 +124,13 @@ public final class RuleSetDefinition implements Definition {
         return "RuleSetDefinition{" +
                 "name='" + name + '\'' +
                 ", description='" + description + '\'' +
-                ", source=" + sourceDefinition +
+                ", sourceDefinition=" + sourceDefinition +
+                ", initActionDefinition=" + initActionDefinition +
                 ", preConditionDefinition=" + preConditionDefinition +
                 ", stopActionDefinition=" + stopActionDefinition +
-                ", definitions=" + Arrays.toString(definitions) +
+                ", finallyActionDefinition=" + finallyActionDefinition +
+                ", resultActionDefinition=" + resultActionDefinition +
+                ", definitions=" + definitions +
                 '}';
     }
 }

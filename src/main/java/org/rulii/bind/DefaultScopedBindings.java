@@ -434,7 +434,7 @@ public class DefaultScopedBindings implements ScopedBindings, Map<String, Object
     }
 
     @Override
-    public Map<String, ?> asMap() {
+    public Map<String, Object> asMap() {
         return this;
     }
 
@@ -457,21 +457,13 @@ public class DefaultScopedBindings implements ScopedBindings, Map<String, Object
     @Override
     public Object get(Object key) {
         Assert.notNull(key, "key cannot be null.");
-        return getValue(key.toString());
+        Binding<Object> result = getBinding(key.toString());
+        return result != null ? result.getValue() : null;
     }
 
     @Override
     public Object put(String key, Object value) {
-        Binding<Object> binding = getBinding(key);
-
-        if (binding != null) {
-            binding.setValue(value);
-            return value;
-        } else {
-            bind(key, value);
-        }
-
-        return null;
+        return setValueOrBind(key, value);
     }
 
     @Override

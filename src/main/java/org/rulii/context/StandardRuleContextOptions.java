@@ -20,7 +20,7 @@ package org.rulii.context;
 import org.rulii.bind.match.BindingMatchingStrategy;
 import org.rulii.bind.match.ParameterResolver;
 import org.rulii.convert.ConverterRegistry;
-import org.rulii.script.ScriptOptions;
+import org.rulii.script.ScriptProcessorRegistry;
 import org.rulii.text.MessageFormatter;
 import org.rulii.text.MessageResolver;
 import org.rulii.util.reflect.ObjectFactory;
@@ -47,7 +47,6 @@ import java.util.concurrent.Executors;
 public class StandardRuleContextOptions implements RuleContextOptions {
 
     private static final ExecutorService DEFAULT_EXECUTOR_SERVICE = Executors.newFixedThreadPool(Math.max(2, Runtime.getRuntime().availableProcessors()));
-    private static final StandardRuleContextOptions INSTANCE = new StandardRuleContextOptions();
 
     private final BindingMatchingStrategy matchingStrategy = BindingMatchingStrategy.builder().build();
     private final ParameterResolver parameterResolver = ParameterResolver.builder().build();
@@ -57,7 +56,7 @@ public class StandardRuleContextOptions implements RuleContextOptions {
     private final Clock clock = Clock.systemDefaultZone();
     private final Locale locale = Locale.getDefault();
     private final MessageResolver messageResolver = MessageResolver.builder().build();
-    private final ScriptOptions scriptOptions = ScriptOptions.DEFAULT;
+    private final ScriptProcessorRegistry scriptProcessorRegistry = ScriptProcessorRegistry.builder().build();
 
     public StandardRuleContextOptions() {
         super();
@@ -68,8 +67,8 @@ public class StandardRuleContextOptions implements RuleContextOptions {
      *
      * @return the singleton instance of {@code StandardRuleContextOptions}.
      */
-    public static StandardRuleContextOptions getInstance() {
-        return INSTANCE;
+    public static StandardRuleContextOptions build() {
+        return new StandardRuleContextOptions();
     }
 
     @Override
@@ -118,8 +117,8 @@ public class StandardRuleContextOptions implements RuleContextOptions {
     }
 
     @Override
-    public ScriptOptions getScriptOptions() {
-        return scriptOptions;
+    public ScriptProcessorRegistry getScriptProcessorRegistry() {
+        return scriptProcessorRegistry;
     }
 
     @Override
@@ -134,7 +133,7 @@ public class StandardRuleContextOptions implements RuleContextOptions {
                 ", locale=" + locale +
                 ", messageResolver=" + messageResolver +
                 ", executorService=" + getExecutorService() +
-                ", scriptOptions=" + scriptOptions +
+                ", scriptProcessorRegistry=" + scriptProcessorRegistry +
                 '}';
     }
 }

@@ -19,12 +19,10 @@ package org.rulii.ruleset;
 
 import org.rulii.bind.NamedScope;
 import org.rulii.context.RuleContext;
-import org.rulii.lib.spring.core.NestedExceptionUtils;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.UnrulyException;
 import org.rulii.rule.Rule;
 import org.rulii.rule.RuleResult;
-import org.rulii.validation.ValidationException;
 
 /**
  * Default rule set execution strategy for running a set of rules in a specified order.
@@ -67,17 +65,7 @@ public class DefaultRuleSetExecutionStrategy<T> extends RuleSetExecutionStrategy
             runRules(ruleSet, ruleContext, ruleSetStatus);
             return extractResult(ruleSet, ruleContext, ruleSetStatus);
         } catch (Exception e) {
-            Throwable rootCause = NestedExceptionUtils.getRootCause(e);
-
-            // Check if we got an expected ValidationException then rethrow it
-            if (rootCause instanceof ValidationException) {
-                throw (ValidationException) rootCause;
-            } else {
-                getLogger().error("RuleSet [" + ruleSet.getName() + "] execution caused an error.", e);
-                ruleContext.getTracer().fireOnRuleSetError(ruleSet, ruleSetStatus, e);
-                throw new UnrulyException("Error trying to run RuleSet [" + ruleSet.getName() + "]", e);
-            }
-
+            return handleError(ruleSet, ruleContext, ruleSetStatus, e);
         } finally {
             removeRuleSetScope(ruleContext, ruleSetScope);
             ruleContext.getTracer().fireOnRuleSetEnd(ruleSet, ruleSetScope, ruleSetStatus);

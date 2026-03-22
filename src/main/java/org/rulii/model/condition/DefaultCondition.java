@@ -62,6 +62,8 @@ public class DefaultCondition extends AbstractRunnable implements Condition {
                     "Actual [" + result.getClass().getSimpleName() + "]");
             // audit post
             return (Boolean) result;
+        } catch (UnrulyException e) {
+            throw e;
         } catch (Exception e) {
             throw new UnrulyException("Error trying to run Condition: " + RuleUtils.getSignature(this, matches, values), e);
         }

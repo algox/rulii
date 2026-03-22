@@ -56,6 +56,7 @@ public class RulingFamily<T> implements RuleSet<T> {
     private final Action initializer;
     private final Action finalizer;
     private final Function<T> resultExtractor;
+    private final Function<T> errorHandler;
     private final List<Rule> rules = new LinkedList<>();
     private final Condition stopCondition;
     private final String description;
@@ -69,6 +70,7 @@ public class RulingFamily<T> implements RuleSet<T> {
                         Action initializer,
                         Action finalizer,
                         Function<T> resultExtractor,
+                        Function<T> errorHandler,
                         List<Rule> rules) {
         super();
         Assert.notNull(ruleSetDefinition, "ruleSetDefinition cannot be null.");
@@ -81,6 +83,7 @@ public class RulingFamily<T> implements RuleSet<T> {
         this.initializer = initializer;
         this.finalizer = finalizer;
         this.resultExtractor = resultExtractor;
+        this.errorHandler = errorHandler;
         this.description = ruleSetDefinition.getDescription() != null ? ruleSetDefinition.getDescription() :
                 "ruleSet(name = " + getName() + ", size = " + size() + ")";
         this.syncStrategy = RuleSetExecutionStrategy.build();
@@ -165,6 +168,11 @@ public class RulingFamily<T> implements RuleSet<T> {
     @Override
     public Function<T> getResultExtractor() {
         return resultExtractor;
+    }
+
+    @Override
+    public Function<T> getErrorHandler() {
+        return errorHandler;
     }
 
     @Override
