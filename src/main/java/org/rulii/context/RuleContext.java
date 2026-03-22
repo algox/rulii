@@ -23,6 +23,9 @@ import org.rulii.bind.match.ParameterResolver;
 import org.rulii.convert.ConverterRegistry;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.Immutator;
+import org.rulii.model.UnrulyException;
+import org.rulii.script.ScriptProcessor;
+import org.rulii.script.ScriptProcessorFactory;
 import org.rulii.script.ScriptProcessorRegistry;
 import org.rulii.text.MessageFormatter;
 import org.rulii.text.MessageResolver;
@@ -30,9 +33,7 @@ import org.rulii.trace.Tracer;
 import org.rulii.util.reflect.ObjectFactory;
 
 import java.time.Clock;
-import java.util.Date;
-import java.util.Locale;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -62,6 +63,8 @@ public class RuleContext implements Immutator<RuleContext> {
     private final Clock clock;
     private final ExecutorService executorService;
     private final ScriptProcessorRegistry scriptProcessorRegistry;
+
+    private final Map<String, ScriptProcessor> scriptProcessors = Collections.synchronizedMap(new HashMap<>());
 
     RuleContext(ScopedBindings bindings, Locale locale, BindingMatchingStrategy matchingStrategy,
                 ParameterResolver parameterResolver, MessageResolver messageResolver,
@@ -211,8 +214,38 @@ public class RuleContext implements Immutator<RuleContext> {
         return executorService;
     }
 
+    /**
+     * Retrieves the ScriptProcessorRegistry associated with this RuleContext.
+     *
+     * @return the ScriptProcessorRegistry instance linked to this RuleContext. Cannot be null.
+     */
     public ScriptProcessorRegistry getScriptProcessorRegistry() {
         return scriptProcessorRegistry;
+    }
+
+    /**
+     * Retrieves a {@link ScriptProcessor} capable of handling the specified scripting language.
+     * The processor is responsible for script evaluation and must be registered in
+     * the {@link ScriptProcessorRegistry}.
+     *
+     * @param languageName the name of the scripting language for which the processor is desired.
+     *                     Must not be null or empty.
+     * @return the corresponding {@link ScriptProcessor} instance. Never null.
+     * @throws IllegalArgumentException if the provided languageName is null or empty.
+     * @throws UnrulyException if no matching {@link ScriptProcessor} is found or if
+     *                         a creation failure occurs.
+     */
+    public ScriptProcessor getScriptProcessor(String languageName) {
+        Assert.hasText(languageName, "languageName cannot be null or empty.");
+
+        ScriptProcessor cached = scriptProcessors.get(languageName);
+        if (cached != null) return cached;
+        ScriptProcessorFactory scriptProcessorFactory = getScriptProcessorRegistry().getScriptProcessorFactory(languageName);
+        if (scriptProcessorFactory == null) throw new UnrulyException("No ScriptProcessor found for language: " + languageName);
+        ScriptProcessor scriptProcessor = scriptProcessorFactory.create();
+        if (scriptProcessor == null) throw new UnrulyException("Unable to create ScriptProcessor for language: " + languageName);
+        scriptProcessors.put(languageName, scriptProcessor);
+        return scriptProcessor;
     }
 
     @Override

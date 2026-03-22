@@ -65,13 +65,12 @@ public class JSR223ScriptProcessor implements ScriptProcessor {
     private final Compilable compilable;
 
     /**
-     * Constructs a {@code JSR223ScriptProcessor} using the language name and default
-     * bindings variable name ({@code "ctx"}) from the engine's factory.
+     * Constructs a {@code JSR223ScriptProcessor} with the specified script engine.
      *
-     * @param scriptEngine the JSR-223 engine to use for evaluation; must not be null.
+     * @param scriptEngine the JSR-223 script engine to use for evaluation; must not be null.
      */
     public JSR223ScriptProcessor(ScriptEngine scriptEngine) {
-        this(scriptEngine, scriptEngine.getFactory().getLanguageName(), ScriptOptions.DEFAULT.bindingsName());
+        this(scriptEngine, null, null);
     }
 
     /**
@@ -92,7 +91,7 @@ public class JSR223ScriptProcessor implements ScriptProcessor {
         Assert.notNull(scriptEngine, "scriptEngine cannot be null.");
         this.scriptEngine = scriptEngine;
         this.languageName = StringUtils.hasText(languageName) ? languageName : scriptEngine.getFactory().getLanguageName();
-        this.bindingsName = StringUtils.hasText(bindingsName) ? bindingsName : "ctx";
+        this.bindingsName = StringUtils.hasText(bindingsName) ? bindingsName : ScriptOptions.DEFAULT.bindingsName();
         this.compilable = scriptEngine instanceof Compilable ? (Compilable) scriptEngine : null;
     }
 

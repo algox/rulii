@@ -33,7 +33,7 @@ public class ScriptFunctionTest {
     private RuleContext contextWith(Bindings bindings) {
         return RuleContext.builder()
                 .with(bindings)
-                .scriptUsing(TestScriptUtils.createEngine())
+                .scriptUsing(TestScriptUtils.createFactory())
                 .build();
     }
 

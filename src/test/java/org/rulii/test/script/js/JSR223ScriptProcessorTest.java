@@ -22,7 +22,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.rulii.bind.Bindings;
 import org.rulii.context.RuleContext;
-import org.rulii.script.*;
+import org.rulii.script.BuildScriptException;
+import org.rulii.script.Script;
+import org.rulii.script.ScriptOptions;
+import org.rulii.script.ScriptProcessorFactory;
 import org.rulii.script.jsr223.JSR223ScriptProcessor;
 
 import javax.script.ScriptEngine;
@@ -33,17 +36,19 @@ import javax.script.ScriptEngine;
  */
 public class JSR223ScriptProcessorTest {
 
+    private ScriptProcessorFactory factory;
     private ScriptEngine engine;
 
     @BeforeEach
     public void setUp() {
+        factory = TestScriptUtils.createFactory();
         engine = TestScriptUtils.createEngine();
     }
 
     private RuleContext contextWith(Bindings bindings) {
         return RuleContext.builder()
                 .with(bindings)
-                .scriptUsing(engine)
+                .scriptUsing(factory)
                 .build();
     }
 

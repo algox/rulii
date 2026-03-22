@@ -40,7 +40,7 @@ public class ScriptBuildTest {
 
         RuleContext context = RuleContext.builder()
                 .with(bindings)
-                .scriptUsing(TestScriptUtils.createEngine())
+                .scriptUsing(TestScriptUtils.createFactory())
                 .build();
 
         Script<Integer> script = Script.builder().build("ECMAScript", "ctx.c = ctx.a + ctx.b;");

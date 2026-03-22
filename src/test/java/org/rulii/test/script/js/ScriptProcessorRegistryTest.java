@@ -21,9 +21,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.rulii.model.UnrulyException;
-import org.rulii.script.DefaultScriptProcessorRegistry;
-import org.rulii.script.ScriptProcessor;
-import org.rulii.script.ScriptProcessorRegistry;
+import org.rulii.script.*;
 import org.rulii.script.jsr223.JSR223ScriptProcessor;
 
 import javax.script.ScriptEngine;
@@ -49,26 +47,26 @@ public class ScriptProcessorRegistryTest {
     public void testRegisterAndRetrieve() {
         ScriptProcessorRegistry registry = new DefaultScriptProcessorRegistry(false);
         ScriptProcessor processor = new JSR223ScriptProcessor(engine);
-        registry.register(processor);
-        Assertions.assertNotNull(registry.getScriptProcessor(processor.getLanguageName()));
+        registry.register(new SingleScriptProcessorFactory(processor));
+        Assertions.assertNotNull(registry.getScriptProcessorFactory(processor.getLanguageName()));
     }
 
     @Test
     public void testRegisteredProcessorIsSameInstance() {
         ScriptProcessorRegistry registry = new DefaultScriptProcessorRegistry(false);
-        ScriptProcessor processor = new JSR223ScriptProcessor(engine);
+        ScriptProcessorFactory processor = new SingleScriptProcessorFactory(new JSR223ScriptProcessor(engine));
         registry.register(processor);
-        Assertions.assertSame(processor, registry.getScriptProcessor(processor.getLanguageName()));
+        Assertions.assertSame(processor, registry.getScriptProcessorFactory(processor.getLanguageName()));
     }
 
     @Test
     public void testRegisterOverwritesPreviousForSameLanguage() {
         ScriptProcessorRegistry registry = new DefaultScriptProcessorRegistry(false);
-        ScriptProcessor first  = new JSR223ScriptProcessor(engine, "ECMAScript", "ctx");
-        ScriptProcessor second = new JSR223ScriptProcessor(engine, "ECMAScript", "bindings");
+        ScriptProcessorFactory first  = new SingleScriptProcessorFactory(new JSR223ScriptProcessor(engine, "ECMAScript", "ctx"));
+        ScriptProcessorFactory second = new SingleScriptProcessorFactory(new JSR223ScriptProcessor(engine, "ECMAScript", "bindings"));
         registry.register(first);
         registry.register(second);
-        Assertions.assertSame(second, registry.getScriptProcessor("ECMAScript"));
+        Assertions.assertSame(second, registry.getScriptProcessorFactory("ECMAScript"));
     }
 
     @Test
@@ -85,10 +83,10 @@ public class ScriptProcessorRegistryTest {
     public void testDeregisterRemovesProcessor() {
         ScriptProcessorRegistry registry = new DefaultScriptProcessorRegistry(false);
         ScriptProcessor processor = new JSR223ScriptProcessor(engine);
-        registry.register(processor);
-        registry.deregister(processor);
+        registry.register(new SingleScriptProcessorFactory(processor));
+        registry.deregister(new SingleScriptProcessorFactory(processor));
         Assertions.assertThrows(UnrulyException.class,
-                () -> registry.getScriptProcessor(processor.getLanguageName()));
+                () -> registry.getScriptProcessorFactory(processor.getLanguageName()));
     }
 
     @Test
@@ -102,7 +100,7 @@ public class ScriptProcessorRegistryTest {
         ScriptProcessorRegistry registry = new DefaultScriptProcessorRegistry(false);
         ScriptProcessor processor = new JSR223ScriptProcessor(engine);
         // Never registered — should not throw
-        Assertions.assertDoesNotThrow(() -> registry.deregister(processor));
+        Assertions.assertDoesNotThrow(() -> registry.deregister(new SingleScriptProcessorFactory(processor)));
     }
 
     // -----------------------------------------------------------------------
@@ -113,19 +111,19 @@ public class ScriptProcessorRegistryTest {
     public void testUnknownLanguageNoAutoJsr223Throws() {
         ScriptProcessorRegistry registry = new DefaultScriptProcessorRegistry(false);
         Assertions.assertThrows(UnrulyException.class,
-                () -> registry.getScriptProcessor("ECMAScript"));
+                () -> registry.getScriptProcessorFactory("ECMAScript"));
     }
 
     @Test
     public void testNullLanguageNameThrows() {
         ScriptProcessorRegistry registry = new DefaultScriptProcessorRegistry(false);
-        Assertions.assertThrows(Exception.class, () -> registry.getScriptProcessor(null));
+        Assertions.assertThrows(Exception.class, () -> registry.getScriptProcessorFactory(null));
     }
 
     @Test
     public void testEmptyLanguageNameThrows() {
         ScriptProcessorRegistry registry = new DefaultScriptProcessorRegistry(false);
-        Assertions.assertThrows(Exception.class, () -> registry.getScriptProcessor(""));
+        Assertions.assertThrows(Exception.class, () -> registry.getScriptProcessorFactory(""));
     }
 
     // -----------------------------------------------------------------------
@@ -136,15 +134,15 @@ public class ScriptProcessorRegistryTest {
     public void testAutoJsr223DiscoversEcmaScript() {
         ScriptProcessorRegistry registry = new DefaultScriptProcessorRegistry(true);
         // GraalJS is on the test classpath and registers "ECMAScript"
-        ScriptProcessor processor = registry.getScriptProcessor("ECMAScript");
-        Assertions.assertNotNull(processor);
+        ScriptProcessorFactory factory = registry.getScriptProcessorFactory("ECMAScript");
+        Assertions.assertNotNull(factory);
     }
 
     @Test
     public void testAutoJsr223CachesAfterFirstLookup() {
         ScriptProcessorRegistry registry = new DefaultScriptProcessorRegistry(true);
-        ScriptProcessor first  = registry.getScriptProcessor("ECMAScript");
-        ScriptProcessor second = registry.getScriptProcessor("ECMAScript");
+        ScriptProcessorFactory first  = registry.getScriptProcessorFactory("ECMAScript");
+        ScriptProcessorFactory second = registry.getScriptProcessorFactory("ECMAScript");
         Assertions.assertSame(first, second);
     }
 
@@ -152,7 +150,7 @@ public class ScriptProcessorRegistryTest {
     public void testAutoJsr223UnknownLanguageThrows() {
         ScriptProcessorRegistry registry = new DefaultScriptProcessorRegistry(true);
         Assertions.assertThrows(UnrulyException.class,
-                () -> registry.getScriptProcessor("no-such-language-xyz"));
+                () -> registry.getScriptProcessorFactory("no-such-language-xyz"));
     }
 
     // -----------------------------------------------------------------------
@@ -162,11 +160,36 @@ public class ScriptProcessorRegistryTest {
     @Test
     public void testMultipleProcessorsCoexist() {
         ScriptProcessorRegistry registry = new DefaultScriptProcessorRegistry(false);
-        ScriptProcessor ecma   = new JSR223ScriptProcessor(engine, "ECMAScript", "ctx");
-        ScriptProcessor custom = new JSR223ScriptProcessor(engine, "MyLang", "ctx");
+        ScriptProcessorFactory ecma   = new SingleScriptProcessorFactory(new JSR223ScriptProcessor(engine, "ECMAScript", "ctx"));
+        ScriptProcessorFactory custom = new SingleScriptProcessorFactory(new JSR223ScriptProcessor(engine, "MyLang", "ctx"));
         registry.register(ecma);
         registry.register(custom);
-        Assertions.assertSame(ecma,   registry.getScriptProcessor("ECMAScript"));
-        Assertions.assertSame(custom, registry.getScriptProcessor("MyLang"));
+        Assertions.assertSame(ecma,   registry.getScriptProcessorFactory("ECMAScript"));
+        Assertions.assertSame(custom, registry.getScriptProcessorFactory("MyLang"));
+    }
+
+    private static class SingleScriptProcessorFactory implements ScriptProcessorFactory {
+
+        private final ScriptProcessor processor;
+
+        public SingleScriptProcessorFactory(ScriptProcessor processor) {
+            super();
+            this.processor = processor;
+        }
+
+        @Override
+        public String getLanguageName() {
+            return processor.getLanguageName();
+        }
+
+        @Override
+        public String getBindingName() {
+            return ScriptOptions.DEFAULT.bindingsName();
+        }
+
+        @Override
+        public ScriptProcessor create() {
+            return processor;
+        }
     }
 }

@@ -17,29 +17,6 @@
  */
 package org.rulii.script;
 
-/**
- * Registry that maps scripting-language names to their corresponding
- * {@link ScriptProcessor} implementations.
- *
- * <p>A {@code ScriptProcessorRegistry} is held by the
- * {@link org.rulii.context.RuleContext} and consulted whenever a {@link Script}
- * is run.  Processors may be registered explicitly via {@link #register} or,
- * when auto-discovery is enabled in the default implementation, looked up
- * automatically through the JSR-223 {@code ScriptEngineManager}.
- *
- * <p>New registry instances are created through the fluent builder API:
- * <pre>{@code
- * ScriptProcessorRegistry registry = ScriptProcessorRegistry.builder()
- *         .autoIncludeJSR223(true)
- *         .build();
- * }</pre>
- *
- * @author Max Arulananthan
- * @since 1.2
- * @see ScriptProcessor
- * @see ScriptProcessorRegistryBuilder
- * @see DefaultScriptProcessorRegistry
- */
 public interface ScriptProcessorRegistry {
 
     /**
@@ -53,34 +30,33 @@ public interface ScriptProcessorRegistry {
     }
 
     /**
-     * Registers a {@link ScriptProcessor} with this registry, keyed by
-     * {@link ScriptProcessor#getLanguageName()}.  Any previously registered
-     * processor for the same language name is replaced.
+     * Registers a {@link ScriptProcessorFactory} for creating {@link ScriptProcessor}
+     * instances associated with a specific scripting language.
      *
-     * @param scriptProcessor the processor to register; must not be null.
+     * @param factory the {@link ScriptProcessorFactory} to register; must not be null.
+     *                The factory provides details such as the scripting language name
+     *                and the logic for creating {@link ScriptProcessor} instances.
      */
-    void register(ScriptProcessor scriptProcessor);
+    void register(ScriptProcessorFactory factory);
 
     /**
-     * Removes the given {@link ScriptProcessor} from this registry.
-     * If no processor with the same language name is registered, this method
-     * has no effect.
+     * Deregisters a previously registered {@link ScriptProcessorFactory} from the registry.
+     * This method is used to remove a factory, thereby disabling the creation of
+     * {@link ScriptProcessor} instances for the scripting language associated with the factory.
      *
-     * @param scriptProcessor the processor to remove; must not be null.
+     * @param factory the {@link ScriptProcessorFactory} to deregister; must not be null.
+     *                The factory to be removed should have been registered previously.
      */
-    void deregister(ScriptProcessor scriptProcessor);
+    void deregister(ScriptProcessorFactory factory);
 
     /**
-     * Returns the {@link ScriptProcessor} registered for the given language name.
+     * Retrieves a {@link ScriptProcessorFactory} associated with the specified scripting language.
+     * If no factory is registered for the given language name, this method may return null or
+     * throw an exception, depending on the implementation.
      *
-     * <p>If no processor has been explicitly registered and auto-discovery is
-     * enabled, the default implementation will attempt to locate a matching
-     * JSR-223 engine, create a processor for it, register it, and return it.
-     *
-     * @param languageName the scripting language name (e.g. {@code "ECMAScript"}); must not be null or empty.
-     * @return the processor for the requested language; never null.
-     * @throws org.rulii.model.UnrulyException if no processor is available for the requested language.
+     * @param languageName the name of the scripting language for which the factory is requested; must not be null or empty.
+     * @return the {@link ScriptProcessorFactory} associated with the specified language, or null if no factory is registered.
      */
-    ScriptProcessor getScriptProcessor(String languageName);
+    ScriptProcessorFactory getScriptProcessorFactory(String languageName);
 
 }

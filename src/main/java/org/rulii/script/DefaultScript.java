@@ -57,21 +57,18 @@ public class DefaultScript<T> extends AbstractScript<T> {
     }
 
     /**
-     * Evaluates this script within the given rule context.
+     * Executes the script with the given {@link RuleContext}, delegating the evaluation
+     * to the {@link ScriptProcessor} associated with the script's language.
      *
-     * <p>Looks up the {@link ScriptProcessor} for this script's language from
-     * {@link RuleContext#getScriptProcessorRegistry()} and delegates evaluation to it.
-     * If no processor is registered for the language an {@link UnrulyException} is thrown.
-     *
-     * @param ruleContext the execution context providing bindings and the processor registry; must not be null.
-     * @return the value produced by the script, cast to {@code T}.
-     * @throws UnrulyException if no {@link ScriptProcessor} is registered for this script's language,
-     *                         or if an error occurs during evaluation.
+     * @param ruleContext the context in which the script is executed, containing execution
+     *                    state, environment details, and the {@link ScriptProcessorRegistry}.
+     *                    Must not be null.
+     * @return the result of evaluating the script, as produced by the {@link ScriptProcessor}.
+     * @throws UnrulyException if an error occurs during script evaluation.
      */
     @Override
     public T run(RuleContext ruleContext) throws UnrulyException {
-        // getScriptProcessor() throws UnrulyException if not found — it never returns null.
-        ScriptProcessor scriptProcessor = ruleContext.getScriptProcessorRegistry().getScriptProcessor(getLanguageName());
+        ScriptProcessor scriptProcessor = ruleContext.getScriptProcessor(getLanguageName());
         return scriptProcessor.evaluate(this, ruleContext);
     }
 

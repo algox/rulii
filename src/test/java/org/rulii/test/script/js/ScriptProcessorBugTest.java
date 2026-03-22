@@ -20,9 +20,7 @@ package org.rulii.test.script.js;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.rulii.context.RuleContext;
-import org.rulii.script.DefaultScriptProcessorRegistry;
-import org.rulii.script.Script;
-import org.rulii.script.ScriptProcessorRegistry;
+import org.rulii.script.*;
 import org.rulii.script.jsr223.JSR223ScriptProcessor;
 
 import javax.script.*;
@@ -64,7 +62,7 @@ public class ScriptProcessorBugTest {
 
         // Build context with this processor registered explicitly
         ScriptProcessorRegistry registry = new DefaultScriptProcessorRegistry(false);
-        registry.register(processor);
+        registry.register(new SingleScriptProcessorFactory(processor));
         RuleContext ctx = RuleContext.builder()
                 .with(bindings)
                 .scriptProcessorRegistry(registry)
@@ -79,7 +77,7 @@ public class ScriptProcessorBugTest {
 
     private RuleContext buildContextWithProcessor(org.rulii.bind.Bindings bindings, JSR223ScriptProcessor processor) {
         ScriptProcessorRegistry registry = new DefaultScriptProcessorRegistry(false);
-        registry.register(processor);
+        registry.register(new SingleScriptProcessorFactory(processor));
         return RuleContext.builder()
                 .with(bindings)
                 .scriptProcessorRegistry(registry)
@@ -160,5 +158,30 @@ public class ScriptProcessorBugTest {
 
         // Before fix: ConcurrentModificationException or wrong results from map corruption.
         Assertions.assertEquals(0, failures.get(), "No thread should fail during concurrent evaluation");
+    }
+
+    private static class SingleScriptProcessorFactory implements ScriptProcessorFactory {
+
+        private final ScriptProcessor processor;
+
+        public SingleScriptProcessorFactory(ScriptProcessor processor) {
+            super();
+            this.processor = processor;
+        }
+
+        @Override
+        public String getLanguageName() {
+            return processor.getLanguageName();
+        }
+
+        @Override
+        public String getBindingName() {
+            return ScriptOptions.DEFAULT.bindingsName();
+        }
+
+        @Override
+        public ScriptProcessor create() {
+            return processor;
+        }
     }
 }

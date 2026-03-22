@@ -21,6 +21,9 @@ import com.oracle.truffle.js.scriptengine.GraalJSScriptEngine;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Engine;
 import org.graalvm.polyglot.HostAccess;
+import org.rulii.script.ScriptOptions;
+import org.rulii.script.ScriptProcessorFactory;
+import org.rulii.script.graaljs.GraalJsScriptProcessorFactory;
 
 import javax.script.ScriptEngine;
 
@@ -28,6 +31,10 @@ public final class TestScriptUtils {
 
     private TestScriptUtils() {
         super();
+    }
+
+    public static ScriptProcessorFactory createFactory() {
+        return new GraalJsScriptProcessorFactory("ECMAScript", ScriptOptions.DEFAULT.bindingsName());
     }
 
     public static ScriptEngine createEngine() {

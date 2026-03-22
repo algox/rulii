@@ -19,35 +19,15 @@ package org.rulii.script;
 
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.UnrulyException;
-import org.rulii.script.jsr223.JSR223ScriptProcessor;
+import org.rulii.script.jsr223.JSR223ScriptProcessorFactory;
 
 import javax.script.ScriptEngineManager;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Default {@link HashMap}-backed implementation of {@link ScriptProcessorRegistry}.
- *
- * <p>Processors are stored by their {@link ScriptProcessor#getLanguageName() language name}.
- * When {@code autoIncludeJSR223} is {@code true} (the default when constructed via
- * {@link ScriptProcessorRegistry#builder()}), a first lookup for an unknown language
- * will transparently attempt to locate a matching JSR-223 engine via
- * {@link ScriptEngineManager}, wrap it in a
- * {@link org.rulii.script.jsr223.JSR223ScriptProcessor}, register it, and return it.
- * Subsequent lookups for the same language will be served from the map directly.
- *
- * <p>This class is not thread-safe. If concurrent access is required, external
- * synchronization must be applied.
- *
- * @author Max Arulananthan
- * @since 1.2
- * @see ScriptProcessorRegistry
- * @see ScriptProcessorRegistryBuilder
- * @see org.rulii.script.jsr223.JSR223ScriptProcessor
- */
 public class DefaultScriptProcessorRegistry implements ScriptProcessorRegistry {
 
-    private final Map<String, ScriptProcessor> processors = new HashMap<>();
+    private final Map<String, ScriptProcessorFactory> processors = new HashMap<>();
     private final ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
     private final boolean autoIncludeJSR223;
 
@@ -65,77 +45,70 @@ public class DefaultScriptProcessorRegistry implements ScriptProcessorRegistry {
     }
 
     /**
-     * Registers a {@link ScriptProcessor}, keyed by
-     * {@link ScriptProcessor#getLanguageName()}.  Any previously registered
-     * processor for the same language name is silently replaced.
+     * Registers a {@link ScriptProcessorFactory} with the registry, associating it
+     * with the scripting language name provided by the factory.
      *
-     * @param scriptProcessor the processor to register; must not be null.
+     * @param factory the {@link ScriptProcessorFactory} to register; must not be null.
+     *                The factory's language name is used as the key for mapping.
+     * @throws IllegalArgumentException if the provided factory is null.
      */
     @Override
-    public void register(ScriptProcessor scriptProcessor) {
-        Assert.notNull(scriptProcessor, "scriptProcessor cannot be null.");
-        processors.put(scriptProcessor.getLanguageName(), scriptProcessor);
+    public void register(ScriptProcessorFactory factory) {
+        Assert.notNull(factory, "factory cannot be null.");
+        processors.put(factory.getLanguageName(), factory);
     }
 
     /**
-     * Removes the given {@link ScriptProcessor} from this registry by its language
-     * name.  If no matching processor is registered, this method has no effect.
+     * Deregisters a {@link ScriptProcessorFactory} from the registry, removing any
+     * association with its scripting language name.
      *
-     * @param scriptProcessor the processor to remove; must not be null.
+     * @param factory the {@link ScriptProcessorFactory} to deregister; must not be null.
+     *                The factory's language name is used as the key for removal.
+     * @throws IllegalArgumentException if the provided factory is null.
      */
     @Override
-    public void deregister(ScriptProcessor scriptProcessor) {
-        Assert.notNull(scriptProcessor, "scriptProcessor cannot be null.");
-        processors.remove(scriptProcessor.getLanguageName());
+    public void deregister(ScriptProcessorFactory factory) {
+        Assert.notNull(factory, "factory cannot be null.");
+        processors.remove(factory.getLanguageName());
     }
 
     /**
-     * Returns the {@link ScriptProcessor} registered for the given language name.
+     * Retrieves a {@link ScriptProcessorFactory} for the specified scripting language name.
+     * If the language is not already registered and the {@code autoIncludeJSR223} flag is enabled,
+     * the method attempts to locate a compatible factory using the JSR-223 {@code ScriptEngineManager}.
+     * If no matching factory is found, an exception is thrown.
      *
-     * <p>If no processor has been explicitly registered and {@code autoIncludeJSR223}
-     * is {@code true}, the registry will attempt to locate a JSR-223 engine whose
-     * {@link javax.script.ScriptEngineFactory#getLanguageName()} matches
-     * {@code languageName} (case-insensitive).  If found, the engine is wrapped in a
-     * {@link JSR223ScriptProcessor}, registered for future use, and returned.
-     *
-     * @param languageName the scripting language name (e.g. {@code "ECMAScript"}); must not be null or empty.
-     * @return the processor for the requested language; never null.
-     * @throws UnrulyException if no processor is available for the requested language.
+     * @param languageName the name of the scripting language for which a {@link ScriptProcessorFactory}
+     *                     is requested; must not be null or empty.
+     * @return the {@link ScriptProcessorFactory} associated with the specified language name.
+     * @throws IllegalArgumentException if {@code languageName} is null or empty.
+     * @throws UnrulyException if the scripting language is unsupported or cannot be resolved.
      */
     @Override
-    public ScriptProcessor getScriptProcessor(String languageName) {
+    public ScriptProcessorFactory getScriptProcessorFactory(String languageName) {
         Assert.hasText(languageName, "languageName cannot be empty.");
 
-        ScriptProcessor result = processors.get(languageName);
+        ScriptProcessorFactory result = processors.get(languageName);
 
         if (result != null) return result;
 
         if (!autoIncludeJSR223) throw new UnrulyException("Script Language [" + languageName + "] is not supported.");
 
-        ScriptProcessor jsr223ScriptProcessor = getJSR223ScriptProcessor(languageName);
+        ScriptProcessorFactory jsr223ScriptProcessorFactory = getJSR223ScriptProcessor(languageName);
 
-        if (jsr223ScriptProcessor == null) throw new UnrulyException("Script Language [" + languageName + "] is not supported.");
+        if (jsr223ScriptProcessorFactory == null) throw new UnrulyException("Script Language [" + languageName + "] is not supported.");
 
-        register(jsr223ScriptProcessor);
+        register(jsr223ScriptProcessorFactory);
 
-        return jsr223ScriptProcessor;
+        return jsr223ScriptProcessorFactory;
     }
 
-    /**
-     * Searches the JSR-223 {@code ScriptEngineManager} for a factory whose language
-     * name matches {@code languageName} (case-insensitive) and, if found, returns a
-     * new {@link JSR223ScriptProcessor} wrapping a fresh engine from that factory.
-     *
-     * @param languageName the language name to search for.
-     * @return a new {@link JSR223ScriptProcessor}, or {@code null} if no matching
-     *         JSR-223 engine is available.
-     */
-    private ScriptProcessor getJSR223ScriptProcessor(String languageName) {
+    private ScriptProcessorFactory getJSR223ScriptProcessor(String languageName) {
         return scriptEngineManager.getEngineFactories()
                 .stream()
                 .filter(f -> f.getLanguageName().equalsIgnoreCase(languageName))
                 .findFirst()
-                .map(scriptEngineFactory -> new JSR223ScriptProcessor(scriptEngineFactory.getScriptEngine()))
+                .map(JSR223ScriptProcessorFactory::new)
                 .orElse(null);
     }
 }

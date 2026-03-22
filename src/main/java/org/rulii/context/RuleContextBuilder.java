@@ -22,15 +22,13 @@ import org.rulii.bind.match.BindingMatchingStrategy;
 import org.rulii.bind.match.ParameterResolver;
 import org.rulii.convert.ConverterRegistry;
 import org.rulii.lib.spring.util.Assert;
-import org.rulii.script.ScriptProcessor;
+import org.rulii.script.ScriptProcessorFactory;
 import org.rulii.script.ScriptProcessorRegistry;
-import org.rulii.script.jsr223.JSR223ScriptProcessor;
 import org.rulii.text.MessageFormatter;
 import org.rulii.text.MessageResolver;
 import org.rulii.trace.Tracer;
 import org.rulii.util.reflect.ObjectFactory;
 
-import javax.script.ScriptEngine;
 import java.time.Clock;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
@@ -243,18 +241,25 @@ public class RuleContextBuilder {
         return this;
     }
 
-    public RuleContextBuilder scriptUsing(ScriptEngine scriptEngine) {
-        Assert.notNull(scriptEngine, "scriptEngine cannot be null.");
-        this.scriptProcessorRegistry.register(new JSR223ScriptProcessor(scriptEngine));
+    /**
+     * Registers the given ScriptProcessorFactory instance with the script processor registry
+     * and returns the current RuleContextBuilder instance for method chaining.
+     *
+     * @param scriptProcessorFactory the ScriptProcessorFactory to be registered; must not be null
+     * @return the current RuleContextBuilder instance for fluent method chaining
+     */
+    public RuleContextBuilder scriptUsing(ScriptProcessorFactory scriptProcessorFactory) {
+        Assert.notNull(scriptProcessorFactory, "scriptProcessorFactory cannot be null.");
+        this.scriptProcessorRegistry.register(scriptProcessorFactory);
         return this;
     }
 
-    public RuleContextBuilder scriptUsing(ScriptProcessor scriptProcessor) {
-        Assert.notNull(scriptProcessor, "scriptProcessor cannot be null.");
-        this.scriptProcessorRegistry.register(scriptProcessor);
-        return this;
-    }
-
+    /**
+     * Sets the ScriptProcessorRegistry for the RuleContextBuilder.
+     *
+     * @param scriptProcessorRegistry the ScriptProcessorRegistry to be set; must not be null
+     * @return the current RuleContextBuilder instance for fluent method chaining
+     */
     public RuleContextBuilder scriptProcessorRegistry(ScriptProcessorRegistry scriptProcessorRegistry) {
         Assert.notNull(scriptProcessorRegistry, "scriptProcessorRegistry cannot be null.");
         this.scriptProcessorRegistry = scriptProcessorRegistry;
