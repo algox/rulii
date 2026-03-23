@@ -142,6 +142,16 @@ public class JSR223ScriptProcessor implements ScriptProcessor {
     }
 
     /**
+     * Returns the variable name under which the rule bindings map is exposed inside
+     * scripts evaluated by processors created by this factory (e.g. {@code "ctx"}).
+     *
+     * @return the bindings variable name; never null or empty.
+     */
+    public String getBindingName() {
+        return bindingsName;
+    }
+    
+    /**
      * Returns the variable name under which the rule bindings map is exposed
      * inside scripts evaluated by this processor.
      *

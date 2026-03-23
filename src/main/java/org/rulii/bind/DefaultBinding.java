@@ -64,7 +64,6 @@ public class DefaultBinding<T> implements Binding<T> {
         Assert.notNull(type, "type cannot be null");
         Assert.isTrue(!name.trim().isEmpty(), "name length must be > 0");
         Assert.isTrue(RuleUtils.isValidName(name), "Binding name [" + name + "] must match [" + RuleUtils.NAME_REGEX + "]");
-        Assert.isTrue(!name.trim().isEmpty(), "name length must be > 0");
         this.id = UUID.randomUUID().toString();
         this.name = name;
         this.type = type;

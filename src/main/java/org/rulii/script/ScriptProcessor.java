@@ -47,6 +47,14 @@ public interface ScriptProcessor {
     String getLanguageName();
 
     /**
+     * Returns the variable name under which the rule bindings map is exposed inside
+     * scripts evaluated by processors created by this factory (e.g. {@code "ctx"}).
+     *
+     * @return the bindings variable name; never null or empty.
+     */
+    String getBindingName();
+
+    /**
      * Evaluates the given script within the supplied rule context and returns
      * the result.
      *
