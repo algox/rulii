@@ -207,21 +207,55 @@ public class RulingFamily<T> implements RuleSet<T> {
         result.append("RuleSet : ").append(getName());
         result.append(System.lineSeparator());
         result.append("Input Parameters : ").append(getInputParameters());
-        result.append(RuleUtils.TAB);
-        if (getPreCondition() != null) result.append("pre : ").append(getPreCondition().getDescription());
-        result.append(System.lineSeparator());
-        result.append(RuleUtils.TAB);
-        if (getStopCondition() != null) result.append("stop : ").append(getStopCondition().getDescription());
+
+        if (getInitializer() != null) {
+            result.append(System.lineSeparator());
+            result.append(RuleUtils.TAB);
+            result.append("init : ").append(getInitializer().getDescription());
+        }
+
+        if (getPreCondition() != null) {
+            result.append(System.lineSeparator());
+            result.append(RuleUtils.TAB);
+            result.append("pre : ").append(getPreCondition().getDescription());
+        }
+
+        if (getStopCondition() != null) {
+            result.append(System.lineSeparator());
+            result.append(RuleUtils.TAB);
+            result.append("stop : ").append(getStopCondition().getDescription());
+        }
+
+        if (getFinalizer() != null) {
+            result.append(System.lineSeparator());
+            result.append(RuleUtils.TAB);
+            result.append("finalizer : ").append(getFinalizer().getDescription());
+        }
+
+        if (getResultExtractor() != null) {
+            result.append(System.lineSeparator());
+            result.append(RuleUtils.TAB);
+            result.append("result extractor : ").append(getResultExtractor().getDescription());
+        }
+
+        if (getErrorHandler() != null) {
+            result.append(System.lineSeparator());
+            result.append(RuleUtils.TAB);
+            result.append("error handler : ").append(getErrorHandler().getDescription());
+        }
+
         result.append(System.lineSeparator());
         result.append(RuleUtils.TAB);
         result.append("Rules");
         result.append(System.lineSeparator());
+
         for (Rule rule : getRules()) {
             result.append(RuleUtils.TAB);
             result.append(RuleUtils.TAB);
             result.append(rule.getDescription());
             result.append(System.lineSeparator());
         }
+
         return result.toString();
     }
 

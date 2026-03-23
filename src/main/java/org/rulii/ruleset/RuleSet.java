@@ -143,6 +143,13 @@ public interface RuleSet<T> extends Runnable<T>, Identifiable, Iterable<Rule>, D
      */
     Function<T> getResultExtractor();
 
+    /**
+     * Retrieves the error handler function associated with the RuleSet.
+     * The error handler is a function that defines how errors or exceptions
+     * are managed or processed during the execution of the RuleSet.
+     *
+     * @return a Function instance that handles errors for the RuleSet execution.
+     */
     Function<T> getErrorHandler();
 
     /**

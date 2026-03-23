@@ -220,6 +220,17 @@ public abstract class RuleSetExecutionStrategyTemplate<T> implements RuleSetExec
         return result;
     }
 
+    /**
+     * Handles errors that occur during the execution of a RuleSet by invoking the configured error handler.
+     * If the RuleSet has an error handler set, it binds the exception to the current scope's bindings
+     * and delegates the handling to the error handler.
+     *
+     * @param ruleSet the RuleSet for which the error occurred (must not be null)
+     * @param ruleContext the RuleContext containing the runtime execution context (must not be null)
+     * @param ruleSetStatus the RuleSetExecutionStatus to track execution details (must not be null)
+     * @param e the exception that was raised during the execution (must not be null)
+     * @return the result from the error handler if one is configured, otherwise null
+     */
     @SuppressWarnings("unchecked")
     protected T handleError(RuleSet<?> ruleSet, RuleContext ruleContext, RuleSetExecutionStatus ruleSetStatus, Exception e) {
         Assert.notNull(ruleSet, "ruleSet cannot be null.");
