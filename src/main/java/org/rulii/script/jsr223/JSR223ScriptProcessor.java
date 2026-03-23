@@ -117,7 +117,7 @@ public class JSR223ScriptProcessor implements ScriptProcessor {
         if (compilable == null) {
             try {
                 return (T) scriptEngine.eval(script.getScript(), scriptContext);
-            } catch (ScriptException e) {
+            } catch (Exception e) {
                 throw new EvaluationException(script.getScript(), e.getMessage(), e);
             }
         }
@@ -126,7 +126,7 @@ public class JSR223ScriptProcessor implements ScriptProcessor {
 
         try {
             return (T) compiledScript.eval(scriptContext);
-        } catch (ScriptException e) {
+        } catch (Exception e) {
             throw new EvaluationException(script.getScript(), e.getMessage(), e);
         }
     }
@@ -150,7 +150,7 @@ public class JSR223ScriptProcessor implements ScriptProcessor {
     public String getBindingName() {
         return bindingsName;
     }
-    
+
     /**
      * Returns the variable name under which the rule bindings map is exposed
      * inside scripts evaluated by this processor.
@@ -190,7 +190,7 @@ public class JSR223ScriptProcessor implements ScriptProcessor {
 
         try {
             return compilable.compile(script.getScript());
-        } catch (ScriptException e) {
+        } catch (Exception e) {
             throw new BuildScriptException(script.getScript(), e.getMessage(), e);
         }
     }
