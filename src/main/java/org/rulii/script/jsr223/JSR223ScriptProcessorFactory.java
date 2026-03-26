@@ -19,33 +19,27 @@ package org.rulii.script.jsr223;
 
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.lib.spring.util.StringUtils;
+import org.rulii.script.ScriptCompiler;
 import org.rulii.script.ScriptOptions;
 import org.rulii.script.ScriptProcessor;
 import org.rulii.script.ScriptProcessorFactory;
-import org.rulii.script.graaljs.GraalJsScriptProcessorFactory;
 
 import javax.script.ScriptEngineFactory;
 
 /**
- * {@link ScriptProcessorFactory} that creates {@link ScriptProcessor} instances backed
- * by any JSR-223 compliant scripting engine.
+ * JSR-223 implementation of {@link ScriptProcessorFactory} that wraps a {@link ScriptEngineFactory}
+ * to produce language-specific {@link JSR223ScriptProcessor} and {@link JSR223ScriptCompiler} instances.
  *
- * <p>Each call to {@link #create()} asks the supplied {@link ScriptEngineFactory} for a
- * fresh {@link javax.script.ScriptEngine} and wraps it in a new
- * {@link JSR223ScriptProcessor}.  If the engine implements
- * {@link javax.script.Compilable}, the processor will compile and cache scripts
- * automatically.
- *
- * <p>The single-argument constructor derives the language name directly from the
- * {@link ScriptEngineFactory} and uses {@link ScriptOptions#DEFAULT} for the bindings
- * variable name ({@code "ctx"}).  The three-argument constructor allows both to be
- * overridden; blank values fall back to the factory/default values.
+ * <p>This factory is the default fall-back used by {@link org.rulii.script.ScriptProcessorManager}
+ * when no dedicated factory is registered for a language but a JSR-223 engine is available on the
+ * class path.  It can also be used as the base for language-specific factories that need to
+ * customise the engine or bindings name.
  *
  * @author Max Arulananthan
  * @since 1.2
- * @see ScriptProcessorFactory
  * @see JSR223ScriptProcessor
- * @see GraalJsScriptProcessorFactory
+ * @see JSR223ScriptCompiler
+ * @see org.rulii.script.ScriptProcessorManager
  */
 public class JSR223ScriptProcessorFactory implements ScriptProcessorFactory {
 
@@ -54,25 +48,21 @@ public class JSR223ScriptProcessorFactory implements ScriptProcessorFactory {
     private final String bindingsName;
 
     /**
-     * Constructs a factory from the given {@link ScriptEngineFactory}, using the
-     * factory's language name and the default bindings variable name ({@code "ctx"}).
+     * Creates a factory using the language name and default bindings name from the given engine factory.
      *
-     * @param factory the JSR-223 engine factory to use; must not be null.
+     * @param factory the JSR-223 engine factory; must not be null.
      */
     public JSR223ScriptProcessorFactory(ScriptEngineFactory factory) {
         this(factory, null, null);
     }
 
     /**
-     * Constructs a factory with optional overrides for the language name and bindings
-     * variable name.
+     * Creates a factory with explicit overrides for language name and bindings variable name.
      *
-     * <p>If {@code languageName} is blank, the engine factory's language name is used.
-     * If {@code bindingsName} is blank, {@code "ctx"} is used.
-     *
-     * @param factory      the JSR-223 engine factory to use; must not be null.
-     * @param languageName override for the language name; may be null/empty.
-     * @param bindingsName override for the bindings variable name; may be null/empty.
+     * @param factory      the JSR-223 engine factory; must not be null.
+     * @param languageName override for the language name, or {@code null} to use the engine factory's default.
+     * @param bindingsName override for the bindings variable name, or {@code null} to use
+     *                     {@link org.rulii.script.ScriptOptions#DEFAULT}.
      */
     public JSR223ScriptProcessorFactory(ScriptEngineFactory factory, String languageName, String bindingsName) {
         super();
@@ -82,34 +72,28 @@ public class JSR223ScriptProcessorFactory implements ScriptProcessorFactory {
         this.factory = factory;
     }
 
-    /**
-     * Returns the language name this factory produces processors for.
-     *
-     * @return the language name; never null or empty.
-     */
+    @Override
+    public boolean isAvailable() {
+        return true;
+    }
+
     @Override
     public String getLanguageName() {
         return languageName;
     }
 
-    /**
-     * Returns the bindings variable name used by processors created by this factory.
-     *
-     * @return the bindings variable name; never null or empty.
-     */
     @Override
     public String getBindingName() {
         return bindingsName;
     }
 
-    /**
-     * Creates and returns a new {@link JSR223ScriptProcessor} backed by a fresh engine
-     * obtained from the underlying {@link ScriptEngineFactory}.
-     *
-     * @return a new {@link ScriptProcessor}; never null.
-     */
     @Override
-    public ScriptProcessor create() {
+    public ScriptProcessor getScriptProcessor() {
         return new JSR223ScriptProcessor(factory.getScriptEngine(), languageName, bindingsName);
+    }
+
+    @Override
+    public ScriptCompiler getScriptCompiler() {
+        return new JSR223ScriptCompiler(factory.getScriptEngine());
     }
 }

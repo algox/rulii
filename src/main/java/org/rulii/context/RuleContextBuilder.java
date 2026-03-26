@@ -22,8 +22,6 @@ import org.rulii.bind.match.BindingMatchingStrategy;
 import org.rulii.bind.match.ParameterResolver;
 import org.rulii.convert.ConverterRegistry;
 import org.rulii.lib.spring.util.Assert;
-import org.rulii.script.ScriptProcessorFactory;
-import org.rulii.script.ScriptProcessorRegistry;
 import org.rulii.text.MessageFormatter;
 import org.rulii.text.MessageResolver;
 import org.rulii.trace.Tracer;
@@ -35,10 +33,16 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Builder class to properly build a RuleContext with the bells and whistles.
+ * Fluent builder for constructing a {@link RuleContext}.
+ *
+ * <p>Instances are obtained from {@link RuleContextBuilderBuilder} (via {@link RuleContext#builder()})
+ * rather than constructed directly.  All fields are pre-populated from {@link RuleContextOptions#standard()}
+ * and can be selectively overridden before calling {@link #build()}.
  *
  * @author Max Arulananthan
  * @since 1.0
+ * @see RuleContextBuilderBuilder
+ * @see RuleContextOptions
  */
 public class RuleContextBuilder {
 
@@ -55,17 +59,27 @@ public class RuleContextBuilder {
     private Locale locale;
     private Tracer tracer = Tracer.builder().build();
     private ExecutorService executorService = DEFAULT_EXECUTOR_SERVICE;
-    private ScriptProcessorRegistry scriptProcessorRegistry;
 
+    /** Creates a builder pre-populated with {@link RuleContextOptions#standard()} defaults. */
     RuleContextBuilder() {
         this(RuleContextOptions.standard());
     }
 
+    /**
+     * Creates a builder pre-populated from the given options.
+     *
+     * @param configuration the options to copy; must not be null.
+     */
     RuleContextBuilder(RuleContextOptions configuration) {
         super();
         init(configuration);
     }
 
+    /**
+     * Creates a builder pre-populated from an existing {@link RuleContext}, preserving all its settings.
+     *
+     * @param context the context to copy; must not be null.
+     */
     RuleContextBuilder(RuleContext context) {
         super();
         Assert.notNull(context, "context cannot be null.");
@@ -80,9 +94,13 @@ public class RuleContextBuilder {
         this.locale = context.getLocale();
         this.bindings = context.getBindings();
         this.executorService = context.getExecutorService();
-        this.scriptProcessorRegistry = context.getScriptProcessorRegistry();
     }
 
+    /**
+     * Copies all service references from the given options into this builder.
+     *
+     * @param options the options to copy from; must not be null.
+     */
     protected void init(RuleContextOptions options) {
         Assert.notNull(options, "options cannot be null.");
         this.matchingStrategy = options.getMatchingStrategy();
@@ -94,14 +112,13 @@ public class RuleContextBuilder {
         this.clock = options.getClock();
         this.locale = options.getLocale();
         this.executorService = options.getExecutorService();
-        this.scriptProcessorRegistry = options.getScriptProcessorRegistry();
     }
 
     /**
-     * Sets the bindings for the RuleContextBuilder.
+     * Sets the user-provided bindings that will be added as the global scope of the context.
      *
-     * @param bindings the bindings to be set
-     * @return RuleContextBuilder for fluency
+     * @param bindings the bindings to use; must not be null.
+     * @return this builder, for method chaining.
      */
     public RuleContextBuilder bindings(Bindings bindings) {
         Assert.notNull(bindings, "bindings cannot be null.");
@@ -110,10 +127,10 @@ public class RuleContextBuilder {
     }
 
     /**
-     * Sets the matching strategy to use.
+     * Sets the binding-matching strategy.
      *
-     * @param strategy matching strategy.
-     * @return this for fluency.
+     * @param strategy the strategy to use; must not be null.
+     * @return this builder, for method chaining.
      */
     public RuleContextBuilder matchUsing(BindingMatchingStrategy strategy) {
         Assert.notNull(strategy, "strategy cannot be null.");
@@ -122,10 +139,10 @@ public class RuleContextBuilder {
     }
 
     /**
-     * Sets the ParameterResolver for the RuleContextBuilder.
+     * Sets the parameter resolver.
      *
-     * @param parameterResolver the ParameterResolver to be set
-     * @return RuleContextBuilder for method chaining
+     * @param parameterResolver the resolver to use; must not be null.
+     * @return this builder, for method chaining.
      */
     public RuleContextBuilder paramResolver(ParameterResolver parameterResolver) {
         Assert.notNull(objectFactory, "parameterResolver cannot be null.");
@@ -134,10 +151,10 @@ public class RuleContextBuilder {
     }
 
     /**
-     * Sets the MessageResolver for the RuleContextBuilder.
+     * Sets the message resolver.
      *
-     * @param messageResolver the MessageResolver to be set
-     * @return RuleContextBuilder for method chaining
+     * @param messageResolver the resolver to use; must not be null.
+     * @return this builder, for method chaining.
      */
     public RuleContextBuilder messageResolver(MessageResolver messageResolver) {
         Assert.notNull(messageResolver, "messageResolver cannot be null.");
@@ -146,10 +163,10 @@ public class RuleContextBuilder {
     }
 
     /**
-     * Sets the MessageResolver for the RuleContextBuilder.
+     * Sets the message resolver by creating one from the given resource-bundle base names.
      *
-     * @param baseNames the base names to be used for the MessageResolver
-     * @return RuleContextBuilder for method chaining
+     * @param baseNames the resource-bundle base names; must not be null.
+     * @return this builder, for method chaining.
      */
     public RuleContextBuilder messageResolver(String...baseNames) {
         Assert.notNull(baseNames, "baseNames cannot be null.");
@@ -158,10 +175,10 @@ public class RuleContextBuilder {
     }
 
     /**
-     * Sets the MessageFormatter for the RuleContextBuilder.
+     * Sets the message formatter.
      *
-     * @param messageFormatter the MessageFormatter to be set
-     * @return RuleContextBuilder for method chaining
+     * @param messageFormatter the formatter to use; must not be null.
+     * @return this builder, for method chaining.
      */
     public RuleContextBuilder messageFormatter(MessageFormatter messageFormatter) {
         Assert.notNull(messageFormatter, "messageFormatter cannot be null.");
@@ -170,10 +187,10 @@ public class RuleContextBuilder {
     }
 
     /**
-     * Sets the ObjectFactory for the RuleContextBuilder.
+     * Sets the object factory.
      *
-     * @param objectFactory the ObjectFactory to be set
-     * @return RuleContextBuilder for method chaining
+     * @param objectFactory the factory to use; must not be null.
+     * @return this builder, for method chaining.
      */
     public RuleContextBuilder objectFactory(ObjectFactory objectFactory) {
         Assert.notNull(objectFactory, "objectFactory cannot be null.");
@@ -182,10 +199,10 @@ public class RuleContextBuilder {
     }
 
     /**
-     * Sets the Tracer for the RuleContextBuilder to use for tracing.
+     * Sets the tracer used to record rule execution events.
      *
-     * @param tracer the Tracer to set for tracing
-     * @return instance of RuleContextBuilder for method chaining
+     * @param tracer the tracer to use; must not be null.
+     * @return this builder, for method chaining.
      */
     public RuleContextBuilder traceUsing(Tracer tracer) {
         Assert.notNull(tracer, "tracer cannot be null.");
@@ -194,10 +211,10 @@ public class RuleContextBuilder {
     }
 
     /**
-     * Sets the ConverterRegistry for the RuleContextBuilder.
+     * Sets the converter registry.
      *
-     * @param converterRegistry the ConverterRegistry to be set
-     * @return RuleContextBuilder for method chaining
+     * @param converterRegistry the registry to use; must not be null.
+     * @return this builder, for method chaining.
      */
     public RuleContextBuilder converterRegistry(ConverterRegistry converterRegistry) {
         Assert.notNull(converterRegistry, "converterRegistry cannot be null.");
@@ -206,10 +223,10 @@ public class RuleContextBuilder {
     }
 
     /**
-     * Sets the locale for the RuleContextBuilder.
+     * Sets the locale used for message resolution and formatting.
      *
-     * @param locale The locale to be set.
-     * @return RuleContextBuilder for method chaining.
+     * @param locale the locale to use; must not be null.
+     * @return this builder, for method chaining.
      */
     public RuleContextBuilder locale(Locale locale) {
         Assert.notNull(locale, "locale cannot be null.");
@@ -218,10 +235,10 @@ public class RuleContextBuilder {
     }
 
     /**
-     * Sets the clock to be used by the RuleContextBuilder.
+     * Sets the clock used for time-sensitive rule operations.
      *
-     * @param clock the Clock instance to set
-     * @return RuleContextBuilder for method chaining
+     * @param clock the clock to use; must not be null.
+     * @return this builder, for method chaining.
      */
     public RuleContextBuilder clock(Clock clock) {
         Assert.notNull(clock, "clock cannot be null.");
@@ -230,10 +247,10 @@ public class RuleContextBuilder {
     }
 
     /**
-     * Executes using the provided ExecutorService.
+     * Sets the executor service used for async rule execution.
      *
-     * @param executorService the ExecutorService to execute with
-     * @return RuleContextBuilder instance for method chaining
+     * @param executorService the executor service to use; must not be null.
+     * @return this builder, for method chaining.
      */
     public RuleContextBuilder executeUsing(ExecutorService executorService) {
         Assert.notNull(executorService, "executorService cannot be null.");
@@ -241,92 +258,77 @@ public class RuleContextBuilder {
         return this;
     }
 
-    /**
-     * Registers the given ScriptProcessorFactory instance with the script processor registry
-     * and returns the current RuleContextBuilder instance for method chaining.
-     *
-     * @param scriptProcessorFactory the ScriptProcessorFactory to be registered; must not be null
-     * @return the current RuleContextBuilder instance for fluent method chaining
-     */
-    public RuleContextBuilder scriptUsing(ScriptProcessorFactory scriptProcessorFactory) {
-        Assert.notNull(scriptProcessorFactory, "scriptProcessorFactory cannot be null.");
-        this.scriptProcessorRegistry.register(scriptProcessorFactory);
-        return this;
-    }
-
-    /**
-     * Sets the ScriptProcessorRegistry for the RuleContextBuilder.
-     *
-     * @param scriptProcessorRegistry the ScriptProcessorRegistry to be set; must not be null
-     * @return the current RuleContextBuilder instance for fluent method chaining
-     */
-    public RuleContextBuilder scriptProcessorRegistry(ScriptProcessorRegistry scriptProcessorRegistry) {
-        Assert.notNull(scriptProcessorRegistry, "scriptProcessorRegistry cannot be null.");
-        this.scriptProcessorRegistry = scriptProcessorRegistry;
-        return this;
-    }
-
+    /** @return the currently configured bindings; may be null if not yet set. */
     public Bindings getBindings() {
         return bindings;
     }
 
+    /** @return the currently configured binding-matching strategy; never null after construction. */
     public BindingMatchingStrategy getMatchingStrategy() {
         return matchingStrategy;
     }
 
+    /** @return the currently configured parameter resolver; never null after construction. */
     public ParameterResolver getParameterResolver() {
         return parameterResolver;
     }
 
+    /** @return the currently configured message resolver; never null after construction. */
     public MessageResolver getMessageResolver() {
         return messageResolver;
     }
 
+    /** @return the currently configured message formatter; never null after construction. */
     public MessageFormatter getMessageFormatter() {
         return messageFormatter;
     }
 
+    /** @return the currently configured object factory; never null after construction. */
     public ObjectFactory getObjectFactory() {
         return objectFactory;
     }
 
+    /** @return the currently configured tracer; never null after construction. */
     public Tracer getTracer() {
         return tracer;
     }
 
+    /** @return the currently configured converter registry; never null after construction. */
     public ConverterRegistry getConverterRegistry() {
         return converterRegistry;
     }
 
+    /** @return the currently configured clock; never null after construction. */
     public Clock getClock() {
         return clock;
     }
 
+    /** @return the currently configured locale; never null after construction. */
     public Locale getLocale() {
         return locale;
     }
 
+    /** @return the currently configured executor service; never null after construction. */
     public ExecutorService getExecutorService() {
         return executorService;
     }
 
-    public ScriptProcessorRegistry getScriptProcessorRegistry() {
-        return scriptProcessorRegistry;
-    }
-
     /**
-     * Builds and returns a RuleContext instance with the configured settings.
+     * Builds and returns a {@link RuleContext} from the current builder state.
      *
-     * @return RuleContext instance built with the specified bindings, locale, matching strategy,
-     * parameter resolver, message resolver, message formatter, object factory, tracer,
-     * converter registry, rule registry, clock, and executor service.
+     * <p>A new {@link org.rulii.bind.ScopedBindings} is created internally. The reserved bindings
+     * {@code $ruleBindings} and {@code $ruleContext} are injected into the root scope automatically.
+     * If no bindings were set, an empty standard {@link org.rulii.bind.Bindings} is used as the
+     * global scope.
+     *
+     * @return a fully initialised {@link RuleContext}; never null.
      */
     public RuleContext build() {
         ScopedBindings scopedBindings = Bindings.builder().scoped();
 
         RuleContext result  = new RuleContext(scopedBindings, locale, matchingStrategy, parameterResolver,
                 messageResolver, messageFormatter, objectFactory, tracer,
-                converterRegistry, clock, executorService, scriptProcessorRegistry);
+                converterRegistry, clock, executorService);
 
         // Make the Bindings are avail.
         ((PromiscuousBinder) (scopedBindings.getRootScope().getBindings())).promiscuousBind(Binding.builder()

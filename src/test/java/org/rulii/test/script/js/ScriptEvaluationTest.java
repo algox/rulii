@@ -23,6 +23,7 @@ import org.rulii.bind.Bindings;
 import org.rulii.context.RuleContext;
 import org.rulii.script.BuildScriptException;
 import org.rulii.script.Script;
+import org.rulii.script.graaljs.GraalJsScriptProcessorFactory;
 
 /**
  * Integration tests for Script.run() through a full RuleContext pipeline.
@@ -33,7 +34,6 @@ public class ScriptEvaluationTest {
     private RuleContext contextWith(Bindings bindings) {
         return RuleContext.builder()
                 .with(bindings)
-                .scriptUsing(TestScriptUtils.createFactory())
                 .build();
     }
 
@@ -44,35 +44,35 @@ public class ScriptEvaluationTest {
     @Test
     public void testReturnsInteger() {
         RuleContext ctx = contextWith(Bindings.builder().standard());
-        Object result = Script.builder().build("ECMAScript", "7").run(ctx);
+        Object result = Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "7").run(ctx);
         Assertions.assertEquals(7, ((Number) result).intValue());
     }
 
     @Test
     public void testReturnsDouble() {
         RuleContext ctx = contextWith(Bindings.builder().standard());
-        Object result = Script.builder().build("ECMAScript", "3.14").run(ctx);
+        Object result = Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "3.14").run(ctx);
         Assertions.assertEquals(3.14, ((Number) result).doubleValue(), 0.001);
     }
 
     @Test
     public void testReturnsString() {
         RuleContext ctx = contextWith(Bindings.builder().standard());
-        Object result = Script.builder().build("ECMAScript", "'rulii'").run(ctx);
+        Object result = Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "'rulii'").run(ctx);
         Assertions.assertEquals("rulii", result);
     }
 
     @Test
     public void testReturnsTrue() {
         RuleContext ctx = contextWith(Bindings.builder().standard());
-        Object result = Script.builder().build("ECMAScript", "true").run(ctx);
+        Object result = Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "true").run(ctx);
         Assertions.assertEquals(Boolean.TRUE, result);
     }
 
     @Test
     public void testReturnsFalse() {
         RuleContext ctx = contextWith(Bindings.builder().standard());
-        Object result = Script.builder().build("ECMAScript", "false").run(ctx);
+        Object result = Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "false").run(ctx);
         Assertions.assertEquals(Boolean.FALSE, result);
     }
 
@@ -85,7 +85,7 @@ public class ScriptEvaluationTest {
         Bindings bindings = Bindings.builder().standard();
         bindings.bind("num", int.class, 55);
         RuleContext ctx = contextWith(bindings);
-        Object result = Script.builder().build("ECMAScript", "ctx.num").run(ctx);
+        Object result = Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "ctx.num").run(ctx);
         Assertions.assertEquals(55, ((Number) result).intValue());
     }
 
@@ -94,7 +94,7 @@ public class ScriptEvaluationTest {
         Bindings bindings = Bindings.builder().standard();
         bindings.bind("greeting", String.class, "hello");
         RuleContext ctx = contextWith(bindings);
-        Object result = Script.builder().build("ECMAScript", "ctx.greeting").run(ctx);
+        Object result = Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "ctx.greeting").run(ctx);
         Assertions.assertEquals("hello", result);
     }
 
@@ -103,7 +103,7 @@ public class ScriptEvaluationTest {
         Bindings bindings = Bindings.builder().standard();
         bindings.bind("active", boolean.class, true);
         RuleContext ctx = contextWith(bindings);
-        Object result = Script.builder().build("ECMAScript", "ctx.active").run(ctx);
+        Object result = Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "ctx.active").run(ctx);
         Assertions.assertEquals(Boolean.TRUE, result);
     }
 
@@ -113,7 +113,7 @@ public class ScriptEvaluationTest {
         bindings.bind("price", double.class, 9.99);
         bindings.bind("qty",   int.class,    3);
         RuleContext ctx = contextWith(bindings);
-        Object result = Script.builder().build("ECMAScript", "ctx.price * ctx.qty").run(ctx);
+        Object result = Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "ctx.price * ctx.qty").run(ctx);
         Assertions.assertEquals(29.97, ((Number) result).doubleValue(), 0.001);
     }
 
@@ -126,7 +126,7 @@ public class ScriptEvaluationTest {
         Bindings bindings = Bindings.builder().standard();
         bindings.bind("total", int.class, 0);
         RuleContext ctx = contextWith(bindings);
-        Script.builder().build("ECMAScript", "ctx.total = 100;").run(ctx);
+        Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "ctx.total = 100;").run(ctx);
         Assertions.assertEquals(100, ((Number) bindings.getValue("total")).intValue());
     }
 
@@ -135,7 +135,7 @@ public class ScriptEvaluationTest {
         Bindings bindings = Bindings.builder().standard();
         bindings.bind("msg", String.class, "");
         RuleContext ctx = contextWith(bindings);
-        Script.builder().build("ECMAScript", "ctx.msg = 'updated';").run(ctx);
+        Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "ctx.msg = 'updated';").run(ctx);
         Assertions.assertEquals("updated", bindings.getValue("msg"));
     }
 
@@ -144,7 +144,7 @@ public class ScriptEvaluationTest {
         Bindings bindings = Bindings.builder().standard();
         bindings.bind("counter", int.class, 0);
         RuleContext ctx = contextWith(bindings);
-        Script<Object> inc = Script.builder().build("ECMAScript", "ctx.counter = ctx.counter + 1;");
+        Script<Object> inc = Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "ctx.counter = ctx.counter + 1;");
         inc.run(ctx);
         inc.run(ctx);
         inc.run(ctx);
@@ -161,7 +161,7 @@ public class ScriptEvaluationTest {
         bindings.bind("x", int.class, 10);
         bindings.bind("y", int.class, 0);
         RuleContext ctx = contextWith(bindings);
-        Script.builder().build("ECMAScript",
+        Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME,
                 "var temp = ctx.x * 2; ctx.y = temp + 5;").run(ctx);
         Assertions.assertEquals(25, ((Number) bindings.getValue("y")).intValue());
     }
@@ -172,7 +172,7 @@ public class ScriptEvaluationTest {
         bindings.bind("age",    int.class,     20);
         bindings.bind("result", String.class, "");
         RuleContext ctx = contextWith(bindings);
-        Script.builder().build("ECMAScript",
+        Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME,
                 "ctx.result = ctx.age >= 18 ? 'adult' : 'minor';").run(ctx);
         Assertions.assertEquals("adult", bindings.getValue("result"));
     }
@@ -183,7 +183,7 @@ public class ScriptEvaluationTest {
         bindings.bind("age",    int.class,    15);
         bindings.bind("result", String.class, "");
         RuleContext ctx = contextWith(bindings);
-        Script.builder().build("ECMAScript",
+        Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME,
                 "ctx.result = ctx.age >= 18 ? 'adult' : 'minor';").run(ctx);
         Assertions.assertEquals("minor", bindings.getValue("result"));
     }
@@ -195,15 +195,19 @@ public class ScriptEvaluationTest {
     @Test
     public void testInvalidScriptSyntaxThrows() {
         RuleContext ctx = contextWith(Bindings.builder().standard());
-        Script<Object> bad = Script.builder().build("ECMAScript", "<<< not valid >>>");
-        Assertions.assertThrows(BuildScriptException.class, () -> bad.run(ctx));
+        Assertions.assertThrows(BuildScriptException.class, () -> {
+            Script<Object> bad = Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "<<< not valid >>>");
+            bad.run(ctx);
+        });
     }
 
     @Test
     public void testScriptForUnknownLanguageThrows() {
         RuleContext ctx = RuleContext.builder().build();
-        Script<Object> script = Script.builder().build("NoSuchLang", "1 + 1");
-        Assertions.assertThrows(Exception.class, () -> script.run(ctx));
+        Assertions.assertThrows(Exception.class, () -> {
+            Script<Object> script = Script.builder().build("NoSuchLang", "1 + 1");
+            script.run(ctx);
+        });
     }
 
     // -----------------------------------------------------------------------
@@ -217,8 +221,8 @@ public class ScriptEvaluationTest {
         bindings.bind("b", int.class, 3);
         RuleContext ctx = contextWith(bindings);
 
-        Object sum  = Script.builder().build("ECMAScript", "ctx.a + ctx.b").run(ctx);
-        Object diff = Script.builder().build("ECMAScript", "ctx.a - ctx.b").run(ctx);
+        Object sum  = Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "ctx.a + ctx.b").run(ctx);
+        Object diff = Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "ctx.a - ctx.b").run(ctx);
 
         Assertions.assertEquals(8, ((Number) sum).intValue());
         Assertions.assertEquals(2, ((Number) diff).intValue());
@@ -226,7 +230,7 @@ public class ScriptEvaluationTest {
 
     @Test
     public void testSameScriptReusedAcrossContexts() {
-        Script<Object> script = Script.builder().build("ECMAScript", "ctx.v * 2");
+        Script<Object> script = Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "ctx.v * 2");
 
         Bindings b1 = Bindings.builder().standard();
         b1.bind("v", int.class, 3);

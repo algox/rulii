@@ -24,6 +24,7 @@ import org.rulii.context.RuleContext;
 import org.rulii.model.function.Function;
 import org.rulii.script.BuildScriptException;
 import org.rulii.script.Script;
+import org.rulii.script.graaljs.GraalJsScriptProcessorFactory;
 
 /**
  * Tests for Function built from a Script via Function.builder().build(Script).
@@ -33,7 +34,6 @@ public class ScriptFunctionTest {
     private RuleContext contextWith(Bindings bindings) {
         return RuleContext.builder()
                 .with(bindings)
-                .scriptUsing(TestScriptUtils.createFactory())
                 .build();
     }
 
@@ -45,7 +45,7 @@ public class ScriptFunctionTest {
     public void testFunctionReturnsInteger() {
         RuleContext ctx = contextWith(Bindings.builder().standard());
         Function<Object> fn = Function.builder().build(
-                Script.builder().build("ECMAScript", "21 * 2"));
+                Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "21 * 2"));
         Object result = fn.apply(ctx);
         Assertions.assertEquals(42, ((Number) result).intValue());
     }
@@ -54,7 +54,7 @@ public class ScriptFunctionTest {
     public void testFunctionReturnsString() {
         RuleContext ctx = contextWith(Bindings.builder().standard());
         Function<Object> fn = Function.builder().build(
-                Script.builder().build("ECMAScript", "'hello from fn'"));
+                Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "'hello from fn'"));
         Assertions.assertEquals("hello from fn", fn.apply(ctx));
     }
 
@@ -62,7 +62,7 @@ public class ScriptFunctionTest {
     public void testFunctionReturnsBoolean() {
         RuleContext ctx = contextWith(Bindings.builder().standard());
         Function<Object> fn = Function.builder().build(
-                Script.builder().build("ECMAScript", "10 > 5"));
+                Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "10 > 5"));
         Assertions.assertEquals(Boolean.TRUE, fn.apply(ctx));
     }
 
@@ -76,7 +76,7 @@ public class ScriptFunctionTest {
         bindings.bind("radius", double.class, 5.0);
         RuleContext ctx = contextWith(bindings);
         Function<Object> fn = Function.builder().build(
-                Script.builder().build("ECMAScript", "Math.PI * ctx.radius * ctx.radius"));
+                Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "Math.PI * ctx.radius * ctx.radius"));
         double area = ((Number) fn.apply(ctx)).doubleValue();
         Assertions.assertEquals(Math.PI * 25, area, 0.001);
     }
@@ -88,7 +88,7 @@ public class ScriptFunctionTest {
         bindings.bind("b", int.class, 29);
         RuleContext ctx = contextWith(bindings);
         Function<Object> fn = Function.builder().build(
-                Script.builder().build("ECMAScript", "ctx.a + ctx.b"));
+                Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "ctx.a + ctx.b"));
         Assertions.assertEquals(42, ((Number) fn.apply(ctx)).intValue());
     }
 
@@ -99,7 +99,7 @@ public class ScriptFunctionTest {
         bindings.bind("out", int.class, 0);
         RuleContext ctx = contextWith(bindings);
         Function<Object> fn = Function.builder().build(
-                Script.builder().build("ECMAScript", "ctx.out = ctx.x * ctx.x; ctx.out"));
+                Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "ctx.out = ctx.x * ctx.x; ctx.out"));
         Object result = fn.apply(ctx);
         Assertions.assertEquals(25, ((Number) result).intValue());
         Assertions.assertEquals(25, ((Number) bindings.getValue("out")).intValue());
@@ -113,7 +113,7 @@ public class ScriptFunctionTest {
     public void testFunctionInvokedMultipleTimesReturnsConsistentResult() {
         RuleContext ctx = contextWith(Bindings.builder().standard());
         Function<Object> fn = Function.builder().build(
-                Script.builder().build("ECMAScript", "2 + 2"));
+                Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "2 + 2"));
         for (int i = 0; i < 5; i++) {
             Assertions.assertEquals(4, ((Number) fn.apply(ctx)).intValue());
         }
@@ -125,7 +125,7 @@ public class ScriptFunctionTest {
         bindings.bind("factor", int.class, 3);
         RuleContext ctx = contextWith(bindings);
         Function<Object> fn = Function.builder().build(
-                Script.builder().build("ECMAScript", "ctx.factor * 10"));
+                Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "ctx.factor * 10"));
 
         Assertions.assertEquals(30, ((Number) fn.apply(ctx)).intValue());
 
@@ -140,8 +140,10 @@ public class ScriptFunctionTest {
     @Test
     public void testFunctionWithInvalidScriptThrows() {
         RuleContext ctx = contextWith(Bindings.builder().standard());
-        Function<Object> fn = Function.builder().build(
-                Script.builder().build("ECMAScript", "@@@ bad @@@"));
-        Assertions.assertThrows(BuildScriptException.class, () -> fn.apply(ctx));
+        Assertions.assertThrows(BuildScriptException.class, () -> {
+            Function<Object> fn = Function.builder().build(
+                    Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "@@@ bad @@@"));
+            fn.apply(ctx);
+        });
     }
 }

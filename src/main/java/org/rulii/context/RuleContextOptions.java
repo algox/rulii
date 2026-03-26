@@ -20,7 +20,6 @@ package org.rulii.context;
 import org.rulii.bind.match.BindingMatchingStrategy;
 import org.rulii.bind.match.ParameterResolver;
 import org.rulii.convert.ConverterRegistry;
-import org.rulii.script.ScriptProcessorRegistry;
 import org.rulii.text.MessageFormatter;
 import org.rulii.text.MessageResolver;
 import org.rulii.util.reflect.ObjectFactory;
@@ -30,109 +29,89 @@ import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 
 /**
- * Represents a set of configuration options and services used within a rule execution context.
- * Implementations of this interface provide various utilities and strategies for managing bindings,
- * parameter resolution, message handling, conversions, object creation, clock operations, locale settings,
- * and task execution. This interface serves as a centralized mechanism to customize behavior
- * and manage dependencies for rule-based operations.
+ * Configuration interface that groups the services and strategies used by a {@link RuleContext}.
+ *
+ * <p>An implementation supplies the binding-matching strategy, parameter resolver, message handling,
+ * type converters, object factory, clock, locale, and executor service that the rule engine needs.
+ * Use {@link #standard()} for the out-of-the-box defaults or provide a custom implementation to
+ * override specific services.
+ *
+ * @author Max Arulananthan
+ * @since 1.0
+ * @see StandardRuleContextOptions
+ * @see RuleContextBuilder
  */
 public interface RuleContextOptions {
 
     /**
-     * Provides access to the standard implementation of the RuleContextOptions interface.
-     * This method returns an instance of StandardRuleContextOptions, which offers a default
-     * configuration and services for rule execution contexts.
+     * Returns a new instance of the standard (default) rule context options.
      *
-     * @return an instance of StandardRuleContextOptions representing the default rule context options.
+     * @return a {@link StandardRuleContextOptions} instance; never null.
      */
     static RuleContextOptions standard() {
         return StandardRuleContextOptions.build();
     }
 
     /**
-     * Retrieves the current BindingMatchingStrategy that defines how bindings are
-     * matched to specific criteria (e.g., name, type) within the context.
+     * Returns the binding-matching strategy that defines how rule parameters are resolved against bindings.
      *
-     * @return the BindingMatchingStrategy used for binding evaluation.
+     * @return the matching strategy; never null.
      */
     BindingMatchingStrategy getMatchingStrategy();
 
     /**
-     * Retrieves the ParameterResolver instance associated with the Rule Context Options.
-     * The ParameterResolver is used to match and resolve method parameters against bindings
-     * using a specific MatchingStrategy and various contextual services, such as the ObjectFactory.
+     * Returns the parameter resolver used to match method parameters to bindings.
      *
-     * @return the ParameterResolver responsible for parameter matching and resolution functionality.
+     * @return the parameter resolver; never null.
      */
     ParameterResolver getParameterResolver();
 
     /**
-     * Retrieves the MessageResolver instance associated with the current context.
-     * The MessageResolver is responsible for resolving message codes to their corresponding
-     * messages based on the locale and other parameters.
+     * Returns the message resolver used to look up messages by code and locale.
      *
-     * @return the MessageResolver for message code resolution.
+     * @return the message resolver; never null.
      */
     MessageResolver getMessageResolver();
 
     /**
-     * Retrieves the MessageFormatter instance associated with the current context.
-     * The MessageFormatter is responsible for formatting messages with placeholders,
-     * allowing integration of dynamic content and localization.
+     * Returns the message formatter used to format messages with dynamic arguments.
      *
-     * @return the MessageFormatter for formatting messages based on locale and arguments.
+     * @return the message formatter; never null.
      */
     MessageFormatter getMessageFormatter();
 
     /**
-     * Retrieves the ObjectFactory instance associated with the current context.
-     * The ObjectFactory is responsible for creating instances of various objects,
-     * such as rules, conditions, converters, functions, and more, as required by
-     * the framework. It facilitates dynamic object creation, allowing for custom
-     * implementations and runtime type resolution.
+     * Returns the object factory used to instantiate rules, conditions, and other framework objects.
      *
-     * @return the ObjectFactory used for creating and managing framework-specific objects.
+     * @return the object factory; never null.
      */
     ObjectFactory getObjectFactory();
 
     /**
-     * Retrieves the ConverterRegistry instance associated with the current context.
-     * The ConverterRegistry is responsible for managing and providing converters
-     * that facilitate the transformation of objects between different types.
-     * It allows registration of custom converters and lookup of existing converters.
+     * Returns the converter registry used to look up type converters.
      *
-     * @return the ConverterRegistry for handling type conversions.
+     * @return the converter registry; never null.
      */
     ConverterRegistry getConverterRegistry();
 
     /**
-     * Retrieves the Clock instance associated with the current context.
-     * The Clock provides access to the current time and date information
-     * in a manner that can be controlled or overridden, which is useful
-     * for testing or applications that require a consistent or custom notion
-     * of time.
+     * Returns the clock used for time-sensitive rule operations.
      *
-     * @return the Clock used for time-related operations in the context.
+     * @return the clock; never null.
      */
     Clock getClock();
 
     /**
-     * Retrieves the Locale instance associated with the current context.
-     * The Locale determines the regional settings, including language
-     * and formatting conventions, used within the context.
+     * Returns the locale used for message resolution and formatting.
      *
-     * @return the Locale associated with the current context.
+     * @return the locale; never null.
      */
     Locale getLocale();
 
     /**
-     * Retrieves the ExecutorService instance associated with the current context.
-     * The ExecutorService is responsible for managing and executing asynchronous
-     * tasks, enabling multithreaded operations within the framework.
+     * Returns the executor service used for async rule execution.
      *
-     * @return the ExecutorService used for managing and executing asynchronous tasks.
+     * @return the executor service; never null.
      */
     ExecutorService getExecutorService();
-
-    ScriptProcessorRegistry getScriptProcessorRegistry();
 }

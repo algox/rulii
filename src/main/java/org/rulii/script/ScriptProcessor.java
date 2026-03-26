@@ -20,53 +20,45 @@ package org.rulii.script;
 import org.rulii.context.RuleContext;
 
 /**
- * Strategy interface for evaluating a {@link Script} against a rule execution context.
+ * Strategy interface for evaluating a {@link Script} against a given {@link RuleContext}.
  *
- * <p>A {@code ScriptProcessor} is responsible for a single scripting language
- * (identified by {@link #getLanguageName()}) and knows how to execute a script
- * source text, expose the rule bindings to that script, and return the result.
+ * <p>A {@code ScriptProcessor} is language-specific and handles the runtime execution of
+ * scripts that have previously been compiled (or left as source) by a {@link ScriptCompiler}.
+ * It bridges the rule context bindings into the script's execution environment and returns
+ * whatever value the script produces.
  *
- * <p>Implementations are registered with a {@link ScriptProcessorRegistry} and
- * retrieved by language name when a {@link Script} is run.  The JSR-223-based
- * implementation is provided by
- * {@link org.rulii.script.jsr223.JSR223ScriptProcessor}.
+ * <p>Instances are typically obtained from a {@link ScriptProcessorFactory} and looked up at
+ * runtime from the {@link RuleContext} by language name.
  *
  * @author Max Arulananthan
  * @since 1.2
- * @see ScriptProcessorRegistry
- * @see org.rulii.script.jsr223.JSR223ScriptProcessor
+ * @see ScriptProcessorFactory
+ * @see Script
  */
 public interface ScriptProcessor {
 
     /**
-     * Returns the name of the scripting language handled by this processor
-     * (e.g. {@code "ECMAScript"}).
+     * Returns the name of the scripting language this processor handles (e.g. {@code "js"}, {@code "groovy"}).
      *
      * @return the language name; never null or empty.
      */
     String getLanguageName();
 
     /**
-     * Returns the variable name under which the rule bindings map is exposed inside
-     * scripts evaluated by processors created by this factory (e.g. {@code "ctx"}).
+     * Returns the name of the variable under which the rule bindings map is exposed inside scripts.
      *
      * @return the bindings variable name; never null or empty.
      */
     String getBindingName();
 
     /**
-     * Evaluates the given script within the supplied rule context and returns
-     * the result.
+     * Evaluates the given script using the bindings available in the provided {@link RuleContext}.
      *
-     * <p>The processor is responsible for making the bindings available to the
-     * script (typically by exposing them as variables in the script's scope) and
-     * for converting any engine-level exceptions into appropriate runtime exceptions.
-     *
-     * @param <T>        the expected return type of the script.
-     * @param script     the script to evaluate; must not be null.
-     * @param ruleContext the execution context providing bindings and services; must not be null.
-     * @return the value produced by the script, cast to {@code T}; may be null.
-     * @throws EvaluationException if the script raises an error during evaluation.
+     * @param <T>         the expected return type.
+     * @param script      the script to evaluate; must not be null.
+     * @param ruleContext the context providing bindings and services; must not be null.
+     * @return the value produced by the script, or {@code null} if the script produces no value.
+     * @throws EvaluationException if the script fails during evaluation.
      */
     <T> T evaluate(Script<T> script, RuleContext ruleContext);
 }

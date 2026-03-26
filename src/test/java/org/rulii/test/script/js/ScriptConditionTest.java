@@ -24,6 +24,7 @@ import org.rulii.context.RuleContext;
 import org.rulii.model.UnrulyException;
 import org.rulii.model.condition.Condition;
 import org.rulii.script.Script;
+import org.rulii.script.graaljs.GraalJsScriptProcessorFactory;
 
 /**
  * Tests for Condition built from a Script via Condition.builder().build(Script).
@@ -33,7 +34,6 @@ public class ScriptConditionTest {
     private RuleContext contextWith(Bindings bindings) {
         return RuleContext.builder()
                 .with(bindings)
-                .scriptUsing(TestScriptUtils.createFactory())
                 .build();
     }
 
@@ -44,14 +44,14 @@ public class ScriptConditionTest {
     @Test
     public void testConditionReturnsTrue() {
         RuleContext ctx = contextWith(Bindings.builder().standard());
-        Condition condition = Condition.builder().build(Script.builder().build("ECMAScript", "true"));
+        Condition condition = Condition.builder().build(Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "true"));
         Assertions.assertTrue(condition.isTrue(ctx));
     }
 
     @Test
     public void testConditionReturnsFalse() {
         RuleContext ctx = contextWith(Bindings.builder().standard());
-        Condition condition = Condition.builder().build(Script.builder().build("ECMAScript", "false"));
+        Condition condition = Condition.builder().build(Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "false"));
         Assertions.assertFalse(condition.isTrue(ctx));
     }
 
@@ -65,7 +65,7 @@ public class ScriptConditionTest {
         bindings.bind("age", int.class, 20);
         RuleContext ctx = contextWith(bindings);
         Condition condition = Condition.builder().build(
-                Script.builder().build("ECMAScript", "ctx.age >= 18"));
+                Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "ctx.age >= 18"));
         Assertions.assertTrue(condition.isTrue(ctx));
     }
 
@@ -75,7 +75,7 @@ public class ScriptConditionTest {
         bindings.bind("age", int.class, 15);
         RuleContext ctx = contextWith(bindings);
         Condition condition = Condition.builder().build(
-                Script.builder().build("ECMAScript", "ctx.age >= 18"));
+                Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "ctx.age >= 18"));
         Assertions.assertFalse(condition.isTrue(ctx));
     }
 
@@ -85,7 +85,7 @@ public class ScriptConditionTest {
         bindings.bind("role", String.class, "admin");
         RuleContext ctx = contextWith(bindings);
         Condition condition = Condition.builder().build(
-                Script.builder().build("ECMAScript", "ctx.role === 'admin'"));
+                Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "ctx.role === 'admin'"));
         Assertions.assertTrue(condition.isTrue(ctx));
     }
 
@@ -97,7 +97,7 @@ public class ScriptConditionTest {
         bindings.bind("value", int.class, 50);
         RuleContext ctx = contextWith(bindings);
         Condition condition = Condition.builder().build(
-                Script.builder().build("ECMAScript", "ctx.value > ctx.min && ctx.value < ctx.max"));
+                Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "ctx.value > ctx.min && ctx.value < ctx.max"));
         Assertions.assertTrue(condition.isTrue(ctx));
     }
 
@@ -109,7 +109,7 @@ public class ScriptConditionTest {
     public void testConditionScriptReturningNonBooleanThrows() {
         RuleContext ctx = contextWith(Bindings.builder().standard());
         Condition condition = Condition.builder().build(
-                Script.builder().build("ECMAScript", "42"));
+                Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "42"));
         Assertions.assertThrows(UnrulyException.class, () -> condition.isTrue(ctx));
     }
 
@@ -117,7 +117,7 @@ public class ScriptConditionTest {
     public void testConditionScriptReturningNullThrows() {
         RuleContext ctx = contextWith(Bindings.builder().standard());
         Condition condition = Condition.builder().build(
-                Script.builder().build("ECMAScript", "null"));
+                Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "null"));
         Assertions.assertThrows(UnrulyException.class, () -> condition.isTrue(ctx));
     }
 

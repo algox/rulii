@@ -20,71 +20,51 @@ package org.rulii.script.jsr223;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.lib.spring.util.StringUtils;
-import org.rulii.script.*;
+import org.rulii.model.UnrulyException;
+import org.rulii.script.EvaluationException;
+import org.rulii.script.Script;
+import org.rulii.script.ScriptOptions;
+import org.rulii.script.ScriptProcessor;
 
 import javax.script.*;
-import java.util.Collections;
-import java.util.Map;
-import java.util.WeakHashMap;
+
 
 /**
- * JSR-223-based implementation of {@link ScriptProcessor} that evaluates scripts
- * using a {@link ScriptEngine} obtained from the Java Scripting API.
+ * JSR-223 implementation of {@link ScriptProcessor} that evaluates a {@link JSR223Script}
+ * against a {@link org.rulii.context.RuleContext}.
  *
- * <p>When the underlying engine implements {@link Compilable}, each distinct
- * {@link Script} source text is compiled once and the resulting
- * {@link CompiledScript} is cached in a process-wide
- * {@code WeakHashMap} (wrapped in a synchronized map for thread safety).  The cache
- * is keyed by {@link Script} identity so that the compiled form is automatically
- * eligible for garbage collection once the owning {@code Script} instance is no
- * longer reachable.
- *
- * <p>For each evaluation a fresh {@link SimpleScriptContext} is constructed so that
- * bindings from different {@link RuleContext}s cannot leak between calls.  The rule
- * bindings are exposed inside the script as a {@link java.util.Map} variable whose
- * name is determined by {@link ScriptOptions#bindingsName()} (default: {@code "ctx"}).
- *
- * <p>Instances are normally created and registered automatically by
- * {@link org.rulii.script.DefaultScriptProcessorRegistry} when JSR-223
- * auto-discovery is enabled.
+ * <p>Before evaluation, the processor builds a {@link ScriptContext} that exposes the rule
+ * bindings as a plain {@code Map} under the variable name returned by {@link #getBindingsName()}.
+ * If the script carries a pre-compiled {@link javax.script.CompiledScript} it is used directly;
+ * otherwise the raw source is interpreted by the underlying engine.
  *
  * @author Max Arulananthan
  * @since 1.2
- * @see ScriptProcessor
- * @see ScriptOptions
- * @see org.rulii.script.DefaultScriptProcessorRegistry
+ * @see JSR223Script
+ * @see JSR223ScriptProcessorFactory
  */
 public class JSR223ScriptProcessor implements ScriptProcessor {
-
-    /** Process-wide cache mapping Script instances to their compiled forms. */
-    private static final Map<Script<?>, CompiledScript> COMPILED_SCRIPTS = Collections.synchronizedMap(new WeakHashMap<>());
 
     private final ScriptEngine scriptEngine;
     private final String languageName;
     private final String bindingsName;
-    private final Compilable compilable;
 
     /**
-     * Constructs a {@code JSR223ScriptProcessor} with the specified script engine.
+     * Creates a processor using the language name and default bindings name from the engine's factory.
      *
-     * @param scriptEngine the JSR-223 script engine to use for evaluation; must not be null.
+     * @param scriptEngine the JSR-223 engine to use for evaluation; must not be null.
      */
     public JSR223ScriptProcessor(ScriptEngine scriptEngine) {
         this(scriptEngine, null, null);
     }
 
     /**
-     * Constructs a {@code JSR223ScriptProcessor} with explicit language name and
-     * bindings variable name overrides.
-     *
-     * <p>If {@code languageName} is blank, the engine factory's language name is used.
-     * If {@code bindingsName} is blank, {@code "ctx"} is used.
+     * Creates a processor with explicit language name and bindings variable name overrides.
      *
      * @param scriptEngine the JSR-223 engine to use for evaluation; must not be null.
-     * @param languageName the language name to advertise from {@link #getLanguageName()};
-     *                     may be null/empty (falls back to engine factory name).
-     * @param bindingsName the variable name under which the rule bindings are exposed
-     *                     inside the script; may be null/empty (falls back to {@code "ctx"}).
+     * @param languageName override for the language name, or {@code null} to use the engine's default.
+     * @param bindingsName override for the bindings variable name, or {@code null} to use
+     *                     {@link org.rulii.script.ScriptOptions#DEFAULT}.
      */
     public JSR223ScriptProcessor(ScriptEngine scriptEngine, String languageName, String bindingsName) {
         super();
@@ -92,29 +72,20 @@ public class JSR223ScriptProcessor implements ScriptProcessor {
         this.scriptEngine = scriptEngine;
         this.languageName = StringUtils.hasText(languageName) ? languageName : scriptEngine.getFactory().getLanguageName();
         this.bindingsName = StringUtils.hasText(bindingsName) ? bindingsName : ScriptOptions.DEFAULT.bindingsName();
-        this.compilable = scriptEngine instanceof Compilable ? (Compilable) scriptEngine : null;
     }
 
-    /**
-     * Evaluates the given script within the supplied rule context.
-     *
-     * <p>A fresh {@link ScriptContext} is built for every invocation to prevent
-     * binding leakage between calls.  If the engine supports {@link Compilable},
-     * the compiled form of the script is retrieved from the cache (compiling on
-     * first use) and evaluated; otherwise the source text is interpreted directly.
-     *
-     * @param <T>     the expected return type.
-     * @param script  the script to evaluate; must not be null.
-     * @param context the rule context providing bindings; must not be null.
-     * @return the value produced by the script, cast to {@code T}; may be null.
-     * @throws EvaluationException if the script raises an error during evaluation.
-     */
     @SuppressWarnings("unchecked")
     @Override
     public <T> T evaluate(Script<T> script, RuleContext context) {
-        ScriptContext scriptContext = buildContext(context);
+        Assert.notNull(script, "script cannot be null.");
+        Assert.notNull(context, "context cannot be null.");
 
-        if (compilable == null) {
+        if (!(JSR223Script.class.equals(script.getClass()))) throw new UnrulyException("Invalid Script Type [" + script.getClass().getName() + "]. Expected [" + JSR223Script.class.getName() + "]");
+
+        ScriptContext scriptContext = buildContext(context);
+        JSR223Script<T> jsr223Script = (JSR223Script<T>) script;
+
+        if (jsr223Script.getCompiledScript() == null) {
             try {
                 return (T) scriptEngine.eval(script.getScript(), scriptContext);
             } catch (Exception e) {
@@ -122,31 +93,18 @@ public class JSR223ScriptProcessor implements ScriptProcessor {
             }
         }
 
-        CompiledScript compiledScript = getCompiledScript(script);
-
         try {
-            return (T) compiledScript.eval(scriptContext);
+            return (T) jsr223Script.getCompiledScript().eval(scriptContext);
         } catch (Exception e) {
             throw new EvaluationException(script.getScript(), e.getMessage(), e);
         }
     }
 
-    /**
-     * Returns the scripting language name advertised by this processor.
-     *
-     * @return the language name; never null or empty.
-     */
     @Override
     public String getLanguageName() {
         return languageName;
     }
 
-    /**
-     * Returns the variable name under which the rule bindings map is exposed inside
-     * scripts evaluated by processors created by this factory (e.g. {@code "ctx"}).
-     *
-     * @return the bindings variable name; never null or empty.
-     */
     public String getBindingName() {
         return bindingsName;
     }
@@ -162,45 +120,22 @@ public class JSR223ScriptProcessor implements ScriptProcessor {
     }
 
     /**
-     * Returns the compiled form of the given script, compiling it on first use
-     * and caching it for subsequent calls.
+     * Returns the underlying JSR-223 {@link ScriptEngine} used for evaluation.
      *
-     * @param script the script to compile; must not be null.
-     * @return the compiled script; never null.
-     * @throws BuildScriptException if compilation fails.
+     * @return the script engine; never null.
      */
-    protected CompiledScript getCompiledScript(Script<?> script) {
-        CompiledScript cached = COMPILED_SCRIPTS.get(script);
-        if (cached != null) return cached;
-        CompiledScript compiled = compile(script);
-        COMPILED_SCRIPTS.put(script, compiled);
-        return compiled;
+    public ScriptEngine getScriptEngine() {
+        return scriptEngine;
     }
 
     /**
-     * Compiles the given script source text via the {@link Compilable} interface.
+     * Builds the {@link ScriptContext} that will be passed to the engine during evaluation.
      *
-     * @param script the script to compile; must not be null.
-     * @return the compiled script; never null.
-     * @throws BuildScriptException if the engine does not support {@code Compilable}
-     *                              or if a compilation error occurs.
-     */
-    protected CompiledScript compile(Script<?> script) {
-        if (compilable == null) throw new BuildScriptException(script.getScript(), "ScriptEngine [" + languageName + "] does not support Compilable.");
-
-        try {
-            return compilable.compile(script.getScript());
-        } catch (Exception e) {
-            throw new BuildScriptException(script.getScript(), e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Builds a fresh {@link ScriptContext} for the given rule context, exposing the
-     * rule bindings under the configured {@link #getBindingsName() bindings variable name}.
+     * <p>The rule bindings are exposed as a plain {@code Map} under the variable name
+     * returned by {@link #getBindingsName()}.
      *
-     * @param context the rule context whose bindings should be exposed; must not be null.
-     * @return a new {@link SimpleScriptContext} ready for use in a single evaluation.
+     * @param context the current rule context; must not be null.
+     * @return a configured {@link ScriptContext}; never null.
      */
     protected ScriptContext buildContext(RuleContext context) {
         ScriptContext result = new SimpleScriptContext();

@@ -26,7 +26,7 @@ import org.rulii.model.Immutator;
 import org.rulii.model.UnrulyException;
 import org.rulii.script.ScriptProcessor;
 import org.rulii.script.ScriptProcessorFactory;
-import org.rulii.script.ScriptProcessorRegistry;
+import org.rulii.script.ScriptProcessorManager;
 import org.rulii.text.MessageFormatter;
 import org.rulii.text.MessageResolver;
 import org.rulii.trace.Tracer;
@@ -37,14 +37,29 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 
 /**
- * Responsible for state management during Rule execution. This class provides access to everything that is required
- * by the Rule Engine to execute a given set of Rules.
+ * Carries all state and services needed during rule execution.
+ *
+ * <p>A {@code RuleContext} is the single object passed through the rule engine pipeline. It bundles
+ * the active {@link ScopedBindings}, the locale, the matching strategy, message handling, conversion,
+ * tracing, scripting support, and the executor service into one cohesive unit.
+ *
+ * <p>Instances are created via the fluent builder API:
+ * <pre>{@code
+ * RuleContext ctx = RuleContext.builder().build(bindings);
+ * }</pre>
  *
  * @author Max Arulananthan
  * @since 1.0
+ * @see RuleContextBuilder
+ * @see RuleContextOptions
  */
 public class RuleContext implements Immutator<RuleContext> {
 
+    /**
+     * Returns the entry point for the fluent rule-context building DSL.
+     *
+     * @return the singleton {@link RuleContextBuilderBuilder}; never null.
+     */
     public static RuleContextBuilderBuilder builder() {
         return RuleContextBuilderBuilder.getInstance();
     }
@@ -62,15 +77,31 @@ public class RuleContext implements Immutator<RuleContext> {
     private final ConverterRegistry converterRegistry;
     private final Clock clock;
     private final ExecutorService executorService;
-    private final ScriptProcessorRegistry scriptProcessorRegistry;
+
+    private final ScriptProcessorManager scriptProcessorManager = new ScriptProcessorManager();
 
     private final Map<String, ScriptProcessor> scriptProcessors = Collections.synchronizedMap(new HashMap<>());
 
+    /**
+     * Package-private constructor — use {@link RuleContext#builder()} to obtain instances.
+     *
+     * @param bindings           the scoped bindings for this context; must not be null.
+     * @param locale             the locale; must not be null.
+     * @param matchingStrategy   the binding-matching strategy; must not be null.
+     * @param parameterResolver  the parameter resolver; must not be null.
+     * @param messageResolver    the message resolver; must not be null.
+     * @param messageFormatter   the message formatter; must not be null.
+     * @param objectFactory      the object factory; must not be null.
+     * @param tracer             the execution tracer; must not be null.
+     * @param converterRegistry  the type-converter registry; must not be null.
+     * @param clock              the clock used for time-sensitive operations; must not be null.
+     * @param executorService    the executor for async tasks; must not be null.
+     */
     RuleContext(ScopedBindings bindings, Locale locale, BindingMatchingStrategy matchingStrategy,
                 ParameterResolver parameterResolver, MessageResolver messageResolver,
                 MessageFormatter messageFormatter, ObjectFactory objectFactory,
                 Tracer tracer, ConverterRegistry converterRegistry,
-                Clock clock, ExecutorService executorService, ScriptProcessorRegistry scriptProcessorRegistry) {
+                Clock clock, ExecutorService executorService) {
         super();
         Assert.notNull(bindings, "bindings cannot be null.");
         Assert.notNull(locale, "locale cannot be null.");
@@ -83,7 +114,6 @@ public class RuleContext implements Immutator<RuleContext> {
         Assert.notNull(converterRegistry, "converterRegistry cannot be null.");
         Assert.notNull(clock, "clock cannot be null.");
         Assert.notNull(executorService, "executorService cannot be null.");
-        Assert.notNull(scriptProcessorRegistry, "scriptProcessorRegistry cannot be null.");
         this.bindings = bindings;
         this.locale = locale;
         this.matchingStrategy = matchingStrategy;
@@ -95,163 +125,154 @@ public class RuleContext implements Immutator<RuleContext> {
         this.converterRegistry = converterRegistry;
         this.clock = clock;
         this.executorService = executorService;
-        this.scriptProcessorRegistry = scriptProcessorRegistry;
     }
 
     /**
-     * Returns the Bindings.
+     * Returns the scoped bindings for this context.
      *
-     * @return Bindings. Cannot be null.
+     * @return the bindings; never null.
      */
     public ScopedBindings getBindings() {
         return bindings;
     }
 
     /**
-     * Returns the matching strategy to be used.
+     * Returns the binding-matching strategy used to resolve parameters.
      *
-     * @return matching strategy (cannot be null).
+     * @return the matching strategy; never null.
      */
     public BindingMatchingStrategy getMatchingStrategy() {
         return matchingStrategy;
     }
 
     /**
-     * Returns the Parameter resolver being used.
+     * Returns the parameter resolver used to match method parameters against bindings.
      *
-     * @return parameter resolver. Cannot be null.
+     * @return the parameter resolver; never null.
      */
     public ParameterResolver getParameterResolver() {
         return parameterResolver;
     }
 
     /**
-     * Retrieves the MessageResolver associated with this RuleContext.
+     * Returns the message resolver used to look up message codes.
      *
-     * @return the MessageResolver instance linked to this RuleContext
+     * @return the message resolver; never null.
      */
     public MessageResolver getMessageResolver() {
         return messageResolver;
     }
 
     /**
-     * Retrieves the MessageFormatter associated with this RuleContext.
+     * Returns the message formatter used to format messages with dynamic content.
      *
-     * @return the MessageFormatter instance linked to this RuleContext
+     * @return the message formatter; never null.
      */
     public MessageFormatter getMessageFormatter() {
         return messageFormatter;
     }
 
     /**
-     * Returns the ObjectFactory being used.
+     * Returns the object factory used to create rule, condition, and converter instances.
      *
-     * @return Object Factory. cannot be null.
+     * @return the object factory; never null.
      */
     public ObjectFactory getObjectFactory() {
         return objectFactory;
     }
 
     /**
-     * Retrieves the Tracer associated with this RuleContext.
+     * Returns the tracer used to record rule execution events.
      *
-     * @return the Tracer instance used for tracing within the RuleContext
+     * @return the tracer; never null.
      */
     public Tracer getTracer() {
         return tracer;
     }
+
     /**
-     * Returns the ConverterRegistry being used.
+     * Returns the converter registry used to look up type converters.
      *
-     * @return Converter Registry. Cannot be null.
+     * @return the converter registry; never null.
      */
     public ConverterRegistry getConverterRegistry() {
         return converterRegistry;
     }
 
     /**
-     * Returns the locale associated with this RuleContext.
+     * Returns the locale used for message resolution and formatting.
      *
-     * @return the locale of the RuleContext
+     * @return the locale; never null.
      */
     public Locale getLocale() {
         return locale;
     }
 
     /**
-     * Get the Clock instance associated with this RuleContext.
+     * Returns the clock used for time-sensitive rule operations.
      *
-     * @return the Clock instance used in the RuleContext. Cannot be null.
+     * @return the clock; never null.
      */
     public Clock getClock() {
         return clock;
     }
 
     /**
-     * Retrieves the identifier of this RuleContext.
+     * Returns the unique identifier of this context (a random UUID assigned at creation time).
      *
-     * @return the identifier as a String. Cannot be null.
+     * @return the context ID; never null.
      */
     public String getId() {
         return id;
     }
 
     /**
-     * Retrieves the creation time of the RuleContext.
+     * Returns the timestamp at which this context was created.
      *
-     * @return The creation time of the RuleContext as a Date object.
+     * @return the creation time; never null.
      */
     public Date getCreationTime() {
         return creationTime;
     }
 
     /**
-     * Get the ExecutorService instance associated with this RuleContext.
+     * Returns the executor service used for async rule execution.
      *
-     * @return the ExecutorService instance linked to this RuleContext
+     * @return the executor service; never null.
      */
     public ExecutorService getExecutorService() {
         return executorService;
     }
 
     /**
-     * Retrieves the ScriptProcessorRegistry associated with this RuleContext.
+     * Returns the {@link ScriptProcessor} for the given scripting language, creating and caching it on first access.
      *
-     * @return the ScriptProcessorRegistry instance linked to this RuleContext. Cannot be null.
-     */
-    public ScriptProcessorRegistry getScriptProcessorRegistry() {
-        return scriptProcessorRegistry;
-    }
-
-    /**
-     * Retrieves a {@link ScriptProcessor} capable of handling the specified scripting language.
-     * The processor is responsible for script evaluation and must be registered in
-     * the {@link ScriptProcessorRegistry}.
-     *
-     * @param languageName the name of the scripting language for which the processor is desired.
-     *                     Must not be null or empty.
-     * @return the corresponding {@link ScriptProcessor} instance. Never null.
-     * @throws IllegalArgumentException if the provided languageName is null or empty.
-     * @throws UnrulyException if no matching {@link ScriptProcessor} is found or if
-     *                         a creation failure occurs.
+     * @param languageName the scripting language name (e.g. {@code "js"}); must not be null or empty.
+     * @return the processor for the language; never null.
+     * @throws UnrulyException if no factory is registered for the language or the processor cannot be created.
      */
     public ScriptProcessor getScriptProcessor(String languageName) {
         Assert.hasText(languageName, "languageName cannot be null or empty.");
 
         ScriptProcessor cached = scriptProcessors.get(languageName);
         if (cached != null) return cached;
-        ScriptProcessorFactory scriptProcessorFactory = getScriptProcessorRegistry().getScriptProcessorFactory(languageName);
+        ScriptProcessorFactory scriptProcessorFactory = scriptProcessorManager.getScriptProcessorFactory(languageName);
         if (scriptProcessorFactory == null) throw new UnrulyException("No ScriptProcessor found for language: " + languageName);
-        ScriptProcessor scriptProcessor = scriptProcessorFactory.create();
+        ScriptProcessor scriptProcessor = scriptProcessorFactory.getScriptProcessor();
         if (scriptProcessor == null) throw new UnrulyException("Unable to create ScriptProcessor for language: " + languageName);
         scriptProcessors.put(languageName, scriptProcessor);
         return scriptProcessor;
     }
 
+    /**
+     * Returns an immutable view of this context with immutable bindings.
+     *
+     * @return a new {@code RuleContext} backed by immutable bindings; never null.
+     */
     @Override
     public RuleContext asImmutable() {
         return new RuleContext(bindings.asImmutable(), locale, matchingStrategy, parameterResolver, messageResolver,
-                messageFormatter, objectFactory, tracer, converterRegistry, clock, executorService, scriptProcessorRegistry);
+                messageFormatter, objectFactory, tracer, converterRegistry, clock, executorService);
     }
 
     @Override
@@ -270,7 +291,6 @@ public class RuleContext implements Immutator<RuleContext> {
                 ", converterRegistry=" + converterRegistry +
                 ", clock=" + clock  +
                 ", executorService=" + executorService +
-                ", scriptProcessorRegistry=" + scriptProcessorRegistry +
                 '}';
     }
 }

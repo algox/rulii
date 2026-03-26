@@ -22,56 +22,70 @@ import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Engine;
 import org.graalvm.polyglot.HostAccess;
 import org.rulii.lib.spring.util.Assert;
+import org.rulii.script.ScriptCompiler;
 import org.rulii.script.ScriptOptions;
 import org.rulii.script.ScriptProcessor;
 import org.rulii.script.ScriptProcessorFactory;
+import org.rulii.script.jsr223.JSR223ScriptCompiler;
 import org.rulii.script.jsr223.JSR223ScriptProcessor;
 
 import javax.script.ScriptEngine;
 
 /**
- * {@link ScriptProcessorFactory} that creates {@link ScriptProcessor} instances backed
- * by the GraalVM JavaScript engine (GraalJS).
+ * {@link ScriptProcessorFactory} implementation for GraalVM's JavaScript engine (GraalJS).
  *
- * <p>Each call to {@link #create()} builds a fresh {@link GraalJSScriptEngine} with the
- * following configuration:
+ * <p>This factory creates {@link JSR223ScriptProcessor} and {@link JSR223ScriptCompiler} instances
+ * backed by a {@link GraalJSScriptEngine} configured with the following defaults:
  * <ul>
- *   <li>Full host access ({@link HostAccess#ALL}) — Java objects passed into scripts
- *       are fully accessible.</li>
- *   <li>Unrestricted host class lookup — scripts may reference any Java class on the
- *       classpath.</li>
- *   <li>ECMAScript 2022 language level.</li>
- *   <li>Interpreter-only warning suppressed (useful in environments without the
- *       GraalVM compiler).</li>
+ *   <li>ECMAScript version 2022</li>
+ *   <li>Full host access ({@link HostAccess#ALL})</li>
+ *   <li>Unrestricted host class lookup</li>
+ *   <li>Interpreter-only warning suppressed</li>
  * </ul>
  *
- * <p>The default constructor uses {@code "js"} as the language name and
- * {@link ScriptOptions#DEFAULT} for the bindings variable name ({@code "ctx"}).
+ * <p>The factory reports {@link #isAvailable()} as {@code false} when the GraalJS classes are
+ * not present on the class path, allowing the engine to be an optional dependency.
+ *
+ * <p>The default language name is {@value #LANGUAGE_NAME}; the default bindings variable name
+ * is taken from {@link ScriptOptions#DEFAULT}.
  *
  * @author Max Arulananthan
  * @since 1.2
- * @see ScriptProcessorFactory
  * @see JSR223ScriptProcessor
- * @see org.rulii.script.jsr223.JSR223ScriptProcessorFactory
+ * @see JSR223ScriptCompiler
  */
 public class GraalJsScriptProcessorFactory implements ScriptProcessorFactory {
+
+    /** Default language name used to register and look up this factory: {@value}. */
+    public static final String LANGUAGE_NAME = "js";
+
+    private static boolean available = false;
 
     private final String languageName;
     private final String bindingsName;
 
-    /**
-     * Constructs a factory using {@code "js"} as the language name and
-     * {@link ScriptOptions#DEFAULT} for the bindings variable name.
-     */
-    public GraalJsScriptProcessorFactory() {
-        this("js", ScriptOptions.DEFAULT.bindingsName());
+    static {
+        try {
+            Class.forName("com.oracle.truffle.js.scriptengine.GraalJSScriptEngine");
+            available = true;
+        } catch (ClassNotFoundException e) {
+            available = false;
+        }
     }
 
     /**
-     * Constructs a factory with explicit language name and bindings variable name overrides.
+     * Creates a factory with default language name ({@value #LANGUAGE_NAME}) and the default
+     * bindings variable name from {@link ScriptOptions#DEFAULT}.
+     */
+    public GraalJsScriptProcessorFactory() {
+        this(LANGUAGE_NAME, ScriptOptions.DEFAULT.bindingsName());
+    }
+
+    /**
+     * Creates a factory with explicit language name and bindings variable name.
      *
-     * @param languageName the language name to advertise (e.g. {@code "js"}); must not be null or empty.
-     * @param bindingsName the variable name under which the rule bindings are exposed inside scripts;
+     * @param languageName the language name to register under; must not be null or empty.
+     * @param bindingsName the variable name under which bindings are exposed in scripts;
      *                     must not be null or empty.
      */
     public GraalJsScriptProcessorFactory(String languageName, String bindingsName) {
@@ -82,42 +96,35 @@ public class GraalJsScriptProcessorFactory implements ScriptProcessorFactory {
         this.bindingsName = bindingsName;
     }
 
-    /**
-     * Returns the language name this factory produces processors for.
-     *
-     * @return the language name; never null or empty.
-     */
+    @Override
+    public boolean isAvailable() {
+        return available;
+    }
+
     @Override
     public String getLanguageName() {
         return languageName;
     }
 
-    /**
-     * Returns the bindings variable name used by processors created by this factory.
-     *
-     * @return the bindings variable name; never null or empty.
-     */
     @Override
     public String getBindingName() {
         return bindingsName;
     }
 
-    /**
-     * Creates and returns a new {@link JSR223ScriptProcessor} backed by a freshly
-     * constructed GraalJS engine.
-     *
-     * @return a new {@link ScriptProcessor}; never null.
-     */
     @Override
-    public ScriptProcessor create() {
+    public ScriptProcessor getScriptProcessor() {
         return new JSR223ScriptProcessor(createEngine(), languageName, bindingsName);
     }
 
+    @Override
+    public ScriptCompiler getScriptCompiler() {
+        return new JSR223ScriptCompiler(getLanguageName(), createEngine());
+    }
+
     /**
-     * Builds a new {@link GraalJSScriptEngine} with full host access, unrestricted
-     * class lookup, ECMAScript 2022, and the interpreter-only warning suppressed.
+     * Creates a new {@link GraalJSScriptEngine} configured for ES2022 with full host access.
      *
-     * @return a configured {@link ScriptEngine}; never null.
+     * @return a freshly created engine instance; never null.
      */
     private static ScriptEngine createEngine() {
         Engine engine = Engine.newBuilder("js")

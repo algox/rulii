@@ -22,61 +22,58 @@ import org.rulii.model.Runnable;
 import java.util.List;
 
 /**
- * Represents a script that can be evaluated within a rule execution context.
+ * Represents a compiled or interpreted script that can be executed within a {@link org.rulii.context.RuleContext}.
  *
- * <p>A {@code Script} encapsulates a scripting-language source text together with
- * the name of the language it is written in and an optional list of typed
- * {@link ScriptParameter}s that the script expects to receive.  When
- * {@link org.rulii.model.Runnable#run(org.rulii.context.RuleContext) run(RuleContext)}
- * is invoked the script is evaluated and its result (of type {@code T}) is returned.
+ * <p>A {@code Script} encapsulates a script source string together with its target scripting language
+ * and any declared {@link ScriptParameter}s that the script expects to receive at evaluation time.
+ * Implementations are created via the fluent builder API:
  *
- * <p>New {@code Script} instances are created through the fluent builder API:
  * <pre>{@code
  * Script<Boolean> script = Script.builder()
- *         .with("ECMAScript", "age >= 18")
+ *         .with("js", "age >= 18")
  *         .build();
  * }</pre>
  *
- * @param <T> the type of value produced when this script is evaluated.
+ * <p>Scripts are executed through an appropriate {@link ScriptProcessor} that is looked up from the
+ * {@link org.rulii.context.RuleContext} by language name at runtime.
+ *
+ * @param <T> the type of value produced by the script.
  *
  * @author Max Arulananthan
  * @since 1.2
- * @see ScriptBuilderBuilder
- * @see AbstractScript
  * @see ScriptProcessor
+ * @see ScriptCompiler
+ * @see ScriptBuilderBuilder
  */
 public interface Script<T> extends Runnable<T> {
 
     /**
-     * Returns the singleton {@link ScriptBuilderBuilder} that is the entry point
-     * for constructing new {@code Script} instances via the fluent builder API.
+     * Returns the entry point for the fluent script-building DSL.
      *
-     * @return the {@code ScriptBuilderBuilder} singleton; never null.
+     * @return the singleton {@link ScriptBuilderBuilder}; never null.
      */
     static ScriptBuilderBuilder builder() {
         return ScriptBuilderBuilder.getInstance();
     }
 
     /**
-     * Returns the name of the scripting language this script is written in
-     * (e.g. {@code "ECMAScript"}).
+     * Returns the name of the scripting language this script is written in (e.g. {@code "js"}, {@code "groovy"}).
      *
      * @return the language name; never null or empty.
      */
     String getLanguageName();
 
     /**
-     * Returns the original source text of this script.
+     * Returns the raw script source text.
      *
      * @return the script source; never null or empty.
      */
     String getScript();
 
     /**
-     * Returns the list of typed parameters declared for this script.
-     * The list is empty when no parameters were provided at construction time.
+     * Returns the list of parameters this script declares, in declaration order.
      *
-     * @return list of {@link ScriptParameter}s; never null.
+     * @return an unmodifiable list of {@link ScriptParameter}s; never null, may be empty.
      */
     List<ScriptParameter> getScriptParameters();
 

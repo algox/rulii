@@ -26,6 +26,7 @@ import org.rulii.script.BuildScriptException;
 import org.rulii.script.Script;
 import org.rulii.script.ScriptOptions;
 import org.rulii.script.ScriptProcessorFactory;
+import org.rulii.script.graaljs.GraalJsScriptProcessorFactory;
 import org.rulii.script.jsr223.JSR223ScriptProcessor;
 
 import javax.script.ScriptEngine;
@@ -48,7 +49,6 @@ public class JSR223ScriptProcessorTest {
     private RuleContext contextWith(Bindings bindings) {
         return RuleContext.builder()
                 .with(bindings)
-                .scriptUsing(factory)
                 .build();
     }
 
@@ -94,7 +94,7 @@ public class JSR223ScriptProcessorTest {
     public void testEvaluateSimpleArithmetic() {
         Bindings bindings = Bindings.builder().standard();
         RuleContext context = contextWith(bindings);
-        Script<Object> script = Script.builder().build("ECMAScript", "1 + 2");
+        Script<Object> script = Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "1 + 2");
         Object result = script.run(context);
         Assertions.assertEquals(3, ((Number) result).intValue());
     }
@@ -103,7 +103,7 @@ public class JSR223ScriptProcessorTest {
     public void testEvaluateStringLiteral() {
         Bindings bindings = Bindings.builder().standard();
         RuleContext context = contextWith(bindings);
-        Script<Object> script = Script.builder().build("ECMAScript", "'hello world'");
+        Script<Object> script = Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "'hello world'");
         Object result = script.run(context);
         Assertions.assertEquals("hello world", result);
     }
@@ -112,7 +112,7 @@ public class JSR223ScriptProcessorTest {
     public void testEvaluateBooleanExpression() {
         Bindings bindings = Bindings.builder().standard();
         RuleContext context = contextWith(bindings);
-        Script<Object> script = Script.builder().build("ECMAScript", "5 > 3");
+        Script<Object> script = Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "5 > 3");
         Object result = script.run(context);
         Assertions.assertEquals(Boolean.TRUE, result);
     }
@@ -122,7 +122,7 @@ public class JSR223ScriptProcessorTest {
         Bindings bindings = Bindings.builder().standard();
         bindings.bind("x", int.class, 42);
         RuleContext context = contextWith(bindings);
-        Script<Object> script = Script.builder().build("ECMAScript", "ctx.x");
+        Script<Object> script = Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "ctx.x");
         Object result = script.run(context);
         Assertions.assertEquals(42, ((Number) result).intValue());
     }
@@ -132,7 +132,7 @@ public class JSR223ScriptProcessorTest {
         Bindings bindings = Bindings.builder().standard();
         bindings.bind("result", int.class, 0);
         RuleContext context = contextWith(bindings);
-        Script<Object> script = Script.builder().build("ECMAScript", "ctx.result = 99;");
+        Script<Object> script = Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "ctx.result = 99;");
         script.run(context);
         Assertions.assertEquals(99, ((Number) bindings.getValue("result")).intValue());
     }
@@ -144,7 +144,7 @@ public class JSR223ScriptProcessorTest {
         bindings.bind("b", int.class, 20);
         bindings.bind("c", int.class, 0);
         RuleContext context = contextWith(bindings);
-        Script<Object> script = Script.builder().build("ECMAScript", "ctx.c = ctx.a + ctx.b;");
+        Script<Object> script = Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "ctx.c = ctx.a + ctx.b;");
         script.run(context);
         Assertions.assertEquals(30, ((Number) bindings.getValue("c")).intValue());
     }
@@ -154,7 +154,7 @@ public class JSR223ScriptProcessorTest {
         Bindings bindings = Bindings.builder().standard();
         RuleContext context = contextWith(bindings);
         // A statement-only script with no return value produces undefined/null
-        Script<Object> script = Script.builder().build("ECMAScript", "var x = 1;");
+        Script<Object> script = Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "var x = 1;");
         // Just verify it does not throw
         Assertions.assertDoesNotThrow(() -> script.run(context));
     }
@@ -168,7 +168,7 @@ public class JSR223ScriptProcessorTest {
         Bindings bindings = Bindings.builder().standard();
         RuleContext context = contextWith(bindings);
         JSR223ScriptProcessor processor = new JSR223ScriptProcessor(engine);
-        Script<Object> script = Script.builder().build("ECMAScript", "1 + 1");
+        Script<Object> script = Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "1 + 1");
 
         // Run the same script instance multiple times — should not throw or produce inconsistency
         processor.evaluate(script, context);
@@ -181,8 +181,8 @@ public class JSR223ScriptProcessorTest {
         Bindings bindings = Bindings.builder().standard();
         RuleContext context = contextWith(bindings);
         JSR223ScriptProcessor processor = new JSR223ScriptProcessor(engine);
-        Script<Object> s1 = Script.builder().build("ECMAScript", "10");
-        Script<Object> s2 = Script.builder().build("ECMAScript", "20");
+        Script<Object> s1 = Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "10");
+        Script<Object> s2 = Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "20");
 
         Object r1 = processor.evaluate(s1, context);
         Object r2 = processor.evaluate(s2, context);
@@ -199,8 +199,10 @@ public class JSR223ScriptProcessorTest {
         JSR223ScriptProcessor processor = new JSR223ScriptProcessor(engine);
         Bindings bindings = Bindings.builder().standard();
         RuleContext context = contextWith(bindings);
-        Script<Object> badScript = Script.builder().build("ECMAScript", "@@@ invalid syntax @@@");
-        Assertions.assertThrows(BuildScriptException.class, () -> processor.evaluate(badScript, context));
+        Assertions.assertThrows(BuildScriptException.class, () -> {
+            Script<Object> badScript = Script.builder().build("js", "@@@ invalid syntax @@@");
+            processor.evaluate(badScript, context);
+        });
     }
 
     @Test
@@ -209,9 +211,11 @@ public class JSR223ScriptProcessorTest {
         Bindings bindings = Bindings.builder().standard();
         RuleContext context = contextWith(bindings);
         String badSource = "@@@ invalid @@@";
-        Script<Object> badScript = Script.builder().build("ECMAScript", badSource);
         BuildScriptException ex = Assertions.assertThrows(BuildScriptException.class,
-                () -> processor.evaluate(badScript, context));
+                () -> {
+                    Script<Object> badScript = Script.builder().build("js", badSource);
+                    processor.evaluate(badScript, context);
+                });
         Assertions.assertEquals(badSource, ex.getScript());
     }
 }

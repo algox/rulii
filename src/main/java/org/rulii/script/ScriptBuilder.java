@@ -23,49 +23,41 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Fluent builder for constructing {@link Script} instances.
+ * Fluent builder for constructing a {@link Script} instance for a specific language and source text.
  *
- * <p>A {@code ScriptBuilder} is obtained from {@link ScriptBuilderBuilder#with(String, String)}
- * and allows optional {@link ScriptParameter}s to be declared before the script is
- * finalized via {@link #build()}.
- *
- * <pre>{@code
- * Script<Boolean> script = Script.builder()
- *         .with("ECMAScript", "age >= 18")
- *         .param(new ScriptParameter("age", Integer.class))
- *         .build();
- * }</pre>
+ * <p>Instances are obtained from {@link ScriptBuilderBuilder#with(String, String)} rather than
+ * constructed directly.  Use {@link #param(ScriptParameter)} to declare parameters before calling
+ * {@link #build()} to compile the script.
  *
  * @author Max Arulananthan
  * @since 1.2
  * @see ScriptBuilderBuilder
- * @see Script
  * @see ScriptParameter
  */
 public class ScriptBuilder {
 
-    private final String languageName;
+    private final ScriptProcessorFactory factory;
     private final String script;
     private final List<ScriptParameter> scriptParameters = new LinkedList<>();
 
     /**
-     * Constructs a new {@code ScriptBuilder} for the given language and source text.
+     * Package-private constructor — use {@link ScriptBuilderBuilder#with(String, String)}.
      *
-     * @param languageName the name of the scripting language (e.g. {@code "ECMAScript"}); must not be null or empty.
-     * @param script       the script source text to be evaluated; must not be null or empty.
+     * @param factory the factory for the target scripting language; must not be null.
+     * @param script  the script source text; must not be null or empty.
      */
-    ScriptBuilder(String languageName, String script) {
+    ScriptBuilder(ScriptProcessorFactory factory, String script) {
         super();
-        Assert.hasText(languageName, "languageName cannot be empty.");
+        Assert.notNull(factory, "factory cannot be null.");
         Assert.hasText(script, "script cannot be empty.");
+        this.factory = factory;
         this.script = script;
-        this.languageName = languageName;
     }
 
     /**
-     * Adds a typed parameter declaration to the script being built.
+     * Declares a parameter that the script expects to receive from the rule bindings.
      *
-     * @param parameter the parameter to add; must not be null.
+     * @param parameter the parameter declaration; must not be null.
      * @return this builder, for method chaining.
      */
     public ScriptBuilder param(ScriptParameter parameter) {
@@ -75,13 +67,13 @@ public class ScriptBuilder {
     }
 
     /**
-     * Builds and returns a new {@link Script} with the language, source text,
-     * and parameters configured on this builder.
+     * Compiles the script and returns the resulting {@link Script} instance.
      *
      * @param <T> the expected return type of the script.
-     * @return a new {@link DefaultScript}; never null.
+     * @return the compiled script; never null.
+     * @throws BuildScriptException if the source cannot be compiled.
      */
     public <T> Script<T> build() {
-        return new DefaultScript<>(languageName, script, scriptParameters);
+        return factory.getScriptCompiler().compile(script, scriptParameters);
     }
 }

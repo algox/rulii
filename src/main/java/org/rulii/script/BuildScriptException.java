@@ -1,7 +1,7 @@
 /*
  * This software is licensed under the Apache 2 license, quoted below.
  *
- * Copyright (c) 1999-2021, Algorithmx Inc.
+ * Copyright (c) 1999-2026, Algorithmx Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,18 @@ package org.rulii.script;
 
 import org.rulii.model.UnrulyException;
 
+/**
+ * Thrown when a script source string cannot be compiled into an executable {@link Script}.
+ *
+ * <p>This exception is typically raised by a {@link ScriptCompiler} implementation when the
+ * underlying script engine reports a syntax or compilation error.  The offending source text
+ * is available via {@link #getScript()}.
+ *
+ * @author Max Arulananthan
+ * @since 1.2
+ * @see ScriptCompiler
+ * @see EvaluationException
+ */
 public class BuildScriptException extends UnrulyException {
 
     private final String script;

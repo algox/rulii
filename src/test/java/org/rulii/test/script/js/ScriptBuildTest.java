@@ -24,6 +24,7 @@ import org.rulii.bind.Bindings;
 import org.rulii.context.RuleContext;
 import org.rulii.script.Script;
 import org.rulii.script.ScriptParameter;
+import org.rulii.script.graaljs.GraalJsScriptProcessorFactory;
 
 /**
  * Unit tests for ScriptBuilder / ScriptBuilderBuilder — covers Script creation,
@@ -40,10 +41,9 @@ public class ScriptBuildTest {
 
         RuleContext context = RuleContext.builder()
                 .with(bindings)
-                .scriptUsing(TestScriptUtils.createFactory())
                 .build();
 
-        Script<Integer> script = Script.builder().build("ECMAScript", "ctx.c = ctx.a + ctx.b;");
+        Script<Integer> script = Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "ctx.c = ctx.a + ctx.b;");
         Integer result = script.run(context);
         Assertions.assertEquals(30, result);
         Assertions.assertEquals(30, (Integer) bindings.getValue("c"));
@@ -51,23 +51,23 @@ public class ScriptBuildTest {
 
     @Test
     public void testBuildShorthand() {
-        Script<Integer> script = Script.builder().build("ECMAScript", "1 + 2");
-        Assertions.assertEquals("ECMAScript", script.getLanguageName());
+        Script<Integer> script = Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "1 + 2");
+        Assertions.assertEquals(GraalJsScriptProcessorFactory.LANGUAGE_NAME, script.getLanguageName());
         Assertions.assertEquals("1 + 2", script.getScript());
     }
 
     @Test
     public void testBuildWithFluent() {
         Script<String> script = Script.builder()
-                .with("ECMAScript", "'hello'")
+                .with(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "'hello'")
                 .build();
-        Assertions.assertEquals("ECMAScript", script.getLanguageName());
+        Assertions.assertEquals(GraalJsScriptProcessorFactory.LANGUAGE_NAME, script.getLanguageName());
         Assertions.assertEquals("'hello'", script.getScript());
     }
 
     @Test
     public void testGetScriptParametersEmptyByDefault() {
-        Script<?> script = Script.builder().build("ECMAScript", "1");
+        Script<?> script = Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "1");
         Assertions.assertNotNull(script.getScriptParameters());
         Assertions.assertTrue(script.getScriptParameters().isEmpty());
     }
@@ -75,7 +75,7 @@ public class ScriptBuildTest {
     @Test
     public void testWithSingleParameter() {
         Script<?> script = Script.builder()
-                .with("ECMAScript", "ctx.age > 18")
+                .with(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "ctx.age > 18")
                 .param(new ScriptParameter("age", Integer.class))
                 .build();
         Assertions.assertEquals(1, script.getScriptParameters().size());
@@ -86,7 +86,7 @@ public class ScriptBuildTest {
     @Test
     public void testWithMultipleParameters() {
         Script<?> script = Script.builder()
-                .with("ECMAScript", "ctx.a + ctx.b")
+                .with(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "ctx.a + ctx.b")
                 .param(new ScriptParameter("a", Integer.class))
                 .param(new ScriptParameter("b", Integer.class))
                 .build();
@@ -105,17 +105,17 @@ public class ScriptBuildTest {
 
     @Test
     public void testNullScriptTextThrows() {
-        Assertions.assertThrows(Exception.class, () -> Script.builder().build("ECMAScript", null));
+        Assertions.assertThrows(Exception.class, () -> Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, null));
     }
 
     @Test
     public void testEmptyScriptTextThrows() {
-        Assertions.assertThrows(Exception.class, () -> Script.builder().build("ECMAScript", ""));
+        Assertions.assertThrows(Exception.class, () -> Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, ""));
     }
 
     @Test
     public void testToStringContainsScript() {
-        Script<?> script = Script.builder().build("ECMAScript", "ctx.x + 1");
+        Script<?> script = Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "ctx.x + 1");
         Assertions.assertTrue(script.toString().contains("ctx.x + 1"));
     }
 }

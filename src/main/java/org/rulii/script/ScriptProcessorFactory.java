@@ -18,49 +18,61 @@
 package org.rulii.script;
 
 /**
- * Factory interface for creating {@link ScriptProcessor} instances for a specific
- * scripting language.
+ * Factory interface for creating language-specific {@link ScriptProcessor} and {@link ScriptCompiler} instances.
  *
- * <p>A {@code ScriptProcessorFactory} encapsulates everything needed to produce a
- * ready-to-use {@link ScriptProcessor}: the language name, the bindings variable
- * name, and the logic for constructing the underlying scripting engine.  Factories
- * are used by {@link ScriptProcessorRegistry} implementations to lazily instantiate
- * processors on demand.
+ * <p>Each implementation corresponds to one scripting language (or engine variant). Implementations
+ * may be registered manually via {@link ScriptProcessorManager#register(ScriptProcessorFactory)} or
+ * discovered automatically via the {@link java.util.ServiceLoader} mechanism by registering the
+ * implementation class in {@code META-INF/services/org.rulii.script.ScriptProcessorFactory}.
  *
- * <p>Built-in implementations are provided for JSR-223 engines
- * ({@link org.rulii.script.jsr223.JSR223ScriptProcessorFactory}) and for GraalVM JS
- * ({@link org.rulii.script.graaljs.GraalJsScriptProcessorFactory}).
+ * <p>{@link #isAvailable()} should return {@code false} when the underlying engine or runtime
+ * dependency is not present on the class path, which allows optional engine JARs to be handled
+ * gracefully at startup.
  *
  * @author Max Arulananthan
  * @since 1.2
  * @see ScriptProcessor
- * @see ScriptProcessorRegistry
- * @see org.rulii.script.jsr223.JSR223ScriptProcessorFactory
- * @see org.rulii.script.graaljs.GraalJsScriptProcessorFactory
+ * @see ScriptCompiler
+ * @see ScriptProcessorManager
  */
 public interface ScriptProcessorFactory {
 
     /**
-     * Returns the name of the scripting language handled by processors created by
-     * this factory (e.g. {@code "ECMAScript"}).
+     * Returns {@code true} if this factory's underlying script engine is available on the class path.
+     *
+     * <p>The default implementation always returns {@code true}; override to add a class-presence check.
+     *
+     * @return {@code true} if the engine is available; {@code false} otherwise.
+     */
+    default boolean isAvailable() {
+        return true;
+    }
+
+    /**
+     * Returns the name of the scripting language this factory supports (e.g. {@code "js"}, {@code "groovy"}).
      *
      * @return the language name; never null or empty.
      */
     String getLanguageName();
 
     /**
-     * Returns the variable name under which the rule bindings map is exposed inside
-     * scripts evaluated by processors created by this factory (e.g. {@code "ctx"}).
+     * Returns the name of the variable under which the rule bindings map will be exposed inside scripts.
      *
      * @return the bindings variable name; never null or empty.
      */
     String getBindingName();
 
     /**
-     * Creates and returns a new {@link ScriptProcessor} for this factory's language.
-     * Each call may produce a distinct processor instance backed by a fresh engine.
+     * Creates and returns a new {@link ScriptProcessor} for this language.
      *
-     * @return a new {@link ScriptProcessor}; never null.
+     * @return a new processor instance; never null.
      */
-    ScriptProcessor create();
+    ScriptProcessor getScriptProcessor();
+
+    /**
+     * Creates and returns a new {@link ScriptCompiler} for this language.
+     *
+     * @return a new compiler instance; never null.
+     */
+    ScriptCompiler getScriptCompiler();
 }

@@ -17,39 +17,34 @@
  */
 package org.rulii.script;
 
+import org.rulii.model.UnrulyException;
+
 /**
- * Singleton entry point for the {@link Script} builder API.
+ * Entry point for the fluent script-building DSL; provides factory methods for creating
+ * {@link ScriptBuilder} instances.
  *
- * <p>{@code ScriptBuilderBuilder} is accessed via {@link Script#builder()} and provides
- * two paths to creating a {@link Script}:
- * <ul>
- *   <li>{@link #with(String, String)} — returns a {@link ScriptBuilder} that allows
- *       optional {@link ScriptParameter}s to be added before calling
- *       {@link ScriptBuilder#build()}.</li>
- *   <li>{@link #build(String, String)} — convenience shortcut that creates a
- *       parameter-free {@link Script} in one call.</li>
- * </ul>
+ * <p>This class is a singleton obtained via {@link #getInstance()} or through
+ * {@link Script#builder()}.  It delegates language lookup to the shared
+ * {@link ScriptProcessorManager}.
  *
+ * <p>Typical usage:
  * <pre>{@code
- * // With parameters
  * Script<Boolean> script = Script.builder()
- *         .with("ECMAScript", "age >= 18")
- *         .param(new ScriptParameter("age", Integer.class))
+ *         .with("js", "age >= 18")
  *         .build();
- *
- * // Without parameters
- * Script<Double> script = Script.builder().build("ECMAScript", "Math.PI");
  * }</pre>
  *
  * @author Max Arulananthan
  * @since 1.2
- * @see Script
+ * @see Script#builder()
  * @see ScriptBuilder
+ * @see ScriptProcessorManager
  */
 public final class ScriptBuilderBuilder {
 
     /** Singleton instance. */
     private static final ScriptBuilderBuilder instance = new ScriptBuilderBuilder();
+    private static final ScriptProcessorManager scriptProcessorManager = new ScriptProcessorManager();
 
     private ScriptBuilderBuilder() {
         super();
@@ -65,28 +60,34 @@ public final class ScriptBuilderBuilder {
     }
 
     /**
-     * Returns a {@link ScriptBuilder} pre-configured with the given language and
-     * source text.  Use the returned builder to add {@link ScriptParameter}s and
-     * then call {@link ScriptBuilder#build()}.
+     * Creates a {@link ScriptBuilder} for the given scripting language and source text.
      *
-     * @param language the scripting language name (e.g. {@code "ECMAScript"}); must not be null or empty.
+     * @param language the scripting language name (e.g. {@code "js"}, {@code "groovy"}); must not be null or empty.
      * @param script   the script source text; must not be null or empty.
-     * @return a new {@link ScriptBuilder}; never null.
+     * @return a new {@link ScriptBuilder} ready to accept parameter declarations; never null.
+     * @throws org.rulii.model.UnrulyException if no {@link ScriptProcessorFactory} is registered for the language.
      */
     public ScriptBuilder with(String language, String script) {
-        return new ScriptBuilder(language, script);
+        ScriptProcessorFactory factory = scriptProcessorManager.getScriptProcessorFactory(language);
+
+        if (factory == null) throw new UnrulyException("No ScriptProcessorFactory found for language: " + language);
+
+        return new ScriptBuilder(factory, script);
     }
 
     /**
-     * Convenience method that creates a parameter-free {@link Script} directly
-     * from the given language and source text.
+     * Convenience method that compiles and returns the script in a single step.
+     *
+     * <p>Equivalent to {@code with(language, script).build()}.
      *
      * @param <T>      the expected return type of the script.
-     * @param language the scripting language name (e.g. {@code "ECMAScript"}); must not be null or empty.
+     * @param language the scripting language name; must not be null or empty.
      * @param script   the script source text; must not be null or empty.
-     * @return a new {@link Script}; never null.
+     * @return the compiled {@link Script}; never null.
+     * @throws org.rulii.model.UnrulyException if no factory is found for the language.
+     * @throws BuildScriptException if the source cannot be compiled.
      */
     public <T> Script<T> build(String language, String script) {
-        return new ScriptBuilder(language, script).build();
+        return with(language, script).build();
     }
 }

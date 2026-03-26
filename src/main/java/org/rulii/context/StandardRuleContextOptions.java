@@ -20,7 +20,6 @@ package org.rulii.context;
 import org.rulii.bind.match.BindingMatchingStrategy;
 import org.rulii.bind.match.ParameterResolver;
 import org.rulii.convert.ConverterRegistry;
-import org.rulii.script.ScriptProcessorRegistry;
 import org.rulii.text.MessageFormatter;
 import org.rulii.text.MessageResolver;
 import org.rulii.util.reflect.ObjectFactory;
@@ -31,18 +30,26 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * A standard implementation of the {@link RuleContextOptions} interface,
- * which provides default configurations and services for rule execution contexts.
- * This class initializes and manages various components necessary for handling
- * parameter resolution, message formatting, tracing, rule registry, and more.
+ * Default implementation of {@link RuleContextOptions} that wires together the standard services
+ * used by the rule engine.
  *
- * This implementation is intended to serve as the default or baseline configuration
- * within rule-engine frameworks, offering pre-configured instances of commonly used
- * components while still allowing for customization through dependency injection or
- * subclassing if needed.
+ * <p>All components are initialized with their own default builders:
+ * <ul>
+ *   <li>{@link BindingMatchingStrategy} — match-by-name-and-type</li>
+ *   <li>{@link ParameterResolver} — standard resolver</li>
+ *   <li>{@link MessageFormatter} and {@link MessageResolver} — standard builders</li>
+ *   <li>{@link ConverterRegistry} — standard converters</li>
+ *   <li>{@link ObjectFactory} — standard factory</li>
+ *   <li>{@link Clock} — system default zone</li>
+ *   <li>{@link java.util.Locale} — JVM default locale</li>
+ *   <li>{@link java.util.concurrent.ExecutorService} — fixed thread pool sized to available processors</li>
+ * </ul>
+ *
+ * <p>Obtain an instance via {@link RuleContextOptions#standard()} or {@link #build()}.
  *
  * @author Max Arulananthan
  * @since 1.0
+ * @see RuleContextOptions
  */
 public class StandardRuleContextOptions implements RuleContextOptions {
 
@@ -56,16 +63,15 @@ public class StandardRuleContextOptions implements RuleContextOptions {
     private final Clock clock = Clock.systemDefaultZone();
     private final Locale locale = Locale.getDefault();
     private final MessageResolver messageResolver = MessageResolver.builder().build();
-    private final ScriptProcessorRegistry scriptProcessorRegistry = ScriptProcessorRegistry.builder().build();
 
     public StandardRuleContextOptions() {
         super();
     }
 
     /**
-     * Provides access to the single shared instance of {@code StandardRuleContextOptions}.
+     * Creates and returns a new {@code StandardRuleContextOptions} instance with default settings.
      *
-     * @return the singleton instance of {@code StandardRuleContextOptions}.
+     * @return a new instance; never null.
      */
     public static StandardRuleContextOptions build() {
         return new StandardRuleContextOptions();
@@ -117,11 +123,6 @@ public class StandardRuleContextOptions implements RuleContextOptions {
     }
 
     @Override
-    public ScriptProcessorRegistry getScriptProcessorRegistry() {
-        return scriptProcessorRegistry;
-    }
-
-    @Override
     public String toString() {
         return "StandardRuleContextOptions{" +
                 "matchingStrategy=" + matchingStrategy +
@@ -133,7 +134,6 @@ public class StandardRuleContextOptions implements RuleContextOptions {
                 ", locale=" + locale +
                 ", messageResolver=" + messageResolver +
                 ", executorService=" + getExecutorService() +
-                ", scriptProcessorRegistry=" + scriptProcessorRegistry +
                 '}';
     }
 }

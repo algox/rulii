@@ -24,6 +24,7 @@ import org.rulii.context.RuleContext;
 import org.rulii.model.action.Action;
 import org.rulii.script.BuildScriptException;
 import org.rulii.script.Script;
+import org.rulii.script.graaljs.GraalJsScriptProcessorFactory;
 
 /**
  * Tests for Action built from a Script via Action.builder().build(Script).
@@ -33,7 +34,6 @@ public class ScriptActionTest {
     private RuleContext contextWith(Bindings bindings) {
         return RuleContext.builder()
                 .with(bindings)
-                .scriptUsing(TestScriptUtils.createFactory())
                 .build();
     }
 
@@ -44,7 +44,7 @@ public class ScriptActionTest {
     @Test
     public void testActionRunsWithoutException() {
         RuleContext ctx = contextWith(Bindings.builder().standard());
-        Action action = Action.builder().build(Script.builder().build("ECMAScript", "var x = 1;"));
+        Action action = Action.builder().build(Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "var x = 1;"));
         Assertions.assertDoesNotThrow(() -> action.run(ctx));
     }
 
@@ -54,7 +54,7 @@ public class ScriptActionTest {
         bindings.bind("counter", int.class, 0);
         RuleContext ctx = contextWith(bindings);
         Action action = Action.builder().build(
-                Script.builder().build("ECMAScript", "ctx.counter = ctx.counter + 1;"));
+                Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "ctx.counter = ctx.counter + 1;"));
         action.run(ctx);
         Assertions.assertEquals(1, ((Number) bindings.getValue("counter")).intValue());
     }
@@ -65,7 +65,7 @@ public class ScriptActionTest {
         bindings.bind("counter", int.class, 0);
         RuleContext ctx = contextWith(bindings);
         Action action = Action.builder().build(
-                Script.builder().build("ECMAScript", "ctx.counter = ctx.counter + 1;"));
+                Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "ctx.counter = ctx.counter + 1;"));
         action.run(ctx);
         action.run(ctx);
         action.run(ctx);
@@ -84,7 +84,7 @@ public class ScriptActionTest {
         bindings.bind("fullName",  String.class, "");
         RuleContext ctx = contextWith(bindings);
         Action action = Action.builder().build(
-                Script.builder().build("ECMAScript",
+                Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME,
                         "ctx.fullName = ctx.firstName + ' ' + ctx.lastName;"));
         action.run(ctx);
         Assertions.assertEquals("John Doe", bindings.getValue("fullName"));
@@ -97,7 +97,7 @@ public class ScriptActionTest {
         bindings.bind("grade",  String.class, "");
         RuleContext ctx = contextWith(bindings);
         Action action = Action.builder().build(
-                Script.builder().build("ECMAScript",
+                Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME,
                         "ctx.grade = ctx.score >= 90 ? 'A' : ctx.score >= 80 ? 'B' : 'C';"));
         action.run(ctx);
         Assertions.assertEquals("B", bindings.getValue("grade"));
@@ -110,7 +110,7 @@ public class ScriptActionTest {
         RuleContext ctx = contextWith(bindings);
         // Script has a side effect but no explicit return — Action should handle this fine
         Action action = Action.builder().build(
-                Script.builder().build("ECMAScript", "ctx.processed = true;"));
+                Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "ctx.processed = true;"));
         action.run(ctx);
         Assertions.assertEquals(Boolean.TRUE, bindings.getValue("processed"));
     }
@@ -122,8 +122,10 @@ public class ScriptActionTest {
     @Test
     public void testActionWithInvalidScriptThrows() {
         RuleContext ctx = contextWith(Bindings.builder().standard());
-        Action action = Action.builder().build(Script.builder().build("ECMAScript", "@@@ bad @@@"));
-        Assertions.assertThrows(BuildScriptException.class, () -> action.run(ctx));
+        Assertions.assertThrows(BuildScriptException.class, () -> {
+            Action action = Action.builder().build(Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "@@@ bad @@@"));
+            action.run(ctx);
+        });
     }
 
     @Test

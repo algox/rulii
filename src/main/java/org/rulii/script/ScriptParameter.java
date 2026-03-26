@@ -20,14 +20,11 @@ package org.rulii.script;
 import org.rulii.lib.spring.util.Assert;
 
 /**
- * Describes a single typed parameter that a {@link Script} expects to receive
- * when it is evaluated.
+ * Describes a single named, typed parameter that a {@link Script} expects to receive at evaluation time.
  *
- * <p>A {@code ScriptParameter} carries a name (used to expose the value as a
- * variable inside the script) and a Java {@link Class} indicating the expected
- * type of that variable.  Parameters are declared on a script via
- * {@link ScriptBuilder#param(ScriptParameter)} and stored in
- * {@link AbstractScript#getScriptParameters()}.
+ * <p>Script parameters allow the framework to validate or adapt bindings before passing them into the
+ * script engine. Each parameter carries a {@link #getName() name} — used to look up the corresponding
+ * value in the rule bindings — and a {@link #getType() type} that indicates the expected Java type.
  *
  * @author Max Arulananthan
  * @since 1.2
@@ -40,10 +37,10 @@ public class ScriptParameter {
     private final Class<?> type;
 
     /**
-     * Constructs a new {@code ScriptParameter} with the given name and type.
+     * Creates a new {@code ScriptParameter}.
      *
-     * @param name the variable name used to expose this parameter inside the script; must not be null or empty.
-     * @param type the expected Java type of this parameter; must not be null.
+     * @param name the parameter name used to look up the value in rule bindings; must not be null or empty.
+     * @param type the expected Java type of the parameter value; must not be null.
      * @throws IllegalArgumentException if {@code name} is null/empty or {@code type} is null.
      */
     public ScriptParameter(String name, Class<?> type) {
@@ -55,7 +52,7 @@ public class ScriptParameter {
     }
 
     /**
-     * Returns the variable name used to expose this parameter inside the script.
+     * Returns the parameter name, which is used to look up the corresponding value in the rule bindings.
      *
      * @return the parameter name; never null or empty.
      */

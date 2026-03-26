@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.rulii.context.RuleContext;
 import org.rulii.script.*;
+import org.rulii.script.graaljs.GraalJsScriptProcessorFactory;
 import org.rulii.script.jsr223.JSR223ScriptProcessor;
 
 import javax.script.*;
@@ -61,14 +62,14 @@ public class ScriptProcessorBugTest {
         bindings.bind("x", int.class, 7);
 
         // Build context with this processor registered explicitly
-        ScriptProcessorRegistry registry = new DefaultScriptProcessorRegistry(false);
-        registry.register(new SingleScriptProcessorFactory(processor));
+        //ScriptProcessorRegistry registry = new DefaultScriptProcessorRegistry(false);
+        //registry.register(new SingleScriptProcessorFactory(processor, new JSR223ScriptCompiler(wrapped)));
         RuleContext ctx = RuleContext.builder()
                 .with(bindings)
-                .scriptProcessorRegistry(registry)
+                //.scriptProcessorRegistry(registry)
                 .build();
 
-        Script<Object> script = Script.builder().build(processor.getLanguageName(), "ctx.x * 2");
+        Script<Object> script = Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "ctx.x * 2");
 
         // Before fix: StackOverflowError. After fix: returns 14.
         Object result = script.run(ctx);
@@ -76,11 +77,8 @@ public class ScriptProcessorBugTest {
     }
 
     private RuleContext buildContextWithProcessor(org.rulii.bind.Bindings bindings, JSR223ScriptProcessor processor) {
-        ScriptProcessorRegistry registry = new DefaultScriptProcessorRegistry(false);
-        registry.register(new SingleScriptProcessorFactory(processor));
         return RuleContext.builder()
                 .with(bindings)
-                .scriptProcessorRegistry(registry)
                 .build();
     }
 
@@ -96,7 +94,7 @@ public class ScriptProcessorBugTest {
         b2.bind("x", int.class, 99);
         RuleContext ctx2 = buildContextWithProcessor(b2, processor);
 
-        Script<Object> script = Script.builder().build("ECMAScript", "ctx.x");
+        Script<Object> script = Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "ctx.x");
 
         // Warm up processor with ctx1
         Object r1 = processor.evaluate(script, ctx1);
@@ -126,7 +124,7 @@ public class ScriptProcessorBugTest {
         // Same Script object references shared across all threads
         Script<?>[] scripts = new Script[scriptCount];
         for (int i = 0; i < scriptCount; i++) {
-            scripts[i] = Script.builder().build("ECMAScript", String.valueOf(i));
+            scripts[i] = Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, String.valueOf(i));
         }
 
         CountDownLatch start   = new CountDownLatch(1);
@@ -163,10 +161,12 @@ public class ScriptProcessorBugTest {
     private static class SingleScriptProcessorFactory implements ScriptProcessorFactory {
 
         private final ScriptProcessor processor;
+        private final ScriptCompiler compiler;
 
-        public SingleScriptProcessorFactory(ScriptProcessor processor) {
+        public SingleScriptProcessorFactory(ScriptProcessor processor, ScriptCompiler compiler) {
             super();
             this.processor = processor;
+            this.compiler  = compiler;
         }
 
         @Override
@@ -180,8 +180,13 @@ public class ScriptProcessorBugTest {
         }
 
         @Override
-        public ScriptProcessor create() {
+        public ScriptProcessor getScriptProcessor() {
             return processor;
+        }
+
+        @Override
+        public ScriptCompiler getScriptCompiler() {
+            return compiler;
         }
     }
 }
