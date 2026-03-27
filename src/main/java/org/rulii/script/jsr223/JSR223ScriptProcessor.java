@@ -20,13 +20,15 @@ package org.rulii.script.jsr223;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.lib.spring.util.StringUtils;
-import org.rulii.model.UnrulyException;
 import org.rulii.script.EvaluationException;
 import org.rulii.script.Script;
 import org.rulii.script.ScriptOptions;
 import org.rulii.script.ScriptProcessor;
 
-import javax.script.*;
+import javax.script.Bindings;
+import javax.script.ScriptContext;
+import javax.script.ScriptEngine;
+import javax.script.SimpleScriptContext;
 
 
 /**
@@ -79,8 +81,6 @@ public class JSR223ScriptProcessor implements ScriptProcessor {
     public <T> T evaluate(Script<T> script, RuleContext context) {
         Assert.notNull(script, "script cannot be null.");
         Assert.notNull(context, "context cannot be null.");
-
-        if (!(JSR223Script.class.equals(script.getClass()))) throw new UnrulyException("Invalid Script Type [" + script.getClass().getName() + "]. Expected [" + JSR223Script.class.getName() + "]");
 
         ScriptContext scriptContext = buildContext(context);
         JSR223Script<T> jsr223Script = (JSR223Script<T>) script;

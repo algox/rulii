@@ -20,6 +20,7 @@ package org.rulii.script;
 import org.rulii.lib.apache.commons.logging.Log;
 import org.rulii.lib.apache.commons.logging.LogFactory;
 import org.rulii.lib.spring.util.Assert;
+import org.rulii.model.UnrulyException;
 import org.rulii.script.jsr223.JSR223ScriptProcessorFactory;
 
 import javax.script.ScriptEngine;
@@ -106,6 +107,28 @@ public final class ScriptProcessorManager {
         }
 
         return result;
+    }
+
+    /**
+     * Assigns an alias to an existing {@link ScriptProcessorFactory} associated with a specific scripting language.
+     * The alias can then be used as an alternate name to refer to the same {@link ScriptProcessorFactory}.
+     *
+     * @param languageName the name of the scripting language for which the {@link ScriptProcessorFactory} is registered; must not be empty.
+     * @param aliasName the alias to assign to the {@link ScriptProcessorFactory}; must not be empty.
+     * @return the {@link ScriptProcessorFactory} associated with the specified scripting language.
+     * @throws IllegalArgumentException if either {@code languageName} or {@code aliasName} is empty.
+     * @throws UnrulyException if no {@link ScriptProcessorFactory} is found for the specified {@code languageName}.
+     */
+    public ScriptProcessorFactory alias(String languageName, String aliasName) {
+        Assert.hasText(languageName, "languageName cannot be empty.");
+        Assert.hasText(aliasName, "aliasName cannot be empty.");
+
+        ScriptProcessorFactory factory = getScriptProcessorFactory(languageName);
+
+        if (factory == null) throw new UnrulyException("No ScriptProcessorFactory found for language " + languageName);
+
+        factories.put(aliasName, factory);
+        return factory;
     }
 
     /**
