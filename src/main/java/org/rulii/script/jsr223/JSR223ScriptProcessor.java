@@ -30,9 +30,6 @@ import javax.script.Bindings;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.SimpleScriptContext;
-import java.util.Collections;
-import java.util.Map;
-import java.util.WeakHashMap;
 
 
 /**
@@ -50,8 +47,6 @@ import java.util.WeakHashMap;
  * @see JSR223ScriptProcessorFactory
  */
 public class JSR223ScriptProcessor implements ScriptProcessor {
-
-    private final Map<RuleContext, ScriptContext> contextCache = Collections.synchronizedMap(new WeakHashMap<>());
 
     private final ScriptEngine scriptEngine;
     private final String languageName;
@@ -88,7 +83,7 @@ public class JSR223ScriptProcessor implements ScriptProcessor {
         Assert.notNull(script, "script cannot be null.");
         Assert.notNull(context, "context cannot be null.");
 
-        ScriptContext scriptContext = getContext(context);
+        ScriptContext scriptContext = buildContext(context);
         JSR223Script<T> jsr223Script = (JSR223Script<T>) script;
 
         if (jsr223Script.getCompiledScript() == null) {
@@ -131,24 +126,6 @@ public class JSR223ScriptProcessor implements ScriptProcessor {
      */
     public ScriptEngine getScriptEngine() {
         return scriptEngine;
-    }
-
-    /**
-     * Retrieves the {@link ScriptContext} associated with the specified {@link RuleContext}.
-     * If the context does not exist in the cache, it is built and stored for future use.
-     *
-     * @param context the current rule context; must not be null.
-     * @return the corresponding {@link ScriptContext}; never null.
-     */
-    protected ScriptContext getContext(RuleContext context) {
-        ScriptContext result = contextCache.get(context);
-
-        if (result == null) {
-            result = buildContext(context);
-            contextCache.put(context, result);
-        }
-
-        return result;
     }
 
     /**

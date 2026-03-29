@@ -260,7 +260,7 @@ public class RuleContext implements Immutator<RuleContext> {
         if (scriptProcessorFactory == null) throw new UnrulyException("No ScriptProcessor found for language: " + languageName);
         ScriptProcessor scriptProcessor = scriptProcessorFactory.getScriptProcessor();
         if (scriptProcessor == null) throw new UnrulyException("Unable to create ScriptProcessor for language: " + languageName);
-        scriptProcessors.put(languageName, scriptProcessor);
+        scriptProcessors.putIfAbsent(languageName, scriptProcessor);
         return scriptProcessor;
     }
 
