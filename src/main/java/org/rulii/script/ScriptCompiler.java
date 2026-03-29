@@ -17,8 +17,6 @@
  */
 package org.rulii.script;
 
-import java.util.List;
-
 /**
  * Strategy interface for compiling a raw script string into an executable {@link Script} instance.
  *
@@ -48,9 +46,9 @@ public interface ScriptCompiler {
      *
      * @param <T>        the expected return type of the compiled script.
      * @param script     the script source text; must not be null or empty.
-     * @param parameters the parameter declarations the script expects; may be null or empty.
+     * @param returnType the result return type.
      * @return a compiled (or source-retaining) {@link Script} instance; never null.
      * @throws BuildScriptException if the script source cannot be compiled.
      */
-    <T> Script<T> compile(String script, List<ScriptParameter> parameters);
+    <T> Script<T> compile(String script, Class<?> returnType);
 }

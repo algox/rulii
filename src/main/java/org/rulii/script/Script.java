@@ -19,31 +19,31 @@ package org.rulii.script;
 
 import org.rulii.model.Runnable;
 
-import java.util.List;
-
 /**
- * Represents a compiled or interpreted script that can be executed within a {@link org.rulii.context.RuleContext}.
+ * Represents an executable script fragment written in a supported scripting language.
  *
- * <p>A {@code Script} encapsulates a script source string together with its target scripting language
- * and any declared {@link ScriptParameter}s that the script expects to receive at evaluation time.
- * Implementations are created via the fluent builder API:
+ * <p>A {@code Script} carries the raw source text, the target language name, and the expected
+ * return type.  Execution is delegated to the {@link ScriptProcessor} registered for the language
+ * in the current {@link org.rulii.context.RuleContext}.
  *
+ * <p>Scripts are created through the fluent DSL:
  * <pre>{@code
- * Script<Boolean> script = Script.builder()
- *         .with("js", "age >= 18")
- *         .build();
+ * Script<Boolean> isAdult = Script.builder()
+ *         .build("java", "ctx.age >= 18");
  * }</pre>
  *
- * <p>Scripts are executed through an appropriate {@link ScriptProcessor} that is looked up from the
- * {@link org.rulii.context.RuleContext} by language name at runtime.
+ * <p>A script may be wrapped by a {@link org.rulii.model.condition.Condition},
+ * {@link org.rulii.model.action.Action}, or {@link org.rulii.model.function.Function} via their
+ * respective builder {@code build(Script)} overloads, which set the appropriate return type
+ * ({@code Boolean.class}, {@code void.class}, or {@code Object.class}) before the first evaluation.
  *
- * @param <T> the type of value produced by the script.
+ * @param <T> the expected return type of the script.
  *
  * @author Max Arulananthan
  * @since 1.2
- * @see ScriptProcessor
- * @see ScriptCompiler
+ * @see ScriptBuilder
  * @see ScriptBuilderBuilder
+ * @see ScriptProcessor
  */
 public interface Script<T> extends Runnable<T> {
 
@@ -71,10 +71,24 @@ public interface Script<T> extends Runnable<T> {
     String getScript();
 
     /**
-     * Returns the list of parameters this script declares, in declaration order.
+     * Returns the expected return type of the script.
      *
-     * @return an unmodifiable list of {@link ScriptParameter}s; never null, may be empty.
+     * <p>The default return type when built via {@link ScriptBuilder} is {@code void.class}.
+     * Condition/Action/Function wrappers override this before the first evaluation.
+     *
+     * @return the return type; never null.
      */
-    List<ScriptParameter> getScriptParameters();
+    Class<?> getReturnType();
+
+    /**
+     * Overrides the expected return type of the script.
+     *
+     * <p>Called by framework wrappers (e.g. {@link org.rulii.model.condition.Condition},
+     * {@link org.rulii.model.action.Action}) before the first evaluation to communicate the
+     * required result type to the underlying {@link ScriptProcessor}.
+     *
+     * @param returnType the new return type; must not be null.
+     */
+    void setReturnType(Class<?> returnType);
 
 }

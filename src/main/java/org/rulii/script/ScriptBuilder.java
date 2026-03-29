@@ -19,27 +19,21 @@ package org.rulii.script;
 
 import org.rulii.lib.spring.util.Assert;
 
-import java.util.LinkedList;
-import java.util.List;
-
 /**
  * Fluent builder for constructing a {@link Script} instance for a specific language and source text.
  *
  * <p>Instances are obtained from {@link ScriptBuilderBuilder#with(String, String)} rather than
- * constructed directly.  Use {@link #param(ScriptParameter)} to declare parameters before calling
- * {@link #build()} to compile the script.
+ * constructed directly.
  *
  * @author Max Arulananthan
  * @since 1.2
  * @see ScriptBuilderBuilder
- * @see ScriptParameter
  */
 public class ScriptBuilder {
 
     private final ScriptProcessorFactory factory;
     private final String script;
-    private final List<ScriptParameter> scriptParameters = new LinkedList<>();
-
+    private Class<?> returnType = void.class;
     /**
      * Package-private constructor — use {@link ScriptBuilderBuilder#with(String, String)}.
      *
@@ -55,25 +49,30 @@ public class ScriptBuilder {
     }
 
     /**
-     * Declares a parameter that the script expects to receive from the rule bindings.
+     * Sets the expected return type of the script.
      *
-     * @param parameter the parameter declaration; must not be null.
-     * @return this builder, for method chaining.
+     * <p>The default is {@code void.class}.  Pass {@code Boolean.class} for condition scripts,
+     * {@code Object.class} for function scripts, or any other type as needed.
+     *
+     * @param returnType the expected return type; must not be null.
+     * @return this builder, for chaining.
      */
-    public ScriptBuilder param(ScriptParameter parameter) {
-        Assert.notNull(parameter, "parameter cannot be null.");
-        this.scriptParameters.add(parameter);
+    public ScriptBuilder returnType(Class<?> returnType) {
+        this.returnType = returnType;
         return this;
     }
 
     /**
-     * Compiles the script and returns the resulting {@link Script} instance.
+     * Compiles and returns the {@link Script}.
      *
-     * @param <T> the expected return type of the script.
-     * @return the compiled script; never null.
-     * @throws BuildScriptException if the source cannot be compiled.
+     * <p>Delegates to {@link ScriptCompiler#compile(String, Class)} for the factory associated
+     * with the chosen language.
+     *
+     * @param <T> the expected return type of the compiled script.
+     * @return the compiled (or lazily-compiled) script; never null.
+     * @throws BuildScriptException if the underlying compiler rejects the source.
      */
     public <T> Script<T> build() {
-        return factory.getScriptCompiler().compile(script, scriptParameters);
+        return factory.getScriptCompiler().compile(script, returnType);
     }
 }

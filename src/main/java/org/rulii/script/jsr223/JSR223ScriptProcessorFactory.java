@@ -83,7 +83,7 @@ public class JSR223ScriptProcessorFactory implements ScriptProcessorFactory {
     }
 
     @Override
-    public String getBindingName() {
+    public String getBindingsName() {
         return bindingsName;
     }
 

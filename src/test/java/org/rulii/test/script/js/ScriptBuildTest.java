@@ -23,7 +23,6 @@ import org.junit.jupiter.api.Test;
 import org.rulii.bind.Bindings;
 import org.rulii.context.RuleContext;
 import org.rulii.script.Script;
-import org.rulii.script.ScriptParameter;
 import org.rulii.script.graaljs.GraalJsScriptProcessorFactory;
 
 /**
@@ -63,34 +62,6 @@ public class ScriptBuildTest {
                 .build();
         Assertions.assertEquals(GraalJsScriptProcessorFactory.LANGUAGE_NAME, script.getLanguageName());
         Assertions.assertEquals("'hello'", script.getScript());
-    }
-
-    @Test
-    public void testGetScriptParametersEmptyByDefault() {
-        Script<?> script = Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "1");
-        Assertions.assertNotNull(script.getScriptParameters());
-        Assertions.assertTrue(script.getScriptParameters().isEmpty());
-    }
-
-    @Test
-    public void testWithSingleParameter() {
-        Script<?> script = Script.builder()
-                .with(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "ctx.age > 18")
-                .param(new ScriptParameter("age", Integer.class))
-                .build();
-        Assertions.assertEquals(1, script.getScriptParameters().size());
-        Assertions.assertEquals("age", script.getScriptParameters().get(0).getName());
-        Assertions.assertEquals(Integer.class, script.getScriptParameters().get(0).getType());
-    }
-
-    @Test
-    public void testWithMultipleParameters() {
-        Script<?> script = Script.builder()
-                .with(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "ctx.a + ctx.b")
-                .param(new ScriptParameter("a", Integer.class))
-                .param(new ScriptParameter("b", Integer.class))
-                .build();
-        Assertions.assertEquals(2, script.getScriptParameters().size());
     }
 
     @Test

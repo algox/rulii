@@ -175,7 +175,7 @@ public class ScriptProcessorBugTest {
         }
 
         @Override
-        public String getBindingName() {
+        public String getBindingsName() {
             return ScriptOptions.DEFAULT.bindingsName();
         }
 

@@ -19,10 +19,8 @@ package org.rulii.script.jsr223;
 
 import org.rulii.script.AbstractScript;
 import org.rulii.script.Script;
-import org.rulii.script.ScriptParameter;
 
 import javax.script.CompiledScript;
-import java.util.List;
 
 /**
  * JSR-223 implementation of {@link Script} that holds either a pre-compiled
@@ -51,10 +49,10 @@ public class JSR223Script<T> extends AbstractScript<T> {
      * @param languageName     the scripting language name; must not be null or empty.
      * @param script           the raw script source text; must not be null or empty.
      * @param compiledScript   the pre-compiled form, or {@code null} for interpreted execution.
-     * @param scriptParameters the parameter declarations; may be null (treated as empty list).
+     * @param returnType       the result type.
      */
-    public JSR223Script(String languageName, String script, CompiledScript compiledScript, List<ScriptParameter> scriptParameters) {
-        super(languageName, script, scriptParameters);
+    public JSR223Script(String languageName, String script, CompiledScript compiledScript, Class<?> returnType) {
+        super(languageName, script, returnType);
         this.compiledScript = compiledScript;
     }
 
@@ -74,7 +72,6 @@ public class JSR223Script<T> extends AbstractScript<T> {
                 "languageName='" + getLanguageName() + '\'' +
                 ", script='" + getScript() + '\'' +
                 ", compiledScript=" + compiledScript +
-                ", scriptParameters=" + getScriptParameters() +
                 '}';
     }
 }

@@ -60,7 +60,7 @@ public interface ScriptProcessorFactory {
      *
      * @return the bindings variable name; never null or empty.
      */
-    String getBindingName();
+    String getBindingsName();
 
     /**
      * Creates and returns a new {@link ScriptProcessor} for this language.

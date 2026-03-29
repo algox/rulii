@@ -41,6 +41,7 @@
         <logback.classic.version>1.5.32</logback.classic.version>
         <junit.version>5.12.1</junit.version>
         <graalvm.version>24.1.0</graalvm.version>
+        <janino.version>3.1.12</janino.version>
 
         <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
         <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
@@ -76,6 +77,13 @@
             <artifactId>js-community</artifactId>
             <version>${graalvm.version}</version>
             <type>pom</type>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.codehaus.janino</groupId>
+            <artifactId>janino</artifactId>
+            <version>${janino.version}</version>
             <scope>provided</scope>
         </dependency>
 

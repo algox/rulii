@@ -18,14 +18,13 @@
 package org.rulii.script.jsr223;
 
 import org.rulii.lib.spring.util.Assert;
+import org.rulii.model.UnrulyException;
 import org.rulii.script.BuildScriptException;
 import org.rulii.script.Script;
 import org.rulii.script.ScriptCompiler;
-import org.rulii.script.ScriptParameter;
 
 import javax.script.Compilable;
 import javax.script.ScriptEngine;
-import java.util.List;
 
 /**
  * JSR-223 implementation of {@link ScriptCompiler} that compiles a script source string into
@@ -75,12 +74,12 @@ public class JSR223ScriptCompiler implements ScriptCompiler {
     }
 
     @Override
-    public <T> Script<T> compile(String script, List<ScriptParameter> parameters) {
-        if (compilable == null) return new JSR223Script<>(languageName, script, null, parameters);
+    public <T> Script<T> compile(String script, Class<?> returnType) {
+        if (compilable == null) return new JSR223Script<>(languageName, script, null, returnType);
 
         try {
-            return new JSR223Script<>(languageName, script, compilable.compile(script), parameters);
-        } catch (BuildScriptException e) {
+            return new JSR223Script<>(languageName, script, compilable.compile(script), returnType);
+        } catch (UnrulyException e) {
             throw e;
         } catch (Exception e) {
             throw new BuildScriptException(script, e.getMessage(), e);

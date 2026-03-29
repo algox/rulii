@@ -115,6 +115,8 @@ public final class ConditionBuilderBuilder {
     public Condition build(Script<?> script) {
         Assert.notNull(script, "script cannot be null.");
 
+        script.setReturnType(Boolean.class);
+
         return Condition.builder().with((RuleContext ruleContext) -> {
             Assert.notNull(ruleContext, "v cannot be null.");
             Object result = script.run(ruleContext);

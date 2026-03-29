@@ -20,6 +20,7 @@ package org.rulii.script.jsr223;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.lib.spring.util.StringUtils;
+import org.rulii.model.UnrulyException;
 import org.rulii.script.EvaluationException;
 import org.rulii.script.Script;
 import org.rulii.script.ScriptOptions;
@@ -46,6 +47,8 @@ import javax.script.SimpleScriptContext;
  * @see JSR223ScriptProcessorFactory
  */
 public class JSR223ScriptProcessor implements ScriptProcessor {
+
+    // TODO : Context cache
 
     private final ScriptEngine scriptEngine;
     private final String languageName;
@@ -95,6 +98,8 @@ public class JSR223ScriptProcessor implements ScriptProcessor {
 
         try {
             return (T) jsr223Script.getCompiledScript().eval(scriptContext);
+        } catch (UnrulyException e) {
+            throw e;
         } catch (Exception e) {
             throw new EvaluationException(script.getScript(), e.getMessage(), e);
         }
@@ -105,16 +110,13 @@ public class JSR223ScriptProcessor implements ScriptProcessor {
         return languageName;
     }
 
-    public String getBindingName() {
-        return bindingsName;
-    }
-
     /**
      * Returns the variable name under which the rule bindings map is exposed
      * inside scripts evaluated by this processor.
      *
      * @return the bindings variable name; never null or empty.
      */
+    @Override
     public String getBindingsName() {
         return bindingsName;
     }

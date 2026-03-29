@@ -148,6 +148,7 @@ public final class ActionBuilderBuilder {
      */
     public Action build(Script<?> script) {
         Assert.notNull(script, "script cannot be null.");
+        script.setReturnType(void.class);
 
         return Action.builder().with((RuleContext ruleContext) -> {
             Assert.notNull(ruleContext, "ruleContext cannot be null.");

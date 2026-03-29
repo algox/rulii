@@ -56,6 +56,18 @@ public final class ReflectionUtils {
                     || clazz.getPackage().getName().startsWith("java.")
                     || clazz.getPackage().getName().startsWith("javax.");
 
+    private static final Map<Class<?>, Class<?>> PRIMITIVE_TO_WRAPPER = Map.of(
+            boolean.class, Boolean.class,
+            byte.class,    Byte.class,
+            char.class,    Character.class,
+            short.class,   Short.class,
+            int.class,     Integer.class,
+            long.class,    Long.class,
+            float.class,   Float.class,
+            double.class,  Double.class,
+            void.class,    Void.class
+    );
+
     private static final Map<Type, Object> DEFAULT_VALUE_MAP = new HashMap<>();
     private static final Map<Class<?>, MethodHandles.Lookup> METHOD_HANDLE_CACHE = new HashMap<>();
 
@@ -149,6 +161,18 @@ public final class ReflectionUtils {
      */
     public static Object getDefaultValue(Type type) {
         return DEFAULT_VALUE_MAP.get(type);
+    }
+
+    /**
+     * Returns the wrapper class of the given primitive type, or the class itself if it is not a primitive type.
+     *
+     * @param type the class to check; may be a primitive type or any other class
+     * @return the wrapper class for the given primitive type, or the same class if it is not primitive
+     */
+    public static Class<?> getWrapperClass(Class<?> type) {
+        if (!type.isPrimitive()) return type;
+        Class<?> wrapper = PRIMITIVE_TO_WRAPPER.get(type);
+        return wrapper != null ? wrapper : type;
     }
 
     /**

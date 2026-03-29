@@ -49,7 +49,7 @@ public interface ScriptProcessor {
      *
      * @return the bindings variable name; never null or empty.
      */
-    String getBindingName();
+    String getBindingsName();
 
     /**
      * Evaluates the given script using the bindings available in the provided {@link RuleContext}.

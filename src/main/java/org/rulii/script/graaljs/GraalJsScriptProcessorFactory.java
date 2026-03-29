@@ -107,7 +107,7 @@ public class GraalJsScriptProcessorFactory implements ScriptProcessorFactory {
     }
 
     @Override
-    public String getBindingName() {
+    public String getBindingsName() {
         return bindingsName;
     }
 

@@ -120,6 +120,10 @@ public final class FunctionBuilderBuilder {
      * @return the constructed Function instance
      */
     public <T> Function<T> build(Script<T> script) {
+        Assert.notNull(script, "script cannot be null.");
+
+        script.setReturnType(Object.class);
+
         return Function.builder().with((RuleContext ruleContext) -> {
                     Assert.notNull(ruleContext, "ruleContext cannot be null.");
                     return script.run(ruleContext);
