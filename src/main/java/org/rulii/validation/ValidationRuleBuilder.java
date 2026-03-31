@@ -62,7 +62,9 @@ public class ValidationRuleBuilder extends ClassBasedRuleBuilder<SuppliedValidat
 
     @Override
     public Rule build() {
+        String ruleName = getName();
         load(SuppliedValidationRule.class, new SuppliedValidationRule(condition, errorCode, severity, errorMessage, defaultMessage));
+        name(ruleName);
         return super.build();
     }
 }
