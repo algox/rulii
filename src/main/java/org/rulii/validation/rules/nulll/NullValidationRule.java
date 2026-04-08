@@ -20,9 +20,9 @@ package org.rulii.validation.rules.nulll;
 import org.rulii.annotation.Description;
 import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
-import org.rulii.validation.BindingSupplier;
-import org.rulii.validation.BindingValidationRule;
+import org.rulii.model.function.Function;
 import org.rulii.validation.Severity;
+import org.rulii.validation.ValueValidationRule;
 
 import java.util.List;
 
@@ -35,7 +35,7 @@ import java.util.List;
  */
 @Rule
 @Description("Value must be null.")
-public class NullValidationRule extends BindingValidationRule {
+public class NullValidationRule extends ValueValidationRule {
 
     public static List<Class<?>> SUPPORTED_TYPES    = List.of(Object.class);
 
@@ -43,46 +43,17 @@ public class NullValidationRule extends BindingValidationRule {
     public static final String DEFAULT_MESSAGE = "Value {0} must be null.";
 
     /**
-     * Constructor for NullValidationRule class.
+     * Creates a new builder for this validation rule.
      *
-     * @param bindingName the name of the binding to be validated
+     * @param function the function that supplies the value to validate
+     * @return a new {@link NullValidationRuleBuilder}
      */
-    public NullValidationRule(String bindingName) {
-        this(bindingName, ERROR_CODE, Severity.ERROR, null);
+    public static NullValidationRuleBuilder builder(Function<?> function) {
+        return new NullValidationRuleBuilder(function);
     }
 
-    /**
-     * Constructs a new NullValidationRule with the specified binding name and error code.
-     *
-     * @param bindingName the name of the binding to be validated
-     * @param errorCode the error code associated with the validation rule
-     */
-    public NullValidationRule(String bindingName, String errorCode) {
-        this(bindingName, errorCode, Severity.ERROR, null);
-    }
-
-    /**
-     * Constructor for NullValidationRule class that checks if the value is null.
-     *
-     * @param bindingName   the name of the binding to be validated
-     * @param errorCode     the error code associated with the validation rule
-     * @param severity      the severity of the error
-     * @param errorMessage  the error message to be displayed if the validation rule fails
-     */
-    public NullValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage) {
-        super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
-    }
-
-    /**
-     * Constructs a new NullValidationRule with the specified binding supplier, error code, severity, and error message.
-     *
-     * @param bindingSupplier the supplier of bindings for rule evaluation
-     * @param errorCode the error code associated with the validation rule
-     * @param severity the severity of the error
-     * @param errorMessage the error message to be displayed if the validation rule fails
-     */
-    public NullValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity, String errorMessage) {
-        super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
+    NullValidationRule(Function<?> valueFunction, String errorCode, Severity severity, String errorMessage, String valueName) {
+        super(valueFunction, errorCode, severity, errorMessage, DEFAULT_MESSAGE, valueName);
     }
 
     @Override

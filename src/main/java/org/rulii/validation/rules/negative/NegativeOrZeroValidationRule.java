@@ -20,11 +20,11 @@ package org.rulii.validation.rules.negative;
 import org.rulii.annotation.Description;
 import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
+import org.rulii.model.function.Function;
 import org.rulii.util.NumberComparator;
-import org.rulii.validation.BindingSupplier;
-import org.rulii.validation.BindingValidationRule;
 import org.rulii.validation.Severity;
 import org.rulii.validation.ValidationRuleException;
+import org.rulii.validation.ValueValidationRule;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -39,7 +39,7 @@ import java.util.List;
  */
 @Rule
 @Description("Value is less than or equal 0.")
-public class NegativeOrZeroValidationRule extends BindingValidationRule {
+public class NegativeOrZeroValidationRule extends ValueValidationRule {
 
     public static List<Class<?>> SUPPORTED_TYPES = Arrays.asList(Number.class, CharSequence.class);
 
@@ -47,46 +47,17 @@ public class NegativeOrZeroValidationRule extends BindingValidationRule {
     public static final String DEFAULT_MESSAGE = "Value {0} must be less than or equal to 0.";
 
     /**
-     * Represents a Validation Rule to ensure that the value is less than or equal to zero.
+     * Creates a new builder for this validation rule.
      *
-     * @param bindingName the name of the binding to apply the validation rule
+     * @param function the function that supplies the value to validate
+     * @return a new {@link NegativeOrZeroValidationRuleBuilder}
      */
-    public NegativeOrZeroValidationRule(String bindingName) {
-        this(bindingName, ERROR_CODE, Severity.ERROR, null);
+    public static NegativeOrZeroValidationRuleBuilder builder(Function<?> function) {
+        return new NegativeOrZeroValidationRuleBuilder(function);
     }
 
-    /**
-     * Constructs a new NegativeOrZeroValidationRule with the specified binding name and error code.
-     *
-     * @param bindingName the name of the binding to apply the validation rule
-     * @param errorCode the error code associated with the validation rule
-     */
-    public NegativeOrZeroValidationRule(String bindingName, String errorCode) {
-        this(bindingName, errorCode, Severity.ERROR, null);
-    }
-
-    /**
-     * Represents a validation rule to ensure that the value is less than or equal to 0.
-     *
-     * @param bindingName the name of the binding to apply the validation rule
-     * @param errorCode the error code associated with the validation rule
-     * @param severity the severity of the error
-     * @param errorMessage the error message that will be displayed if the validation rule fails
-     */
-    public NegativeOrZeroValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage) {
-        super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
-    }
-
-    /**
-     * Represents a Validation Rule to ensure that the value is less than or equal to zero.
-     *
-     * @param bindingSupplier the supplier of bindings for rule evaluation
-     * @param errorCode the error code associated with the validation rule
-     * @param severity the severity of the error
-     * @param errorMessage the error message that will be displayed if the validation rule fails
-     */
-    public NegativeOrZeroValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity, String errorMessage) {
-        super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
+    NegativeOrZeroValidationRule(Function<?> valueFunction, String errorCode, Severity severity, String errorMessage, String valueName) {
+        super(valueFunction, errorCode, severity, errorMessage, DEFAULT_MESSAGE, valueName);
     }
 
     @Override

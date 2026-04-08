@@ -128,6 +128,17 @@ public final class ReflectionUtils {
     }
 
     /**
+     * Retrieves the names of the parameters from the given constructor.
+     *
+     * @param method the constructor for which parameter names need to be retrieved; must not be null
+     * @return an array of parameter names for the given constructor, or null if parameter names cannot be determined
+     */
+    public static String[] getParameterNames(Constructor<?> method) {
+        Assert.notNull(method, "method cannot be null");
+        return parameterNameDiscoverer.getParameterNames(method);
+    }
+
+    /**
      * Finds the PostConstruct method(s) in a given class.
      *
      * @param c desired class

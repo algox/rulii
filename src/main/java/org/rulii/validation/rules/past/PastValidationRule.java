@@ -20,8 +20,12 @@ package org.rulii.validation.rules.past;
 import org.rulii.annotation.Description;
 import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
+import org.rulii.model.function.Function;
 import org.rulii.util.TimeComparator;
-import org.rulii.validation.*;
+import org.rulii.validation.RuleViolationBuilder;
+import org.rulii.validation.Severity;
+import org.rulii.validation.ValidationRuleException;
+import org.rulii.validation.ValueValidationRule;
 
 import java.sql.Date;
 import java.time.*;
@@ -37,7 +41,7 @@ import java.util.List;
  */
 @Rule
 @Description("Value must be in the past.")
-public class PastValidationRule extends BindingValidationRule {
+public class PastValidationRule extends ValueValidationRule {
 
     public static List<Class<?>> SUPPORTED_TYPES    = List.of(Calendar.class, Date.class, java.util.Date.class, Instant.class,
             LocalDate.class, LocalDateTime.class, LocalTime.class, MonthDay.class, OffsetDateTime.class,
@@ -47,46 +51,17 @@ public class PastValidationRule extends BindingValidationRule {
     public static final String DEFAULT_MESSAGE  = "Value {0} must be in the past. Current clock {1}.";
 
     /**
-     * Constructor for creating a PastValidationRule object.
+     * Creates a new builder for this validation rule.
      *
-     * @param bindingName the name to bind the rule to
+     * @param function the function that supplies the date/time value to validate
+     * @return a new {@link PastValidationRuleBuilder}
      */
-    public PastValidationRule(String bindingName) {
-        this(bindingName, ERROR_CODE, Severity.ERROR, null);
+    public static PastValidationRuleBuilder builder(Function<?> function) {
+        return new PastValidationRuleBuilder(function);
     }
 
-    /**
-     * Constructor for creating a PastValidationRule object with the specified binding name and error code.
-     *
-     * @param bindingName the name to bind the rule to
-     * @param errorCode the error code associated with the rule
-     */
-    public PastValidationRule(String bindingName, String errorCode) {
-        this(bindingName, errorCode, Severity.ERROR, null);
-    }
-
-    /**
-     * Constructor for creating a PastValidationRule object.
-     *
-     * @param bindingName the name to bind the rule to
-     * @param errorCode the error code associated with the rule
-     * @param severity the severity level of the error
-     * @param errorMessage the custom error message to display
-     */
-    public PastValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage) {
-        super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
-    }
-
-    /**
-     * Constructs a PastValidationRule object.
-     *
-     * @param bindingSupplier the supplier of bindings for rule evaluation
-     * @param errorCode the error code associated with the validation rule
-     * @param severity the severity of the error
-     * @param errorMessage the error message that will be displayed if the validation rule fails
-     */
-    public PastValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity, String errorMessage) {
-        super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
+    PastValidationRule(Function<?> valueFunction, String errorCode, Severity severity, String errorMessage, String valueName) {
+        super(valueFunction, errorCode, severity, errorMessage, DEFAULT_MESSAGE, valueName);
     }
 
     @Override

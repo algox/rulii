@@ -20,11 +20,11 @@ package org.rulii.validation.rules.negative;
 import org.rulii.annotation.Description;
 import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
+import org.rulii.model.function.Function;
 import org.rulii.util.NumberComparator;
-import org.rulii.validation.BindingSupplier;
-import org.rulii.validation.BindingValidationRule;
 import org.rulii.validation.Severity;
 import org.rulii.validation.ValidationRuleException;
+import org.rulii.validation.ValueValidationRule;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -39,7 +39,7 @@ import java.util.List;
  */
 @Rule
 @Description("Value must be less than 0.")
-public class NegativeValidationRule extends BindingValidationRule {
+public class NegativeValidationRule extends ValueValidationRule {
 
     public static List<Class<?>> SUPPORTED_TYPES    = Arrays.asList(Number.class, CharSequence.class);
 
@@ -47,48 +47,17 @@ public class NegativeValidationRule extends BindingValidationRule {
     public static final String DEFAULT_MESSAGE  = "Value {0} must be less than 0.";
 
     /**
-     * Constructs a NegativeValidationRule with the specified binding name, default error code, error severity,
-     * and error message.
+     * Creates a new builder for this validation rule.
      *
-     * @param bindingName the name of the binding to apply the validation rule
+     * @param function the function that supplies the value to validate
+     * @return a new {@link NegativeValidationRuleBuilder}
      */
-    public NegativeValidationRule(String bindingName) {
-        this(bindingName, ERROR_CODE, Severity.ERROR, null);
+    public static NegativeValidationRuleBuilder builder(Function<?> function) {
+        return new NegativeValidationRuleBuilder(function);
     }
 
-    /**
-     * Constructs a NegativeValidationRule with the specified binding name and error code.
-     * The rule will be set to have an error severity and no custom error message.
-     *
-     * @param bindingName the name of the binding to apply the validation rule
-     * @param errorCode the error code to be used when the rule is violated
-     */
-    public NegativeValidationRule(String bindingName, String errorCode) {
-        this(bindingName, errorCode, Severity.ERROR, null);
-    }
-
-    /**
-     * Constructs a NegativeValidationRule with the specified binding name, error code, severity, and error message.
-     *
-     * @param bindingName   the name of the binding to apply the validation rule
-     * @param errorCode     the error code to be used when the rule is violated
-     * @param severity      the severity of the error
-     * @param errorMessage  the error message to display if the validation rule fails
-     */
-    public NegativeValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage) {
-        super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
-    }
-
-    /**
-     * Represents a validation rule that checks if a value is negative.
-     *
-     * @param bindingSupplier The supplier of bindings for rule evaluation. Must not be null.
-     * @param errorCode The error code associated with the validation rule.
-     * @param severity The severity of the error.
-     * @param errorMessage The error message that will be displayed if the validation rule fails.
-     */
-    public NegativeValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity, String errorMessage) {
-        super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
+    NegativeValidationRule(Function<?> valueFunction, String errorCode, Severity severity, String errorMessage, String valueName) {
+        super(valueFunction, errorCode, severity, errorMessage, DEFAULT_MESSAGE, valueName);
     }
 
     @Override

@@ -21,10 +21,10 @@ import org.rulii.annotation.Description;
 import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.apache.StringUtils;
-import org.rulii.validation.BindingSupplier;
-import org.rulii.validation.BindingValidationRule;
+import org.rulii.model.function.Function;
 import org.rulii.validation.Severity;
 import org.rulii.validation.ValidationRuleException;
+import org.rulii.validation.ValueValidationRule;
 
 import java.util.List;
 
@@ -37,7 +37,7 @@ import java.util.List;
  */
 @Rule
 @Description("Value must be all in lowercase.")
-public class LowerCaseValidationRule extends BindingValidationRule {
+public class LowerCaseValidationRule extends ValueValidationRule {
 
     public static final List<Class<?>> SUPPORTED_TYPES    = List.of(CharSequence.class);
 
@@ -45,48 +45,17 @@ public class LowerCaseValidationRule extends BindingValidationRule {
     public static final String DEFAULT_MESSAGE  = "Value {0} must be in lowercase.";
 
     /**
-     * Constructor for LowerCaseValidationRule.
+     * Creates a new builder for this validation rule.
      *
-     * @param bindingName The name of the binding to apply the validation rule on.
+     * @param function the function that supplies the value to validate
+     * @return a new {@link LowerCaseValidationRuleBuilder}
      */
-    public LowerCaseValidationRule(String bindingName) {
-        this(bindingName, ERROR_CODE, Severity.ERROR, null);
+    public static LowerCaseValidationRuleBuilder builder(Function<?> function) {
+        return new LowerCaseValidationRuleBuilder(function);
     }
 
-    /**
-     * Initializes a new LowerCaseValidationRule with the specified binding name and error code.
-     *
-     * @param bindingName The name of the binding to apply the validation rule on.
-     * @param errorCode The error code for this validation rule.
-     */
-    public LowerCaseValidationRule(String bindingName, String errorCode) {
-        this(bindingName, errorCode, Severity.ERROR, null);
-    }
-
-    /**
-     *
-     * Constructor for LowerCaseValidationRule.
-     * Validates that the given input value is all in lowercase.
-     *
-     * @param bindingName The name of the binding to apply the validation rule on.
-     * @param errorCode The error code associated with the validation rule.
-     * @param severity The severity of the error if the validation rule fails.
-     * @param errorMessage The custom error message to display if the validation rule fails.
-     */
-    public LowerCaseValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage) {
-        super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
-    }
-
-    /**
-     * Represents a Validation Rule to ensure that the value must be all lowercase.
-     *
-     * @param bindingSupplier The supplier of bindings for rule evaluation. Must not be null.
-     * @param errorCode The error code associated with the validation rule.
-     * @param severity The severity of the error if the validation rule fails.
-     * @param errorMessage The custom error message to display if the validation rule fails.
-     */
-    public LowerCaseValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity, String errorMessage) {
-        super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
+    LowerCaseValidationRule(Function<?> valueFunction, String errorCode, Severity severity, String errorMessage, String valueName) {
+        super(valueFunction, errorCode, severity, errorMessage, DEFAULT_MESSAGE, valueName);
     }
 
     @Override

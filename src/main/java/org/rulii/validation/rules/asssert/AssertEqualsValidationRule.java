@@ -20,10 +20,10 @@ package org.rulii.validation.rules.asssert;
 import org.rulii.annotation.Description;
 import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
-import org.rulii.validation.BindingSupplier;
-import org.rulii.validation.BindingValidationRule;
+import org.rulii.model.function.Function;
 import org.rulii.validation.RuleViolationBuilder;
 import org.rulii.validation.Severity;
+import org.rulii.validation.ValueValidationRule;
 
 import java.util.List;
 import java.util.Objects;
@@ -37,7 +37,7 @@ import java.util.Objects;
  */
 @Rule
 @Description("Value must match desired value.")
-public class AssertEqualsValidationRule extends BindingValidationRule {
+public class AssertEqualsValidationRule extends ValueValidationRule {
 
     private static final List<Class<?>> SUPPORTED_TYPES = List.of(Object.class);
 
@@ -47,53 +47,19 @@ public class AssertEqualsValidationRule extends BindingValidationRule {
     private final Object value;
 
     /**
-     * This method creates an instance of AssertEqualsValidationRule with the provided binding name and value.
+     * Creates a new builder for this validation rule.
      *
-     * @param bindingName the name of the binding for this validation rule
-     * @param value the value that should be matched for validation
+     * @param function the function that supplies the value to validate
+     * @param value    the expected value that the supplied value must equal
+     * @return a new {@link AssertEqualsValidationRuleBuilder}
      */
-    public AssertEqualsValidationRule(String bindingName, Object value) {
-        this(bindingName, ERROR_CODE, Severity.ERROR, null, value);
+    public static AssertEqualsValidationRuleBuilder builder(Function<?> function, Object value) {
+        return new AssertEqualsValidationRuleBuilder(function, value);
     }
 
-    /**
-     * Constructs a new AssertEqualsValidationRule with the provided binding name, error code, and value.
-     *
-     * @param bindingName the name of the binding for this validation rule
-     * @param errorCode the error code associated with the validation rule
-     * @param value the value that should be matched for validation
-     */
-    public AssertEqualsValidationRule(String bindingName, String errorCode, Object value) {
-        this(bindingName, errorCode, Severity.ERROR, null, value);
-    }
-
-    /**
-     * Initializes a new instance of AssertEqualsValidationRule with the specified parameters.
-     *
-     * @param bindingName the name of the binding for this validation rule
-     * @param errorCode the error code associated with the validation rule
-     * @param severity the severity of the error
-     * @param errorMessage the error message to display if the validation fails
-     * @param value the value that should be matched for validation
-     */
-    public AssertEqualsValidationRule(String bindingName, String errorCode,
-                                      Severity severity, String errorMessage, Object value) {
-        super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
-        this.value = value;
-    }
-
-    /**
-     * Constructs an AssertEqualsValidationRule with the specified parameters.
-     *
-     * @param bindingSupplier the supplier of bindings for rule evaluation. Must not be null.
-     * @param errorCode the error code associated with the validation rule.
-     * @param severity the severity of the error.
-     * @param errorMessage the error message that will be displayed if the validation rule fails.
-     * @param value the value that should be matched for validation.
-     */
-    public AssertEqualsValidationRule(BindingSupplier bindingSupplier, String errorCode,
-                                      Severity severity, String errorMessage, Object value) {
-        super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
+    AssertEqualsValidationRule(Function<?> valueFunction, String errorCode, Severity severity,
+                               String errorMessage, String valueName, Object value) {
+        super(valueFunction, errorCode, severity, errorMessage, DEFAULT_MESSAGE, valueName);
         this.value = value;
     }
 

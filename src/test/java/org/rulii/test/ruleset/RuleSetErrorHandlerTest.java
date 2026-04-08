@@ -36,6 +36,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.rulii.model.action.Actions.action;
 import static org.rulii.model.condition.Conditions.condition;
 import static org.rulii.model.function.Functions.function;
+import static org.rulii.validation.rules.Validators.binding;
 
 /**
  * Unit tests for the ErrorHandler feature on RuleSets.
@@ -82,7 +83,7 @@ public class RuleSetErrorHandlerTest {
         RuleSet<?> ruleSet = RuleSet.builder()
                 .with("testValidationRethrow")
                 .validating()
-                .rule(new NotNullValidationRule("fieldA"))
+                .rule(NotNullValidationRule.builder(binding("fieldA")).build())
                 .build();
 
         Bindings bindings = Bindings.builder().standard();

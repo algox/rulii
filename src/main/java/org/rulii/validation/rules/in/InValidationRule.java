@@ -21,10 +21,10 @@ import org.rulii.annotation.Description;
 import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.spring.util.Assert;
-import org.rulii.validation.BindingSupplier;
-import org.rulii.validation.BindingValidationRule;
+import org.rulii.model.function.Function;
 import org.rulii.validation.RuleViolationBuilder;
 import org.rulii.validation.Severity;
+import org.rulii.validation.ValueValidationRule;
 
 import java.util.Collection;
 import java.util.List;
@@ -38,7 +38,7 @@ import java.util.List;
  */
 @Rule
 @Description("Value must be in the given collection.")
-public class InValidationRule extends BindingValidationRule {
+public class InValidationRule extends ValueValidationRule {
 
     public static List<Class<?>> SUPPORTED_TYPES    = List.of(Object.class);
 
@@ -48,52 +48,19 @@ public class InValidationRule extends BindingValidationRule {
     private final Collection<?> values;
 
     /**
-     * Constructs a new InValidationRule to validate that the value is in the given collection.
+     * Creates a new builder for this validation rule.
      *
-     * @param bindingName the name of the binding to which this rule is applied
-     * @param values the collection of valid values to check against
+     * @param function the function that supplies the value to validate
+     * @param values   the collection of acceptable values
+     * @return a new {@link InValidationRuleBuilder}
      */
-    public InValidationRule(String bindingName, Collection<?> values) {
-        this(bindingName, ERROR_CODE, Severity.ERROR, null, values);
+    public static InValidationRuleBuilder builder(Function<?> function, Collection<?> values) {
+        return new InValidationRuleBuilder(function, values);
     }
 
-    /**
-     * Constructs a new InValidationRule with the provided binding name, error code, and collection of values.
-     *
-     * @param bindingName the name of the binding to which this rule is applied
-     * @param errorCode the error code associated with this rule
-     * @param values the collection of valid values to check against
-     */
-    public InValidationRule(String bindingName, String errorCode, Collection<?> values) {
-        this(bindingName, errorCode, Severity.ERROR, null, values);
-    }
-
-    /**
-     * Constructs a new InValidationRule with the provided parameters.
-     *
-     * @param bindingName the name of the binding to which this rule is applied
-     * @param errorCode the error code associated with this rule
-     * @param severity the severity of the error
-     * @param errorMessage the error message to be displayed if the rule fails
-     * @param values the collection of valid values to check against
-     */
-    public InValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage, Collection<?> values) {
-        super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
-        Assert.notNull(values, "values cannot be null.");
-        this.values = values;
-    }
-
-    /**
-     * Constructs a new InValidationRule to validate that the value is in the given collection.
-     *
-     * @param bindingSupplier   The supplier of bindings for rule evaluation.
-     * @param errorCode         The error code associated with the validation rule.
-     * @param severity          The severity of the error.
-     * @param errorMessage      The error message that will be displayed if the validation rule fails.
-     * @param values            The collection of valid values to check against.
-     */
-    public InValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity, String errorMessage, Collection<?> values) {
-        super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
+    InValidationRule(Function<?> valueFunction, String errorCode, Severity severity,
+                     String errorMessage, String valueName, Collection<?> values) {
+        super(valueFunction, errorCode, severity, errorMessage, DEFAULT_MESSAGE, valueName);
         Assert.notNull(values, "values cannot be null.");
         this.values = values;
     }

@@ -26,6 +26,7 @@ import org.rulii.rule.RuleResult;
 import org.rulii.validation.RuleViolation;
 import org.rulii.validation.RuleViolations;
 import org.rulii.validation.Severity;
+import org.rulii.validation.rules.Validators;
 import org.rulii.validation.rules.alpha.AlphaValidationRule;
 import org.rulii.validation.rules.alphnumeric.AlphaNumericValidationRule;
 import org.rulii.validation.rules.ascii.AsciiValidationRule;
@@ -42,7 +43,6 @@ import org.rulii.validation.rules.email.EmailValidationRule;
 import org.rulii.validation.rules.endswith.EndsWithValidationRule;
 import org.rulii.validation.rules.fileexists.FileExistsValidationRule;
 import org.rulii.validation.rules.future.FutureOrPresentValidationRule;
-import org.rulii.validation.rules.future.FutureValidationRule;
 import org.rulii.validation.rules.in.InValidationRule;
 import org.rulii.validation.rules.lowercase.LowerCaseValidationRule;
 import org.rulii.validation.rules.max.DecimalMaxValidationRule;
@@ -52,19 +52,6 @@ import org.rulii.validation.rules.min.MinValidationRule;
 import org.rulii.validation.rules.negative.NegativeOrZeroValidationRule;
 import org.rulii.validation.rules.negative.NegativeValidationRule;
 import org.rulii.validation.rules.notblank.NotBlankValidationRule;
-import org.rulii.validation.rules.notempty.NotEmptyValidationRule;
-import org.rulii.validation.rules.notnull.NotNullValidationRule;
-import org.rulii.validation.rules.nulll.NullValidationRule;
-import org.rulii.validation.rules.numeric.NumericValidationRule;
-import org.rulii.validation.rules.past.PastOrPresentValidationRule;
-import org.rulii.validation.rules.past.PastValidationRule;
-import org.rulii.validation.rules.pattern.PatternValidationRule;
-import org.rulii.validation.rules.positive.PositiveOrZeroValidationRule;
-import org.rulii.validation.rules.positive.PositiveValidationRule;
-import org.rulii.validation.rules.size.SizeValidationRule;
-import org.rulii.validation.rules.startswith.StartsWithValidationRule;
-import org.rulii.validation.rules.uppercase.UpperCaseValidationRule;
-import org.rulii.validation.rules.url.UrlValidationRule;
 
 import java.math.BigDecimal;
 import java.time.*;
@@ -72,6 +59,9 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.rulii.model.function.Functions.function;
+import static org.rulii.validation.rules.Validators.*;
+
 /**
  * Class containing test methods for validating the functionality of Validation Rules.
  *
@@ -87,16 +77,19 @@ public class ValidationRuleTests {
 
     @Test
     public void alphaTest1() {
-        AlphaValidationRule validationRule = new AlphaValidationRule("value");
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = alpha(binding("value")).build();
         RuleResult result = rule.run(value -> "abc");
         assertTrue(result.status().isPass());
     }
 
     @Test
     public void alphaTest2() {
-        AlphaValidationRule validationRule = new AlphaValidationRule("value", "error.1", Severity.ERROR, "Alpha Error Message", false);
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = alpha(binding("value"))
+                .errorCode("error.1")
+                .severity(Severity.ERROR)
+                .message("Alpha Error Message")
+                .allowSpace()
+                .build();
 
         RuleResult result = rule.run(value -> "abc");
         assertTrue(result.status().isPass());
@@ -114,7 +107,7 @@ public class ValidationRuleTests {
 
     @Test
     public void alphaTest3() {
-        Rule rule = Rule.builder().build(new AlphaValidationRule("value"));
+        Rule rule = alpha(binding("value")).build();
         RuleResult result = rule.run(value -> "abc");
         assertTrue(result.status().isPass());
 
@@ -131,8 +124,11 @@ public class ValidationRuleTests {
 
     @Test
     public void alphaTest4() {
-        Rule rule = Rule.builder().build(new AlphaValidationRule("value", "alphaError1",
-                Severity.FATAL, "Alpha Error Message", false));
+        Rule rule = alpha(binding("value"))
+                .errorCode("alphaError1")
+                .severity(Severity.FATAL)
+                .message("Alpha Error Message")
+                .build();
         RuleViolations errors = new RuleViolations();
         RuleResult result = rule.run(ruleViolations -> errors, value -> "abc d");
         assertTrue(result.status().isFail());
@@ -143,37 +139,43 @@ public class ValidationRuleTests {
         assertEquals(Severity.FATAL, violation.getSeverity());
         assertEquals("Alpha Error Message", violation.getErrorMessage());
     }
+
     @Test
     public void alphaTest5() {
-        AlphaValidationRule validationRule = new AlphaValidationRule("value");
-        Rule rule = Rule.builder().build(validationRule);
-        RuleResult result = rule.run();
-        assertTrue(result.status().isSkipped());
-        result = rule.run(value -> null);
+        Rule rule = alpha(binding("value")).build();
+        RuleResult result = rule.run(value -> null);
         assertTrue(result.status().isPass());
+
+        RuleResult r = rule.run();
+        assertTrue(r.status().isSkipped());
+
+        String value = "abc";
+        Rule rule2 = alpha(function(() -> value)).build();
+        RuleResult result2 = rule2.run();
+        assertTrue(result2.status().isPass());
     }
 
     @Test
     public void alphaTest6() {
-        AlphaValidationRule validationRule = new AlphaValidationRule("value");
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = alpha(binding("value")).build();
         RuleResult result = rule.run(value -> Boolean.TRUE);
         assertTrue(result.status().isSkipped());
     }
 
     @Test
     public void alphaNumericTest1() {
-        AlphaNumericValidationRule validationRule = new AlphaNumericValidationRule("value");
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = alphaNumeric(binding("value")).build();
         RuleResult result = rule.run(value -> "abc1");
         assertTrue(result.status().isPass());
     }
 
     @Test
     public void alphaNumericTest2() {
-        AlphaNumericValidationRule validationRule = new AlphaNumericValidationRule("value",
-                "error.1", Severity.ERROR, "Alpha Numeric Error Message", false);
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = alphaNumeric(binding("value"))
+                .errorCode("error.1")
+                .severity(Severity.ERROR)
+                .message("Alpha Numeric Error Message")
+                .build();
 
         RuleResult result = rule.run(value -> "abc1");
         assertTrue(result.status().isPass());
@@ -191,7 +193,7 @@ public class ValidationRuleTests {
 
     @Test
     public void alphaNumericTest3() {
-        Rule rule = Rule.builder().build(new AlphaNumericValidationRule("value"));
+        Rule rule = alphaNumeric(binding("value")).build();
         RuleResult result = rule.run(value -> "abc1");
         assertTrue(result.status().isPass());
 
@@ -208,7 +210,11 @@ public class ValidationRuleTests {
 
     @Test
     public void alphaNumericTest4() {
-        Rule rule = Rule.builder().build(new AlphaNumericValidationRule("value", "alphaNumericError1", Severity.FATAL, "Alpha Numeric Error Message", false));
+        Rule rule = alphaNumeric(binding("value"))
+                .errorCode("alphaNumericError1")
+                .severity(Severity.FATAL)
+                .message("Alpha Numeric Error Message")
+                .build();
         RuleViolations errors = new RuleViolations();
         RuleResult result = rule.run(ruleViolations -> errors, value -> "abc 1");
         assertTrue(result.status().isFail());
@@ -222,34 +228,35 @@ public class ValidationRuleTests {
 
     @Test
     public void alphaNumericTest5() {
-        AlphaNumericValidationRule validationRule = new AlphaNumericValidationRule("value");
-        Rule rule = Rule.builder().build(validationRule);
-        RuleResult result = rule.run();
-        assertTrue(result.status().isSkipped());
-        result = rule.run(value -> null);
+        Rule rule = alphaNumeric(binding("value")).build();
+        RuleResult result = rule.run(value -> null);
         assertTrue(result.status().isPass());
+
+        RuleResult r = rule.run();
+        assertTrue(r.status().isSkipped());
     }
 
     @Test
     public void alphaNumericTest6() {
-        AlphaNumericValidationRule validationRule = new AlphaNumericValidationRule("value");
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = alphaNumeric(binding("value")).build();
         RuleResult result = rule.run(value -> Boolean.TRUE);
         assertTrue(result.status().isSkipped());
     }
 
     @Test
     public void asciiTest1() {
-        AsciiValidationRule validationRule = new AsciiValidationRule("value");
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = ascii(binding("value")).build();
         RuleResult result = rule.run(value -> "abc1");
         assertTrue(result.status().isPass());
     }
 
     @Test
     public void asciiTest2() {
-        AsciiValidationRule validationRule = new AsciiValidationRule("someValue", "error.2", Severity.FATAL, "Ascii Error Message");
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = ascii(binding("someValue"))
+                .errorCode("error.2")
+                .severity(Severity.FATAL)
+                .message("Ascii Error Message")
+                .build();
 
         RuleResult result = rule.run(someValue -> "abc1");
         assertTrue(result.status().isPass());
@@ -267,7 +274,7 @@ public class ValidationRuleTests {
 
     @Test
     public void asciiTest3() {
-        Rule rule = Rule.builder().build(new AsciiValidationRule("value"));
+        Rule rule = ascii(binding("value")).build();
         RuleResult result = rule.run(value -> "abc1");
         assertTrue(result.status().isPass());
 
@@ -284,7 +291,11 @@ public class ValidationRuleTests {
 
     @Test
     public void asciiTest4() {
-        Rule rule = Rule.builder().build(new AsciiValidationRule("value", "asciiError1", Severity.FATAL, "Ascii Error Message"));
+        Rule rule = ascii(binding("value"))
+                .errorCode("asciiError1")
+                .severity(Severity.FATAL)
+                .message("Ascii Error Message")
+                .build();
         RuleViolations errors = new RuleViolations();
         RuleResult result = rule.run(ruleViolations -> errors, value -> "abc1é");
         assertTrue(result.status().isFail());
@@ -298,34 +309,31 @@ public class ValidationRuleTests {
 
     @Test
     public void asciiTest5() {
-        AsciiValidationRule validationRule = new AsciiValidationRule("value");
-        Rule rule = Rule.builder().build(validationRule);
-        RuleResult result = rule.run();
-        assertTrue(result.status().isSkipped());
-        result = rule.run(value -> null);
+        Rule rule = ascii(binding("value")).build();
+        RuleResult result = rule.run(value -> null);
         assertTrue(result.status().isPass());
+
+        RuleResult r = rule.run();
+        assertTrue(r.status().isSkipped());
     }
 
     @Test
     public void asciiTest6() {
-        AsciiValidationRule validationRule = new AsciiValidationRule("value");
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = ascii(binding("value")).build();
         RuleResult result = rule.run(value -> Boolean.TRUE);
         assertTrue(result.status().isSkipped());
     }
 
     @Test
     public void assertFalseTest1() {
-        AssertFalseValidationRule validationRule = new AssertFalseValidationRule("value");
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = Validators.assertFalse(binding("value")).build();
         RuleResult result = rule.run(value -> false);
         assertTrue(result.status().isPass());
     }
 
     @Test
     public void assertFalseTest2() {
-        AssertFalseValidationRule validationRule = new AssertFalseValidationRule("value", "error.3", Severity.ERROR, "Assert False Error Message");
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = Validators.assertFalse(binding("value")).errorCode("error.3").severity(Severity.ERROR).message("Assert False Error Message").build();
 
         RuleResult result = rule.run(value -> false);
         assertTrue(result.status().isPass());
@@ -343,7 +351,7 @@ public class ValidationRuleTests {
 
     @Test
     public void assertFalseTest3() {
-        Rule rule = Rule.builder().build(new AssertFalseValidationRule("value"));
+        Rule rule = Validators.assertFalse(binding("value")).build();
         RuleResult result = rule.run(value -> Boolean.FALSE);
         assertTrue(result.status().isPass());
 
@@ -360,7 +368,7 @@ public class ValidationRuleTests {
 
     @Test
     public void assertFalseTest4() {
-        Rule rule = Rule.builder().build(new AssertFalseValidationRule("value", "assertFalseError1", Severity.FATAL, "Assert False Error Message"));
+        Rule rule = Validators.assertFalse(binding("value")).errorCode("assertFalseError1").severity(Severity.FATAL).message("Assert False Error Message").build();
         RuleViolations errors = new RuleViolations();
         RuleResult result = rule.run(ruleViolations -> errors, value -> Boolean.TRUE);
         assertTrue(result.status().isFail());
@@ -374,35 +382,30 @@ public class ValidationRuleTests {
 
     @Test
     public void assertFalseTest5() {
-        AssertFalseValidationRule validationRule = new AssertFalseValidationRule("value");
-        Rule rule = Rule.builder().build(validationRule);
-        RuleResult result = rule.run();
-        assertTrue(result.status().isSkipped());
-        result = rule.run(value -> null);
+        Rule rule = Validators.assertFalse(binding("value")).build();
+        RuleResult result = rule.run(value -> null);
         assertTrue(result.status().isPass());
+        RuleResult r = rule.run();
+        assertTrue(r.status().isSkipped());
     }
 
     @Test
     public void assertFalseTest6() {
-        AssertFalseValidationRule validationRule = new AssertFalseValidationRule("value");
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = Validators.assertFalse(binding("value")).build();
         RuleResult result = rule.run(value -> "test");
         assertTrue(result.status().isSkipped());
     }
 
     @Test
     public void assertTrueTest1() {
-        AssertTrueValidationRule validationRule = new AssertTrueValidationRule("value");
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = Validators.assertTrue(binding("value")).build();
         RuleResult result = rule.run(value -> true);
         assertTrue(result.status().isPass());
     }
 
     @Test
     public void assertTrueTest2() {
-        AssertTrueValidationRule validationRule = new AssertTrueValidationRule("value",
-                "error.3", Severity.ERROR, "Assert True Error Message");
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = Validators.assertTrue(binding("value")).errorCode("error.3").severity(Severity.ERROR).message("Assert True Error Message").build();
 
         RuleResult result = rule.run(value -> true);
         assertTrue(result.status().isPass());
@@ -420,7 +423,7 @@ public class ValidationRuleTests {
 
     @Test
     public void assertTrueTest3() {
-        Rule rule = Rule.builder().build(new AssertTrueValidationRule("value"));
+        Rule rule = Validators.assertTrue(binding("value")).build();
         RuleResult result = rule.run(value -> Boolean.TRUE);
         assertTrue(result.status().isPass());
 
@@ -437,7 +440,7 @@ public class ValidationRuleTests {
 
     @Test
     public void assertTrueTest4() {
-        Rule rule = Rule.builder().build(new AssertTrueValidationRule("value", "assertTrueError1", Severity.FATAL, "Assert True Error Message"));
+        Rule rule = Validators.assertTrue(binding("value")).errorCode("assertTrueError1").severity(Severity.FATAL).message("Assert True Error Message").build();
         RuleViolations errors = new RuleViolations();
         RuleResult result = rule.run(ruleViolations -> errors, value -> Boolean.FALSE);
         assertTrue(result.status().isFail());
@@ -451,35 +454,30 @@ public class ValidationRuleTests {
 
     @Test
     public void assertTrueTest5() {
-        AssertTrueValidationRule validationRule = new AssertTrueValidationRule("value");
-        Rule rule = Rule.builder().build(validationRule);
-        RuleResult result = rule.run();
-        assertTrue(result.status().isSkipped());
-        result = rule.run(value -> null);
+        Rule rule = Validators.assertTrue(binding("value")).build();
+        RuleResult result = rule.run(value -> null);
         assertTrue(result.status().isPass());
+        RuleResult r = rule.run();
+        assertTrue(r.status().isSkipped());
     }
 
     @Test
     public void assertTrueTest6() {
-        AssertTrueValidationRule validationRule = new AssertTrueValidationRule("value");
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = Validators.assertTrue(binding("value")).build();
         RuleResult result = rule.run(value -> "test");
         assertTrue(result.status().isSkipped());
     }
 
     @Test
     public void assertEqualsTest1() {
-        AssertEqualsValidationRule validationRule = new AssertEqualsValidationRule("value", 123);
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = Validators.assertEquals(binding("value"), 123).build();
         RuleResult result = rule.run(value -> 123);
         assertTrue(result.status().isPass());
     }
 
     @Test
     public void assertEqualsTest2() {
-        AssertEqualsValidationRule validationRule = new AssertEqualsValidationRule("value",
-                "error.3", Severity.ERROR, "Assert Equals Error Message", 123);
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = Validators.assertEquals(binding("value"), 123).errorCode("error.3").severity(Severity.ERROR).message("Assert Equals Error Message").build();
 
         RuleResult result = rule.run(value -> 123);
         assertTrue(result.status().isPass());
@@ -497,7 +495,7 @@ public class ValidationRuleTests {
 
     @Test
     public void assertEqualsTest3() {
-        Rule rule = Rule.builder().build(new AssertEqualsValidationRule("value", "abc"));
+        Rule rule = Validators.assertEquals(binding("value"), "abc").build();
         RuleResult result = rule.run(value -> "abc");
         assertTrue(result.status().isPass());
 
@@ -514,7 +512,7 @@ public class ValidationRuleTests {
 
     @Test
     public void assertEqualsTest4() {
-        Rule rule = Rule.builder().build(new AssertEqualsValidationRule("value", "assertEqualsError1", Severity.FATAL, "Assert Equals Error Message", 123));
+        Rule rule = Validators.assertEquals(binding("value"), 123).errorCode("assertEqualsError1").severity(Severity.FATAL).message("Assert Equals Error Message").build();
         RuleViolations errors = new RuleViolations();
         RuleResult result = rule.run(ruleViolations -> errors, value -> 211);
         assertTrue(result.status().isFail());
@@ -528,27 +526,23 @@ public class ValidationRuleTests {
 
     @Test
     public void assertEqualsTest5() {
-        AssertEqualsValidationRule validationRule = new AssertEqualsValidationRule("value", 1200);
-        Rule rule = Rule.builder().build(validationRule);
-        RuleResult result = rule.run();
-        assertTrue(result.status().isSkipped());
-        result = rule.run(value -> 1200);
+        Rule rule = Validators.assertEquals(binding("value"), 1200).build();
+        RuleResult r = rule.run();
+        assertTrue(r.status().isSkipped());
+        RuleResult result = rule.run(value -> 1200);
         assertTrue(result.status().isPass());
     }
 
     @Test
     public void assertNotEqualsTest1() {
-        AssertNotEqualsValidationRule validationRule = new AssertNotEqualsValidationRule("value", 123);
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = Validators.assertNotEquals(binding("value"), 123).build();
         RuleResult result = rule.run(value -> 321);
         assertTrue(result.status().isPass());
     }
 
     @Test
     public void assertNotEqualsTest2() {
-        AssertNotEqualsValidationRule validationRule = new AssertNotEqualsValidationRule("value",
-                "error.3", Severity.ERROR, "Assert Not Equals Error Message", 123);
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = Validators.assertNotEquals(binding("value"), 123).errorCode("error.3").severity(Severity.ERROR).message("Assert Not Equals Error Message").build();
 
         RuleResult result = rule.run(value -> 321);
         assertTrue(result.status().isPass());
@@ -566,7 +560,7 @@ public class ValidationRuleTests {
 
     @Test
     public void assertNotEqualsTest3() {
-        Rule rule = Rule.builder().build(new AssertNotEqualsValidationRule("value", "abc"));
+        Rule rule = Validators.assertNotEquals(binding("value"), "abc").build();
         RuleResult result = rule.run(value -> "ccc");
         assertTrue(result.status().isPass());
 
@@ -583,8 +577,7 @@ public class ValidationRuleTests {
 
     @Test
     public void assertNotEqualsTest4() {
-        Rule rule = Rule.builder().build(new AssertNotEqualsValidationRule("value",
-                "assertNotEqualsError1", Severity.FATAL, "Assert Not Equals Error Message", 123));
+        Rule rule = Validators.assertNotEquals(binding("value"), 123).errorCode("assertNotEqualsError1").severity(Severity.FATAL).message("Assert Not Equals Error Message").build();
         RuleViolations errors = new RuleViolations();
         RuleResult result = rule.run(ruleViolations -> errors, value -> 123);
         assertTrue(result.status().isFail());
@@ -598,11 +591,10 @@ public class ValidationRuleTests {
 
     @Test
     public void assertNotEqualsTest5() {
-        AssertNotEqualsValidationRule validationRule = new AssertNotEqualsValidationRule("value", 1200);
-        Rule rule = Rule.builder().build(validationRule);
-        RuleResult result = rule.run();
-        assertTrue(result.status().isSkipped());
-        result = rule.run(value -> 1201);
+        Rule rule = Validators.assertNotEquals(binding("value"), 1200).build();
+        RuleResult r = rule.run();
+        assertTrue(r.status().isSkipped());
+        RuleResult result = rule.run(value -> 1201);
         assertTrue(result.status().isPass());
     }
 
@@ -695,17 +687,14 @@ public class ValidationRuleTests {
 
     @Test
     public void blankTest1() {
-        BlankValidationRule validationRule = new BlankValidationRule("value");
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = blank(binding("value")).build();
         RuleResult result = rule.run(value -> "     ");
         assertTrue(result.status().isPass());
     }
 
     @Test
     public void blankTest2() {
-        BlankValidationRule validationRule = new BlankValidationRule("value",
-                "error.3", Severity.ERROR, "Blank Error Message");
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = blank(binding("value")).errorCode("error.3").severity(Severity.ERROR).message("Blank Error Message").build();
 
         RuleResult result = rule.run(value -> "     ");
         assertTrue(result.status().isPass());
@@ -723,7 +712,7 @@ public class ValidationRuleTests {
 
     @Test
     public void blankTest3() {
-        Rule rule = Rule.builder().build(new BlankValidationRule("value"));
+        Rule rule = blank(binding("value")).build();
         RuleResult result = rule.run(value -> "   ");
         assertTrue(result.status().isPass());
 
@@ -740,7 +729,7 @@ public class ValidationRuleTests {
 
     @Test
     public void blankTest4() {
-        Rule rule = Rule.builder().build(new BlankValidationRule("value", "blankError1", Severity.FATAL, "Blank Error Message"));
+        Rule rule = blank(binding("value")).errorCode("blankError1").severity(Severity.FATAL).message("Blank Error Message").build();
         RuleViolations errors = new RuleViolations();
         RuleResult result = rule.run(ruleViolations -> errors, value -> "aJHG");
         assertTrue(result.status().isFail());
@@ -754,35 +743,30 @@ public class ValidationRuleTests {
 
     @Test
     public void blankTest5() {
-        BlankValidationRule validationRule = new BlankValidationRule("value");
-        Rule rule = Rule.builder().build(validationRule);
-        RuleResult result = rule.run();
-        assertTrue(result.status().isSkipped());
-        result = rule.run(value -> null);
+        Rule rule = blank(binding("value")).build();
+        RuleResult result = rule.run(value -> null);
         assertTrue(result.status().isPass());
+        RuleResult r = rule.run();
+        assertTrue(r.status().isSkipped());
     }
 
     @Test
     public void blankTest6() {
-        BlankValidationRule validationRule = new BlankValidationRule("value");
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = blank(binding("value")).build();
         RuleResult result = rule.run(value -> new BigDecimal("123"));
         assertTrue(result.status().isSkipped());
     }
 
     @Test
     public void decimalTest1() {
-        DecimalValidationRule validationRule = new DecimalValidationRule("value");
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = decimal(binding("value")).build();
         RuleResult result = rule.run(value -> "123.44");
         assertTrue(result.status().isPass());
     }
 
     @Test
     public void decimalTest2() {
-        DecimalValidationRule validationRule = new DecimalValidationRule("value",
-                "error.1", Severity.ERROR, "Decimal Error Message", true);
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = decimal(binding("value")).errorCode("error.1").severity(Severity.ERROR).message("Decimal Error Message").allowSpace().build();
 
         RuleResult result = rule.run(value -> "100.00");
         assertTrue(result.status().isPass());
@@ -802,7 +786,7 @@ public class ValidationRuleTests {
 
     @Test
     public void decimalTest3() {
-        Rule rule = Rule.builder().build(new DecimalValidationRule("value"));
+        Rule rule = decimal(binding("value")).build();
         RuleResult result = rule.run(value -> "199.11");
         assertTrue(result.status().isPass());
 
@@ -819,7 +803,7 @@ public class ValidationRuleTests {
 
     @Test
     public void decimalTest4() {
-        Rule rule = Rule.builder().build(new DecimalValidationRule("value", "decimalError1", Severity.FATAL, "Decimal Error Message", false));
+        Rule rule = decimal(binding("value")).errorCode("decimalError1").severity(Severity.FATAL).message("Decimal Error Message").build();
         RuleViolations errors = new RuleViolations();
         RuleResult result = rule.run(ruleViolations -> errors, value -> "abc 1");
         assertTrue(result.status().isFail());
@@ -833,26 +817,23 @@ public class ValidationRuleTests {
 
     @Test
     public void decimalTest5() {
-        DecimalValidationRule validationRule = new DecimalValidationRule("value");
-        Rule rule = Rule.builder().build(validationRule);
-        RuleResult result = rule.run();
-        assertTrue(result.status().isSkipped());
-        result = rule.run(value -> null);
+        Rule rule = decimal(binding("value")).build();
+        RuleResult result = rule.run(value -> null);
         assertTrue(result.status().isPass());
+        RuleResult r = rule.run();
+        assertTrue(r.status().isSkipped());
     }
 
     @Test
     public void decimalTest6() {
-        AlphaNumericValidationRule validationRule = new AlphaNumericValidationRule("value");
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = decimal(binding("value")).build();
         RuleResult result = rule.run(value -> Boolean.TRUE);
         assertTrue(result.status().isSkipped());
     }
 
     @Test
     public void digitsTest1() {
-        DigitsValidationRule validationRule = new DigitsValidationRule("value", 5, 2);
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = digits(binding("value"), 5, 2).build();
         RuleResult result = rule.run(value -> "123.44");
         assertTrue(result.status().isPass());
         result = rule.run(value -> "12345.44");
@@ -865,9 +846,7 @@ public class ValidationRuleTests {
 
     @Test
     public void digitsTest2() {
-        DigitsValidationRule validationRule = new DigitsValidationRule("value",
-                "error.1", Severity.ERROR, "Digits Error Message", 5, 2);
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = digits(binding("value"), 5, 2).errorCode("error.1").severity(Severity.ERROR).message("Digits Error Message").build();
 
         RuleResult result = rule.run(value -> "100.00");
         assertTrue(result.status().isPass());
@@ -885,7 +864,7 @@ public class ValidationRuleTests {
 
     @Test
     public void digitsTest3() {
-        Rule rule = Rule.builder().build(new DigitsValidationRule("value", 2, 2));
+        Rule rule = digits(binding("value"), 2, 2).build();
         RuleResult result = rule.run(value -> "99.11");
         assertTrue(result.status().isPass());
 
@@ -902,7 +881,7 @@ public class ValidationRuleTests {
 
     @Test
     public void digitsTest4() {
-        Rule rule = Rule.builder().build(new DigitsValidationRule("value", "digitsError1", Severity.FATAL, "Digits Error Message", 5, 2));
+        Rule rule = digits(binding("value"), 5, 2).errorCode("digitsError1").severity(Severity.FATAL).message("Digits Error Message").build();
         RuleViolations errors = new RuleViolations();
         RuleResult result = rule.run(ruleViolations -> errors, value -> "12345.123");
         assertTrue(result.status().isFail());
@@ -916,26 +895,23 @@ public class ValidationRuleTests {
 
     @Test
     public void digitsTest5() {
-        DigitsValidationRule validationRule = new DigitsValidationRule("value", 2, 2);
-        Rule rule = Rule.builder().build(validationRule);
-        RuleResult result = rule.run();
-        assertTrue(result.status().isSkipped());
-        result = rule.run(value -> null);
+        Rule rule = digits(binding("value"), 2, 2).build();
+        RuleResult result = rule.run(value -> null);
         assertTrue(result.status().isPass());
+        RuleResult r = rule.run();
+        assertTrue(r.status().isSkipped());
     }
 
     @Test
     public void digitsTest6() {
-        DigitsValidationRule validationRule = new DigitsValidationRule("value", 2, 2);
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = digits(binding("value"), 2, 2).build();
         RuleResult result = rule.run(value -> Boolean.TRUE);
         assertTrue(result.status().isSkipped());
     }
 
     @Test
     public void emailTest1() {
-        EmailValidationRule validationRule = new EmailValidationRule("value", true, true);
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = email(binding("value")).allowLocal().allowTopLevelDomain().build();
         RuleResult result = rule.run(value -> "test@test.com");
         assertTrue(result.status().isPass());
         result = rule.run(value -> "test@test.co.uk");
@@ -950,9 +926,7 @@ public class ValidationRuleTests {
 
     @Test
     public void emailTest2() {
-        EmailValidationRule validationRule = new EmailValidationRule("value",
-                "error.1", Severity.ERROR, "Email Error Message", true, true);
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = email(binding("value")).allowLocal().allowTopLevelDomain().errorCode("error.1").severity(Severity.ERROR).message("Email Error Message").build();
 
         RuleResult result = rule.run(value -> "test@test.ca");
         assertTrue(result.status().isPass());
@@ -970,7 +944,7 @@ public class ValidationRuleTests {
 
     @Test
     public void emailTest3() {
-        Rule rule = Rule.builder().build(new EmailValidationRule("value", true, false));
+        Rule rule = email(binding("value")).allowLocal().build();
         RuleResult result = rule.run(value -> "test@google.ca");
         assertTrue(result.status().isPass());
 
@@ -987,7 +961,7 @@ public class ValidationRuleTests {
 
     @Test
     public void emailTest4() {
-        Rule rule = Rule.builder().build(new EmailValidationRule("value", "emailError1", Severity.FATAL, "Email Error Message", false, false));
+        Rule rule = email(binding("value")).errorCode("emailError1").severity(Severity.FATAL).message("Email Error Message").build();
         RuleViolations errors = new RuleViolations();
         RuleResult result = rule.run(ruleViolations -> errors, value -> "12345.123");
         assertTrue(result.status().isFail());
@@ -1001,26 +975,23 @@ public class ValidationRuleTests {
 
     @Test
     public void emailTest5() {
-        EmailValidationRule validationRule = new EmailValidationRule("value", true, false);
-        Rule rule = Rule.builder().build(validationRule);
-        RuleResult result = rule.run();
-        assertTrue(result.status().isSkipped());
-        result = rule.run(value -> null);
+        Rule rule = email(binding("value")).allowLocal().build();
+        RuleResult result = rule.run(value -> null);
         assertTrue(result.status().isPass());
+        RuleResult r = rule.run();
+        assertTrue(r.status().isSkipped());
     }
 
     @Test
     public void emailTest6() {
-        EmailValidationRule validationRule = new EmailValidationRule("value", true, true);
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = email(binding("value")).allowLocal().allowTopLevelDomain().build();
         RuleResult result = rule.run(value -> Boolean.TRUE);
         assertTrue(result.status().isSkipped());
     }
 
     @Test
     public void endsWithTest1() {
-        EndsWithValidationRule validationRule = new EndsWithValidationRule("value", "a", "b", "c");
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = endsWith(binding("value"), "a", "b", "c").build();
         RuleResult result = rule.run(value -> "applea", ruleViolations -> new RuleViolations());
         assertTrue(result.status().isPass());
         result = rule.run(value -> "appleb");
@@ -1035,9 +1006,7 @@ public class ValidationRuleTests {
 
     @Test
     public void endsWithTest2() {
-        EndsWithValidationRule validationRule = new EndsWithValidationRule("value",
-                "error.1", Severity.ERROR, "Ends with Error Message", "test1", "test2");
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = endsWith(binding("value"), "test1", "test2").errorCode("error.1").severity(Severity.ERROR).message("Ends with Error Message").build();
 
         RuleResult result = rule.run(value -> "appletest1");
         assertTrue(result.status().isPass());
@@ -1055,8 +1024,7 @@ public class ValidationRuleTests {
 
     @Test
     public void endsWithTest3() {
-        EndsWithValidationRule endsWithValidationRule = new EndsWithValidationRule("value", "test1", "test2");
-        Rule rule = Rule.builder().build(endsWithValidationRule);
+        Rule rule = endsWith(binding("value"), "test1", "test2").build();
         RuleResult result = rule.run(value -> "test1");
         assertTrue(result.status().isPass());
 
@@ -1068,12 +1036,12 @@ public class ValidationRuleTests {
         RuleViolation violation = errors.getViolations().get(0);
         assertEquals(EndsWithValidationRule.ERROR_CODE, violation.getErrorCode());
         assertEquals(Severity.ERROR, violation.getSeverity());
-        assertEquals("Value test_test must end with one of the given suffixes " + Arrays.toString(endsWithValidationRule.getSuffixes()) + ".", violation.getErrorMessage());
+        assertEquals("Value test_test must end with one of the given suffixes [test1, test2].", violation.getErrorMessage());
     }
 
     @Test
     public void endsWithTest4() {
-        Rule rule = Rule.builder().build(new EndsWithValidationRule("value", "endsWithError1", Severity.FATAL, "Ends With Error Message", "xxx"));
+        Rule rule = endsWith(binding("value"), "xxx").errorCode("endsWithError1").severity(Severity.FATAL).message("Ends With Error Message").build();
         RuleViolations errors = new RuleViolations();
         RuleResult result = rule.run(ruleViolations -> errors, value -> "12345.123");
         assertTrue(result.status().isFail());
@@ -1087,35 +1055,30 @@ public class ValidationRuleTests {
 
     @Test
     public void endsWithTest5() {
-        EndsWithValidationRule validationRule = new EndsWithValidationRule("value", "yyy");
-        Rule rule = Rule.builder().build(validationRule);
-        RuleResult result = rule.run();
-        assertTrue(result.status().isSkipped());
-        result = rule.run(value -> null);
+        Rule rule = endsWith(binding("value"), "yyy").build();
+        RuleResult result = rule.run(value -> null);
         assertTrue(result.status().isPass());
+        RuleResult r = rule.run();
+        assertTrue(r.status().isSkipped());
     }
 
     @Test
     public void endsWithTest6() {
-        EndsWithValidationRule validationRule = new EndsWithValidationRule("value", "zzz");
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = endsWith(binding("value"), "zzz").build();
         RuleResult result = rule.run(value -> Boolean.TRUE);
         assertTrue(result.status().isSkipped());
     }
 
     @Test
     public void fileExistsTest1() {
-        FileExistsValidationRule validationRule = new FileExistsValidationRule("value");
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = fileExists(binding("value")).build();
         RuleResult result = rule.run(value -> "c:/temp/test.xyz", ruleViolations -> new RuleViolations());
         assertTrue(result.status().isFail());
     }
 
     @Test
     public void fileExistsTest2() {
-        FileExistsValidationRule validationRule = new FileExistsValidationRule("value",
-                "error.1", Severity.ERROR, "File Exists with Error Message");
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = fileExists(binding("value")).errorCode("error.1").severity(Severity.ERROR).message("File Exists with Error Message").build();
 
         RuleViolations errors = new RuleViolations();
         RuleResult result = rule.run(value -> "c:/temp/appletest1.xyz", ruleViolations -> errors);
@@ -1130,8 +1093,7 @@ public class ValidationRuleTests {
 
     @Test
     public void fileExistsTest3() {
-        FileExistsValidationRule endsWithValidationRule = new FileExistsValidationRule("value");
-        Rule rule = Rule.builder().build(endsWithValidationRule);
+        Rule rule = fileExists(binding("value")).build();
 
         RuleViolations errors = new RuleViolations();
         RuleResult result = rule.run(ruleViolations -> errors, value -> "c:/temp/test_test.abc");
@@ -1146,8 +1108,7 @@ public class ValidationRuleTests {
 
     @Test
     public void fileExistsTest4() {
-        Rule rule = Rule.builder().build(new FileExistsValidationRule("value", "fileExistsWithError1", Severity.FATAL,
-                "File Exists With Error Message"));
+        Rule rule = fileExists(binding("value")).errorCode("fileExistsWithError1").severity(Severity.FATAL).message("File Exists With Error Message").build();
         RuleViolations errors = new RuleViolations();
         RuleResult result = rule.run(ruleViolations -> errors, value -> "d:/temp/xxx.123");
         assertTrue(result.status().isFail());
@@ -1161,25 +1122,23 @@ public class ValidationRuleTests {
 
     @Test
     public void fileExistsTest5() {
-        FileExistsValidationRule validationRule = new FileExistsValidationRule("value");
-        Rule rule = Rule.builder().build(validationRule);
-        RuleResult result = rule.run();
-        assertTrue(result.status().isSkipped());
-        result = rule.run(value -> null);
+        Rule rule = fileExists(binding("value")).build();
+        RuleResult result = rule.run(value -> null);
         assertTrue(result.status().isPass());
+        RuleResult r = rule.run();
+        assertTrue(r.status().isSkipped());
     }
 
     @Test
     public void fileExistsTest6() {
-        FileExistsValidationRule validationRule = new FileExistsValidationRule("value");
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = fileExists(binding("value")).build();
         RuleResult result = rule.run(value -> Boolean.TRUE);
         assertTrue(result.status().isSkipped());
     }
 
     @Test
     public void futureOrPresentTest1() {
-        FutureOrPresentValidationRule validationRule = new FutureOrPresentValidationRule("value");
+        Rule validationRule = futureOrPresent(binding("value")).build();
         Clock fixedClock = Clock.fixed(Instant.now(), ZoneId.systemDefault());
 
         try {
@@ -1238,7 +1197,7 @@ public class ValidationRuleTests {
 
     @Test
     public void pastOrPresentTest1() {
-        PastOrPresentValidationRule validationRule = new PastOrPresentValidationRule("value");
+        Rule validationRule = pastOrPresent(binding("value")).build();
         Clock fixedClock = Clock.fixed(Instant.now(), ZoneId.systemDefault());
 
         try {
@@ -1297,7 +1256,7 @@ public class ValidationRuleTests {
 
     @Test
     public void futureTest1() {
-        FutureValidationRule validationRule = new FutureValidationRule("value");
+        Rule validationRule = future(binding("value")).build();
         Clock fixedClock = Clock.fixed(Instant.now(), ZoneId.systemDefault());
 
         try {
@@ -1359,7 +1318,7 @@ public class ValidationRuleTests {
 
     @Test
     public void pastTest1() {
-        PastValidationRule validationRule = new PastValidationRule("value");
+        Rule validationRule = past(binding("value")).build();
         Clock fixedClock = Clock.fixed(Instant.now(), ZoneId.systemDefault());
 
         try {
@@ -1419,18 +1378,16 @@ public class ValidationRuleTests {
         assertTrue(result.status().isFail());
     }
 
-    private RuleResult runDateTest(Object ruleObject, Clock fixedClock, Object dateValue) {
+    private RuleResult runDateTest(Rule rule, Clock fixedClock, Object dateValue) {
         RuleContext context = RuleContext.builder()
                 .with(value -> dateValue, violations -> new RuleViolations())
                 .clock(fixedClock).build();
-        Rule rule = Rule.builder().build(ruleObject);
         return rule.run(context);
     }
 
     @Test
     public void futureOrPresentTest2() {
-        FutureOrPresentValidationRule validationRule = new FutureOrPresentValidationRule("value");
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = futureOrPresent(binding("value")).build();
         RuleResult result = rule.run(value -> LocalDate.now().plusDays(1));
         assertTrue(result.status().isPass());
 
@@ -1447,13 +1404,12 @@ public class ValidationRuleTests {
     @Test
     public void inValidationRuleTest() {
         List<String> values = List.of("a", "b", "c");
-        InValidationRule validationRule = new InValidationRule("value", values);
-        Rule rule = Rule.builder().build(validationRule);
-        RuleResult result = rule.run(value -> "b");
+        Rule rule = in(binding("var"), values).build();
+        RuleResult result = rule.run(var -> "b");
         assertTrue(result.status().isPass());
 
         RuleViolations errors = new RuleViolations();
-        result = rule.run(ruleViolations -> errors, value -> "xxx");
+        result = rule.run(ruleViolations -> errors, var -> "xxx");
         assertTrue(result.status().isFail());
         assertTrue(errors.hasSevereErrors());
         assertEquals(1, errors.getViolations().size());
@@ -1465,8 +1421,7 @@ public class ValidationRuleTests {
 
     @Test
     public void lowerCaseValidationRuleTest() {
-        LowerCaseValidationRule validationRule = new LowerCaseValidationRule("value");
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = lowerCase(binding("value")).build();
         RuleResult result = rule.run(value -> "bdkflgdlskfgwerioslvxzvcnsldkfjsdklf");
         assertTrue(result.status().isPass());
 
@@ -1483,8 +1438,7 @@ public class ValidationRuleTests {
 
     @Test
     public void decimalMaxValidationRuleTest() {
-        DecimalMaxValidationRule validationRule = new DecimalMaxValidationRule("value", new BigDecimal("1000.00"), true);
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = decimalMax(binding("value"), new BigDecimal("1000.00")).build();
         RuleResult result = rule.run(value -> "999.99");
         assertTrue(result.status().isPass());
         result = rule.run(value -> 999.99);
@@ -1503,8 +1457,7 @@ public class ValidationRuleTests {
 
     @Test
     public void maxValidationRuleTest() {
-        MaxValidationRule validationRule = new MaxValidationRule("value", 1000);
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = max(binding("value"), 1000).build();
         RuleResult result = rule.run(value -> "999");
         assertTrue(result.status().isPass());
         result = rule.run(value -> 999.99);
@@ -1523,8 +1476,7 @@ public class ValidationRuleTests {
 
     @Test
     public void decimalMinValidationRuleTest() {
-        DecimalMinValidationRule validationRule = new DecimalMinValidationRule("value", new BigDecimal("1000.00"), true);
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = decimalMin(binding("value"), new BigDecimal("1000.00")).build();
         RuleResult result = rule.run(value -> "1001");
         assertTrue(result.status().isPass());
         result = rule.run(value -> 5000);
@@ -1543,8 +1495,7 @@ public class ValidationRuleTests {
 
     @Test
     public void minValidationRuleTest() {
-        MinValidationRule validationRule = new MinValidationRule("value", 1000);
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = min(binding("value"), 1000).build();
         RuleResult result = rule.run(value -> "1099");
         assertTrue(result.status().isPass());
         result = rule.run(value -> 1999.99);
@@ -1563,8 +1514,7 @@ public class ValidationRuleTests {
 
     @Test
     public void negativeOrZeroValidationRuleTest() {
-        NegativeOrZeroValidationRule validationRule = new NegativeOrZeroValidationRule("value");
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = negativeOrZero(binding("value")).build();
         RuleResult result = rule.run(value -> "0");
         assertTrue(result.status().isPass());
         result = rule.run(value -> -50);
@@ -1583,8 +1533,7 @@ public class ValidationRuleTests {
 
     @Test
     public void negativeValidationRuleTest() {
-        NegativeValidationRule validationRule = new NegativeValidationRule("value");
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = negative(binding("value")).build();
         RuleResult result = rule.run(value -> "-1");
         assertTrue(result.status().isPass());
         result = rule.run(value -> -50);
@@ -1603,8 +1552,7 @@ public class ValidationRuleTests {
 
     @Test
     public void notBlankValidationRuleTest() {
-        NotBlankValidationRule validationRule = new NotBlankValidationRule("value");
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = notBlank(binding("value")).build();
         RuleResult result = rule.run(value -> "hello world!");
         assertTrue(result.status().isPass());
         result = rule.run(value -> "    w   ");
@@ -1623,8 +1571,7 @@ public class ValidationRuleTests {
 
     @Test
     public void notEmptyValidationRuleTest() {
-        NotEmptyValidationRule validationRule = new NotEmptyValidationRule("value");
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = notEmpty(binding("value")).build();
         RuleResult result = rule.run(value -> new boolean[] {true});
         assertTrue(result.status().isPass());
         result = rule.run(value -> new boolean[] {}, violations -> new RuleViolations());
@@ -1696,8 +1643,7 @@ public class ValidationRuleTests {
 
     @Test
     public void notNullValidationRuleTest() {
-        NotNullValidationRule validationRule = new NotNullValidationRule("value");
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = notNull(binding("value")).build();
         RuleResult result = rule.run(value -> new Object());
         assertTrue(result.status().isPass());
         result = rule.run(value -> null, violations -> new RuleViolations());
@@ -1706,8 +1652,7 @@ public class ValidationRuleTests {
 
     @Test
     public void nullValidationRuleTest() {
-        NullValidationRule validationRule = new NullValidationRule("value");
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = isNull(binding("value")).build();
         RuleResult result = rule.run(value -> null);
         assertTrue(result.status().isPass());
         result = rule.run(value -> "test", violations -> new RuleViolations());
@@ -1716,23 +1661,20 @@ public class ValidationRuleTests {
 
     @Test
     public void numericValidationRuleTest() {
-        NumericValidationRule validationRule = new NumericValidationRule("value");
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = numeric(binding("value")).build();
         RuleResult result = rule.run(value -> "12345");
         assertTrue(result.status().isPass());
         result = rule.run(value -> "test", violations -> new RuleViolations());
         assertTrue(result.status().isFail());
 
-        validationRule = new NumericValidationRule("value", "error1", Severity.ERROR, "error message", true);
-        rule = Rule.builder().build(validationRule);
+        rule = numeric(binding("value")).allowSpace().errorCode("error1").severity(Severity.ERROR).message("error message").build();
         result = rule.run(value -> "123 45");
         assertTrue(result.status().isPass());
     }
 
     @Test
     public void patternValidationRuleTest() {
-        PatternValidationRule validationRule = new PatternValidationRule("value", "^((\\(\\d{3}\\))|\\d{3})[- .]?\\d{3}[- .]?\\d{4}$");
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = pattern(binding("value"), "^((\\(\\d{3}\\))|\\d{3})[- .]?\\d{3}[- .]?\\d{4}$").build();
         RuleResult result = rule.run(value -> "(202) 555-0125");
         assertTrue(result.status().isPass());
         result = rule.run(value -> "test", violations -> new RuleViolations());
@@ -1741,8 +1683,7 @@ public class ValidationRuleTests {
 
     @Test
     public void positiveOrZeroValidationRuleTest() {
-        PositiveOrZeroValidationRule validationRule = new PositiveOrZeroValidationRule("value");
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = positiveOrZero(binding("value")).build();
         RuleResult result = rule.run(value -> "555");
         assertTrue(result.status().isPass());
         result = rule.run(value -> 555);
@@ -1759,8 +1700,7 @@ public class ValidationRuleTests {
 
     @Test
     public void positiveValidationRuleTest() {
-        PositiveValidationRule validationRule = new PositiveValidationRule("value");
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = positive(binding("value")).build();
         RuleResult result = rule.run(value -> "555");
         assertTrue(result.status().isPass());
         result = rule.run(value -> 555);
@@ -1777,8 +1717,7 @@ public class ValidationRuleTests {
 
     @Test
     public void sizeValidationRuleTest() {
-        SizeValidationRule validationRule = new SizeValidationRule("value", 2, 5);
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = size(binding("value"), 2, 5).build();
         RuleResult result = rule.run(value -> new boolean[] {true, false});
         assertTrue(result.status().isPass());
         result = rule.run(value -> new boolean[] {true}, violations -> new RuleViolations());
@@ -1852,8 +1791,7 @@ public class ValidationRuleTests {
 
     @Test
     public void startsWithValidationRuleTest() {
-        StartsWithValidationRule validationRule = new StartsWithValidationRule("value", "xxx", "yyy");
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = startsWith(binding("value"), "xxx", "yyy").build();
         RuleResult result = rule.run(value -> "xxxabcde");
         assertTrue(result.status().isPass());
         result = rule.run(value -> "yyy");
@@ -1864,8 +1802,7 @@ public class ValidationRuleTests {
 
     @Test
     public void upperCaseValidationRuleTest() {
-        UpperCaseValidationRule validationRule = new UpperCaseValidationRule("value");
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = upperCase(binding("value")).build();
         RuleResult result = rule.run(value -> "ABCDE");
         assertTrue(result.status().isPass());
         result = rule.run(value -> "JKSDFHJKSDFHK");
@@ -1876,8 +1813,7 @@ public class ValidationRuleTests {
 
     @Test
     public void UrlValidationRuleTest() {
-        UrlValidationRule validationRule = new UrlValidationRule("value");
-        Rule rule = Rule.builder().build(validationRule);
+        Rule rule = url(binding("value")).build();
         RuleResult result = rule.run(value -> "http://www.google.com");
         assertTrue(result.status().isPass());
         result = rule.run(value -> "http://www.apple.com");

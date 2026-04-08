@@ -22,10 +22,10 @@ import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.UnrulyException;
-import org.rulii.validation.BindingSupplier;
-import org.rulii.validation.BindingValidationRule;
+import org.rulii.model.function.Function;
 import org.rulii.validation.RuleViolationBuilder;
 import org.rulii.validation.Severity;
+import org.rulii.validation.ValueValidationRule;
 
 import java.util.Arrays;
 import java.util.List;
@@ -39,7 +39,7 @@ import java.util.List;
  */
 @Rule
 @Description("Value must end with one of the given suffixes.")
-public class EndsWithValidationRule extends BindingValidationRule {
+public class EndsWithValidationRule extends ValueValidationRule {
 
     public static List<Class<?>> SUPPORTED_TYPES    = List.of(CharSequence.class);
 
@@ -49,57 +49,20 @@ public class EndsWithValidationRule extends BindingValidationRule {
     private final String[] suffixes;
 
     /**
-     * Constructs a new EndsWithValidationRule with the specified binding name and suffixes.
+     * Creates a new builder for this validation rule.
      *
-     * @param bindingName the name of the binding to validate (not null)
-     * @param suffixes the suffixes that the value must end with (not null, not empty)
+     * @param function the function that supplies the value to validate
+     * @param suffixes one or more suffixes that the value must end with
+     * @return a new {@link EndsWithValidationRuleBuilder}
      */
-    public EndsWithValidationRule(String bindingName, String...suffixes) {
-        this(bindingName, ERROR_CODE, Severity.ERROR, null, suffixes);
+    public static EndsWithValidationRuleBuilder builder(Function<?> function, String... suffixes) {
+        return new EndsWithValidationRuleBuilder(function, suffixes);
     }
 
-    /**
-     * Constructs a new EndsWithValidationRule instance with the provided parameters.
-     *
-     * @param bindingName the name of the binding to validate (not null)
-     * @param errorCode the error code associated with this validation rule
-     * @param suffixes the suffixes that the value must end with (not null)
-     */
-    public EndsWithValidationRule(String bindingName, String errorCode, List<String> suffixes) {
-        this(bindingName, errorCode, Severity.ERROR, null, suffixes.toArray(new String[0]));
-    }
-
-    /**
-     * Constructs a new EndsWithValidationRule.
-     *
-     * @param bindingName the name of the binding to validate (not null)
-     * @param errorCode the error code associated with this validation rule
-     * @param severity the severity of the error (not null)
-     * @param errorMessage the error message that will be displayed if the validation rule fails
-     * @param suffixes the suffixes that the value must end with (not null)
-     */
-    public EndsWithValidationRule(String bindingName, String errorCode, Severity severity,
-                                  String errorMessage, String...suffixes) {
-        super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
+    EndsWithValidationRule(Function<?> valueFunction, String errorCode, Severity severity,
+                           String errorMessage, String valueName, String... suffixes) {
+        super(valueFunction, errorCode, severity, errorMessage, DEFAULT_MESSAGE, valueName);
         Assert.notNull(suffixes, "suffixes cannot be null.");
-        this.suffixes = suffixes;
-    }
-
-    /**
-     *
-     * Constructs a new EndsWithValidationRule with the specified binding supplier, error code, severity, error message, and suffixes.
-     *
-     * @param bindingSupplier the supplier of bindings for rule evaluation (not null)
-     * @param errorCode the error code associated with this validation rule
-     * @param severity the severity of the error
-     * @param errorMessage the error message that will be displayed if the validation rule fails
-     * @param suffixes the suffixes that the value must end with (not null, not empty)
-     */
-    public EndsWithValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity,
-                                  String errorMessage, String...suffixes) {
-        super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
-        Assert.notNull(suffixes, "suffixes cannot be null.");
-        Assert.isTrue(suffixes.length > 0, "there must be at least one suffixes.");
         this.suffixes = suffixes;
     }
 

@@ -22,10 +22,10 @@ import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.UnrulyException;
-import org.rulii.validation.BindingSupplier;
-import org.rulii.validation.BindingValidationRule;
+import org.rulii.model.function.Function;
 import org.rulii.validation.RuleViolationBuilder;
 import org.rulii.validation.Severity;
+import org.rulii.validation.ValueValidationRule;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -40,7 +40,7 @@ import java.util.List;
  */
 @Rule
 @Description("Value must be within range of the maximum integral digits and maximum fraction digits.")
-public class DigitsValidationRule extends BindingValidationRule {
+public class DigitsValidationRule extends ValueValidationRule {
 
     private static final List<Class<?>> SUPPORTED_TYPES = List.of(Number.class, CharSequence.class);
 
@@ -51,60 +51,22 @@ public class DigitsValidationRule extends BindingValidationRule {
     private final int maxFractionLength;
 
     /**
-     * Constructs a new DigitsValidationRule with the specified parameters.
+     * Creates a new builder for this validation rule.
      *
-     * @param bindingName the name of the binding to validate
-     * @param maxIntegerLength the maximum number of integral digits allowed
-     * @param maxFractionLength the maximum number of fractional digits allowed
+     * @param function           the function that supplies the value to validate
+     * @param maxIntegerLength   the maximum number of integral digits allowed
+     * @param maxFractionLength  the maximum number of fractional digits allowed
+     * @return a new {@link DigitsValidationRuleBuilder}
      */
-    public DigitsValidationRule(String bindingName, int maxIntegerLength, int maxFractionLength) {
-        this(bindingName, ERROR_CODE, Severity.ERROR, null, maxIntegerLength, maxFractionLength);
+    public static DigitsValidationRuleBuilder builder(Function<?> function, int maxIntegerLength, int maxFractionLength) {
+        return new DigitsValidationRuleBuilder(function, maxIntegerLength, maxFractionLength);
     }
 
-    /**
-     * Constructs a new DigitsValidationRule with the specified parameters.
-     *
-     * @param bindingName the name of the binding to validate
-     * @param errorCode the error code to associate with validation failures
-     * @param maxIntegerLength the maximum number of integral digits allowed
-     * @param maxFractionLength the maximum number of fractional digits allowed
-     */
-    public DigitsValidationRule(String bindingName, String errorCode, int maxIntegerLength, int maxFractionLength) {
-        this(bindingName, errorCode, Severity.ERROR, null, maxIntegerLength, maxFractionLength);
-    }
-
-    /**
-     * Constructs a new DigitsValidationRule with the specified parameters.
-     *
-     * @param bindingName the name of the binding to validate
-     * @param errorCode the error code to associate with validation failures
-     * @param severity the severity of the error
-     * @param errorMessage the error message that will be displayed if the validation rule fails
-     * @param maxIntegerLength the maximum number of integral digits allowed
-     * @param maxFractionLength the maximum number of fractional digits allowed
-     */
-    public DigitsValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage,
-                                int maxIntegerLength, int maxFractionLength) {
-        super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
+    DigitsValidationRule(Function<?> valueFunction, String errorCode, Severity severity,
+                         String errorMessage, String valueName, int maxIntegerLength, int maxFractionLength) {
+        super(valueFunction, errorCode, severity, errorMessage, DEFAULT_MESSAGE, valueName);
         Assert.isTrue(maxFractionLength > 0, "maxFractionLength must be > 0");
         Assert.isTrue(maxIntegerLength > 0, "maxIntegerLength must be > 0");
-        this.maxIntegerLength = maxIntegerLength;
-        this.maxFractionLength = maxFractionLength;
-    }
-
-    /**
-     * Initializes a new DigitsValidationRule with the specified parameters.
-     *
-     * @param bindingSupplier  The supplier of bindings for rule evaluation. Must not be null.
-     * @param errorCode        The error code associated with the validation rule.
-     * @param severity         The severity of the error.
-     * @param errorMessage     The error message that will be displayed if the validation rule fails.
-     * @param maxIntegerLength The maximum number of integral digits allowed.
-     * @param maxFractionLength The maximum number of fractional digits allowed.
-     */
-    public DigitsValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity,
-                                String errorMessage, int maxIntegerLength, int maxFractionLength) {
-        super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
         this.maxIntegerLength = maxIntegerLength;
         this.maxFractionLength = maxFractionLength;
     }

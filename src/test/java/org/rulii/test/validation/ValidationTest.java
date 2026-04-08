@@ -39,6 +39,7 @@ import org.rulii.validation.rules.size.SizeValidationRule;
 import java.util.Date;
 
 import static org.rulii.model.condition.Conditions.condition;
+import static org.rulii.validation.rules.Validators.binding;
 
 /**
  * Test cases for the various Validation Rules.
@@ -94,7 +95,7 @@ public class ValidationTest {
 
         RuleSet<?> rules = RuleSet.builder()
                 .with("RuleSet2", "Test Rule Set")
-                    .rule(Rule.builder().build(new NotNullValidationRule("value")))
+                    .rule(NotNullValidationRule.builder(binding("value")).build())
                 .build();
 
         RuleContext context = RuleContext.builder().with(bindings).build();
@@ -111,7 +112,7 @@ public class ValidationTest {
 
         RuleSet<?> rules = RuleSet.builder()
                 .with("RuleSet2", "Test Rule Set")
-                    .rule(Rule.builder().build(new NullValidationRule("b")))
+                    .rule(NullValidationRule.builder(binding("b")).build())
                 .build();
 
         rules.run(RuleContext.builder().with(bindings).build());
@@ -127,7 +128,7 @@ public class ValidationTest {
 
         RuleSet<?> rules = RuleSet.builder()
                 .with("RuleSet2", "Test Rule Set")
-                    .rule(Rule.builder().build(new SizeValidationRule("value", 1, Integer.MAX_VALUE)))
+                    .rule(SizeValidationRule.builder(binding("value"), 1, Integer.MAX_VALUE).build())
                 .build();
 
         rules.run(RuleContext.builder().with(bindings).build());
@@ -143,7 +144,7 @@ public class ValidationTest {
 
         RuleSet<?> rules = RuleSet.builder()
                 .with("RuleSet2", "Test Rule Set")
-                    .rule(Rule.builder().build(new NotBlankValidationRule("value")))
+                    .rule(NotBlankValidationRule.builder(binding("value")).build())
                 .build();
 
         rules.run(RuleContext.builder().with(bindings).build());
@@ -159,7 +160,7 @@ public class ValidationTest {
 
         RuleSet<?> rules = RuleSet.builder()
                 .with("RuleSet2", "Test Rule Set")
-                    .rule(Rule.builder().build(new PatternValidationRule("value","[z]*")))
+                    .rule(PatternValidationRule.builder(binding("value"), "[z]*").build())
                 .build();
 
         rules.run(RuleContext.builder().with(bindings).build());
@@ -176,7 +177,7 @@ public class ValidationTest {
 
         RuleSet<?> rules = RuleSet.builder()
                 .with("RuleSet", "Test Rule Set")
-                    .rule(Rule.builder().build(new FutureValidationRule("value")))
+                    .rule(FutureValidationRule.builder(binding("value")).build())
                 .build();
 
         rules.run(RuleContext.builder().with(bindings).build());
@@ -191,7 +192,7 @@ public class ValidationTest {
 
         RuleSet<?> rules = RuleSet.builder()
                 .with("RuleSet", "Test Rule Set")
-                    .rule(Rule.builder().build(new PastValidationRule("value")))
+                    .rule(PastValidationRule.builder(binding("value")).build())
                 .build();
 
         rules.run(RuleContext.builder().with(bindings).build());
@@ -208,8 +209,8 @@ public class ValidationTest {
 
         RuleSet<?> rules = RuleSet.builder()
                 .with("RuleSet", "Test Rule Set")
-                    .rule(Rule.builder().build(new MaxValidationRule("value", 50)))
-                    .rule(Rule.builder().build(new MaxValidationRule("value", 20)))
+                    .rule(MaxValidationRule.builder(binding("value"), 50L).build())
+                    .rule(MaxValidationRule.builder(binding("value"), 20L).build())
                 .build();
 
         rules.run(RuleContext.builder().with(bindings).build());
@@ -225,10 +226,10 @@ public class ValidationTest {
 
         RuleSet<?> rules = RuleSet.builder()
                 .with("RuleSet", "Test Rule Set")
-                    .rule(Rule.builder().build(new MinValidationRule("value", 11)))
-                    .rule(Rule.builder().build(new MinValidationRule("value", 5)))
-                    .rule(Rule.builder().build(new MinValidationRule("value", 25)))
-                    .rule(Rule.builder().build(new MinValidationRule("value",25)))
+                    .rule(MinValidationRule.builder(binding("value"), 11L).build())
+                    .rule(MinValidationRule.builder(binding("value"), 5L).build())
+                    .rule(MinValidationRule.builder(binding("value"), 25L).build())
+                    .rule(MinValidationRule.builder(binding("value"), 25L).build())
                 .build();
 
         rules.run(RuleContext.builder().with(bindings).build());

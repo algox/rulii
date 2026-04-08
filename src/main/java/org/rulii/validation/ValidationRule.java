@@ -17,6 +17,7 @@
  */
 package org.rulii.validation;
 
+import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.UnrulyException;
 import org.rulii.rule.RuleDefinition;
 import org.rulii.rule.RuleDefinitionAware;
@@ -80,6 +81,7 @@ public abstract class ValidationRule implements RuleDefinitionAware {
      */
     protected ValidationRule(String errorCode, Severity severity, String errorMessage, String defaultMessage) {
         super();
+        Assert.hasText(errorCode, "errorCode cannot be null or empty.");
         this.errorCode = errorCode;
         this.severity = severity != null ? severity : Severity.ERROR;
         this.errorMessage = errorMessage;

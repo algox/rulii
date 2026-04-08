@@ -20,9 +20,9 @@ package org.rulii.validation.rules.notnull;
 import org.rulii.annotation.Description;
 import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
-import org.rulii.validation.BindingSupplier;
-import org.rulii.validation.BindingValidationRule;
+import org.rulii.model.function.Function;
 import org.rulii.validation.Severity;
+import org.rulii.validation.ValueValidationRule;
 
 import java.util.List;
 
@@ -35,7 +35,7 @@ import java.util.List;
  */
 @Rule
 @Description("Value cannot be null.")
-public class NotNullValidationRule extends BindingValidationRule {
+public class NotNullValidationRule extends ValueValidationRule {
 
     public static List<Class<?>> SUPPORTED_TYPES    = List.of(Object.class);
 
@@ -43,46 +43,17 @@ public class NotNullValidationRule extends BindingValidationRule {
     public static final String DEFAULT_MESSAGE  = "Value must not be null.";
 
     /**
-     * Constructs a new NotNullValidationRule with the specified binding name.
+     * Creates a new builder for this validation rule.
      *
-     * @param bindingName the name of the binding to apply the validation rule to
+     * @param function the function that supplies the value to validate
+     * @return a new {@link NotNullValidationRuleBuilder}
      */
-    public NotNullValidationRule(String bindingName) {
-        this(bindingName, ERROR_CODE, Severity.ERROR, null);
+    public static NotNullValidationRuleBuilder builder(Function<?> function) {
+        return new NotNullValidationRuleBuilder(function);
     }
 
-    /**
-     * Constructs a new NotNullValidationRule with the specified binding name, error code, and default severity.
-     *
-     * @param bindingName the name of the binding to apply the validation rule to
-     * @param errorCode the error code to be associated with the validation rule
-     */
-    public NotNullValidationRule(String bindingName, String errorCode) {
-        this(bindingName, errorCode, Severity.ERROR, null);
-    }
-
-    /**
-     * Constructs a new NotNullValidationRule with the specified parameters.
-     *
-     * @param bindingName the name of the binding to apply the validation rule to
-     * @param errorCode the error code to be associated with the validation rule
-     * @param severity the severity of the error
-     * @param errorMessage the error message that will be displayed if the validation rule fails
-     */
-    public NotNullValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage) {
-        super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
-    }
-
-    /**
-     * Constructs a new NotNullValidationRule with the specified parameters.
-     *
-     * @param bindingSupplier the supplier of bindings for rule evaluation, must not be null
-     * @param errorCode the error code associated with the validation rule
-     * @param severity the severity of the error
-     * @param errorMessage the error message that will be displayed if the validation rule fails
-     */
-    public NotNullValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity, String errorMessage) {
-        super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
+    NotNullValidationRule(Function<?> valueFunction, String errorCode, Severity severity, String errorMessage, String valueName) {
+        super(valueFunction, errorCode, severity, errorMessage, DEFAULT_MESSAGE, valueName);
     }
 
     @Override

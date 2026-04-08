@@ -36,7 +36,6 @@ import org.rulii.ruleset.RuleSetExecutionStatus;
 import org.rulii.ruleset.RuleSetListener;
 import org.rulii.validation.RuleViolations;
 import org.rulii.validation.ValidationException;
-import org.rulii.validation.rules.alphnumeric.AlphaNumericValidationRule;
 import org.rulii.validation.rules.notempty.NotEmptyValidationRule;
 import org.rulii.validation.rules.notnull.NotNullValidationRule;
 import org.rulii.validation.rules.numeric.NumericValidationRule;
@@ -44,6 +43,8 @@ import org.rulii.validation.rules.uppercase.UpperCaseValidationRule;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.rulii.validation.rules.Validators.binding;
 
 /**
  * Class representing TraceTest.
@@ -463,11 +464,11 @@ public class TraceTest {
         RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
                 .preCondition(Conditions.condition((Boolean preConditionFlag) -> preConditionFlag))
                 .initializer(Actions.action((Binding<Integer> value) -> value.setValue(0)))
-                .rule(new AlphaNumericValidationRule("a"))
-                .rule(new NotEmptyValidationRule("a"))
-                .rule(new NotNullValidationRule("b"))
-                .rule(new NumericValidationRule("b"))
-                .rule(new UpperCaseValidationRule("c"))
+                .rule(NotNullValidationRule.builder(binding("a")).build())
+                .rule(NotEmptyValidationRule.builder(binding("a")).build())
+                .rule(NotNullValidationRule.builder(binding("b")).build())
+                .rule(NumericValidationRule.builder(binding("b")).build())
+                .rule(UpperCaseValidationRule.builder(binding("c")).build())
                 .finalizer(Actions.action((Binding<Integer> value) -> value.setValue(100)))
                 .build();
 
@@ -540,11 +541,11 @@ public class TraceTest {
     @Test
     public void test12() {
         RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
-                .rule(new AlphaNumericValidationRule("a"))
-                .rule(new NotEmptyValidationRule("a"))
-                .rule(new NotNullValidationRule("b"))
-                .rule(new NumericValidationRule("b"))
-                .rule(new UpperCaseValidationRule("c"))
+                .rule(NotNullValidationRule.builder(binding("a")).build())
+                .rule(NotEmptyValidationRule.builder(binding("a")).build())
+                .rule(NotNullValidationRule.builder(binding("b")).build())
+                .rule(NumericValidationRule.builder(binding("b")).build())
+                .rule(UpperCaseValidationRule.builder(binding("c")).build())
                 .stopCondition(RuleSetConditions.stopWhenOneFailsOrSkipped())
                 .validating()
                 .build();
@@ -568,11 +569,11 @@ public class TraceTest {
     @Test
     public void test13() {
         RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
-                .rule(new AlphaNumericValidationRule("a"))
-                .rule(new NotEmptyValidationRule("a"))
-                .rule(new NotNullValidationRule("b"))
-                .rule(new NumericValidationRule("b"))
-                .rule(new UpperCaseValidationRule("c"))
+                .rule(NotNullValidationRule.builder(binding("a")).build())
+                .rule(NotEmptyValidationRule.builder(binding("a")).build())
+                .rule(NotNullValidationRule.builder(binding("b")).build())
+                .rule(NumericValidationRule.builder(binding("b")).build())
+                .rule(UpperCaseValidationRule.builder(binding("c")).build())
                 .stopCondition(RuleSetConditions.stopWhenOneFails())
                 .validating()
                 .build();

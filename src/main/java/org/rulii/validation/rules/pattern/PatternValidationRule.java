@@ -22,7 +22,11 @@ import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.apache.validation.RegexValidator;
 import org.rulii.lib.spring.util.Assert;
-import org.rulii.validation.*;
+import org.rulii.model.function.Function;
+import org.rulii.validation.RuleViolationBuilder;
+import org.rulii.validation.Severity;
+import org.rulii.validation.ValidationRuleException;
+import org.rulii.validation.ValueValidationRule;
 
 import java.util.List;
 
@@ -35,7 +39,7 @@ import java.util.List;
  */
 @Rule
 @Description("Value must match the given regex pattern.")
-public class PatternValidationRule extends BindingValidationRule {
+public class PatternValidationRule extends ValueValidationRule {
 
     public static List<Class<?>> SUPPORTED_TYPES    = List.of(CharSequence.class);
 
@@ -47,76 +51,19 @@ public class PatternValidationRule extends BindingValidationRule {
     private final RegexValidator validator;
 
     /**
-     * Create a new PatternValidationRule with the specified binding name and pattern.
-     * This constructor sets the error code to a default value, severity to ERROR, error message to null, case sensitivity to true,
-     * to create a new instance of PatternValidationRule.
+     * Creates a new builder for this validation rule.
      *
-     * @param bindingName the name of the binding
-     * @param pattern the regular expression pattern to be validated against
+     * @param function the function that supplies the value to validate
+     * @param pattern  the regex pattern that the value must match
+     * @return a new {@link PatternValidationRuleBuilder}
      */
-    public PatternValidationRule(String bindingName, String pattern) {
-        this(bindingName, ERROR_CODE, Severity.ERROR, null, true, pattern);
+    public static PatternValidationRuleBuilder builder(Function<?> function, String pattern) {
+        return new PatternValidationRuleBuilder(function, pattern);
     }
 
-    /**
-     * Represents a validation rule based on a specified pattern.
-     * This rule is used to validate if a given input matches a specific regular expression pattern.
-     *
-     * @param bindingName the name of the binding for this rule
-     * @param caseSensitive whether the pattern matching should be case sensitive
-     * @param pattern the regular expression pattern to be validated against
-     */
-    public PatternValidationRule(String bindingName, boolean caseSensitive, String pattern) {
-        this(bindingName, ERROR_CODE, Severity.ERROR, null, caseSensitive, pattern);
-    }
-
-    /**
-     * Represents a validation rule based on a specified pattern.
-     * This rule is used to validate if a given input matches a specific regular expression pattern.
-     *
-     * @param bindingName the name of the binding for this rule
-     * @param errorCode    the error code to be used if the validation fails
-     * @param caseSensitive whether the pattern matching should be case sensitive
-     * @param pattern the regular expression pattern to be validated against
-     */
-    public PatternValidationRule(String bindingName, String errorCode, boolean caseSensitive, String pattern) {
-        this(bindingName, errorCode, Severity.ERROR, null, caseSensitive, pattern);
-    }
-
-    /**
-     * Represents a validation rule based on a specified pattern.
-     * This rule is used to validate if a given input matches a specific regular expression pattern.
-     *
-     * @param bindingName   The name of the binding for this rule.
-     * @param errorCode     The error code to be used if the validation fails.
-     * @param severity      The severity of the error.
-     * @param errorMessage  The error message that will be displayed if the validation rule fails.
-     * @param caseSensitive Whether the pattern matching should be case sensitive.
-     * @param pattern       The regular expression pattern to be validated against.
-     */
-    public PatternValidationRule(String bindingName, String errorCode, Severity severity,
-                                 String errorMessage, boolean caseSensitive, String pattern) {
-        super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
-        Assert.notNull(pattern, "pattern cannot be null.");
-        this.pattern = pattern;
-        this.caseSensitive = caseSensitive;
-        this.validator = new RegexValidator(pattern, caseSensitive);
-    }
-
-    /**
-     * Represents a validation rule based on a specified pattern.
-     * Used to validate if a given input matches a specific regular expression pattern.
-     *
-     * @param bindingSupplier The supplier of bindings for rule evaluation. Must not be null.
-     * @param errorCode The error code associated with the validation rule.
-     * @param severity The severity of the error.
-     * @param errorMessage The error message that will be displayed if the validation rule fails.
-     * @param caseSensitive Whether the pattern matching should be case sensitive.
-     * @param pattern The regular expression pattern to be validated against. Cannot be null.
-     */
-    public PatternValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity,
-                                 String errorMessage, boolean caseSensitive, String pattern) {
-        super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
+    PatternValidationRule(Function<?> valueFunction, String errorCode, Severity severity,
+                          String errorMessage, String valueName, boolean caseSensitive, String pattern) {
+        super(valueFunction, errorCode, severity, errorMessage, DEFAULT_MESSAGE, valueName);
         Assert.notNull(pattern, "pattern cannot be null.");
         this.pattern = pattern;
         this.caseSensitive = caseSensitive;

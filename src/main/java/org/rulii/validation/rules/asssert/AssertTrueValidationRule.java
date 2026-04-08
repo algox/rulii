@@ -21,9 +21,9 @@ import org.rulii.annotation.Description;
 import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
 import org.rulii.model.UnrulyException;
-import org.rulii.validation.BindingSupplier;
-import org.rulii.validation.BindingValidationRule;
+import org.rulii.model.function.Function;
 import org.rulii.validation.Severity;
+import org.rulii.validation.ValueValidationRule;
 
 import java.util.List;
 
@@ -36,7 +36,7 @@ import java.util.List;
  */
 @Rule
 @Description("Value must be true.")
-public class AssertTrueValidationRule extends BindingValidationRule {
+public class AssertTrueValidationRule extends ValueValidationRule {
 
     private static final List<Class<?>> SUPPORTED_TYPES = List.of(boolean.class, Boolean.class);
 
@@ -44,48 +44,17 @@ public class AssertTrueValidationRule extends BindingValidationRule {
     public static final String DEFAULT_MESSAGE  = "Value must be true.";
 
     /**
-     * Constructs a new AssertTrueValidationRule with the specified binding name.
+     * Creates a new builder for this validation rule.
      *
-     * @param bindingName the name of the binding to validate
+     * @param function the function that supplies the value to validate
+     * @return a new {@link AssertTrueValidationRuleBuilder}
      */
-    public AssertTrueValidationRule(String bindingName) {
-        this(bindingName, ERROR_CODE, Severity.ERROR, null);
+    public static AssertTrueValidationRuleBuilder builder(Function<?> function) {
+        return new AssertTrueValidationRuleBuilder(function);
     }
 
-    /**
-     * Constructs a new AssertTrueValidationRule with the specified binding name, error code, and severity level.
-     *
-     * @param bindingName   the name of the binding to validate
-     * @param errorCode     the error code to use if validation fails
-     */
-    public AssertTrueValidationRule(String bindingName, String errorCode) {
-        this(bindingName, errorCode, Severity.ERROR, null);
-    }
-
-    /**
-     * Constructs a new AssertTrueValidationRule with the specified parameters.
-     *
-     * @param bindingName   the name of the binding to validate
-     * @param errorCode     the error code associated with the validation rule
-     * @param severity      the severity level of the error (FATAL, ERROR, WARNING, INFO)
-     * @param errorMessage  the custom error message to display if the validation fails
-     */
-    public AssertTrueValidationRule(String bindingName, String errorCode,
-                                    Severity severity, String errorMessage) {
-        super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
-    }
-
-    /**
-     * Instantiates a new AssertTrueValidationRule with the specified parameters.
-     *
-     * @param bindingSupplier The supplier of bindings for rule evaluation. Must not be null.
-     * @param errorCode       The error code associated with the validation rule.
-     * @param severity        The severity level of the error (FATAL, ERROR, WARNING, INFO).
-     * @param errorMessage    The custom error message to display if the validation fails. Can be null.
-     */
-    public AssertTrueValidationRule(BindingSupplier bindingSupplier, String errorCode,
-                                    Severity severity, String errorMessage) {
-        super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
+    AssertTrueValidationRule(Function<?> valueFunction, String errorCode, Severity severity, String errorMessage, String valueName) {
+        super(valueFunction, errorCode, severity, errorMessage, DEFAULT_MESSAGE, valueName);
     }
 
     @Override

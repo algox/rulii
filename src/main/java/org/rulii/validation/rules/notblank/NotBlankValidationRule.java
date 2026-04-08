@@ -21,10 +21,10 @@ import org.rulii.annotation.Description;
 import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.apache.StringUtils;
-import org.rulii.validation.BindingSupplier;
-import org.rulii.validation.BindingValidationRule;
+import org.rulii.model.function.Function;
 import org.rulii.validation.Severity;
 import org.rulii.validation.ValidationRuleException;
+import org.rulii.validation.ValueValidationRule;
 
 import java.util.List;
 
@@ -37,7 +37,7 @@ import java.util.List;
  */
 @Rule
 @Description("Value cannot be blank.")
-public class NotBlankValidationRule extends BindingValidationRule {
+public class NotBlankValidationRule extends ValueValidationRule {
 
     public static List<Class<?>> SUPPORTED_TYPES    = List.of(CharSequence.class);
 
@@ -45,46 +45,17 @@ public class NotBlankValidationRule extends BindingValidationRule {
     public static final String DEFAULT_MESSAGE  = "Value must not be blank.";
 
     /**
-     * Constructor for creating a NotBlankValidationRule instance.
+     * Creates a new builder for this validation rule.
      *
-     * @param bindingName the name of the binding to apply the validation rule to
+     * @param function the function that supplies the value to validate
+     * @return a new {@link NotBlankValidationRuleBuilder}
      */
-    public NotBlankValidationRule(String bindingName) {
-        this(bindingName, ERROR_CODE, Severity.ERROR, null);
+    public static NotBlankValidationRuleBuilder builder(Function<?> function) {
+        return new NotBlankValidationRuleBuilder(function);
     }
 
-    /**
-     * Initializes a new NotBlankValidationRule with the provided binding name and error code.
-     *
-     * @param bindingName the name of the binding to apply the validation rule to
-     * @param errorCode the error code to be set if the validation fails
-     */
-    public NotBlankValidationRule(String bindingName, String errorCode) {
-        this(bindingName, errorCode, Severity.ERROR, null);
-    }
-
-    /**
-     * Constructs a NotBlankValidationRule with the specified parameters.
-     *
-     * @param bindingName the name of the binding to apply the validation rule to
-     * @param errorCode the error code to be set if the validation fails
-     * @param severity the severity of the error
-     * @param errorMessage the error message to be displayed if the validation rule fails
-     */
-    public NotBlankValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage) {
-        super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
-    }
-
-    /**
-     * Constructs a new NotBlankValidationRule with the provided parameters.
-     *
-     * @param bindingSupplier the supplier of bindings for rule evaluation
-     * @param errorCode the error code associated with the validation rule
-     * @param severity the severity of the error
-     * @param errorMessage the error message to be displayed if the validation rule fails
-     */
-    public NotBlankValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity, String errorMessage) {
-        super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
+    NotBlankValidationRule(Function<?> valueFunction, String errorCode, Severity severity, String errorMessage, String valueName) {
+        super(valueFunction, errorCode, severity, errorMessage, DEFAULT_MESSAGE, valueName);
     }
 
     @Override

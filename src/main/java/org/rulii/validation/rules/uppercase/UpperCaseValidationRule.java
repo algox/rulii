@@ -21,10 +21,10 @@ import org.rulii.annotation.Description;
 import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.apache.StringUtils;
-import org.rulii.validation.BindingSupplier;
-import org.rulii.validation.BindingValidationRule;
+import org.rulii.model.function.Function;
 import org.rulii.validation.Severity;
 import org.rulii.validation.ValidationRuleException;
+import org.rulii.validation.ValueValidationRule;
 
 import java.util.List;
 
@@ -37,7 +37,7 @@ import java.util.List;
  */
 @Rule
 @Description("Value must be all in uppercase.")
-public class UpperCaseValidationRule extends BindingValidationRule {
+public class UpperCaseValidationRule extends ValueValidationRule {
 
     public static List<Class<?>> SUPPORTED_TYPES    = List.of(CharSequence.class);
 
@@ -45,46 +45,17 @@ public class UpperCaseValidationRule extends BindingValidationRule {
     public static final String DEFAULT_MESSAGE  = "Value {0} must be in uppercase.";
 
     /**
-     * Constructor for creating an UpperCaseValidationRule object with the specified binding name.
+     * Creates a new builder for this validation rule.
      *
-     * @param bindingName the name of the binding for this validation rule
+     * @param function the function that supplies the value to validate
+     * @return a new {@link UpperCaseValidationRuleBuilder}
      */
-    public UpperCaseValidationRule(String bindingName) {
-        this(bindingName, ERROR_CODE, Severity.ERROR, null);
+    public static UpperCaseValidationRuleBuilder builder(Function<?> function) {
+        return new UpperCaseValidationRuleBuilder(function);
     }
 
-    /**
-     * Constructs an UpperCaseValidationRule object with the specified binding name, error code, and default severity.
-     *
-     * @param bindingName the name of the binding for this validation rule
-     * @param errorCode the error code associated with this validation rule
-     */
-    public UpperCaseValidationRule(String bindingName, String errorCode) {
-        this(bindingName, errorCode, Severity.ERROR, null);
-    }
-
-    /**
-     * Creates a UpperCaseValidationRule object with the specified parameters.
-     *
-     * @param bindingName   the name of the binding for this validation rule
-     * @param errorCode     the error code associated with this validation rule
-     * @param severity      the severity of the error
-     * @param errorMessage  the error message to be displayed if the validation fails
-     */
-    public UpperCaseValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage) {
-        super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
-    }
-
-    /**
-     * Creates a validation rule to ensure that the value provided is all in uppercase.
-     *
-     * @param bindingSupplier The supplier of bindings for rule evaluation. Must not be null.
-     * @param errorCode The error code associated with the validation rule.
-     * @param severity The severity of the error.
-     * @param errorMessage The error message to be displayed if the validation rule fails.
-     */
-    public UpperCaseValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity, String errorMessage) {
-        super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
+    UpperCaseValidationRule(Function<?> valueFunction, String errorCode, Severity severity, String errorMessage, String valueName) {
+        super(valueFunction, errorCode, severity, errorMessage, DEFAULT_MESSAGE, valueName);
     }
 
     @Override

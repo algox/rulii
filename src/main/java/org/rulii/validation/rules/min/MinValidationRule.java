@@ -20,8 +20,12 @@ package org.rulii.validation.rules.min;
 import org.rulii.annotation.Description;
 import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
+import org.rulii.model.function.Function;
 import org.rulii.util.NumberComparator;
-import org.rulii.validation.*;
+import org.rulii.validation.RuleViolationBuilder;
+import org.rulii.validation.Severity;
+import org.rulii.validation.ValidationRuleException;
+import org.rulii.validation.ValueValidationRule;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -35,7 +39,7 @@ import java.util.List;
  */
 @Rule
 @Description("Value is greater than the desired Min.")
-public class MinValidationRule extends BindingValidationRule {
+public class MinValidationRule extends ValueValidationRule {
 
     public static List<Class<?>> SUPPORTED_TYPES    = List.of(Number.class, CharSequence.class);
 
@@ -45,51 +49,19 @@ public class MinValidationRule extends BindingValidationRule {
     private final long min;
 
     /**
-     * Constructs a MinValidationRule with the specified binding name and minimum value.
+     * Creates a new builder for this validation rule.
      *
-     * @param bindingName the name of the binding to apply the rule to
-     * @param min the minimum value that the binding must be greater than or equal to
+     * @param function the function that supplies the value to validate
+     * @param min      the minimum allowed value (inclusive)
+     * @return a new {@link MinValidationRuleBuilder}
      */
-    public MinValidationRule(String bindingName, long min) {
-        this(bindingName, ERROR_CODE, Severity.ERROR, null, min);
+    public static MinValidationRuleBuilder builder(Function<?> function, long min) {
+        return new MinValidationRuleBuilder(function, min);
     }
 
-    /**
-     * Constructs a MinValidationRule with the specified binding information and minimum value.
-     *
-     * @param bindingName the name of the binding to apply the rule to
-     * @param errorCode the error code to use if validation fails
-     * @param min the minimum value that the binding must be greater than or equal to
-     */
-    public MinValidationRule(String bindingName, String errorCode, long min) {
-        this(bindingName, errorCode, Severity.ERROR, null, min);
-    }
-
-    /**
-     * Constructs a MinValidationRule with the specified binding information and minimum value.
-     *
-     * @param bindingName the name of the binding to apply the rule to
-     * @param errorCode the error code to use if validation fails
-     * @param severity the severity of the error
-     * @param errorMessage the error message that will be displayed if the validation rule fails
-     * @param min the minimum value that the binding must be greater than or equal to
-     */
-    public MinValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage, long min) {
-        super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
-        this.min = min;
-    }
-
-    /**
-     * Constructs a MinValidationRule with the specified BindingSupplier, error code, severity, default error message, and minimum value.
-     *
-     * @param bindingSupplier the supplier of bindings for rule evaluation
-     * @param errorCode the error code associated with the validation rule
-     * @param severity the severity of the error
-     * @param defaultMessage the default error message to be used if errorMessage is null
-     * @param min the minimum value that the binding must be greater than or equal to
-     */
-    public MinValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity, String defaultMessage, long min) {
-        super(bindingSupplier, errorCode, severity, DEFAULT_MESSAGE, defaultMessage);
+    MinValidationRule(Function<?> valueFunction, String errorCode, Severity severity,
+                      String errorMessage, String valueName, long min) {
+        super(valueFunction, errorCode, severity, errorMessage, DEFAULT_MESSAGE, valueName);
         this.min = min;
     }
 

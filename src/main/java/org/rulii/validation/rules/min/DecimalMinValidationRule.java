@@ -21,8 +21,12 @@ import org.rulii.annotation.Description;
 import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.spring.util.Assert;
+import org.rulii.model.function.Function;
 import org.rulii.util.NumberComparator;
-import org.rulii.validation.*;
+import org.rulii.validation.RuleViolationBuilder;
+import org.rulii.validation.Severity;
+import org.rulii.validation.ValidationRuleException;
+import org.rulii.validation.ValueValidationRule;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -36,7 +40,7 @@ import java.util.List;
  */
 @Rule
 @Description("Value is greater than the desired Min.")
-public class DecimalMinValidationRule extends BindingValidationRule {
+public class DecimalMinValidationRule extends ValueValidationRule {
 
     public static List<Class<?>> SUPPORTED_TYPES    = List.of(Number.class, CharSequence.class);
 
@@ -47,62 +51,19 @@ public class DecimalMinValidationRule extends BindingValidationRule {
     private final boolean inclusive;
 
     /**
-     * Initialize a DecimalMinValidationRule with the specified parameters.
+     * Creates a new builder for this validation rule.
      *
-     * @param bindingName the name of the binding
-     * @param min the minimum value that the validated decimal must be greater than or equal to
-     * @param inclusive boolean flag to indicate if the validation should be inclusive (true) or exclusive (false)
+     * @param function the function that supplies the value to validate
+     * @param min      the minimum allowed decimal value
+     * @return a new {@link DecimalMinValidationRuleBuilder}
      */
-    public DecimalMinValidationRule(String bindingName, BigDecimal min, boolean inclusive) {
-        this(bindingName, ERROR_CODE, Severity.ERROR, null, min, inclusive);
+    public static DecimalMinValidationRuleBuilder builder(Function<?> function, BigDecimal min) {
+        return new DecimalMinValidationRuleBuilder(function, min);
     }
 
-    /**
-     * Represents a validation rule for enforcing a minimum decimal value.
-     * This rule checks if the validated decimal value is greater than or equal to a specified minimum value.
-     *
-     * @param bindingName the name of the binding associated with the rule
-     * @param errorCode the error code to be used if validation fails
-     * @param min the minimum value that the validated decimal must be greater than or equal to
-     * @param inclusive a boolean flag indicating whether the validation should be inclusive (true) or exclusive (false)
-     */
-    public DecimalMinValidationRule(String bindingName, String errorCode, BigDecimal min, boolean inclusive) {
-        this(bindingName, errorCode, Severity.ERROR, null, min, inclusive);
-    }
-
-    /**
-     * Initialize a DecimalMinValidationRule with the specified parameters.
-     *
-     * @param bindingName the name of the binding associated with the rule
-     * @param errorCode the error code to be used if validation fails
-     * @param severity the severity of the error
-     * @param errorMessage the error message that will be displayed if the validation rule fails
-     * @param min the minimum value that the validated decimal must be greater than or equal to
-     * @param inclusive a boolean flag indicating whether the validation should be inclusive (true) or exclusive (false)
-     */
-    public DecimalMinValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage,
-                                    BigDecimal min, boolean inclusive) {
-        super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
-        Assert.notNull(min, "min cannot be null.");
-        this.min = min;
-        this.inclusive = inclusive;
-    }
-
-    /**
-     * Represents a validation rule for enforcing a minimum decimal value.
-     * This rule checks if the validated decimal value is greater than or equal to a specified minimum value.
-     *
-     * @param bindingSupplier The supplier of bindings for rule evaluation. Must not be null.
-     * @param errorCode The error code associated with the validation rule.
-     * @param severity The severity of the error.
-     * @param errorMessage The error message that will be displayed if the validation rule fails.
-     * @param min The minimum value that the validated decimal must be greater than or equal to.
-     * @param inclusive A boolean flag indicating whether the validation should be inclusive (true) or exclusive (false).
-     */
-    public DecimalMinValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity,
-                                    String errorMessage, BigDecimal min, boolean inclusive) {
-        super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
-        Assert.notNull(min, "min cannot be null.");
+    DecimalMinValidationRule(Function<?> valueFunction, String errorCode, Severity severity,
+                             String errorMessage, String valueName, BigDecimal min, boolean inclusive) {
+        super(valueFunction, errorCode, severity, errorMessage, DEFAULT_MESSAGE, valueName);
         Assert.notNull(min, "min cannot be null.");
         this.min = min;
         this.inclusive = inclusive;

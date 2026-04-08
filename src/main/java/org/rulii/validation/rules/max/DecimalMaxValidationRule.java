@@ -21,8 +21,12 @@ import org.rulii.annotation.Description;
 import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.spring.util.Assert;
+import org.rulii.model.function.Function;
 import org.rulii.util.NumberComparator;
-import org.rulii.validation.*;
+import org.rulii.validation.RuleViolationBuilder;
+import org.rulii.validation.Severity;
+import org.rulii.validation.ValidationRuleException;
+import org.rulii.validation.ValueValidationRule;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -36,7 +40,7 @@ import java.util.List;
  */
 @Rule
 @Description("Value is less than the desired Max.")
-public class DecimalMaxValidationRule extends BindingValidationRule {
+public class DecimalMaxValidationRule extends ValueValidationRule {
 
     public static List<Class<?>> SUPPORTED_TYPES    = List.of(Number.class, CharSequence.class);
 
@@ -47,59 +51,19 @@ public class DecimalMaxValidationRule extends BindingValidationRule {
     private final boolean inclusive;
 
     /**
-     * Constructs a new DecimalMaxValidationRule with the specified parameters.
+     * Creates a new builder for this validation rule.
      *
-     * @param bindingName the name of the binding
-     * @param max the maximum value allowed in the validation
-     * @param inclusive true if the maximum value is inclusive, false otherwise
+     * @param function the function that supplies the value to validate
+     * @param max      the maximum allowed decimal value
+     * @return a new {@link DecimalMaxValidationRuleBuilder}
      */
-    public DecimalMaxValidationRule(String bindingName, BigDecimal max, boolean inclusive) {
-        this(bindingName, ERROR_CODE, Severity.ERROR, null, max, inclusive);
+    public static DecimalMaxValidationRuleBuilder builder(Function<?> function, BigDecimal max) {
+        return new DecimalMaxValidationRuleBuilder(function, max);
     }
 
-    /**
-     * Constructs a new DecimalMaxValidationRule with the specified parameters.
-     *
-     * @param bindingName the name of the binding
-     * @param errorCode the error code associated with the validation rule
-     * @param max the maximum value allowed in the validation
-     * @param inclusive true if the maximum value is inclusive, false otherwise
-     */
-    public DecimalMaxValidationRule(String bindingName, String errorCode, BigDecimal max, boolean inclusive) {
-        this(bindingName, errorCode, Severity.ERROR, null, max, inclusive);
-    }
-
-    /**
-     * Initializes a DecimalMaxValidationRule with the specified parameters.
-     *
-     * @param bindingName   the name of the binding
-     * @param errorCode     the error code associated with the validation rule
-     * @param severity      the severity of the error
-     * @param errorMessage  the error message to be displayed in case of validation failure
-     * @param max           the maximum value allowed in the validation
-     * @param inclusive     true if the maximum value is inclusive, false otherwise
-     */
-    public DecimalMaxValidationRule(String bindingName, String errorCode, Severity severity,
-                                    String errorMessage, BigDecimal max, boolean inclusive) {
-        super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
-        Assert.notNull(max, "max cannot be null.");
-        this.max = max;
-        this.inclusive = inclusive;
-    }
-
-    /**
-     * Represents a validation rule for validating decimal values against a maximum threshold.
-     *
-     * @param bindingSupplier  The supplier of bindings for rule evaluation. Must not be null.
-     * @param errorCode        The error code associated with the validation rule.
-     * @param severity         The severity of the error.
-     * @param errorMessage     The error message to be displayed if the validation fails.
-     * @param max             The maximum value allowed in the validation. Must not be null.
-     * @param inclusive        True if the maximum value is inclusive, false otherwise.
-     */
-    public DecimalMaxValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity,
-                                    String errorMessage, BigDecimal max, boolean inclusive) {
-        super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
+    DecimalMaxValidationRule(Function<?> valueFunction, String errorCode, Severity severity,
+                             String errorMessage, String valueName, BigDecimal max, boolean inclusive) {
+        super(valueFunction, errorCode, severity, errorMessage, DEFAULT_MESSAGE, valueName);
         Assert.notNull(max, "max cannot be null.");
         this.max = max;
         this.inclusive = inclusive;

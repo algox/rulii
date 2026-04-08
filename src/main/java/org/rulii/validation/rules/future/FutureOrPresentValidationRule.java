@@ -21,11 +21,11 @@ import org.rulii.annotation.Description;
 import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
 import org.rulii.model.UnrulyException;
+import org.rulii.model.function.Function;
 import org.rulii.util.TimeComparator;
-import org.rulii.validation.BindingSupplier;
-import org.rulii.validation.BindingValidationRule;
 import org.rulii.validation.RuleViolationBuilder;
 import org.rulii.validation.Severity;
+import org.rulii.validation.ValueValidationRule;
 
 import java.sql.Date;
 import java.time.*;
@@ -41,7 +41,7 @@ import java.util.List;
  */
 @Rule
 @Description("Value must be in the present or in the future.")
-public class FutureOrPresentValidationRule extends BindingValidationRule {
+public class FutureOrPresentValidationRule extends ValueValidationRule {
 
     public static List<Class<?>> SUPPORTED_TYPES    = List.of(Calendar.class, Date.class, java.util.Date.class, Instant.class,
             LocalDate.class, LocalDateTime.class, LocalTime.class, MonthDay.class, OffsetDateTime.class,
@@ -51,48 +51,17 @@ public class FutureOrPresentValidationRule extends BindingValidationRule {
     public static final String DEFAULT_MESSAGE  = "Value {0} must be in the present or in the future. Current clock {1}.";
 
     /**
-     * Constructs a new FutureOrPresentValidationRule with the specified binding name,
-     * using the default error code, severity, and error message.
+     * Creates a new builder for this validation rule.
      *
-     * @param bindingName the name of the binding for the validation rule
+     * @param function the function that supplies the date/time value to validate
+     * @return a new {@link FutureOrPresentValidationRuleBuilder}
      */
-    public FutureOrPresentValidationRule(String bindingName) {
-        this(bindingName, ERROR_CODE, Severity.ERROR, null);
+    public static FutureOrPresentValidationRuleBuilder builder(Function<?> function) {
+        return new FutureOrPresentValidationRuleBuilder(function);
     }
 
-    /**
-     * Constructs a new FutureOrPresentValidationRule with the specified binding name and error code.
-     *
-     * @param bindingName the name of the binding for the validation rule
-     * @param errorCode the error code for the validation rule
-     */
-    public FutureOrPresentValidationRule(String bindingName, String errorCode) {
-        this(bindingName, errorCode, Severity.ERROR, null);
-    }
-
-    /**
-     * Constructs a new FutureOrPresentValidationRule with the specified binding name, error code, severity, and error message.
-     *
-     * @param bindingName the name of the binding for the validation rule
-     * @param errorCode the error code associated with the validation rule
-     * @param severity the severity of the error
-     * @param errorMessage the error message that will be displayed if the validation rule fails
-     */
-    public FutureOrPresentValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage) {
-        super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
-    }
-
-    /**
-     * Represents a validation rule that checks if a date is in the future or present.
-     *
-     * @param bindingSupplier The supplier of bindings for rule evaluation. Must not be null.
-     * @param errorCode The error code associated with the validation rule.
-     * @param severity The severity of the error.
-     * @param errorMessage The error message that will be displayed if the validation rule fails.
-     */
-    public FutureOrPresentValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity,
-                                         String errorMessage) {
-        super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
+    FutureOrPresentValidationRule(Function<?> valueFunction, String errorCode, Severity severity, String errorMessage, String valueName) {
+        super(valueFunction, errorCode, severity, errorMessage, DEFAULT_MESSAGE, valueName);
     }
 
     @Override

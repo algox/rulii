@@ -21,10 +21,10 @@ import org.rulii.annotation.Description;
 import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.apache.StringUtils;
-import org.rulii.validation.BindingSupplier;
-import org.rulii.validation.BindingValidationRule;
+import org.rulii.model.function.Function;
 import org.rulii.validation.Severity;
 import org.rulii.validation.ValidationRuleException;
+import org.rulii.validation.ValueValidationRule;
 
 import java.util.List;
 
@@ -37,7 +37,7 @@ import java.util.List;
  */
 @Rule
 @Description("Value must be numeric.")
-public class NumericValidationRule extends BindingValidationRule {
+public class NumericValidationRule extends ValueValidationRule {
 
     public static List<Class<?>> SUPPORTED_TYPES    = List.of(CharSequence.class);
 
@@ -47,52 +47,18 @@ public class NumericValidationRule extends BindingValidationRule {
     private final boolean allowSpace;
 
     /**
-     * Constructs a NumericValidationRule with the specified binding name.
+     * Creates a new builder for this validation rule.
      *
-     * @param bindingName the name of the binding
+     * @param function the function that supplies the value to validate
+     * @return a new {@link NumericValidationRuleBuilder}
      */
-    public NumericValidationRule(String bindingName) {
-        this(bindingName, ERROR_CODE, Severity.ERROR, null, false);
+    public static NumericValidationRuleBuilder builder(Function<?> function) {
+        return new NumericValidationRuleBuilder(function);
     }
 
-    /**
-     * Constructs a NumericValidationRule with the specified binding name, error code, and option to allow spaces in the value.
-     *
-     * @param bindingName the name of the binding
-     * @param errorCode the error code to be used for validation failure
-     * @param allowSpace flag indicating whether spaces are allowed in the value
-     */
-    public NumericValidationRule(String bindingName, String errorCode, boolean allowSpace) {
-        this(bindingName, errorCode, Severity.ERROR, null, allowSpace);
-    }
-
-    /**
-     * Constructs a NumericValidationRule with the specified parameters.
-     *
-     * @param bindingName the name of the binding
-     * @param errorCode the error code to be used for validation failure
-     * @param severity the severity of the error
-     * @param errorMessage the error message that will be displayed if the validation rule fails
-     * @param allowSpace flag indicating whether spaces are allowed in the value
-     */
-    public NumericValidationRule(String bindingName, String errorCode, Severity severity,
-                                 String errorMessage, boolean allowSpace) {
-        super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
-        this.allowSpace = allowSpace;
-    }
-
-    /**
-     * Represents a validation rule specifically designed for checking numeric values.
-     *
-     * @param bindingSupplier The supplier of bindings for rule evaluation. Must not be null.
-     * @param errorCode The error code associated with the validation rule.
-     * @param severity The severity of the error.
-     * @param errorMessage The error message that will be displayed if the validation rule fails.
-     * @param allowSpace Flag indicating whether spaces are allowed in the numeric value.
-     */
-    public NumericValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity,
-                                 String errorMessage, boolean allowSpace) {
-        super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
+    NumericValidationRule(Function<?> valueFunction, String errorCode, Severity severity,
+                          String errorMessage, String valueName, boolean allowSpace) {
+        super(valueFunction, errorCode, severity, errorMessage, DEFAULT_MESSAGE, valueName);
         this.allowSpace = allowSpace;
     }
 

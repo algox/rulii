@@ -20,11 +20,11 @@ package org.rulii.validation.rules.positive;
 import org.rulii.annotation.Description;
 import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
+import org.rulii.model.function.Function;
 import org.rulii.util.NumberComparator;
-import org.rulii.validation.BindingSupplier;
-import org.rulii.validation.BindingValidationRule;
 import org.rulii.validation.Severity;
 import org.rulii.validation.ValidationRuleException;
+import org.rulii.validation.ValueValidationRule;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -38,7 +38,7 @@ import java.util.List;
  */
 @Rule
 @Description("Value is greater than 0.")
-public class PositiveValidationRule extends BindingValidationRule {
+public class PositiveValidationRule extends ValueValidationRule {
 
     public static List<Class<?>> SUPPORTED_TYPES    = List.of(Number.class, CharSequence.class);
 
@@ -46,46 +46,17 @@ public class PositiveValidationRule extends BindingValidationRule {
     public static final String DEFAULT_MESSAGE = "Value {0} must be greater than 0.";
 
     /**
-     * Constructs a new PositiveValidationRule with the given binding name and default error code, severity, and error message.
+     * Creates a new builder for this validation rule.
      *
-     * @param bindingName the name of the binding for the validation rule
+     * @param function the function that supplies the value to validate
+     * @return a new {@link PositiveValidationRuleBuilder}
      */
-    public PositiveValidationRule(String bindingName) {
-        this(bindingName, ERROR_CODE, Severity.ERROR, null);
+    public static PositiveValidationRuleBuilder builder(Function<?> function) {
+        return new PositiveValidationRuleBuilder(function);
     }
 
-    /**
-     * Constructs a new PositiveValidationRule with the given binding name and error code.
-     *
-     * @param bindingName the name of the binding for the validation rule
-     * @param errorCode the error code to be used for this validation rule
-     */
-    public PositiveValidationRule(String bindingName, String errorCode) {
-        this(bindingName, errorCode, Severity.ERROR,null);
-    }
-
-    /**
-     * Constructs a new PositiveValidationRule with the specified binding name, error code, severity, and error message.
-     *
-     * @param bindingName the name of the binding for the validation rule
-     * @param errorCode the error code associated with the validation rule
-     * @param severity the severity of the error
-     * @param errorMessage the error message to display if the validation rule fails
-     */
-    public PositiveValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage) {
-        super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
-    }
-
-    /**
-     * Represents a validation rule that checks if a value is positive (greater than zero).
-     *
-     * @param bindingSupplier The supplier of bindings for rule evaluation. Must not be null.
-     * @param errorCode The error code associated with the validation rule.
-     * @param severity The severity of the error.
-     * @param errorMessage The error message that will be displayed if the validation rule fails.
-     */
-    public PositiveValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity, String errorMessage) {
-        super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
+    PositiveValidationRule(Function<?> valueFunction, String errorCode, Severity severity, String errorMessage, String valueName) {
+        super(valueFunction, errorCode, severity, errorMessage, DEFAULT_MESSAGE, valueName);
     }
 
     @Override

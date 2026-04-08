@@ -21,10 +21,10 @@ import org.rulii.annotation.Description;
 import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.apache.validation.UrlValidator;
-import org.rulii.validation.BindingSupplier;
-import org.rulii.validation.BindingValidationRule;
+import org.rulii.model.function.Function;
 import org.rulii.validation.Severity;
 import org.rulii.validation.ValidationRuleException;
+import org.rulii.validation.ValueValidationRule;
 
 import java.util.List;
 
@@ -37,7 +37,7 @@ import java.util.List;
  */
 @Rule
 @Description("Value must match a Url regex pattern.")
-public class UrlValidationRule extends BindingValidationRule {
+public class UrlValidationRule extends ValueValidationRule {
 
     public static List<Class<?>> SUPPORTED_TYPES    = List.of(CharSequence.class);
 
@@ -47,47 +47,17 @@ public class UrlValidationRule extends BindingValidationRule {
     private final UrlValidator validator;
 
     /**
-     * Construct a UrlValidationRule with the provided binding name.
+     * Creates a new builder for this validation rule.
      *
-     * @param bindingName the name to bind the validation rule to
+     * @param function the function that supplies the value to validate
+     * @return a new {@link UrlValidationRuleBuilder}
      */
-    public UrlValidationRule(String bindingName) {
-        this(bindingName, ERROR_CODE, Severity.ERROR, null);
+    public static UrlValidationRuleBuilder builder(Function<?> function) {
+        return new UrlValidationRuleBuilder(function);
     }
 
-    /**
-     * Constructs a UrlValidationRule with the provided binding name and error code
-     *
-     * @param bindingName the name to bind the validation rule to
-     * @param errorCode the error code to be used for this validation rule
-     */
-    public UrlValidationRule(String bindingName, String errorCode) {
-        this(bindingName, errorCode, Severity.ERROR, null);
-    }
-
-    /**
-     * Constructs a new UrlValidationRule with the specified parameters.
-     *
-     * @param bindingName The name to bind the validation rule to.
-     * @param errorCode The error code to be used for this validation rule.
-     * @param severity The severity of the error.
-     * @param errorMessage The error message to be displayed if the validation rule fails.
-     */
-    public UrlValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage) {
-        super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
-        this.validator = new UrlValidator();
-    }
-
-    /**
-     * Represents a validation rule for URL validation. It ensures that the value provided matches a URL regex format.
-     *
-     * @param bindingSupplier The supplier of bindings for rule evaluation. Must not be null.
-     * @param errorCode The error code associated with the validation rule.
-     * @param severity The severity of the error.
-     * @param errorMessage The error message that will be displayed if the validation rule fails.
-     */
-    public UrlValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity, String errorMessage) {
-        super(bindingSupplier, errorCode, severity, errorMessage, errorMessage);
+    UrlValidationRule(Function<?> valueFunction, String errorCode, Severity severity, String errorMessage, String valueName) {
+        super(valueFunction, errorCode, severity, errorMessage, DEFAULT_MESSAGE, valueName);
         this.validator = new UrlValidator();
     }
 

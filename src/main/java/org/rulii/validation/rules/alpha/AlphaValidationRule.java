@@ -22,9 +22,9 @@ import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.apache.StringUtils;
 import org.rulii.model.UnrulyException;
-import org.rulii.validation.BindingSupplier;
-import org.rulii.validation.BindingValidationRule;
+import org.rulii.model.function.Function;
 import org.rulii.validation.Severity;
+import org.rulii.validation.ValueValidationRule;
 
 import java.util.List;
 
@@ -36,7 +36,7 @@ import java.util.List;
  */
 @Rule
 @Description("Value can only contain unicode letters/spaces.")
-public class AlphaValidationRule extends BindingValidationRule {
+public class AlphaValidationRule extends ValueValidationRule {
 
     private static final List<Class<?>> SUPPORTED_TYPES = List.of(CharSequence.class);
 
@@ -46,71 +46,66 @@ public class AlphaValidationRule extends BindingValidationRule {
     private final boolean allowSpace;
 
     /**
-     * Constructs a new AlphaValidationRule with the specified binding name, using default error code, severity, and error message.
+     * Creates a new builder for this validation rule.
      *
-     * @param bindingName the name of the binding to apply the validation rule on
+     * @param function the function that supplies the value to validate
+     * @return a new {@link AlphaValidationRuleBuilder}
      */
-    public AlphaValidationRule(String bindingName) {
-        this(bindingName, ERROR_CODE, Severity.ERROR, null, true);
+    public static AlphaValidationRuleBuilder builder(Function<?> function) {
+        return new AlphaValidationRuleBuilder(function);
     }
 
     /**
-     * Constructor for creating a new AlphaValidationRule instance with the provided binding name, error code, and flag to allow spaces.
+     * Constructs a new instance of AlphaValidationRule that validates whether a value contains only
+     * Unicode letters. Optionally, it can allow spaces in the value being validated.
      *
-     * @param bindingName the name of the binding to apply the validation rule on
-     * @param errorCode the error code to be used if validation fails
-     * @param allowSpace a boolean flag indicating whether spaces are allowed in the value
+     * @param valueFunction the function that provides the value to validate
+     * @param errorCode the error code to be used if the validation fails
+     * @param severity the severity of the error if validation fails
+     * @param errorMessage the custom error message to use if validation fails
+     * @param allowSpace whether spaces are allowed in the validated value
      */
-    public AlphaValidationRule(String bindingName, String errorCode, boolean allowSpace) {
-        this(bindingName, errorCode, Severity.ERROR, null, allowSpace);
-    }
-
-    /**
-     * Constructs a new AlphaValidationRule instance with the specified parameters.
-     *
-     * @param bindingName the name of the binding to apply the validation rule on
-     * @param errorCode the error code to be used if validation fails
-     * @param severity the severity of the error
-     * @param errorMessage the error message that will be displayed if the validation rule fails
-     * @param allowSpace a boolean flag indicating whether spaces are allowed in the value
-     */
-    public AlphaValidationRule(String bindingName, String errorCode, Severity severity,
-                               String errorMessage, boolean allowSpace) {
-        super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
+    AlphaValidationRule(Function<?> valueFunction, String errorCode, Severity severity,
+                               String errorMessage, String valueName, boolean allowSpace) {
+        super(valueFunction, errorCode, severity, errorMessage, DEFAULT_MESSAGE, valueName);
         this.allowSpace = allowSpace;
     }
 
     /**
-     * Constructs a new AlphaValidationRule with the specified binding supplier, error code, severity, error message, and flag to allow spaces.
+     * Validates if the provided value satisfies the AlphaValidationRule criteria,
+     * which checks if the value contains only Unicode letters (and spaces if configured to allow spaces).
      *
-     * @param bindingSupplier The supplier of bindings for rule evaluation. Must not be null.
-     * @param errorCode The error code associated with the validation rule.
-     * @param severity The severity of the error.
-     * @param errorMessage The error message that will be displayed if the validation rule fails.
-     * @param allowSpace A boolean flag indicating whether spaces are allowed in the value.
+     * @param ruleContext the context of the validation rule containing related metadata and state
+     * @param value the value to be validated; it should either be null or an instance of CharSequence
+     * @return {@code true} if the value is valid (null or a CharSequence containing only Unicode letters
+     *         or Unicode letters and spaces if spaces are allowed); {@code false} otherwise
+     * @throws UnrulyException if the input value is not an instance of CharSequence
      */
-    public AlphaValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity,
-                               String errorMessage, boolean allowSpace) {
-        super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
-        this.allowSpace = allowSpace;
-    }
-
     @Override
     protected boolean isValid(RuleContext ruleContext, Object value) {
         if (value == null) return true;
 
         if (!(value instanceof CharSequence))
-            throw new
-                    UnrulyException("AlphaValidationRule only applies to CharSequences."
+            throw new UnrulyException("AlphaValidationRule only applies to CharSequences."
                     + "Supplied Class [" + value.getClass() + "] value [" + value + "]");
 
         return isAllowSpace() ? StringUtils.isAlphaSpace((CharSequence) value) : StringUtils.isAlpha((CharSequence) value);
     }
 
+    /**
+     * Indicates whether spaces are allowed in the validated value.
+     *
+     * @return {@code true} if spaces are allowed; {@code false} otherwise.
+     */
     public boolean isAllowSpace() {
         return allowSpace;
     }
 
+    /**
+     * Retrieves a list of classes that are supported by the validation rule.
+     *
+     * @return a list of Class objects representing the supported types.
+     */
     @Override
     public List<Class<?>> getSupportedTypes() {
         return SUPPORTED_TYPES;

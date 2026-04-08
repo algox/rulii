@@ -20,10 +20,10 @@ package org.rulii.validation.rules.notempty;
 import org.rulii.annotation.Description;
 import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
-import org.rulii.validation.BindingSupplier;
-import org.rulii.validation.BindingValidationRule;
+import org.rulii.model.function.Function;
 import org.rulii.validation.Severity;
 import org.rulii.validation.ValidationRuleException;
+import org.rulii.validation.ValueValidationRule;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
@@ -40,7 +40,7 @@ import java.util.Map;
  */
 @Rule
 @Description("Value must not be empty.")
-public class NotEmptyValidationRule extends BindingValidationRule {
+public class NotEmptyValidationRule extends ValueValidationRule {
 
     public static List<Class<?>> SUPPORTED_TYPES    = Arrays.asList(boolean[].class, byte[].class, char[].class,
             double[].class, float[].class, int[].class, long[].class, short[].class, Object[].class,
@@ -50,46 +50,17 @@ public class NotEmptyValidationRule extends BindingValidationRule {
     public static final String DEFAULT_MESSAGE  = "Value {0} must not be empty.";
 
     /**
-     * Constructor for creating a NotEmptyValidationRule with the specified binding name, default error code, severity, and error message.
+     * Creates a new builder for this validation rule.
      *
-     * @param bindingName the name of the binding to validate
+     * @param function the function that supplies the value to validate
+     * @return a new {@link NotEmptyValidationRuleBuilder}
      */
-    public NotEmptyValidationRule(String bindingName) {
-        this(bindingName, ERROR_CODE, Severity.ERROR, null);
+    public static NotEmptyValidationRuleBuilder builder(Function<?> function) {
+        return new NotEmptyValidationRuleBuilder(function);
     }
 
-    /**
-     * Creates a NotEmptyValidationRule with the specified binding name, error code, using the default error severity (ERROR) and no custom error message.
-     *
-     * @param bindingName the name of the binding to validate
-     * @param errorCode the error code to be used if validation fails
-     */
-    public NotEmptyValidationRule(String bindingName, String errorCode) {
-        this(bindingName, errorCode, Severity.ERROR, null);
-    }
-
-    /**
-     * Creates a NotEmptyValidationRule with the specified binding name, error code, severity, and error message.
-     *
-     * @param bindingName the name of the binding to validate
-     * @param errorCode the error code to be used if validation fails
-     * @param severity the severity of the error
-     * @param errorMessage the error message that will be displayed if the validation rule fails
-     */
-    public NotEmptyValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage) {
-        super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
-    }
-
-    /**
-     * Creates a NotEmptyValidationRule with the specified binding supplier, error code, severity, error message, and default message.
-     *
-     * @param bindingSupplier the supplier of bindings for rule evaluation. Must not be null.
-     * @param errorCode the error code associated with the validation rule.
-     * @param severity the severity of the error.
-     * @param errorMessage the error message that will be displayed if the validation rule fails.
-     */
-    public NotEmptyValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity, String errorMessage) {
-        super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
+    NotEmptyValidationRule(Function<?> valueFunction, String errorCode, Severity severity, String errorMessage, String valueName) {
+        super(valueFunction, errorCode, severity, errorMessage, DEFAULT_MESSAGE, valueName);
     }
 
     @Override

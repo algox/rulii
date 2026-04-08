@@ -22,9 +22,9 @@ import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.apache.validation.EmailValidator;
 import org.rulii.model.UnrulyException;
-import org.rulii.validation.BindingSupplier;
-import org.rulii.validation.BindingValidationRule;
+import org.rulii.model.function.Function;
 import org.rulii.validation.Severity;
+import org.rulii.validation.ValueValidationRule;
 
 import java.util.List;
 
@@ -37,7 +37,7 @@ import java.util.List;
  */
 @Rule
 @Description("Value must match an email regex pattern.")
-public class EmailValidationRule extends BindingValidationRule {
+public class EmailValidationRule extends ValueValidationRule {
 
     private static final List<Class<?>> SUPPORTED_TYPES = List.of(CharSequence.class);
 
@@ -49,69 +49,18 @@ public class EmailValidationRule extends BindingValidationRule {
     private final EmailValidator validator;
 
     /**
-     * Constructs a new EmailValidationRule with the specified binding name and default error code, severity,
-     * error message, and validation options.
+     * Creates a new builder for this validation rule.
      *
-     * @param bindingName the name of the binding
+     * @param function the function that supplies the value to validate
+     * @return a new {@link EmailValidationRuleBuilder}
      */
-    public EmailValidationRule(String bindingName) {
-        this(bindingName, ERROR_CODE, Severity.ERROR, null, true, true);
+    public static EmailValidationRuleBuilder builder(Function<?> function) {
+        return new EmailValidationRuleBuilder(function);
     }
 
-    /**
-     * Constructs a new EmailValidationRule with the specified binding name and validation options.
-     *
-     * @param bindingName the name of the binding
-     * @param allowLocal flag to allow local domains in email addresses
-     * @param allowTopLevelDomain flag to allow top-level domains in email addresses
-     */
-    public EmailValidationRule(String bindingName, boolean allowLocal, boolean allowTopLevelDomain) {
-        this(bindingName, ERROR_CODE, Severity.ERROR, null, allowLocal, allowTopLevelDomain);
-    }
-
-    /**
-     * Constructs a new EmailValidationRule with the specified binding name, error code, and validation options.
-     *
-     * @param bindingName the name of the binding
-     * @param errorCode the error code to be associated with the validation rule
-     * @param allowLocal flag to allow local domains in email addresses
-     * @param allowTopLevelDomain flag to allow top-level domains in email addresses
-     */
-    public EmailValidationRule(String bindingName, String errorCode, boolean allowLocal, boolean allowTopLevelDomain) {
-        this(bindingName, errorCode, Severity.ERROR, null, allowLocal, allowTopLevelDomain);
-    }
-
-    /**
-     * Constructs a new EmailValidationRule with the specified parameters.
-     *
-     * @param bindingName the name of the binding
-     * @param errorCode the error code to be associated with the validation rule
-     * @param severity the severity of the error
-     * @param errorMessage the error message that will be displayed if the validation rule fails
-     * @param allowLocal flag to allow local domains in email addresses
-     * @param allowTopLevelDomain flag to allow top-level domains in email addresses
-     */
-    public EmailValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage,
-                               boolean allowLocal, boolean allowTopLevelDomain) {
-        super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
-        this.allowLocal = allowLocal;
-        this.allowTopLevelDomain = allowTopLevelDomain;
-        this.validator = EmailValidator.getInstance(allowLocal, allowTopLevelDomain);
-    }
-
-    /**
-     * Represents a validation rule used for email validation.
-     *
-     * @param bindingSupplier   The supplier of bindings for rule evaluation. Must not be null.
-     * @param errorCode         The error code associated with the validation rule.
-     * @param severity          The severity of the error.
-     * @param errorMessage      The error message that will be displayed if the validation rule fails.
-     * @param allowLocal        Flag to allow local domains in email addresses.
-     * @param allowTopLevelDomain Flag to allow top-level domains in email addresses.
-     */
-    public EmailValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity,
-                               String errorMessage, boolean allowLocal, boolean allowTopLevelDomain) {
-        super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
+    EmailValidationRule(Function<?> valueFunction, String errorCode, Severity severity,
+                        String errorMessage, String valueName, boolean allowLocal, boolean allowTopLevelDomain) {
+        super(valueFunction, errorCode, severity, errorMessage, DEFAULT_MESSAGE, valueName);
         this.allowLocal = allowLocal;
         this.allowTopLevelDomain = allowTopLevelDomain;
         this.validator = EmailValidator.getInstance(allowLocal, allowTopLevelDomain);

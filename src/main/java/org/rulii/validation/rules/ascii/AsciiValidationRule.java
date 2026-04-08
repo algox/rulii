@@ -22,9 +22,9 @@ import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.apache.StringUtils;
 import org.rulii.model.UnrulyException;
-import org.rulii.validation.BindingSupplier;
-import org.rulii.validation.BindingValidationRule;
+import org.rulii.model.function.Function;
 import org.rulii.validation.Severity;
+import org.rulii.validation.ValueValidationRule;
 
 import java.util.List;
 
@@ -37,7 +37,7 @@ import java.util.List;
  */
 @Rule
 @Description("Value can only contains contains ASCII printable characters.")
-public class AsciiValidationRule extends BindingValidationRule {
+public class AsciiValidationRule extends ValueValidationRule {
 
     private static final List<Class<?>> SUPPORTED_TYPES = List.of(CharSequence.class);
 
@@ -45,46 +45,17 @@ public class AsciiValidationRule extends BindingValidationRule {
     public static final String DEFAULT_MESSAGE  = "Value {0} must only contain ASCII printable characters.";
 
     /**
-     * Constructs a new AsciiValidationRule with the specified binding name.
+     * Creates a new builder for this validation rule.
      *
-     * @param bindingName the name of the binding to apply the rule on
+     * @param function the function that supplies the value to validate
+     * @return a new {@link AsciiValidationRuleBuilder}
      */
-    public AsciiValidationRule(String bindingName) {
-        this(bindingName, ERROR_CODE, Severity.ERROR, null);
+    public static AsciiValidationRuleBuilder builder(Function<?> function) {
+        return new AsciiValidationRuleBuilder(function);
     }
 
-    /**
-     * Constructs a new AsciiValidationRule with the specified binding name, error code and default severity.
-     *
-     * @param bindingName the name of the binding to apply the rule on
-     * @param errorCode the error code to use when the validation fails
-     */
-    public AsciiValidationRule(String bindingName, String errorCode) {
-        this(bindingName, errorCode, Severity.ERROR, null);
-    }
-
-    /**
-     * Constructs a new AsciiValidationRule with the specified binding name, error code, severity, and error message.
-     *
-     * @param bindingName the name of the binding to apply the rule on
-     * @param errorCode the error code to use when the validation fails
-     * @param severity the severity of the error
-     * @param errorMessage the error message to display if the validation rule fails
-     */
-    public AsciiValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage) {
-        super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
-    }
-
-    /**
-     * Constructs a new AsciiValidationRule with the specified binding supplier, error code, severity, and error message.
-     *
-     * @param bindingSupplier the supplier of bindings for rule evaluation. Must not be null.
-     * @param errorCode the error code associated with the validation rule
-     * @param severity the severity of the error
-     * @param errorMessage the error message to display if the validation rule fails
-     */
-    public AsciiValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity, String errorMessage) {
-        super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
+    AsciiValidationRule(Function<?> valueFunction, String errorCode, Severity severity, String errorMessage, String valueName) {
+        super(valueFunction, errorCode, severity, errorMessage, DEFAULT_MESSAGE, valueName);
     }
 
     @Override

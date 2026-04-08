@@ -22,9 +22,9 @@ import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.apache.StringUtils;
 import org.rulii.model.UnrulyException;
-import org.rulii.validation.BindingSupplier;
-import org.rulii.validation.BindingValidationRule;
+import org.rulii.model.function.Function;
 import org.rulii.validation.Severity;
+import org.rulii.validation.ValueValidationRule;
 
 import java.util.List;
 
@@ -37,7 +37,7 @@ import java.util.List;
  */
 @Rule
 @Description("Value can only contain unicode alphanumeric letters/spaces.")
-public class AlphaNumericValidationRule extends BindingValidationRule {
+public class AlphaNumericValidationRule extends ValueValidationRule {
 
     private static final List<Class<?>> SUPPORTED_TYPES = List.of(CharSequence.class);
 
@@ -47,54 +47,18 @@ public class AlphaNumericValidationRule extends BindingValidationRule {
     private final boolean allowSpace;
 
     /**
-     * Constructs a new AlphaNumericValidationRule.
+     * Creates a new builder for this validation rule.
      *
-     * @param bindingName The name of the binding associated with this validation rule.
+     * @param function the function that supplies the value to validate
+     * @return a new {@link AlphaNumericValidationRuleBuilder}
      */
-    public AlphaNumericValidationRule(String bindingName) {
-        this(bindingName, ERROR_CODE, Severity.ERROR, null, true);
+    public static AlphaNumericValidationRuleBuilder builder(Function<?> function) {
+        return new AlphaNumericValidationRuleBuilder(function);
     }
 
-    /**
-     * Constructs a new AlphaNumericValidationRule.
-     *
-     * @param bindingName The name of the binding associated with this validation rule.
-     * @param errorCode The error code for the validation rule.
-     * @param allowSpace A boolean indicating whether spaces are allowed in the value.
-     */
-    public AlphaNumericValidationRule(String bindingName, String errorCode,  boolean allowSpace) {
-        this(bindingName, errorCode, Severity.ERROR, null, allowSpace);
-    }
-
-    /**
-     * Constructs a new AlphaNumericValidationRule.
-     *
-     * @param bindingName The name of the binding associated with this validation rule.
-     * @param errorCode The error code for the validation rule.
-     * @param severity The severity of the error.
-     * @param errorMessage The error message that will be displayed if the validation rule fails.
-     * @param allowSpace A boolean indicating whether spaces are allowed in the value.
-     */
-    public AlphaNumericValidationRule(String bindingName, String errorCode, Severity severity,
-                                      String errorMessage, boolean allowSpace) {
-        super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
-        this.allowSpace = allowSpace;
-    }
-
-    /**
-     * Represents a validation rule for ensuring that the provided input consists of only alphanumeric characters.
-     * Spaces may be allowed based on the specified parameter.
-     * Extends BindingValidationRule for binding validation.
-     *
-     * @param bindingSupplier The supplier of bindings for rule evaluation. Must not be null.
-     * @param errorCode The error code associated with the validation rule.
-     * @param severity The severity of the error.
-     * @param errorMessage The error message to display if the validation rule fails.
-     * @param allowSpace A boolean indicating whether spaces are allowed in the input.
-     */
-    public AlphaNumericValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity,
-                                      String errorMessage, boolean allowSpace) {
-        super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
+    AlphaNumericValidationRule(Function<?> valueFunction, String errorCode, Severity severity,
+                               String errorMessage, String valueName, boolean allowSpace) {
+        super(valueFunction, errorCode, severity, errorMessage, DEFAULT_MESSAGE, valueName);
         this.allowSpace = allowSpace;
     }
 

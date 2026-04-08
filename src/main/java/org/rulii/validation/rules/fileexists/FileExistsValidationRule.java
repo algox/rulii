@@ -21,9 +21,9 @@ import org.rulii.annotation.Description;
 import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
 import org.rulii.model.UnrulyException;
-import org.rulii.validation.BindingSupplier;
-import org.rulii.validation.BindingValidationRule;
+import org.rulii.model.function.Function;
 import org.rulii.validation.Severity;
+import org.rulii.validation.ValueValidationRule;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -39,7 +39,7 @@ import java.util.List;
  */
 @Rule
 @Description("File must exist.")
-public class FileExistsValidationRule extends BindingValidationRule {
+public class FileExistsValidationRule extends ValueValidationRule {
 
     public static List<Class<?>> SUPPORTED_TYPES    = List.of(CharSequence.class);
 
@@ -47,47 +47,17 @@ public class FileExistsValidationRule extends BindingValidationRule {
     public static final String DEFAULT_MESSAGE  = "File {0} does not exist.";
 
     /**
-     * Creates a FileExistsValidationRule with the specified binding name.
+     * Creates a new builder for this validation rule.
      *
-     * @param bindingName the name of the binding for this rule
+     * @param function the function that supplies the file path value to validate
+     * @return a new {@link FileExistsValidationRuleBuilder}
      */
-    public FileExistsValidationRule(String bindingName) {
-        this(bindingName, ERROR_CODE, Severity.ERROR, null);
+    public static FileExistsValidationRuleBuilder builder(Function<?> function) {
+        return new FileExistsValidationRuleBuilder(function);
     }
 
-    /**
-     * Creates a FileExistsValidationRule with the specified binding name and error code. The severity is set to ERROR by default.
-     *
-     * @param bindingName the name of the binding for this rule
-     * @param errorCode the error code associated with this rule
-     */
-    public FileExistsValidationRule(String bindingName, String errorCode) {
-        this(bindingName, errorCode, Severity.ERROR, null);
-    }
-
-    /**
-     * Creates a FileExistsValidationRule with the specified parameters.
-     *
-     * @param bindingName the name of the binding for this rule
-     * @param errorCode the error code associated with this rule
-     * @param severity the severity of the error
-     * @param errorMessage the error message to be displayed if the validation rule fails
-     */
-    public FileExistsValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage) {
-        super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
-    }
-
-    /**
-     * Represents a validation rule used to ensure that a file exists.
-     *
-     * @param bindingSupplier The supplier of bindings for rule evaluation. Must not be null.
-     * @param errorCode The error code associated with the validation rule.
-     * @param severity The severity of the error.
-     * @param errorMessage The error message that will be displayed if the validation rule fails.
-     */
-    public FileExistsValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity,
-                                    String errorMessage) {
-        super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
+    FileExistsValidationRule(Function<?> valueFunction, String errorCode, Severity severity, String errorMessage, String valueName) {
+        super(valueFunction, errorCode, severity, errorMessage, DEFAULT_MESSAGE, valueName);
     }
 
     @Override

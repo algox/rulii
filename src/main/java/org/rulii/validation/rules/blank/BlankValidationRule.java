@@ -22,9 +22,9 @@ import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.apache.StringUtils;
 import org.rulii.model.UnrulyException;
-import org.rulii.validation.BindingSupplier;
-import org.rulii.validation.BindingValidationRule;
+import org.rulii.model.function.Function;
 import org.rulii.validation.Severity;
+import org.rulii.validation.ValueValidationRule;
 
 import java.util.List;
 
@@ -37,7 +37,7 @@ import java.util.List;
  */
 @Rule
 @Description("Value must be blank.")
-public class BlankValidationRule extends BindingValidationRule {
+public class BlankValidationRule extends ValueValidationRule {
 
     private static final List<Class<?>> SUPPORTED_TYPES = List.of(CharSequence.class);
 
@@ -45,46 +45,17 @@ public class BlankValidationRule extends BindingValidationRule {
     public static final String DEFAULT_MESSAGE  = "Value {0} must be blank.";
 
     /**
-     * Constructor for creating a BlankValidationRule with the specified binding name.
+     * Creates a new builder for this validation rule.
      *
-     * @param bindingName the name of the binding to be validated
+     * @param function the function that supplies the value to validate
+     * @return a new {@link BlankValidationRuleBuilder}
      */
-    public BlankValidationRule(String bindingName) {
-        this(bindingName, ERROR_CODE, Severity.ERROR, null);
+    public static BlankValidationRuleBuilder builder(Function<?> function) {
+        return new BlankValidationRuleBuilder(function);
     }
 
-    /**
-     * Constructor for creating a BlankValidationRule with the specified binding name and error code.
-     *
-     * @param bindingName the name of the binding to be validated
-     * @param errorCode the error code associated with the validation rule
-     */
-    public BlankValidationRule(String bindingName, String errorCode) {
-        super(bindingName, errorCode, Severity.ERROR, null);
-    }
-
-    /**
-     * Creates a BlankValidationRule instance with the specified parameters.
-     *
-     * @param bindingName   The name of the binding to be validated
-     * @param errorCode     The error code associated with the validation rule
-     * @param severity      The severity of the error
-     * @param errorMessage  The error message to display if the validation rule fails
-     */
-    public BlankValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage) {
-        super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
-    }
-
-    /**
-     * Creates a validation rule to ensure the value is blank.
-     *
-     * @param bindingSupplier The supplier of bindings for rule evaluation. Must not be null.
-     * @param errorCode The error code associated with the validation rule.
-     * @param severity The severity of the error.
-     * @param errorMessage The error message that will be displayed if the validation rule fails.
-     */
-    public BlankValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity, String errorMessage) {
-        super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
+    BlankValidationRule(Function<?> valueFunction, String errorCode, Severity severity, String errorMessage, String valueName) {
+        super(valueFunction, errorCode, severity, errorMessage, DEFAULT_MESSAGE, valueName);
     }
 
     @Override

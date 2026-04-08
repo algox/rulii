@@ -21,9 +21,9 @@ import org.rulii.annotation.Description;
 import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
 import org.rulii.model.UnrulyException;
-import org.rulii.validation.BindingSupplier;
-import org.rulii.validation.BindingValidationRule;
+import org.rulii.model.function.Function;
 import org.rulii.validation.Severity;
+import org.rulii.validation.ValueValidationRule;
 
 import java.util.List;
 
@@ -36,7 +36,7 @@ import java.util.List;
  */
 @Rule
 @Description("Value must be false.")
-public class AssertFalseValidationRule extends BindingValidationRule {
+public class AssertFalseValidationRule extends ValueValidationRule {
 
     private static final List<Class<?>> SUPPORTED_TYPES = List.of(boolean.class, Boolean.class);
 
@@ -44,49 +44,17 @@ public class AssertFalseValidationRule extends BindingValidationRule {
     public static final String DEFAULT_MESSAGE  = "Value must be false.";
 
     /**
-     * Constructor for the AssertFalseValidationRule class.
+     * Creates a new builder for this validation rule.
      *
-     * @param bindingName the name of the binding to be validated
+     * @param function the function that supplies the value to validate
+     * @return a new {@link AssertFalseValidationRuleBuilder}
      */
-    public AssertFalseValidationRule(String bindingName) {
-        this(bindingName, ERROR_CODE, Severity.ERROR, null);
+    public static AssertFalseValidationRuleBuilder builder(Function<?> function) {
+        return new AssertFalseValidationRuleBuilder(function);
     }
 
-    /**
-     * Initializes a new AssertFalseValidationRule with the provided binding name and error code.
-     * This constructor sets the severity to ERROR and the error message to null.
-     *
-     * @param bindingName the name of the binding to be validated
-     * @param errorCode the error code associated with the validation rule
-     */
-    public AssertFalseValidationRule(String bindingName, String errorCode) {
-        this(bindingName, errorCode, Severity.ERROR, null);
-    }
-
-    /**
-     * Constructor for AssertFalseValidationRule class.
-     *
-     * @param bindingName the name of the binding to be validated
-     * @param errorCode the error code associated with the validation rule
-     * @param severity the severity of the error
-     * @param errorMessage the error message that will be displayed if the validation rule fails
-     */
-    public AssertFalseValidationRule(String bindingName, String errorCode,
-                                     Severity severity, String errorMessage) {
-        super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
-    }
-
-    /**
-     * Constructor for the AssertFalseValidationRule class.
-     *
-     * @param bindingSupplier The supplier of bindings for rule evaluation. Must not be null.
-     * @param errorCode The error code associated with the validation rule.
-     * @param severity The severity of the error.
-     * @param errorMessage The error message that will be displayed if the validation rule fails.
-     */
-    public AssertFalseValidationRule(BindingSupplier bindingSupplier, String errorCode,
-                                     Severity severity, String errorMessage) {
-        super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
+    AssertFalseValidationRule(Function<?> valueFunction, String errorCode, Severity severity, String errorMessage, String valueName) {
+        super(valueFunction, errorCode, severity, errorMessage, DEFAULT_MESSAGE, valueName);
     }
 
     @Override

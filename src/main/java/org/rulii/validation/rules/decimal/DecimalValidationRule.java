@@ -21,9 +21,9 @@ import org.rulii.annotation.Description;
 import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
 import org.rulii.model.UnrulyException;
-import org.rulii.validation.BindingSupplier;
-import org.rulii.validation.BindingValidationRule;
+import org.rulii.model.function.Function;
 import org.rulii.validation.Severity;
+import org.rulii.validation.ValueValidationRule;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -37,7 +37,7 @@ import java.util.List;
  */
 @Rule
 @Description("Value must be a valid decimal.")
-public class DecimalValidationRule extends BindingValidationRule {
+public class DecimalValidationRule extends ValueValidationRule {
 
     private static final List<Class<?>> SUPPORTED_TYPES = List.of(CharSequence.class);
 
@@ -47,51 +47,18 @@ public class DecimalValidationRule extends BindingValidationRule {
     private final boolean allowSpace;
 
     /**
-     * Constructor for creating a Decimal Validation Rule with the specified binding name.
+     * Creates a new builder for this validation rule.
      *
-     * @param bindingName the name of the binding to apply the rule on
+     * @param function the function that supplies the value to validate
+     * @return a new {@link DecimalValidationRuleBuilder}
      */
-    public DecimalValidationRule(String bindingName) {
-        this(bindingName, ERROR_CODE, Severity.ERROR, null, true);
+    public static DecimalValidationRuleBuilder builder(Function<?> function) {
+        return new DecimalValidationRuleBuilder(function);
     }
 
-    /**
-     * Constructs a DecimalValidationRule with the specified binding name, error code, and allowSpace flag.
-     *
-     * @param bindingName the name of the binding to apply the rule on
-     * @param errorCode the error code to be used if validation fails
-     * @param allowSpace flag indicating whether spaces are allowed in the decimal value
-     */
-    public DecimalValidationRule(String bindingName, String errorCode, boolean allowSpace) {
-        this(bindingName, errorCode, Severity.ERROR, null, allowSpace);
-    }
-
-    /**
-     * Constructs a DecimalValidationRule with the specified parameters.
-     *
-     * @param bindingName the name of the binding to apply the rule on
-     * @param errorCode the error code to be used if validation fails
-     * @param severity the severity of the error
-     * @param errorMessage the error message to be displayed if validation fails
-     * @param allowSpace flag indicating whether spaces are allowed in the decimal value
-     */
-    public DecimalValidationRule(String bindingName, String errorCode, Severity severity, String errorMessage, boolean allowSpace) {
-        super(bindingName, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
-        this.allowSpace = allowSpace;
-    }
-
-    /**
-     * Constructs a Decimal Validation Rule with the specified parameters.
-     *
-     * @param bindingSupplier the supplier of bindings for rule evaluation. Must not be null.
-     * @param errorCode the error code associated with the validation rule.
-     * @param severity the severity of the error.
-     * @param errorMessage the error message that will be displayed if the validation rule fails.
-     * @param allowSpace flag indicating whether spaces are allowed in the decimal value.
-     */
-    public DecimalValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity,
-                                 String errorMessage, boolean allowSpace) {
-        super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
+    DecimalValidationRule(Function<?> valueFunction, String errorCode, Severity severity,
+                          String errorMessage, String valueName, boolean allowSpace) {
+        super(valueFunction, errorCode, severity, errorMessage, DEFAULT_MESSAGE, valueName);
         this.allowSpace = allowSpace;
     }
 

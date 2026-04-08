@@ -21,7 +21,11 @@ import org.rulii.annotation.Description;
 import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.spring.util.Assert;
-import org.rulii.validation.*;
+import org.rulii.model.function.Function;
+import org.rulii.validation.RuleViolationBuilder;
+import org.rulii.validation.Severity;
+import org.rulii.validation.ValidationRuleException;
+import org.rulii.validation.ValueValidationRule;
 
 import java.lang.reflect.Array;
 import java.util.Collection;
@@ -37,7 +41,7 @@ import java.util.Map;
  */
 @Rule
 @Description("Size is between the given min and max values.")
-public class SizeValidationRule extends BindingValidationRule {
+public class SizeValidationRule extends ValueValidationRule {
 
     public static List<Class<?>> SUPPORTED_TYPES    = List.of(boolean[].class, byte[].class, char[].class, double[].class, float[].class,
             int[].class, long[].class, short[].class, Object[].class, Collection.class, Map.class, CharSequence.class);
@@ -49,61 +53,20 @@ public class SizeValidationRule extends BindingValidationRule {
     private final int max;
 
     /**
-     * Constructor for SizeValidationRule class.
+     * Creates a new builder for this validation rule.
      *
-     * @param bindingName the name of the binding
-     * @param min the minimum size allowed
-     * @param max the maximum size allowed
+     * @param function the function that supplies the value to validate
+     * @param min      the minimum size (inclusive)
+     * @param max      the maximum size (inclusive)
+     * @return a new {@link SizeValidationRuleBuilder}
      */
-    public SizeValidationRule(String bindingName, int min, int max) {
-        this(bindingName, ERROR_CODE, Severity.ERROR, null, min, max);
+    public static SizeValidationRuleBuilder builder(Function<?> function, int min, int max) {
+        return new SizeValidationRuleBuilder(function, min, max);
     }
 
-    /**
-     * Constructor for SizeValidationRule class.
-     *
-     * @param bindingName the name of the binding
-     * @param errorCode the error code
-     * @param min the minimum size allowed
-     * @param max the maximum size allowed
-     */
-    public SizeValidationRule(String bindingName, String errorCode, int min, int max) {
-        this(bindingName, errorCode, Severity.ERROR, null, min, max);
-    }
-
-    /**
-     * Constructor for SizeValidationRule class.
-     *
-     * @param bindingName the name of the binding
-     * @param errorCode the error code
-     * @param severity the severity of the error
-     * @param errorMessage the error message to display
-     * @param min the minimum size allowed
-     * @param max the maximum size allowed
-     */
-    public SizeValidationRule(String bindingName, String errorCode, Severity severity,
-                              String errorMessage, int min, int max) {
-        super(bindingName, errorCode, severity, errorMessage);
-        Assert.isTrue(min >= 0, "min >= 0");
-        Assert.isTrue(max >= 0, "max >= 0");
-        Assert.isTrue(max >= min, "max >= min");
-        this.min = min;
-        this.max = max;
-    }
-
-    /**
-     * Initializes a SizeValidationRule with the specified parameters.
-     *
-     * @param bindingSupplier The supplier of bindings for rule evaluation. Must not be null.
-     * @param errorCode       The error code associated with the validation rule.
-     * @param severity        The severity of the error.
-     * @param errorMessage    The error message that will be displayed if the validation rule fails.
-     * @param min             The minimum size allowed. Must be greater than or equal to 0.
-     * @param max             The maximum size allowed. Must be greater than or equal to 0 and greater than min.
-     */
-    public SizeValidationRule(BindingSupplier bindingSupplier, String errorCode, Severity severity,
-                              String errorMessage, int min, int max) {
-        super(bindingSupplier, errorCode, severity, errorMessage, DEFAULT_MESSAGE);
+    SizeValidationRule(Function<?> valueFunction, String errorCode, Severity severity,
+                       String errorMessage, String valueName, int min, int max) {
+        super(valueFunction, errorCode, severity, errorMessage, DEFAULT_MESSAGE, valueName);
         Assert.isTrue(min >= 0, "min >= 0");
         Assert.isTrue(max >= 0, "max >= 0");
         Assert.isTrue(max >= min, "max >= min");
