@@ -17,7 +17,10 @@
  */
 package org.rulii.ruleset;
 
-import org.rulii.bind.*;
+import org.rulii.bind.Binding;
+import org.rulii.bind.NamedScope;
+import org.rulii.bind.PromiscuousBinder;
+import org.rulii.bind.ReservedBindings;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.apache.commons.logging.Log;
 import org.rulii.lib.apache.commons.logging.LogFactory;
@@ -66,12 +69,12 @@ public abstract class RuleSetExecutionStrategyTemplate<T> implements RuleSetExec
         Binding<?> binding = ruleContext.getBindings().getBinding(parameter.name());
 
         // check the required param
-        if (parameter.required() && (binding == null || !binding.isAssignable(parameter.type())))
+        if (parameter.required() && (binding == null || (binding.getValue() != null && !binding.isAssignable(parameter.type()))))
             throw new UnrulyException("RuleSet [" + ruleSet.getName() + "] requires input parameter ["
                     + parameter.name() + "] type [" + parameter.type() + "]");
 
         // Set the default value
-        if (parameter.defaultValue() != null && binding == null) {
+        if (parameter.defaultValue() != null && (binding == null || binding.getValue() == null)) {
             ruleContext.getBindings().bind(parameter.name(), parameter.defaultValue().apply(ruleContext));
         }
     }

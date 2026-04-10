@@ -19,6 +19,7 @@ package org.rulii.validation;
 
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.function.Function;
+import org.rulii.rule.ClassBasedRuleBuilder;
 import org.rulii.rule.Rule;
 
 /**
@@ -36,6 +37,8 @@ public abstract class ValueValidationRuleBuilder<T extends ValueValidationRuleBu
 
     public static final String DEFAULT_VALUE_NAME = "value";
 
+    private String name;
+    private String description;
     private final Function<?> valueFunction;
     private String errorCode;
     private Severity severity = Severity.ERROR;
@@ -56,6 +59,18 @@ public abstract class ValueValidationRuleBuilder<T extends ValueValidationRuleBu
         this.valueName = valueFunction instanceof BindingFunction ? ((BindingFunction<?>) valueFunction).getBindingName() : DEFAULT_VALUE_NAME;
     }
 
+    @SuppressWarnings("unchecked")
+    public T name(String name) {
+        this.name = name;
+        return (T) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    public T description(String description) {
+        this.description = description;
+        return (T) this;
+    }
+
     /**
      * Sets the error code used in rule violations.
      *
@@ -64,6 +79,7 @@ public abstract class ValueValidationRuleBuilder<T extends ValueValidationRuleBu
      */
     @SuppressWarnings("unchecked")
     public T errorCode(String errorCode) {
+        Assert.hasText(errorCode, "errorCode cannot be null or empty.");
         this.errorCode = errorCode;
         return (T) this;
     }
@@ -76,6 +92,7 @@ public abstract class ValueValidationRuleBuilder<T extends ValueValidationRuleBu
      */
     @SuppressWarnings("unchecked")
     public T severity(Severity severity) {
+        Assert.notNull(severity, "severity cannot be null.");
         this.severity = severity;
         return (T) this;
     }
@@ -88,6 +105,7 @@ public abstract class ValueValidationRuleBuilder<T extends ValueValidationRuleBu
      */
     @SuppressWarnings("unchecked")
     public T message(String errorMessage) {
+        Assert.hasText(errorMessage, "errorMessage cannot be null or empty.");
         this.errorMessage = errorMessage;
         return (T) this;
     }
@@ -100,6 +118,7 @@ public abstract class ValueValidationRuleBuilder<T extends ValueValidationRuleBu
      */
     @SuppressWarnings("unchecked")
     public T valueName(String valueName) {
+        Assert.hasText(valueName, "valueName cannot be null or empty.");
         this.valueName = valueName;
         return (T) this;
     }
@@ -138,6 +157,9 @@ public abstract class ValueValidationRuleBuilder<T extends ValueValidationRuleBu
      * @return the fully configured {@link org.rulii.rule.Rule}
      */
     public Rule build() {
-        return Rule.builder().build(createValueValidationRule());
+        ClassBasedRuleBuilder<?> builder = Rule.builder().with(createValueValidationRule());
+        if (name != null) builder.name(name);
+        builder.description(description);
+        return builder.build();
     }
 }
