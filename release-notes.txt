@@ -1,7 +1,0 @@
-Version 1.1
-
-Changes for rulii-spring
-
-- Removed dependency on @PreConstruct (jakarta or javax). If available it will be used.
-- Changed dependency on Spring @AliasFor (as it was causing warnings)
-- RuleSetBuilder change validateRule to rule
