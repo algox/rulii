@@ -182,6 +182,8 @@ public class ASTMutator extends DeepCopier {
     private Class<?> getBindingType(String bindingName) {
         Binding<?> binding = bindings.getBinding(bindingName);
         if (binding == null) throw new BuildScriptException(script, "Unable to JIT compile as [" + bindingName + "]  is not defined in the bindings.");
+        if (binding.getType() == null) throw new BuildScriptException(script, "Unable to JIT compile as [" + bindingName + "]  has no type. " +
+                "Define [" + bindingName + "] with a type in the bindings.");
         return ReflectionUtils.getWrapperClass(getRawType(binding.getType()));
     }
 
