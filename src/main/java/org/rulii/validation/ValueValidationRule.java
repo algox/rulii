@@ -21,7 +21,6 @@ import org.rulii.annotation.Given;
 import org.rulii.annotation.Otherwise;
 import org.rulii.annotation.Param;
 import org.rulii.annotation.PreCondition;
-import org.rulii.bind.NoSuchBindingException;
 import org.rulii.bind.match.MatchByTypeMatchingStrategy;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.spring.util.Assert;
@@ -55,12 +54,8 @@ public abstract class ValueValidationRule extends ValidationRule {
      */
     @PreCondition
     public boolean checkType(@Param(matchUsing = MatchByTypeMatchingStrategy.class) RuleContext ruleContext) {
-        try {
-            Object value = getValue(ruleContext);
-            return value == null || isSupported(value.getClass());
-        } catch (NoSuchBindingException e) {
-            return false;
-        }
+        Object value = getValue(ruleContext);
+        return value == null || isSupported(value.getClass());
     }
 
     /**

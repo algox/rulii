@@ -487,22 +487,22 @@ public class RuleSetTest {
     @Test
     public void test19() {
         RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
-                .rule(NotNullValidationRule.builder(binding("a")).build())
-                .rule(NotEmptyValidationRule.builder(binding("a")).build())
+                .rule(NumericValidationRule.builder(binding("a")).build())
+                .rule(UpperCaseValidationRule.builder(binding("a")).build())
                 .rule(NotNullValidationRule.builder(binding("b")).build())
                 .rule(NumericValidationRule.builder(binding("b")).build())
                 .rule(UpperCaseValidationRule.builder(binding("c")).build())
                 .stopCondition(RuleSetConditions.stopOnSkipCount(2))
                 .validating()
                 .build();
-        RuleSetExecutionStatus result = ruleSet.run();
+        RuleSetExecutionStatus result = ruleSet.run(a -> Boolean.TRUE, b -> "123", c -> "ABC");
         Assertions.assertEquals(result.size(), 2);
     }
 
     @Test
     public void test20() {
         RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
-                .rule(NotNullValidationRule.builder(binding("a")).build())
+                .rule(NumericValidationRule.builder(binding("a")).build())
                 .rule(NotEmptyValidationRule.builder(binding("a")).build())
                 .rule(NotNullValidationRule.builder(binding("b")).build())
                 .rule(NumericValidationRule.builder(binding("b")).build())
@@ -510,7 +510,7 @@ public class RuleSetTest {
                 .stopCondition(RuleSetConditions.stopWhenOneFailsOrSkipped())
                 .validating()
                 .build();
-        RuleSetExecutionStatus result = ruleSet.run();
+        RuleSetExecutionStatus result = ruleSet.run(a -> Boolean.TRUE, b -> "123", c -> "ABC");
         Assertions.assertEquals(result.size(), 1);
     }
 
@@ -548,14 +548,14 @@ public class RuleSetTest {
     public void test23() {
         RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
                 .preCondition(RuleSetConditions.noneCanPass())
-                .rule(NotNullValidationRule.builder(binding("a")).build())
-                .rule(NotEmptyValidationRule.builder(binding("a")).build())
-                .rule(NotNullValidationRule.builder(binding("b")).build())
+                .rule(NumericValidationRule.builder(binding("a")).build())
+                .rule(UpperCaseValidationRule.builder(binding("a")).build())
                 .rule(NumericValidationRule.builder(binding("b")).build())
+                .rule(UpperCaseValidationRule.builder(binding("b")).build())
                 .rule(UpperCaseValidationRule.builder(binding("c")).build())
                 .validating()
                 .build();
-        RuleSetExecutionStatus result = ruleSet.run();
+        RuleSetExecutionStatus result = ruleSet.run(a -> Boolean.TRUE, b -> Boolean.TRUE, c -> Boolean.TRUE);
         Assertions.assertEquals(result.size(), 5);
     }
 
@@ -563,13 +563,13 @@ public class RuleSetTest {
     public void test24() {
         RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
                 .preCondition(RuleSetConditions.onlyOneCanPass())
-                .rule(NotNullValidationRule.builder(binding("a")).build())
-                .rule(NotEmptyValidationRule.builder(binding("a")).build())
-                .rule(NotNullValidationRule.builder(binding("b")).build())
+                .rule(NumericValidationRule.builder(binding("a")).build())
+                .rule(UpperCaseValidationRule.builder(binding("a")).build())
                 .rule(NumericValidationRule.builder(binding("b")).build())
+                .rule(UpperCaseValidationRule.builder(binding("b")).build())
                 .rule(UpperCaseValidationRule.builder(binding("c")).build())
                 .build();
-        RuleSetExecutionStatus result = ruleSet.run(c -> "ABC");
+        RuleSetExecutionStatus result = ruleSet.run(a -> Boolean.TRUE, b -> Boolean.TRUE, c -> "ABC");
         Assertions.assertEquals(result.size(), 5);
     }
 
@@ -577,14 +577,14 @@ public class RuleSetTest {
     public void test25() {
         RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
                 .preCondition(RuleSetConditions.allMustPass())
-                .rule(NotNullValidationRule.builder(binding("a")).build())
-                .rule(NotEmptyValidationRule.builder(binding("a")).build())
-                .rule(NotNullValidationRule.builder(binding("b")).build())
+                .rule(NumericValidationRule.builder(binding("a")).build())
+                .rule(UpperCaseValidationRule.builder(binding("a")).build())
                 .rule(NumericValidationRule.builder(binding("b")).build())
+                .rule(UpperCaseValidationRule.builder(binding("b")).build())
                 .rule(UpperCaseValidationRule.builder(binding("c")).build())
                 .validating()
                 .build();
-        RuleSetExecutionStatus result = ruleSet.run(c -> "ABC");
+        RuleSetExecutionStatus result = ruleSet.run(a -> Boolean.TRUE, b -> Boolean.TRUE, c -> Boolean.TRUE);
         Assertions.assertFalse(result.isPreConditionCheck());
         Assertions.assertEquals(result.size(), 0);
     }
@@ -593,14 +593,14 @@ public class RuleSetTest {
     public void test26() {
         RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
                 .preCondition(RuleSetConditions.oneMustPass())
-                .rule(NotNullValidationRule.builder(binding("a")).build())
-                .rule(NotEmptyValidationRule.builder(binding("a")).build())
-                .rule(NotNullValidationRule.builder(binding("b")).build())
+                .rule(NumericValidationRule.builder(binding("a")).build())
+                .rule(UpperCaseValidationRule.builder(binding("a")).build())
                 .rule(NumericValidationRule.builder(binding("b")).build())
+                .rule(UpperCaseValidationRule.builder(binding("b")).build())
                 .rule(UpperCaseValidationRule.builder(binding("c")).build())
                 .validating()
                 .build();
-        RuleSetExecutionStatus result = ruleSet.run();
+        RuleSetExecutionStatus result = ruleSet.run(a -> Boolean.TRUE, b -> Boolean.TRUE, c -> Boolean.TRUE);
         Assertions.assertFalse(result.isPreConditionCheck());
         Assertions.assertEquals(result.size(), 0);
     }
@@ -609,14 +609,14 @@ public class RuleSetTest {
     public void test27() {
         RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
                 .preCondition(RuleSetConditions.noneCanPass())
-                .rule(NotNullValidationRule.builder(binding("a")).build())
-                .rule(NotEmptyValidationRule.builder(binding("a")).build())
-                .rule(NotNullValidationRule.builder(binding("b")).build())
+                .rule(NumericValidationRule.builder(binding("a")).build())
+                .rule(UpperCaseValidationRule.builder(binding("a")).build())
                 .rule(NumericValidationRule.builder(binding("b")).build())
+                .rule(UpperCaseValidationRule.builder(binding("b")).build())
                 .rule(UpperCaseValidationRule.builder(binding("c")).build())
                 .validating()
                 .build();
-        RuleSetExecutionStatus result = ruleSet.run(c -> "ABC");
+        RuleSetExecutionStatus result = ruleSet.run(a -> Boolean.TRUE, b -> Boolean.TRUE, c -> "ABC");
         Assertions.assertFalse(result.isPreConditionCheck());
         Assertions.assertEquals(result.size(), 0);
     }

@@ -18,6 +18,7 @@
 package org.rulii.test.validation;
 
 import org.junit.jupiter.api.Test;
+import org.rulii.model.UnrulyException;
 import org.rulii.model.function.Function;
 import org.rulii.rule.Rule;
 import org.rulii.rule.RuleResult;
@@ -77,10 +78,9 @@ public class ValidatorsTests {
 
     @Test
     public void bindingMissingFromContextIsSkipped() {
-        // No binding provided → NoSuchBindingException caught → SKIP
+        // No binding provided → NoSuchBindingException propagates → UnrulyException
         Rule rule = notNull(binding("missingField")).build();
-        RuleResult result = rule.run(); // empty context
-        assertTrue(result.status().isSkipped());
+        assertThrows(UnrulyException.class, () -> rule.run());
     }
 
     @Test
@@ -633,19 +633,20 @@ public class ValidatorsTests {
     }
 
     @Test
-    public void bindingNullValuePassesForNullableRules() {
-        // Rules that treat null as valid (notNull is the inverse — others skip null)
+    public void bindingNullValueFailsForNonNullableRules() {
+        // Rules that treat null as invalid — alpha fails on null
         Rule alphaRule = alpha(binding("optional")).build();
-        // null value → alpha rule should pass (null is acceptable)
-        RuleResult result = alphaRule.run(optional -> (Object) null);
-        assertTrue(result.status().isPass());
+        RuleViolations errors = new RuleViolations();
+        RuleResult result = alphaRule.run(ruleViolations -> errors, optional -> (Object) null);
+        assertTrue(result.status().isFail());
     }
 
     @Test
-    public void valueNullPassesNullableRules() {
-        // alpha treats null as valid
+    public void valueNullFailsNonNullableRules() {
+        // alpha treats null as invalid
         Rule rule = alpha(value(null)).build();
-        assertTrue(rule.run().status().isPass());
+        RuleViolations errors = new RuleViolations();
+        assertTrue(rule.run(ruleViolations -> errors).status().isFail());
     }
 
     @Test

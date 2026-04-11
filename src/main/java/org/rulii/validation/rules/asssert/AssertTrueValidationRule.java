@@ -59,7 +59,7 @@ public class AssertTrueValidationRule extends ValueValidationRule {
 
     @Override
     protected boolean isValid(RuleContext ruleContext, Object value) {
-        if (value == null) return true;
+        if (value == null) return false;
 
         if (!(value instanceof Boolean)) {
             throw new UnrulyException("AssertTrueValidationRule only applies to a boolean."

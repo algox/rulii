@@ -60,8 +60,7 @@ public class UpperCaseValidationRule extends ValueValidationRule {
 
     @Override
     protected boolean isValid(RuleContext ruleContext, Object value) {
-
-        if (value == null) return true;
+        if (value == null) return false;
 
         if (!(value instanceof CharSequence))
             throw new ValidationRuleException("UpperCaseValidationRule only applies to CharSequences."

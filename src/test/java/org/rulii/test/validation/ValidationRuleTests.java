@@ -57,6 +57,7 @@ import java.math.BigDecimal;
 import java.time.*;
 import java.util.*;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.rulii.model.function.Functions.function;
@@ -143,11 +144,11 @@ public class ValidationRuleTests {
     @Test
     public void alphaTest5() {
         Rule rule = alpha(binding("value")).build();
-        RuleResult result = rule.run(value -> null);
-        assertTrue(result.status().isPass());
+        RuleViolations errors = new RuleViolations();
+        RuleResult result = rule.run(ruleViolations -> errors, value -> null);
+        assertTrue(result.status().isFail());
 
-        RuleResult r = rule.run();
-        assertTrue(r.status().isSkipped());
+        assertThrows(UnrulyException.class, () -> rule.run());
 
         String value = "abc";
         Rule rule2 = alpha(function(() -> value)).build();
@@ -229,11 +230,11 @@ public class ValidationRuleTests {
     @Test
     public void alphaNumericTest5() {
         Rule rule = alphaNumeric(binding("value")).build();
-        RuleResult result = rule.run(value -> null);
-        assertTrue(result.status().isPass());
+        RuleViolations errors = new RuleViolations();
+        RuleResult result = rule.run(ruleViolations -> errors, value -> null);
+        assertTrue(result.status().isFail());
 
-        RuleResult r = rule.run();
-        assertTrue(r.status().isSkipped());
+        assertThrows(UnrulyException.class, () -> rule.run());
     }
 
     @Test
@@ -310,11 +311,11 @@ public class ValidationRuleTests {
     @Test
     public void asciiTest5() {
         Rule rule = ascii(binding("value")).build();
-        RuleResult result = rule.run(value -> null);
-        assertTrue(result.status().isPass());
+        RuleViolations errors = new RuleViolations();
+        RuleResult result = rule.run(ruleViolations -> errors, value -> null);
+        assertTrue(result.status().isFail());
 
-        RuleResult r = rule.run();
-        assertTrue(r.status().isSkipped());
+        assertThrows(UnrulyException.class, () -> rule.run());
     }
 
     @Test
@@ -383,10 +384,10 @@ public class ValidationRuleTests {
     @Test
     public void assertFalseTest5() {
         Rule rule = Validators.assertFalse(binding("value")).build();
-        RuleResult result = rule.run(value -> null);
-        assertTrue(result.status().isPass());
-        RuleResult r = rule.run();
-        assertTrue(r.status().isSkipped());
+        RuleViolations errors = new RuleViolations();
+        RuleResult result = rule.run(ruleViolations -> errors, value -> null);
+        assertTrue(result.status().isFail());
+        assertThrows(UnrulyException.class, () -> rule.run());
     }
 
     @Test
@@ -455,10 +456,10 @@ public class ValidationRuleTests {
     @Test
     public void assertTrueTest5() {
         Rule rule = Validators.assertTrue(binding("value")).build();
-        RuleResult result = rule.run(value -> null);
-        assertTrue(result.status().isPass());
-        RuleResult r = rule.run();
-        assertTrue(r.status().isSkipped());
+        RuleViolations errors = new RuleViolations();
+        RuleResult result = rule.run(ruleViolations -> errors, value -> null);
+        assertTrue(result.status().isFail());
+        assertThrows(UnrulyException.class, () -> rule.run());
     }
 
     @Test
@@ -527,8 +528,7 @@ public class ValidationRuleTests {
     @Test
     public void assertEqualsTest5() {
         Rule rule = Validators.assertEquals(binding("value"), 1200).build();
-        RuleResult r = rule.run();
-        assertTrue(r.status().isSkipped());
+        assertThrows(UnrulyException.class, () -> rule.run());
         RuleResult result = rule.run(value -> 1200);
         assertTrue(result.status().isPass());
     }
@@ -592,8 +592,7 @@ public class ValidationRuleTests {
     @Test
     public void assertNotEqualsTest5() {
         Rule rule = Validators.assertNotEquals(binding("value"), 1200).build();
-        RuleResult r = rule.run();
-        assertTrue(r.status().isSkipped());
+        assertThrows(UnrulyException.class, () -> rule.run());
         RuleResult result = rule.run(value -> 1201);
         assertTrue(result.status().isPass());
     }
@@ -744,10 +743,10 @@ public class ValidationRuleTests {
     @Test
     public void blankTest5() {
         Rule rule = blank(binding("value")).build();
-        RuleResult result = rule.run(value -> null);
-        assertTrue(result.status().isPass());
-        RuleResult r = rule.run();
-        assertTrue(r.status().isSkipped());
+        RuleViolations errors = new RuleViolations();
+        RuleResult result = rule.run(ruleViolations -> errors, value -> null);
+        assertTrue(result.status().isFail());
+        assertThrows(UnrulyException.class, () -> rule.run());
     }
 
     @Test
@@ -818,10 +817,10 @@ public class ValidationRuleTests {
     @Test
     public void decimalTest5() {
         Rule rule = decimal(binding("value")).build();
-        RuleResult result = rule.run(value -> null);
-        assertTrue(result.status().isPass());
-        RuleResult r = rule.run();
-        assertTrue(r.status().isSkipped());
+        RuleViolations errors = new RuleViolations();
+        RuleResult result = rule.run(ruleViolations -> errors, value -> null);
+        assertTrue(result.status().isFail());
+        assertThrows(UnrulyException.class, () -> rule.run());
     }
 
     @Test
@@ -896,10 +895,10 @@ public class ValidationRuleTests {
     @Test
     public void digitsTest5() {
         Rule rule = digits(binding("value"), 2, 2).build();
-        RuleResult result = rule.run(value -> null);
-        assertTrue(result.status().isPass());
-        RuleResult r = rule.run();
-        assertTrue(r.status().isSkipped());
+        RuleViolations errors = new RuleViolations();
+        RuleResult result = rule.run(ruleViolations -> errors, value -> null);
+        assertTrue(result.status().isFail());
+        assertThrows(UnrulyException.class, () -> rule.run());
     }
 
     @Test
@@ -976,10 +975,10 @@ public class ValidationRuleTests {
     @Test
     public void emailTest5() {
         Rule rule = email(binding("value")).allowLocal().build();
-        RuleResult result = rule.run(value -> null);
-        assertTrue(result.status().isPass());
-        RuleResult r = rule.run();
-        assertTrue(r.status().isSkipped());
+        RuleViolations errors = new RuleViolations();
+        RuleResult result = rule.run(ruleViolations -> errors, value -> null);
+        assertTrue(result.status().isFail());
+        assertThrows(UnrulyException.class, () -> rule.run());
     }
 
     @Test
@@ -1056,10 +1055,10 @@ public class ValidationRuleTests {
     @Test
     public void endsWithTest5() {
         Rule rule = endsWith(binding("value"), "yyy").build();
-        RuleResult result = rule.run(value -> null);
-        assertTrue(result.status().isPass());
-        RuleResult r = rule.run();
-        assertTrue(r.status().isSkipped());
+        RuleViolations errors = new RuleViolations();
+        RuleResult result = rule.run(ruleViolations -> errors, value -> null);
+        assertTrue(result.status().isFail());
+        assertThrows(UnrulyException.class, () -> rule.run());
     }
 
     @Test
@@ -1123,10 +1122,10 @@ public class ValidationRuleTests {
     @Test
     public void fileExistsTest5() {
         Rule rule = fileExists(binding("value")).build();
-        RuleResult result = rule.run(value -> null);
-        assertTrue(result.status().isPass());
-        RuleResult r = rule.run();
-        assertTrue(r.status().isSkipped());
+        RuleViolations errors = new RuleViolations();
+        RuleResult result = rule.run(ruleViolations -> errors, value -> null);
+        assertTrue(result.status().isFail());
+        assertThrows(UnrulyException.class, () -> rule.run());
     }
 
     @Test

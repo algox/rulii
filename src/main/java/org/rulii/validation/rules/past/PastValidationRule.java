@@ -66,8 +66,7 @@ public class PastValidationRule extends ValueValidationRule {
 
     @Override
     protected boolean isValid(RuleContext ruleContext, Object value) {
-
-        if (value == null) return true;
+        if (value == null) return false;
 
         Integer result = TimeComparator.compare(value, ruleContext.getClock());
 

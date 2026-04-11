@@ -541,7 +541,7 @@ public class TraceTest {
     @Test
     public void test12() {
         RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
-                .rule(NotNullValidationRule.builder(binding("a")).build())
+                .rule(NumericValidationRule.builder(binding("a")).build())
                 .rule(NotEmptyValidationRule.builder(binding("a")).build())
                 .rule(NotNullValidationRule.builder(binding("b")).build())
                 .rule(NumericValidationRule.builder(binding("b")).build())
@@ -551,7 +551,7 @@ public class TraceTest {
                 .build();
 
         RuleContext context = RuleContext.builder()
-                .with()
+                .with(a -> Boolean.TRUE, b -> "123", c -> "ABC")
                 .build();
 
         AtomicBoolean stop = new AtomicBoolean(false);

@@ -68,8 +68,7 @@ public class EndsWithValidationRule extends ValueValidationRule {
 
     @Override
     protected boolean isValid(RuleContext ruleContext, Object value) {
-
-        if (value == null) return true;
+        if (value == null) return false;
 
         if (!(value instanceof CharSequence))
             throw new UnrulyException("EndsWithValidationRule only applies to CharSequences."

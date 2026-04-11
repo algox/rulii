@@ -61,8 +61,7 @@ public class PositiveValidationRule extends ValueValidationRule {
 
     @Override
     protected boolean isValid(RuleContext ruleContext, Object value) {
-
-        if (value == null) return true;
+        if (value == null) return false;
 
         Number number = null;
 
