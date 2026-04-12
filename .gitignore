@@ -30,3 +30,5 @@
 /classes
 /target
 /releases/
+/.claude/settings.local.json
+/CLAUDE.md

@@ -24,6 +24,7 @@
 - [Built-in Validators](#built-in-validators)
 - [Scripting Support](#scripting-support)
 - [Spring Integration](#spring-integration)
+- [Claude Code Skills](#claude-code-skills)
 - [Documentation](#documentation)
 - [Contributing](#contributing)
 
@@ -327,6 +328,43 @@ public class RuleConfig {
 
 See the [rulii-spring repository](https://github.com/algox/rulii-spring) and the
 [Spring Boot sample](https://github.com/algox/rulii-samples/tree/develop/spring-boot-sample) for full details.
+
+---
+
+## Claude Code Skills
+
+This project ships with [Claude Code](https://claude.ai/code) skills that assist with common development tasks.
+If you have Claude Code installed, invoke any skill with its slash command from within the project directory.
+
+| Skill | Command | What it does |
+|---|---|---|
+| New Rule | `/new-rule` | Step-by-step guide for creating a Rule — lambda and class-based styles, conditions, actions, preConditions, and running rules manually |
+| New RuleSet | `/new-ruleset` | Full RuleSet builder API — lifecycle hooks, input params, stop conditions, `.validating()` mode, async execution, and error handling |
+| New Validation Rule | `/new-validation-rule` | Creates a custom `ValueValidationRule` with its companion builder — covers supported types, `isValid()` logic, violation customisation, and the full checklist |
+| Write Test | `/write-test` | JUnit 5 test patterns for rulii — PASS/FAIL/SKIP scenarios, missing-binding cases, validation exceptions, and JUnit 5.12.1 ambiguity workarounds |
+| Debug Rule | `/debug-rule` | Diagnostic guide for rules that produce the wrong result — walks through SKIP (type mismatch), missing bindings, missing violations, and how to enable tracing |
+
+### Using the skills in your own project
+
+Since you'll typically reference rulii as a dependency rather than working in this repo directly,
+copy the skills into your own project's `.claude/skills/` directory:
+
+```bash
+cp -r <path-to-rulii>/.claude/skills/new-rule        .claude/skills/
+cp -r <path-to-rulii>/.claude/skills/new-ruleset      .claude/skills/
+cp -r <path-to-rulii>/.claude/skills/new-validation-rule .claude/skills/
+cp -r <path-to-rulii>/.claude/skills/write-test       .claude/skills/
+cp -r <path-to-rulii>/.claude/skills/debug-rule       .claude/skills/
+```
+
+Once copied, run `claude` from your project root — skills in `.claude/skills/` are discovered automatically.
+
+### Prerequisites
+
+Install Claude Code:
+```bash
+npm install -g @anthropic-ai/claude-code
+```
 
 ---
 
