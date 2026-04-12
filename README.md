@@ -2,7 +2,8 @@
 [Apache 2.0 License]:https://opensource.org/licenses/Apache-2.0
 
 # _rulii_
-**Rule your code** <br/><sub> _100% Java_ &middot; _Easy to learn_ &middot; _Declarative and Functional models_ &middot; _Zero dependencies_ &middot; _Spring support_ </sub>
+**A lightweight, lambda-based business rule engine for Java 17+** <br/>
+<sub> _100% Java_ &middot; _Zero dependencies_ &middot; _Declarative & Functional_ &middot; _34 built-in validators_ &middot; _Scripting support_ &middot; _Spring support_ </sub>
 
 ---
 
@@ -11,32 +12,56 @@
 [![Javadoc](https://javadoc.io/badge2/org.rulii/rulii/1.2.0/javadoc.svg)](https://javadoc.io/doc/org.rulii/rulii/1.2.0)
 ![Build](https://github.com/algox/rulii/actions/workflows/maven.yml/badge.svg)
 
+---
+
+## Table of Contents
+
+- [What is it?](#what-is-it)
+- [Why rulii?](#why-rulii)
+- [Getting Started](#getting-started)
+- [Writing Rules](#writing-rules)
+- [Writing RuleSets](#writing-rulesets)
+- [Built-in Validators](#built-in-validators)
+- [Scripting Support](#scripting-support)
+- [Spring Integration](#spring-integration)
+- [Documentation](#documentation)
+- [Contributing](#contributing)
+
+---
+
 ## What is it?
 
-_rulii_ is a Rule Engine which organizes business logic through a set of rules, each consisting of a condition and a set of action(s). 
-The engine runs rules on data, identifying rules whose conditions match and then executing the corresponding actions.
-This is an alternative computational model, based on production rules that define conditions and actions, akin to "if-then" statements. 
-The engine evaluates these rules in an order it deems appropriate, allowing flexible decision-making based on conditions.
+_rulii_ is a rule engine that organizes business logic through a set of rules, each consisting of a condition and
+one or more actions. Rules run against named, typed data (Bindings), evaluate their conditions, and trigger actions
+when those conditions are met.
 
-This model promotes a clear separation between business logic and data, making it easier to adapt when business rules change and simplifying the testing of those changes. 
-It is particularly helpful in scenarios like data validation, qualification processes, or calculations, where actions are triggered based on the truth or falsity of specific conditions. 
+This promotes a clean separation between business logic and data — making rules easy to test, reuse, and change
+independently of application code. It is particularly useful for data validation, qualification workflows,
+pricing logic, and any scenario where decisions are driven by a configurable set of conditions.
 
-### [You can find the full documentation here](https://rulii.com)
+---
 
-## Features
+## Why rulii?
 
- * Abstractions help define and implement business rules in Java in a structured and maintainable way, making it easier to manage and apply them across your system.
- * You can define rules either by creating classes or by using lambdas in a functional style, depending on your preference and the complexity of the rules.
- * You can organize related rules into a RuleSet, which encourages reuse and better management of rules.
- * Rules and RuleSets are stateless, making them highly efficient and performant.
- * Lightweight with no external dependencies.
- * **[Spring support](https://github.com/algox/rulii-spring)**
+| | rulii | Drools | Easy Rules |
+|---|---|---|---|
+| Zero dependencies | ✅ | ❌ | ✅ |
+| Lambda / functional API | ✅ | ❌ | Partial |
+| Declarative annotation API | ✅ | ✅ | ✅ |
+| 34 built-in validators | ✅ | ❌ | ❌ |
+| Scripting (JSR-223) | ✅ | ✅ | ❌ |
+| Spring integration | ✅ | ✅ | ✅ |
+| Java 17+ | ✅ | ✅ | ✅ |
+| Learning curve | Low | High | Low |
 
+rulii is designed for teams that want the power of a rule engine without the weight of a full platform.
+Rules are plain Java — no proprietary DSL, no XML, no extra runtime.
 
-## Getting started
-_Add the dependency_
+---
 
-Maven
+## Getting Started
+
+**Maven**
 ```xml
 <dependency>
     <groupId>org.rulii</groupId>
@@ -45,121 +70,288 @@ Maven
 </dependency>
 ```
 
-Grade
+**Gradle**
 ```groovy
-compile 'org.rulii:rulii:1.2.0'
+implementation 'org.rulii:rulii:1.2.0'
 ```
+
+---
 
 ## Writing Rules
 
-**[Examples Found here](https://github.com/algox/rulii-samples)**
+Rules can be written declaratively (annotation-based) or functionally (lambda-based). Both styles are fully supported.
 
-#### Declaratively
+**[More examples here](https://github.com/algox/rulii-samples)**
 
-Let's write a simple Validation Rule. Given two non-null dates (fromDate, toDate), let's validate that fromDate is before toDate. 
+### Declaratively
 
 ```java
 @Rule
-@Description("This Rule will validate that the from date is before the to date.")
+@Description("Validates that fromDate is before toDate.")
 public class ConsistentDateRule {
 
-    public ConsistentDateRule() {
-        super();
-    }
-
-    @PreCondition // Don't run the rule if we have null values
+    @PreCondition
     public boolean check(LocalDate fromDate, LocalDate toDate) {
         return fromDate != null && toDate != null;
     }
 
-    @Given // Condition
+    @Given
     public boolean isValid(LocalDate fromDate, LocalDate toDate) {
         return fromDate.isBefore(toDate);
     }
 
-    @Otherwise() // Else Action
+    @Otherwise
     public void otherwise(LocalDate fromDate, LocalDate toDate, RuleViolations violations) {
         violations.add(RuleViolation.builder().build("consistentDateRule", "errorCode.100",
-                "fromDate [" + fromDate + "] should be before toDate [" + toDate + "]"));
+                "fromDate [" + fromDate + "] must be before toDate [" + toDate + "]"));
     }
 }
 
-// Create the Rule instance
 Rule rule = Rule.builder().build(ConsistentDateRule.class);
-
 ```
 
-#### Functionally
+### Functionally
 
 ```java
-
 Rule rule = Rule.builder()
         .name("consistentDateRule")
-        .description("This Rule will validate that the from date is before the to date.")
-        .preCondition(condition((LocalDate fromDate, LocalDate toDate) -> toDate != null && fromDate != null))
+        .description("Validates that fromDate is before toDate.")
+        .preCondition(condition((LocalDate fromDate, LocalDate toDate) -> fromDate != null && toDate != null))
         .given(condition((LocalDate fromDate, LocalDate toDate) -> fromDate.isBefore(toDate)))
-        .otherwise(action((LocalDate fromDate, LocalDate toDate, RuleViolations violations) -> {
-            violations.add(RuleViolation.builder().build("consistentDateRule", "errorCode.100",
-                    "fromDate [" + fromDate + "] should be before toDate [" + toDate + "]"));
-        }))
+        .otherwise(action((LocalDate fromDate, LocalDate toDate, RuleViolations violations) ->
+                violations.add(RuleViolation.builder().build("consistentDateRule", "errorCode.100",
+                        "fromDate [" + fromDate + "] must be before toDate [" + toDate + "]"))))
         .build();
 ```
 
-**Run the Rule**
+### Running a Rule
+
 ```java
-// Create your bindings
 Bindings bindings = Bindings.builder().standard();
 bindings.bind("fromDate", LocalDate.of(1980, Month.JANUARY, 1));
 bindings.bind("toDate", LocalDate.now());
 bindings.bind("violations", new RuleViolations());
 
-// Run the Rule
 RuleResult result = rule.run(bindings);
 
 if (result.status().isPass()) {
-    // Rule passed   
+    // Rule passed
 } else {
-    // Rule failed    
+    // Rule failed
 }
-
 ```
 
-**That's it! You have written your first Rule.**
+---
 
 ## Writing RuleSets
 
-```java
+Group related rules into a `RuleSet` for reuse and clean execution:
 
+```java
 import static org.rulii.validation.rules.Validators.*;
 
 RuleSet<RuleViolations> ruleSet = RuleSet.builder()
-        .with("testRuleSet")
-        .rule(alpha(binding("a")).build())
-        .rule(notEmpty(binding("a")).build)
-        .rule(notNull(binding("b")).build)
-        .rule(numeric(binding("b")).build())
-        .rule(upperCase(binding("c")).build()
+        .with("userValidation")
+        .rule(notNull(binding("username")).build())
+        .rule(notBlank(binding("username")).build())
+        .rule(size(binding("username"), 3, 50).build())
+        .rule(email(binding("email")).build())
+        .rule(min(binding("age"), 18L).message("Must be 18 or older").build())
         .rule(Rule.builder().build(ConsistentDateRule.class))
         .resultExtractor(function((RuleViolations violations) -> violations))
         .build();
 
-// Create your bindings
 Bindings bindings = Bindings.builder().standard();
-bindings.bind("a","aaa");
-bindings.bind("b",123);
-bindings.bind("c","ABC");
-bindings.bind("flag",true);
-bindings.bind("fromDate",LocalDate.of(1980, Month.JANUARY, 1));
-bindings.bind("toDate",LocalDate.now());
-bindings.bind("violations",new RuleViolations());
+bindings.bind("username", "alice");
+bindings.bind("email", "alice@example.com");
+bindings.bind("age", 25);
+bindings.bind("fromDate", LocalDate.of(1999, Month.JANUARY, 1));
+bindings.bind("toDate", LocalDate.now());
+bindings.bind("violations", new RuleViolations());
 
-//Run the RuleSet
 RuleViolations violations = ruleSet.run(bindings);
 
-// Found errors
 if (violations.hasErrors()) {
     throw new ValidationException(violations);
 }
-
 ```
-**Now you are ready to Rule your code!**
+
+---
+
+## Built-in Validators
+
+rulii ships with **34 built-in validation rules** accessible via the `Validators` static factory.
+Use `Validators.binding("name")` to reference a named binding, or `Validators.value(obj)` for a constant.
+
+```java
+import static org.rulii.validation.rules.Validators.*;
+
+// String validators
+alpha(binding("code")).build()
+alphaNumeric(binding("username")).build()
+notBlank(binding("name")).build()
+size(binding("bio"), 0, 500).build()
+email(binding("email")).build()
+pattern(binding("zip"), "\\d{5}").build()
+upperCase(binding("countryCode")).build()
+
+// Numeric validators
+min(binding("age"), 18L).message("Must be 18 or older").build()
+max(binding("quantity"), 100L).build()
+positive(binding("price")).build()
+digits(binding("score"), 3, 2).build()   // max 3 integer digits, 2 fractional
+
+// Date/time validators
+past(binding("birthDate")).build()
+future(binding("expiryDate")).build()
+futureOrPresent(binding("startDate")).build()
+
+// Collection validators
+notEmpty(binding("items")).build()
+size(binding("tags"), 1, 10).build()
+in(binding("status"), List.of("ACTIVE", "PENDING", "CLOSED")).build()
+
+// Null / equality validators
+notNull(binding("id")).build()
+assertEquals(binding("confirmPassword"), binding("password")).build()
+```
+
+Full validator reference:
+
+| Method | Description |
+|---|---|
+| `alpha(fn)` | Only alphabetic characters |
+| `alphaNumeric(fn)` | Only alphanumeric characters |
+| `ascii(fn)` | Only ASCII characters |
+| `assertTrue(fn)` | Must be `true` |
+| `assertFalse(fn)` | Must be `false` |
+| `assertEquals(fn, expected)` | Must equal expected value |
+| `assertNotEquals(fn, unexpected)` | Must not equal value |
+| `blank(fn)` | Must be blank (null or whitespace) |
+| `decimal(fn)` | Must be a valid decimal number |
+| `digits(fn, maxInt, maxFrac)` | Max integer and fractional digit counts |
+| `email(fn)` | Must be a valid email address |
+| `endsWith(fn, suffixes...)` | Must end with one of the given suffixes |
+| `fileExists(fn)` | Must be a path to an existing file |
+| `future(fn)` | Date/time must be in the future |
+| `futureOrPresent(fn)` | Date/time must be in the future or present |
+| `in(fn, collection)` | Must be contained in the collection |
+| `lowerCase(fn)` | Must be all lower-case |
+| `max(fn, max)` | Numeric value must be ≤ max |
+| `decimalMax(fn, max)` | Decimal value must be ≤ max |
+| `min(fn, min)` | Numeric value must be ≥ min |
+| `decimalMin(fn, min)` | Decimal value must be ≥ min |
+| `negative(fn)` | Must be strictly negative |
+| `negativeOrZero(fn)` | Must be negative or zero |
+| `notBlank(fn)` | Must not be blank |
+| `notEmpty(fn)` | Collection/String/Array must not be empty |
+| `notNull(fn)` | Must not be null |
+| `isNull(fn)` | Must be null |
+| `numeric(fn)` | Must be a numeric string |
+| `past(fn)` | Date/time must be in the past |
+| `pastOrPresent(fn)` | Date/time must be in the past or present |
+| `pattern(fn, regex)` | Must match the given regex |
+| `positive(fn)` | Must be strictly positive |
+| `positiveOrZero(fn)` | Must be positive or zero |
+| `size(fn, min, max)` | Size must be within [min, max] |
+| `startsWith(fn, prefixes...)` | Must start with one of the given prefixes |
+| `upperCase(fn)` | Must be all upper-case |
+| `url(fn)` | Must be a valid URL |
+
+---
+
+## Scripting Support
+
+As of **1.2.0**, rules can be backed by scripts via any JSR-223 compatible engine (JavaScript, Groovy, etc.).
+
+```java
+// Build a script
+Script<Boolean> script = Script.builder()
+        .with("js", "age >= 18")
+        .param("age", Integer.class)
+        .build();
+
+// Wrap it in a Condition
+Condition condition = Condition.builder().build(script);
+
+// Run it
+Bindings bindings = Bindings.builder().standard();
+bindings.bind("age", 21);
+
+RuleContext ctx = RuleContext.builder().build(bindings);
+boolean result = condition.isTrue(age -> 21);  // true
+```
+
+Scripts have full access to all named bindings and integrate seamlessly with Rules and RuleSets.
+
+---
+
+## Spring Integration
+
+[rulii-spring](https://github.com/algox/rulii-spring) brings rulii into the Spring ecosystem:
+
+- Auto-configuration of rulii options
+- Automatic rule discovery via `@RuleScan`
+- Spring-managed beans injected directly into rules
+- Externalize rule messages via `application.yaml` / `application.properties`
+- Default parameter values using Spring's conversion system
+
+**Maven**
+```xml
+<dependency>
+    <groupId>org.rulii</groupId>
+    <artifactId>rulii-spring</artifactId>
+    <version>1.2.0</version>
+</dependency>
+```
+
+**Gradle**
+```groovy
+implementation 'org.rulii:rulii-spring:1.2.0'
+```
+
+```java
+@Configuration
+@RuleScan(scanBasePackages = "com.example.rules")
+public class RuleConfig {
+
+    @Bean
+    public RuleSet<?> validationRules(RuleRegistry ruleRegistry) {
+        return RuleSet.builder()
+                .with("validationRules")
+                .rule(ruleRegistry.getRule(ConsistentDateRule.class))
+                .build();
+    }
+}
+```
+
+See the [rulii-spring repository](https://github.com/algox/rulii-spring) and the
+[Spring Boot sample](https://github.com/algox/rulii-samples/tree/develop/spring-boot-sample) for full details.
+
+---
+
+## Documentation
+
+**[Full documentation at rulii.org](https://rulii.org)**
+
+- [Getting Started](https://rulii.org/introduction.html)
+- [Spring integration docs](https://rulii.org/spring/introduction.html)
+- [Javadoc (1.2.0)](https://javadoc.io/doc/org.rulii/rulii/1.2.0)
+- [Sample projects](https://github.com/algox/rulii-samples)
+
+---
+
+## Contributing
+
+Contributions are welcome! Please open an issue first to discuss what you'd like to change.
+
+1. Fork the repo
+2. Create a feature branch (`git checkout -b feature/my-feature`)
+3. Commit your changes
+4. Push and open a pull request against `develop`
+
+All PRs must pass the full test suite (`mvn test`) before review.
+
+---
+
+_Licensed under the [Apache 2.0 License]._
