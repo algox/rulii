@@ -47,7 +47,7 @@ Maven
 
 Grade
 ```groovy
-compile 'org.rulii:rulii:1.1.0'
+compile 'org.rulii:rulii:1.2.0'
 ```
 
 ## Writing Rules
