@@ -41,7 +41,7 @@ Maven
 <dependency>
     <groupId>org.rulii</groupId>
     <artifactId>rulii</artifactId>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
 </dependency>
 ```
 
@@ -130,26 +130,28 @@ if (result.status().isPass()) {
 
 ```java
 
+import static org.rulii.validation.rules.Validators.*;
+
 RuleSet<RuleViolations> ruleSet = RuleSet.builder()
         .with("testRuleSet")
-        .rule(new AlphaNumericValidationRule("a"))
-        .rule(new NotEmptyValidationRule("a"))
-        .rule(new NotNullValidationRule("b"))
-        .rule(new NumericValidationRule("b"))
-        .rule(new UpperCaseValidationRule("c"))
+        .rule(alpha(binding("a")).build())
+        .rule(notEmpty(binding("a")).build)
+        .rule(notNull(binding("b")).build)
+        .rule(numeric(binding("b")).build())
+        .rule(upperCase(binding("c")).build()
         .rule(Rule.builder().build(ConsistentDateRule.class))
         .resultExtractor(function((RuleViolations violations) -> violations))
         .build();
 
 // Create your bindings
 Bindings bindings = Bindings.builder().standard();
-bindings.bind("a", "aaa");
-bindings.bind("b", 123);
-bindings.bind("c", "ABC");
-bindings.bind("flag", true);
-bindings.bind("fromDate", LocalDate.of(1980, Month.JANUARY, 1));
-bindings.bind("toDate", LocalDate.now());
-bindings.bind("violations", new RuleViolations());
+bindings.bind("a","aaa");
+bindings.bind("b",123);
+bindings.bind("c","ABC");
+bindings.bind("flag",true);
+bindings.bind("fromDate",LocalDate.of(1980, Month.JANUARY, 1));
+bindings.bind("toDate",LocalDate.now());
+bindings.bind("violations",new RuleViolations());
 
 //Run the RuleSet
 RuleViolations violations = ruleSet.run(bindings);
