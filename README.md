@@ -370,10 +370,10 @@ npm install -g @anthropic-ai/claude-code
 
 ## Documentation
 
-**[Full documentation at rulii.org](https://rulii.org)**
+**[Full documentation at rulii.com](https://rulii.com)**
 
-- [Getting Started](https://rulii.org/introduction.html)
-- [Spring integration docs](https://rulii.org/spring/introduction.html)
+- [Getting Started](https://rulii.com/introduction.html)
+- [Spring integration docs](https://rulii.com/spring/introduction.html)
 - [Javadoc (1.2.0)](https://javadoc.io/doc/org.rulii/rulii/1.2.0)
 - [Sample projects](https://github.com/algox/rulii-samples)
 
