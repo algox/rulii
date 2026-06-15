@@ -25,6 +25,7 @@ import org.rulii.context.RuleContext;
 import org.rulii.lib.apache.commons.logging.Log;
 import org.rulii.lib.apache.commons.logging.LogFactory;
 import org.rulii.lib.spring.util.Assert;
+import org.rulii.model.InputParameter;
 import org.rulii.model.UnrulyException;
 
 import java.util.UUID;

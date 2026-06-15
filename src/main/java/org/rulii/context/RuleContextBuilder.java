@@ -22,6 +22,7 @@ import org.rulii.bind.match.BindingMatchingStrategy;
 import org.rulii.bind.match.ParameterResolver;
 import org.rulii.convert.ConverterRegistry;
 import org.rulii.lib.spring.util.Assert;
+import org.rulii.registry.RuleRegistry;
 import org.rulii.text.MessageFormatter;
 import org.rulii.text.MessageResolver;
 import org.rulii.trace.Tracer;
@@ -59,6 +60,7 @@ public class RuleContextBuilder {
     private Locale locale;
     private Tracer tracer = Tracer.builder().build();
     private ExecutorService executorService = DEFAULT_EXECUTOR_SERVICE;
+    private RuleRegistry ruleRegistry;
 
     /** Creates a builder pre-populated with {@link RuleContextOptions#standard()} defaults. */
     RuleContextBuilder() {
@@ -94,6 +96,7 @@ public class RuleContextBuilder {
         this.locale = context.getLocale();
         this.bindings = context.getBindings();
         this.executorService = context.getExecutorService();
+        this.ruleRegistry = context.getRuleRegistry();
     }
 
     /**
@@ -112,6 +115,7 @@ public class RuleContextBuilder {
         this.clock = options.getClock();
         this.locale = options.getLocale();
         this.executorService = options.getExecutorService();
+        this.ruleRegistry = options.getRuleRegistry();
     }
 
     /**
@@ -258,6 +262,18 @@ public class RuleContextBuilder {
         return this;
     }
 
+    /**
+     * Sets the rule registry used to look up rules, rule sets, and rule flows by name.
+     *
+     * @param ruleRegistry the registry to use; must not be null.
+     * @return this builder, for method chaining.
+     */
+    public RuleContextBuilder registry(RuleRegistry ruleRegistry) {
+        Assert.notNull(ruleRegistry, "ruleRegistry cannot be null.");
+        this.ruleRegistry = ruleRegistry;
+        return this;
+    }
+
     /** @return the currently configured bindings; may be null if not yet set. */
     public Bindings getBindings() {
         return bindings;
@@ -313,6 +329,11 @@ public class RuleContextBuilder {
         return executorService;
     }
 
+    /** @return the currently configured rule registry; may be null if not set. */
+    public RuleRegistry getRuleRegistry() {
+        return ruleRegistry;
+    }
+
     /**
      * Builds and returns a {@link RuleContext} from the current builder state.
      *
@@ -328,7 +349,7 @@ public class RuleContextBuilder {
 
         RuleContext result  = new RuleContext(scopedBindings, locale, matchingStrategy, parameterResolver,
                 messageResolver, messageFormatter, objectFactory, tracer,
-                converterRegistry, clock, executorService);
+                converterRegistry, clock, executorService, ruleRegistry);
 
         // Make the Bindings are avail.
         ((PromiscuousBinder) (scopedBindings.getRootScope().getBindings())).promiscuousBind(Binding.builder()

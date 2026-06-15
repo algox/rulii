@@ -377,6 +377,20 @@ npm install -g @anthropic-ai/claude-code
 - [Javadoc (1.2.0)](https://javadoc.io/doc/org.rulii/rulii/1.2.0)
 - [Sample projects](https://github.com/algox/rulii-samples)
 
+### Markdown Documentation
+
+Full GitHub-readable documentation is also available in the [`docs/`](docs/) folder:
+
+| Section | Pages |
+|---|---|
+| **Getting Started** | [Introduction](docs/introduction.md) · [Installation](docs/installation.md) · [Core Concepts](docs/core-concepts.md) · [What's New](docs/whats-new.md) |
+| **Core** | [Bindings](docs/bindings.md) · [Rules (Functional)](docs/lambda-rules.md) · [Rules (Declarative)](docs/annotation-rules.md) · [RuleSets](docs/rulesets.md) |
+| **Validation** | [Built-in Validators](docs/validation-rules.md) · [RuleViolations](docs/rule-violations.md) · [Custom Validation](docs/custom-validation.md) |
+| **Advanced** | [Condition Composition](docs/condition-composition.md) · [Scripting](docs/scripting.md) · [Async Execution](docs/async-execution.md) · [Rule Tracing](docs/rule-tracing.md) |
+| **Spring** | [Spring Introduction](docs/spring/introduction.md) · [Auto-Configuration](docs/spring/auto-configuration.md) · [Rule Scanning](docs/spring/rule-scanning.md) |
+
+See the full [documentation index](docs/README.md) for all pages.
+
 ---
 
 ## Contributing

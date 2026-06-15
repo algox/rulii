@@ -44,14 +44,15 @@ public class DefaultRuleSetExecutionStrategy<T> extends RuleSetExecutionStrategy
         Assert.notNull(ruleContext, "context cannot be null");
         // Continue to run the ruleset
         RuleSetExecutionStatus ruleSetStatus = new RuleSetExecutionStatus();
-        // Create a new Scope for the RuleSet to use
-        NamedScope ruleSetScope = createRuleSetScope(ruleSet, ruleContext, ruleSetStatus);
         // Check the input parameters
         checkInputParameters(ruleSet, ruleContext);
-        ruleContext.getTracer().fireOnRuleSetStart(ruleSet, ruleSetScope);
-        if (getLogger().isDebugEnabled()) getLogger().debug("RuleSet [" + ruleSet.getName() + "] Execution. Scope [" +  ruleSetScope.getName() + "] created.");
+        // Create a new Scope for the RuleSet to use
+        NamedScope ruleSetScope = createRuleSetScope(ruleSet, ruleContext, ruleSetStatus);
 
         try {
+            ruleContext.getTracer().fireOnRuleSetStart(ruleSet, ruleSetScope);
+            if (getLogger().isDebugEnabled()) getLogger().debug("RuleSet [" + ruleSet.getName() + "] Execution. Scope [" +  ruleSetScope.getName() + "] created.");
+
             // Run the PreCondition if there is one.
             boolean preConditionCheck = checkPreCondition(ruleSet, ruleContext);
             ruleSetStatus.setPreConditionCheck(preConditionCheck);

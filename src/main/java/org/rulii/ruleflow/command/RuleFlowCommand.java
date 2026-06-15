@@ -15,19 +15,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.rulii.trace;
+package org.rulii.ruleflow.command;
 
-import org.rulii.rule.RuleListener;
-import org.rulii.ruleflow.RuleFlowListener;
-import org.rulii.ruleset.RuleSetListener;
+import org.rulii.ruleflow.RuleFlowExecutionContext;
 
 /**
- * Composite listener that combines {@link RuleListener}, {@link RuleSetListener},
- * and {@link RuleFlowListener} into a single interface.
+ * A single executable step in a {@link org.rulii.ruleflow.RuleFlow} pipeline.
+ *
+ * <p>Each command receives the per-{@code run()} execution context and performs
+ * its work — binding variables, running rules, evaluating conditions, etc.
+ * Commands are immutable and reusable across executions.
  *
  * @author Max Arulananthan
- * @since 1.0
- *
+ * @since 2.0
  */
-public interface RuliiListener extends RuleListener, RuleSetListener, RuleFlowListener {
+public interface RuleFlowCommand {
+
+    /**
+     * Executes this command within the given execution context.
+     *
+     * @param ctx the current execution context; never null.
+     */
+    void execute(RuleFlowExecutionContext ctx);
 }

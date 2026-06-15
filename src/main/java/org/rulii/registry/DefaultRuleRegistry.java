@@ -18,6 +18,7 @@
 
 package org.rulii.registry;
 
+import org.rulii.ruleflow.RuleFlow;
 import org.rulii.lib.apache.commons.logging.Log;
 import org.rulii.lib.apache.commons.logging.LogFactory;
 import org.rulii.lib.spring.util.Assert;
@@ -70,6 +71,12 @@ public class DefaultRuleRegistry implements MutableRuleRegistry {
     @Override
     public List<RuleSet> getRuleSets() {
         return filter(RuleSet.class);
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    @Override
+    public List<RuleFlow<?>> getRuleFlows() {
+        return (List<RuleFlow<?>>) (List<?>) filter(RuleFlow.class);
     }
 
     @Override

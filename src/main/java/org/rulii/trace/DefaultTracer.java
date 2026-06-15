@@ -25,20 +25,22 @@ import org.rulii.model.function.Function;
 import org.rulii.rule.Rule;
 import org.rulii.rule.RuleListener;
 import org.rulii.rule.RuleResult;
+import org.rulii.ruleflow.RuleFlow;
+import org.rulii.ruleflow.RuleFlowListener;
+import org.rulii.ruleflow.command.RuleFlowCommand;
 import org.rulii.ruleset.RuleSet;
 import org.rulii.ruleset.RuleSetExecutionStatus;
 import org.rulii.ruleset.RuleSetListener;
-import org.rulii.validation.RuleViolations;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 
 /**
- * DefaultTracer is an implementation of the Tracer interface.
- * It allows adding and removing listeners for rules and rule sets,
- * and provides methods to fire events when different rule and rule set related actions occur.
- * The DefaultTracer maintains separate sets of RuleListener and RuleSetListener for event handling.
+ * Default implementation of {@link Tracer}.
+ *
+ * <p>Maintains separate listener sets for rules, rule sets, and rule flows and dispatches
+ * each fire-method to the appropriate set.
  *
  * @author Max Arulananthan
  * @since 1.0
@@ -48,6 +50,7 @@ public class DefaultTracer implements Tracer {
 
     private final Set<RuleListener> ruleListeners = new LinkedHashSet<>();
     private final Set<RuleSetListener> ruleSetListeners = new LinkedHashSet<>();
+    private final Set<RuleFlowListener> ruleFlowListeners = new LinkedHashSet<>();
 
     public DefaultTracer() {
         super();
@@ -56,15 +59,17 @@ public class DefaultTracer implements Tracer {
     @Override
     public void addListener(RuliiListener listener) {
         Assert.notNull(listener, "listener cannot be null.");
-        addListener(listener);
-        addListener(listener);
+        addListener((RuleListener) listener);
+        addListener((RuleSetListener) listener);
+        addListener((RuleFlowListener) listener);
     }
 
     @Override
     public void removeListener(RuliiListener listener) {
         Assert.notNull(listener, "listener cannot be null.");
-        removeListener(listener);
-        removeListener(listener);
+        removeListener((RuleListener) listener);
+        removeListener((RuleSetListener) listener);
+        removeListener((RuleFlowListener) listener);
     }
 
     @Override
@@ -92,9 +97,22 @@ public class DefaultTracer implements Tracer {
     }
 
     @Override
+    public void addListener(RuleFlowListener listener) {
+        Assert.notNull(listener, "listener cannot be null.");
+        ruleFlowListeners.add(listener);
+    }
+
+    @Override
+    public boolean removeListener(RuleFlowListener listener) {
+        Assert.notNull(listener, "listener cannot be null.");
+        return ruleFlowListeners.remove(listener);
+    }
+
+    @Override
     public void clear() {
         ruleListeners.clear();
         ruleSetListeners.clear();
+        ruleFlowListeners.clear();
     }
 
     @Override
@@ -138,11 +156,6 @@ public class DefaultTracer implements Tracer {
     }
 
     @Override
-    public void fireOnRuleSetInputCheck(RuleSet<?> ruleSet, RuleViolations violations) {
-        ruleSetListeners.forEach(listener -> listener.onRuleSetInputCheck(ruleSet, violations));
-    }
-
-    @Override
     public void fireOnRuleSetPreConditionCheck(RuleSet<?> ruleSet, Condition condition, boolean result) {
         ruleSetListeners.forEach(listener -> listener.onRuleSetPreConditionCheck(ruleSet, condition, result));
     }
@@ -183,10 +196,51 @@ public class DefaultTracer implements Tracer {
     }
 
     @Override
+    public void fireOnRuleFlowStart(RuleFlow<?> ruleFlow, NamedScope ruleFlowScope) {
+        ruleFlowListeners.forEach(listener -> listener.onRuleFlowStart(ruleFlow, ruleFlowScope));
+    }
+
+    @Override
+    public void fireOnRuleFlowCommandExecuted(RuleFlow<?> ruleFlow, RuleFlowCommand command) {
+        ruleFlowListeners.forEach(listener -> listener.onRuleFlowCommandExecuted(ruleFlow, command));
+    }
+
+    @Override
+    public void fireOnRuleFlowEarlyExit(RuleFlow<?> ruleFlow, Object result) {
+        ruleFlowListeners.forEach(listener -> listener.onRuleFlowEarlyExit(ruleFlow, result));
+    }
+
+    @Override
+    public void fireOnRuleFlowExceptionHandled(RuleFlow<?> ruleFlow, Exception e, boolean stepLevel) {
+        ruleFlowListeners.forEach(listener -> listener.onRuleFlowExceptionHandled(ruleFlow, e, stepLevel));
+    }
+
+    @Override
+    public void fireOnRuleFlowFinalizer(RuleFlow<?> ruleFlow, Action finalizer) {
+        ruleFlowListeners.forEach(listener -> listener.onRuleFlowFinalizer(ruleFlow, finalizer));
+    }
+
+    @Override
+    public void fireOnRuleFlowResult(RuleFlow<?> ruleFlow, Function<?> resultExtractor) {
+        ruleFlowListeners.forEach(listener -> listener.onRuleFlowResult(ruleFlow, resultExtractor));
+    }
+
+    @Override
+    public void fireOnRuleFlowError(RuleFlow<?> ruleFlow, Exception e) {
+        ruleFlowListeners.forEach(listener -> listener.onRuleFlowError(ruleFlow, e));
+    }
+
+    @Override
+    public void fireOnRuleFlowEnd(RuleFlow<?> ruleFlow, NamedScope ruleFlowScope) {
+        ruleFlowListeners.forEach(listener -> listener.onRuleFlowEnd(ruleFlow, ruleFlowScope));
+    }
+
+    @Override
     public String toString() {
         return "DefaultTracer{" +
-                ", ruleListeners=" + ruleListeners.size() +
+                "ruleListeners=" + ruleListeners.size() +
                 ", ruleSetListeners=" + ruleSetListeners.size() +
+                ", ruleFlowListeners=" + ruleFlowListeners.size() +
                 '}';
     }
 }

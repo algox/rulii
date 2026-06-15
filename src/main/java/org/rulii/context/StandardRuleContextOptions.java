@@ -20,6 +20,7 @@ package org.rulii.context;
 import org.rulii.bind.match.BindingMatchingStrategy;
 import org.rulii.bind.match.ParameterResolver;
 import org.rulii.convert.ConverterRegistry;
+import org.rulii.registry.RuleRegistry;
 import org.rulii.text.MessageFormatter;
 import org.rulii.text.MessageResolver;
 import org.rulii.util.reflect.ObjectFactory;
@@ -63,6 +64,7 @@ public class StandardRuleContextOptions implements RuleContextOptions {
     private final Clock clock = Clock.systemDefaultZone();
     private final Locale locale = Locale.getDefault();
     private final MessageResolver messageResolver = MessageResolver.builder().build();
+    private final RuleRegistry ruleRegistry = RuleRegistry.builder().build();
 
     public StandardRuleContextOptions() {
         super();
@@ -120,6 +122,11 @@ public class StandardRuleContextOptions implements RuleContextOptions {
     @Override
     public ExecutorService getExecutorService() {
         return DEFAULT_EXECUTOR_SERVICE;
+    }
+
+    @Override
+    public RuleRegistry getRuleRegistry() {
+        return ruleRegistry;
     }
 
     @Override

@@ -38,6 +38,7 @@ public enum ReservedBindings {
     PARENT_BINDING_NAME("parentBindingName"),
     RULE_SET("ruleSet"),
     RULE_SET_STATUS("ruleSetStatus"),
+    RULE_FLOW("ruleFlow"),
     EXCEPTION("ex");
 
     private static final Set<String> names = new HashSet<>();

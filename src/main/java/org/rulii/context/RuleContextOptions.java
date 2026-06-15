@@ -20,6 +20,7 @@ package org.rulii.context;
 import org.rulii.bind.match.BindingMatchingStrategy;
 import org.rulii.bind.match.ParameterResolver;
 import org.rulii.convert.ConverterRegistry;
+import org.rulii.registry.RuleRegistry;
 import org.rulii.text.MessageFormatter;
 import org.rulii.text.MessageResolver;
 import org.rulii.util.reflect.ObjectFactory;
@@ -114,4 +115,11 @@ public interface RuleContextOptions {
      * @return the executor service; never null.
      */
     ExecutorService getExecutorService();
+
+    /**
+     * Returns the rule registry used to look up rules, rule sets, and rule flows by name.
+     *
+     * @return the rule registry; may be null if not configured.
+     */
+    RuleRegistry getRuleRegistry();
 }

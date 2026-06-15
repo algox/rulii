@@ -19,6 +19,7 @@ package org.rulii.ruleset;
 
 import org.rulii.context.RuleContext;
 import org.rulii.lib.spring.util.Assert;
+import org.rulii.model.InputParameter;
 import org.rulii.model.UnrulyException;
 import org.rulii.model.action.Action;
 import org.rulii.model.condition.Condition;

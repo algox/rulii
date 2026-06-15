@@ -22,6 +22,7 @@ import org.rulii.bind.match.MatchByTypeMatchingStrategy;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.spring.core.NestedExceptionUtils;
 import org.rulii.lib.spring.util.Assert;
+import org.rulii.model.InputParameter;
 import org.rulii.model.SourceDefinition;
 import org.rulii.model.UnrulyException;
 import org.rulii.model.action.Action;

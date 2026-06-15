@@ -24,6 +24,7 @@ import org.rulii.convert.ConverterRegistry;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.Immutator;
 import org.rulii.model.UnrulyException;
+import org.rulii.registry.RuleRegistry;
 import org.rulii.script.ScriptProcessor;
 import org.rulii.script.ScriptProcessorFactory;
 import org.rulii.script.ScriptProcessorManager;
@@ -77,6 +78,7 @@ public class RuleContext implements Immutator<RuleContext> {
     private final ConverterRegistry converterRegistry;
     private final Clock clock;
     private final ExecutorService executorService;
+    private final RuleRegistry ruleRegistry;
 
     private final ScriptProcessorManager scriptProcessorManager = new ScriptProcessorManager();
 
@@ -96,12 +98,13 @@ public class RuleContext implements Immutator<RuleContext> {
      * @param converterRegistry  the type-converter registry; must not be null.
      * @param clock              the clock used for time-sensitive operations; must not be null.
      * @param executorService    the executor for async tasks; must not be null.
+     * @param ruleRegistry       the rule registry; may be null.
      */
     RuleContext(ScopedBindings bindings, Locale locale, BindingMatchingStrategy matchingStrategy,
                 ParameterResolver parameterResolver, MessageResolver messageResolver,
                 MessageFormatter messageFormatter, ObjectFactory objectFactory,
                 Tracer tracer, ConverterRegistry converterRegistry,
-                Clock clock, ExecutorService executorService) {
+                Clock clock, ExecutorService executorService, RuleRegistry ruleRegistry) {
         super();
         Assert.notNull(bindings, "bindings cannot be null.");
         Assert.notNull(locale, "locale cannot be null.");
@@ -125,6 +128,7 @@ public class RuleContext implements Immutator<RuleContext> {
         this.converterRegistry = converterRegistry;
         this.clock = clock;
         this.executorService = executorService;
+        this.ruleRegistry = ruleRegistry;
     }
 
     /**
@@ -245,6 +249,15 @@ public class RuleContext implements Immutator<RuleContext> {
     }
 
     /**
+     * Returns the rule registry associated with this context, or {@code null} if none was configured.
+     *
+     * @return the rule registry; may be null.
+     */
+    public RuleRegistry getRuleRegistry() {
+        return ruleRegistry;
+    }
+
+    /**
      * Returns the {@link ScriptProcessor} for the given scripting language, creating and caching it on first access.
      *
      * @param languageName the scripting language name (e.g. {@code "js"}); must not be null or empty.
@@ -272,7 +285,7 @@ public class RuleContext implements Immutator<RuleContext> {
     @Override
     public RuleContext asImmutable() {
         return new RuleContext(bindings.asImmutable(), locale, matchingStrategy, parameterResolver, messageResolver,
-                messageFormatter, objectFactory, tracer, converterRegistry, clock, executorService);
+                messageFormatter, objectFactory, tracer, converterRegistry, clock, executorService, ruleRegistry);
     }
 
     @Override
@@ -291,6 +304,7 @@ public class RuleContext implements Immutator<RuleContext> {
                 ", converterRegistry=" + converterRegistry +
                 ", clock=" + clock  +
                 ", executorService=" + executorService +
+                ", ruleRegistry=" + ruleRegistry +
                 '}';
     }
 }

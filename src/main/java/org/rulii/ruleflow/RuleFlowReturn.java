@@ -15,19 +15,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.rulii.trace;
+package org.rulii.ruleflow;
 
-import org.rulii.rule.RuleListener;
-import org.rulii.ruleflow.RuleFlowListener;
-import org.rulii.ruleset.RuleSetListener;
+import org.rulii.model.UnrulyException;
 
 /**
- * Composite listener that combines {@link RuleListener}, {@link RuleSetListener},
- * and {@link RuleFlowListener} into a single interface.
+ * Throwable used to implement early exit via {@code returning()}.
+ *
+ * <p>Thrown by {@code ReturningCommand} and propagates naturally through all nesting levels.
+ * Caught exactly once in {@link RulingOrder#run(org.rulii.context.RuleContext)}.
  *
  * @author Max Arulananthan
- * @since 1.0
- *
+ * @since 2.0
  */
-public interface RuliiListener extends RuleListener, RuleSetListener, RuleFlowListener {
+public class RuleFlowReturn extends UnrulyException {
+
+    private final Object result;
+
+    public RuleFlowReturn(Object result) {
+        super();
+        this.result = result;
+    }
+
+    public Object getResult() {
+        return result;
+    }
 }

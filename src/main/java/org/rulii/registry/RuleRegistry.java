@@ -18,6 +18,7 @@
 
 package org.rulii.registry;
 
+import org.rulii.ruleflow.RuleFlow;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.Runnable;
 import org.rulii.model.UnrulyException;
@@ -182,5 +183,28 @@ public interface RuleRegistry {
     default RuleSet<?> getRuleSet(String name) {
         Assert.hasText(name, "name cannot be empty/null.");
         return get(name, RuleSet.class);
+    }
+
+    /**
+     * Retrieves a {@link RuleFlow} from the registry using its name.
+     *
+     * @param name the name of the flow; must not be null or empty.
+     * @return the flow with the specified name, or {@code null} if not found.
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    default RuleFlow<?> getRuleFlow(String name) {
+        Assert.hasText(name, "name cannot be empty/null.");
+        return get(name, RuleFlow.class);
+    }
+
+    /**
+     * Retrieves all {@link RuleFlow} instances registered in this registry.
+     * Implementations backed by a typed registry (e.g. {@code DefaultRuleRegistry}) should
+     * override this to return a proper filtered list.
+     *
+     * @return list of all registered flows; never null, may be empty.
+     */
+    default List<RuleFlow<?>> getRuleFlows() {
+        return List.of();
     }
 }

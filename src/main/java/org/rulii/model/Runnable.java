@@ -24,6 +24,7 @@ import org.rulii.lib.spring.util.Assert;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.Map;
 
 /**
  * Anything that can be executed given a RuleContext.
@@ -69,6 +70,46 @@ public interface Runnable<T> extends Identifiable, Serializable {
      */
     default T run(BindingDeclaration<?>...params) throws UnrulyException {
         Bindings bindings = Bindings.builder().standard(params);
+        return run(RuleContext.builder().build(bindings));
+    }
+
+    /**
+     * Derives all the arguments, creates a default RuleContext and executes this Runnable.
+     *
+     * <p>The {@code params} argument is dispatched as follows:
+     * <ul>
+     *   <li>{@link BindingDeclaration} — delegates to {@link #run(BindingDeclaration[])}.</li>
+     *   <li>{@link Bindings} — delegates to {@link #run(Bindings)}.</li>
+     *   <li>{@link Map Map&lt;String, Object&gt;} — each map entry becomes a binding.</li>
+     *   <li>Any other object — its JavaBean properties are reflected and each property becomes a binding.</li>
+     * </ul>
+     *
+     * <p><strong>Overload-resolution note:</strong> a stored {@code BindingDeclaration<?>} variable
+     * passed here routes to this method (not the varargs overload) because Java prefers non-varargs.
+     * The {@code instanceof} check inside this method corrects the dispatch automatically.
+     *
+     * @param params non-null parameter source; a {@code BindingDeclaration}, {@code Bindings},
+     *               {@code Map<String, Object>}, or a JavaBean POJO.
+     * @return result.
+     * @throws IllegalArgumentException if {@code params} is null.
+     * @throws UnrulyException thrown if there are any runtime errors during the execution.
+     */
+    @SuppressWarnings("unchecked")
+    default T run(Object params) throws UnrulyException {
+        Assert.notNull(params, "params cannot be null.");
+
+        // Delegate when needed
+        if (params instanceof BindingDeclaration<?> bindingDeclaration) return run(new BindingDeclaration<?>[] { bindingDeclaration });
+        if (params instanceof Bindings bindings) return run(bindings);
+
+        Bindings bindings = Bindings.builder().standard();
+
+        if (params instanceof Map<?, ?> map) {
+            bindings.loadMap((Map<String, Object>) map);
+        } else {
+            bindings.loadProperties(params);
+        }
+
         return run(RuleContext.builder().build(bindings));
     }
 

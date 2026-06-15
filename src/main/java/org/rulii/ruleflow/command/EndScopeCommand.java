@@ -15,19 +15,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.rulii.trace;
+package org.rulii.ruleflow.command;
 
-import org.rulii.rule.RuleListener;
-import org.rulii.ruleflow.RuleFlowListener;
-import org.rulii.ruleset.RuleSetListener;
+import org.rulii.ruleflow.RuleFlowExecutionContext;
 
 /**
- * Composite listener that combines {@link RuleListener}, {@link RuleSetListener},
- * and {@link RuleFlowListener} into a single interface.
+ * Pipeline command that pops the current binding scope.
+ *
+ * <p>Always paired with a preceding {@link ScopeCommand}. Bindings created inside the
+ * scope are discarded when this command executes.
  *
  * @author Max Arulananthan
- * @since 1.0
- *
+ * @since 2.0
  */
-public interface RuliiListener extends RuleListener, RuleSetListener, RuleFlowListener {
+public class EndScopeCommand implements RuleFlowCommand {
+
+    public EndScopeCommand() {
+        super();
+    }
+
+    @Override
+    public void execute(RuleFlowExecutionContext ctx) {
+        ctx.getRuleContext().getBindings().removeScope();
+    }
 }

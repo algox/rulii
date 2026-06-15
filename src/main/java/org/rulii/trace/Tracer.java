@@ -24,10 +24,12 @@ import org.rulii.model.function.Function;
 import org.rulii.rule.Rule;
 import org.rulii.rule.RuleListener;
 import org.rulii.rule.RuleResult;
+import org.rulii.ruleflow.RuleFlow;
+import org.rulii.ruleflow.RuleFlowListener;
+import org.rulii.ruleflow.command.RuleFlowCommand;
 import org.rulii.ruleset.RuleSet;
 import org.rulii.ruleset.RuleSetExecutionStatus;
 import org.rulii.ruleset.RuleSetListener;
-import org.rulii.validation.RuleViolations;
 
 /**
  * The Tracer interface represents a mechanism for tracking and triggering events related to rule and rule set execution.
@@ -85,6 +87,21 @@ public interface Tracer {
      * @return true if the RuleSetListener was successfully removed, false otherwise.
      */
     boolean removeListener(RuleSetListener listener);
+
+    /**
+     * Adds a RuleFlowListener to receive events related to the execution of RuleFlows.
+     *
+     * @param listener the RuleFlowListener to be added; must not be null.
+     */
+    void addListener(RuleFlowListener listener);
+
+    /**
+     * Removes a RuleFlowListener from receiving events related to the execution of RuleFlows.
+     *
+     * @param listener the RuleFlowListener to be removed; must not be null.
+     * @return true if the listener was successfully removed, false otherwise.
+     */
+    boolean removeListener(RuleFlowListener listener);
 
     /**
      * Clears any existing data or state associated with this object.
@@ -155,15 +172,6 @@ public interface Tracer {
      * @param ruleSetScope the scope of the RuleSet
      */
     void fireOnRuleSetStart(RuleSet<?> ruleSet, NamedScope ruleSetScope);
-
-
-    /**
-     * Fires an event when a RuleSet's input is checked for validation by the framework.
-     *
-     * @param ruleSet the RuleSet for which the input is being checked
-     * @param violations the RuleViolations object containing any validation errors found during the input check
-     */
-    void fireOnRuleSetInputCheck(RuleSet<?> ruleSet, RuleViolations violations);
 
     /**
      *
@@ -237,4 +245,69 @@ public interface Tracer {
      * @param e the Exception that was thrown
      */
     void fireOnRuleSetError(RuleSet<?> rule, RuleSetExecutionStatus status, Exception e);
+
+    /**
+     * Fires an event when a RuleFlow has started execution.
+     *
+     * @param ruleFlow      the flow that started; never null.
+     * @param ruleFlowScope the scope pushed for this run; never null.
+     */
+    void fireOnRuleFlowStart(RuleFlow<?> ruleFlow, NamedScope ruleFlowScope);
+
+    /**
+     * Fires an event after each pipeline command completes normally.
+     *
+     * @param ruleFlow the owning flow; never null.
+     * @param command  the command that just executed; never null.
+     */
+    void fireOnRuleFlowCommandExecuted(RuleFlow<?> ruleFlow, RuleFlowCommand command);
+
+    /**
+     * Fires an event when an {@code exit()} command terminates the pipeline early.
+     *
+     * @param ruleFlow the owning flow; never null.
+     * @param result   the result value.
+     */
+    void fireOnRuleFlowEarlyExit(RuleFlow<?> ruleFlow, Object result);
+
+    /**
+     * Fires an event when an exception is successfully handled by a step or global handler.
+     *
+     * @param ruleFlow  the owning flow; never null.
+     * @param e         the caught exception; never null.
+     * @param stepLevel {@code true} for step handler, {@code false} for global handler.
+     */
+    void fireOnRuleFlowExceptionHandled(RuleFlow<?> ruleFlow, Exception e, boolean stepLevel);
+
+    /**
+     * Fires an event after the finalizer action runs.
+     *
+     * @param ruleFlow  the owning flow; never null.
+     * @param finalizer the finalizer action; never null.
+     */
+    void fireOnRuleFlowFinalizer(RuleFlow<?> ruleFlow, Action finalizer);
+
+    /**
+     * Fires an event after the result extractor function runs.
+     *
+     * @param ruleFlow        the owning flow; never null.
+     * @param resultExtractor the extractor function; never null.
+     */
+    void fireOnRuleFlowResult(RuleFlow<?> ruleFlow, Function<?> resultExtractor);
+
+    /**
+     * Fires an event when an unhandled exception escapes the pipeline.
+     *
+     * @param ruleFlow the owning flow; never null.
+     * @param e        the exception; never null.
+     */
+    void fireOnRuleFlowError(RuleFlow<?> ruleFlow, Exception e);
+
+    /**
+     * Fires an event after the flow scope is removed. Always fires.
+     *
+     * @param ruleFlow      the flow that completed; never null.
+     * @param ruleFlowScope the scope that was used; never null.
+     */
+    void fireOnRuleFlowEnd(RuleFlow<?> ruleFlow, NamedScope ruleFlowScope);
 }
