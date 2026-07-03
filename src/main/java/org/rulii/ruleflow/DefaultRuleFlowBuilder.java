@@ -18,36 +18,21 @@
 package org.rulii.ruleflow;
 
 /**
- * Singleton factory for {@link DefaultRuleFlowBuilder} instances.
+ * Default concrete {@link RuleFlowBuilderTemplate} with no extensions.
  *
- * <p>Use {@link RuleFlow#builder()} as the public API — this class is the backing singleton.
+ * <p>Obtain instances via {@link RuleFlow#builder()}.
  *
  * @author Max Arulananthan
  * @since 2.0
  */
-public final class RuleFlowBuilderBuilder {
+public class DefaultRuleFlowBuilder extends RuleFlowBuilderTemplate<DefaultRuleFlowBuilder> {
 
-    private static final RuleFlowBuilderBuilder instance = new RuleFlowBuilderBuilder();
-
-    private RuleFlowBuilderBuilder() {
+    DefaultRuleFlowBuilder() {
         super();
     }
 
-    /**
-     * Returns the singleton instance.
-     *
-     * @return the singleton; never null.
-     */
-    public static RuleFlowBuilderBuilder getInstance() {
-        return instance;
-    }
-
-    /**
-     * Creates a fresh {@link DefaultRuleFlowBuilder}.
-     *
-     * @return a new builder; never null.
-     */
-    public DefaultRuleFlowBuilder build() {
+    @Override
+    protected DefaultRuleFlowBuilder newInstance() {
         return new DefaultRuleFlowBuilder();
     }
 }

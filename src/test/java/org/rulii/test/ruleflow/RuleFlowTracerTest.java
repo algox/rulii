@@ -387,8 +387,8 @@ public class RuleFlowTracerTest {
 
         RuleFlow<RuleContext> flow = RuleFlow.builder()
                 .name("stepHandlerTracerFlow")
-                .run(badRule)
-                    .onException(UnrulyException.class, b -> b.bind(handled -> true))
+                .run(badRule, spec -> spec
+                    .onException(UnrulyException.class, b -> b.bind(handled -> true)))
                 .build();
 
         flow.run(contextWithListener(new RuleFlowListener() {
@@ -466,8 +466,8 @@ public class RuleFlowTracerTest {
 
         RuleFlow<RuleContext> flow = RuleFlow.builder()
                 .name("handledErrorFlow")
-                .run(badRule)
-                    .onException(UnrulyException.class, b -> b.bind(ok -> true))
+                .run(badRule, spec -> spec
+                    .onException(UnrulyException.class, b -> b.bind(ok -> true)))
                 .build();
 
         flow.run(contextWithListener(new RuleFlowListener() {

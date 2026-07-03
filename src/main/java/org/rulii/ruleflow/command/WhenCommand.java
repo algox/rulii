@@ -35,34 +35,35 @@ import java.util.List;
  * @author Max Arulananthan
  * @since 2.0
  */
-public class WhenCommand implements RuleFlowCommand, ScopeDefining, CompositeCommand {
+public class WhenCommand extends ContainerCommand implements ScopeDefining {
 
     private final Condition condition;
-    private final List<RuleFlowCommand> thenCommands;
-    private final List<RuleFlowCommand> otherwiseCommands;
+    private List<RuleFlowCommand> otherwiseBody = Collections.emptyList();
 
-    public WhenCommand(Condition condition, List<RuleFlowCommand> thenCommands,
-                       List<RuleFlowCommand> otherwiseCommands) {
+    public WhenCommand(Condition condition) {
         super();
         Assert.notNull(condition, "condition cannot be null.");
-        Assert.notNull(thenCommands, "thenCommands cannot be null.");
-        Assert.notNull(otherwiseCommands, "otherwiseCommands cannot be null.");
         this.condition = condition;
-        this.thenCommands = Collections.unmodifiableList(thenCommands);
-        this.otherwiseCommands = Collections.unmodifiableList(otherwiseCommands);
+    }
+
+    /**
+     * Injects the otherwise-branch commands. Called by the builder after the otherwise
+     * Consumer body completes.
+     *
+     * @param commands the otherwise-branch commands; must not be null.
+     */
+    public void setOtherwiseBody(List<RuleFlowCommand> commands) {
+        Assert.notNull(commands, "commands cannot be null.");
+        this.otherwiseBody = Collections.unmodifiableList(commands);
     }
 
     @Override
     public void execute(RuleFlowExecutionContext ctx) {
-        List<RuleFlowCommand> branch = condition.isTrue(ctx.getRuleContext()) ? thenCommands : otherwiseCommands;
+        List<RuleFlowCommand> branch = condition.isTrue(ctx.getRuleContext()) ? getBody() : otherwiseBody;
 
         for (RuleFlowCommand cmd : branch) {
             cmd.execute(ctx);
         }
     }
 
-    @Override
-    public List<List<RuleFlowCommand>> getBlocks() {
-        return List.of(thenCommands, otherwiseCommands);
-    }
 }

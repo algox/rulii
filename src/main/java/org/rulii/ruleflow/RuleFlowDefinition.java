@@ -52,7 +52,7 @@ public final class RuleFlowDefinition implements Definition {
         this.sourceDefinition = sourceDefinition;
         this.resultType = resultType;
         this.commandCount = commandCount;
-        this.inputParameters  = Collections.unmodifiableList(inputParameters);
+        this.inputParameters = Collections.unmodifiableList(inputParameters);
     }
 
     @Override
@@ -60,6 +60,11 @@ public final class RuleFlowDefinition implements Definition {
         return name;
     }
 
+    /**
+     * Returns the optional human-readable description, or {@code null} if not set.
+     *
+     * @return description text; may be null.
+     */
     public String getDescription() {
         return description;
     }
@@ -74,10 +79,21 @@ public final class RuleFlowDefinition implements Definition {
         return resultType;
     }
 
+    /**
+     * Returns the number of top-level pipeline commands in this flow.
+     * Container constructs ({@code when}, {@code forEach}, {@code scope}) each count as one.
+     *
+     * @return non-negative command count.
+     */
     public int getCommandCount() {
         return commandCount;
     }
 
+    /**
+     * Returns the declared input parameters for this flow.
+     *
+     * @return immutable list; never null, may be empty.
+     */
     public List<InputParameter<?>> getInputParameters() {
         return inputParameters;
     }

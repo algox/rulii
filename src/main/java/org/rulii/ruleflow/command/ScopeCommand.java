@@ -17,19 +17,20 @@
  */
 package org.rulii.ruleflow.command;
 
-import org.rulii.ruleflow.RuleFlowExecutionContext;
+import org.rulii.bind.NamedScope;
 import org.rulii.model.ScopeDefining;
+import org.rulii.ruleflow.RuleFlowExecutionContext;
 
 /**
- * Pipeline command that pushes a named binding scope onto the scope stack.
+ * Pipeline command that pushes a named binding scope, executes its body commands,
+ * then removes the scope in a {@code finally} block.
  *
- * <p>The scope persists until the matching {@link EndScopeCommand} executes.
- * Bindings created within the scope are discarded when the scope is removed.
+ * <p>Bindings created within the body are discarded when the scope is removed.
  *
  * @author Max Arulananthan
  * @since 2.0
  */
-public class ScopeCommand implements RuleFlowCommand, ScopeDefining {
+public class ScopeCommand extends ContainerCommand implements ScopeDefining {
 
     private final String scopeName;
 
@@ -38,21 +39,31 @@ public class ScopeCommand implements RuleFlowCommand, ScopeDefining {
         this.scopeName = scopeName;
     }
 
+    @Override
+    public void execute(RuleFlowExecutionContext ctx) {
+        NamedScope scope;
+
+        if (scopeName != null) {
+            scope = ctx.getRuleContext().getBindings().addScope(scopeName);
+        } else {
+            scope = ctx.getRuleContext().getBindings().addScope();
+        }
+
+        try {
+            for (RuleFlowCommand cmd : getBody()) {
+                cmd.execute(ctx);
+            }
+        } finally {
+            ctx.getRuleContext().getBindings().removeScope(scope);
+        }
+    }
+
     /**
-     * Returns the name of the scope to push, or {@code null} for an auto-generated name.
+     * Returns the scope name, or {@code null} for an auto-generated anonymous scope.
      *
      * @return scope name; may be null.
      */
     public String getScopeName() {
         return scopeName;
-    }
-
-    @Override
-    public void execute(RuleFlowExecutionContext ctx) {
-        if (scopeName != null) {
-            ctx.getRuleContext().getBindings().addScope(scopeName);
-        } else {
-            ctx.getRuleContext().getBindings().addScope();
-        }
     }
 }

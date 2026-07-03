@@ -17,37 +17,35 @@
  */
 package org.rulii.ruleflow;
 
+import org.rulii.ruleflow.command.RuleFlowCommand;
+import org.rulii.ruleflow.command.ScopeCommand;
+
+import java.util.ArrayList;
+
 /**
- * Singleton factory for {@link DefaultRuleFlowBuilder} instances.
+ * Builder-time accumulator for a {@code scope} block.
  *
- * <p>Use {@link RuleFlow#builder()} as the public API — this class is the backing singleton.
+ * <p>Holds the optional scope name and the body commands accumulated while the
+ * {@code scope} Consumer executes. Produces a {@link ScopeCommand} when sealed;
+ * that command pushes the scope, runs the body, and pops the scope in a
+ * {@code finally} block.
  *
  * @author Max Arulananthan
  * @since 2.0
  */
-public final class RuleFlowBuilderBuilder {
+class ScopeConstruct extends FlowConstruct {
 
-    private static final RuleFlowBuilderBuilder instance = new RuleFlowBuilderBuilder();
+    private final String scopeName;
 
-    private RuleFlowBuilderBuilder() {
+    ScopeConstruct(String scopeName) {
         super();
+        this.scopeName = scopeName;
     }
 
-    /**
-     * Returns the singleton instance.
-     *
-     * @return the singleton; never null.
-     */
-    public static RuleFlowBuilderBuilder getInstance() {
-        return instance;
-    }
-
-    /**
-     * Creates a fresh {@link DefaultRuleFlowBuilder}.
-     *
-     * @return a new builder; never null.
-     */
-    public DefaultRuleFlowBuilder build() {
-        return new DefaultRuleFlowBuilder();
+    @Override
+    protected RuleFlowCommand buildCommand() {
+        ScopeCommand cmd = new ScopeCommand(scopeName);
+        cmd.setBody(new ArrayList<>(getCommands()));
+        return cmd;
     }
 }

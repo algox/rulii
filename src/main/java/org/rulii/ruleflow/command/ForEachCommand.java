@@ -26,8 +26,6 @@ import org.rulii.model.function.Function;
 import org.rulii.ruleflow.RuleFlowExecutionContext;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -43,23 +41,19 @@ import java.util.UUID;
  * @author Max Arulananthan
  * @since 2.0
  */
-public class ForEachCommand implements RuleFlowCommand, ScopeDefining, CompositeCommand {
+public class ForEachCommand extends ContainerCommand implements ScopeDefining {
 
     public static final String INDEX_BINDING_NAME = "index";
 
     private final Function<?> listSource;
-    private final List<RuleFlowCommand> bodyCommands;
     private final String elementBindingName;
     private final Condition stopCondition;
 
-    public ForEachCommand(Function<?> listSource, List<RuleFlowCommand> bodyCommands,
-                          String elementBindingName, Condition stopCondition) {
+    public ForEachCommand(Function<?> listSource, String elementBindingName, Condition stopCondition) {
         super();
         Assert.notNull(listSource, "listSource cannot be null.");
-        Assert.notNull(bodyCommands, "bodyCommands cannot be null.");
         Assert.hasText(elementBindingName, "elementBindingName cannot be empty/null.");
         this.listSource = listSource;
-        this.bodyCommands = Collections.unmodifiableList(bodyCommands);
         this.elementBindingName = elementBindingName;
         this.stopCondition = stopCondition;
     }
@@ -80,7 +74,7 @@ public class ForEachCommand implements RuleFlowCommand, ScopeDefining, Composite
                 ctx.getRuleContext().getBindings().bind(elementBindingName, item);
                 ctx.getRuleContext().getBindings().bind(INDEX_BINDING_NAME, index);
 
-                for (RuleFlowCommand cmd : bodyCommands) {
+                for (RuleFlowCommand cmd : getBody()) {
                     cmd.execute(ctx);
                 }
 
@@ -92,11 +86,6 @@ public class ForEachCommand implements RuleFlowCommand, ScopeDefining, Composite
 
             index++;
         }
-    }
-
-    @Override
-    public List<List<RuleFlowCommand>> getBlocks() {
-        return List.of(bodyCommands);
     }
 
     protected String getScopeName(int index) {

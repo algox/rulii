@@ -85,7 +85,6 @@ class DefaultRuleFlowExecutionStrategy<T> extends RuleFlowExecutionStrategyTempl
 
     private T runCommands(RulingOrder<T> order, RuleContext ruleContext) {
         RuleFlowExecutionContext ctx = new RuleFlowExecutionContext(ruleContext, order);
-        if (order.getGlobalHandler() != null) ctx.setGlobalHandler(order.getGlobalHandler());
 
         try {
             for (RuleFlowCommand cmd : order.getCommands()) {
@@ -94,9 +93,18 @@ class DefaultRuleFlowExecutionStrategy<T> extends RuleFlowExecutionStrategyTempl
             }
 
             T result = order.extractResult(ruleContext);
-            if (order.getResultExtractor() != null)
-                ruleContext.getTracer().fireOnRuleFlowResult(order, order.getResultExtractor());
+            if (order.getResultExtractor() != null) ruleContext.getTracer().fireOnRuleFlowResult(order, order.getResultExtractor());
             return result;
+        } catch (RuleFlowReturn r) {
+            throw r;
+        } catch (UnrulyException e) {
+            RuleFlowExceptionHandler globalHandler = order.getGlobalHandler();
+            if (globalHandler != null && globalHandler.canHandle(e)) {
+                globalHandler.handleException(e, ctx);
+                ruleContext.getTracer().fireOnRuleFlowExceptionHandled(order, e, false);
+                return order.extractResult(ruleContext);
+            }
+            throw e;
         } finally {
             runFinalizer(order, ruleContext);
         }

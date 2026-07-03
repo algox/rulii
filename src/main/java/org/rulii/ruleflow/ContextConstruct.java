@@ -15,27 +15,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.rulii.ruleflow.command;
+package org.rulii.ruleflow;
 
-import org.rulii.ruleflow.RuleFlowExecutionContext;
+import org.rulii.context.RuleContextBuilder;
+import org.rulii.lib.spring.util.Assert;
+import org.rulii.ruleflow.command.ContextCommand;
+import org.rulii.ruleflow.command.RuleFlowCommand;
+
+import java.util.function.Consumer;
 
 /**
- * Pipeline command that pops the current binding scope.
+ * Build-time construct for a {@code context()} step.
  *
- * <p>Always paired with a preceding {@link ScopeCommand}. Bindings created inside the
- * scope are discarded when this command executes.
+ * <p>Seals into an immutable {@link ContextCommand}.
  *
  * @author Max Arulananthan
  * @since 2.0
  */
-public class EndScopeCommand implements RuleFlowCommand {
+class ContextConstruct extends CommandConstruct {
 
-    public EndScopeCommand() {
+    private final Consumer<RuleContextBuilder> configurator;
+
+    ContextConstruct(Consumer<RuleContextBuilder> configurator) {
         super();
+        Assert.notNull(configurator, "configurator cannot be null.");
+        this.configurator = configurator;
     }
 
     @Override
-    public void execute(RuleFlowExecutionContext ctx) {
-        ctx.getRuleContext().getBindings().removeScope();
+    protected RuleFlowCommand buildCommand() {
+        return new ContextCommand(configurator);
     }
 }

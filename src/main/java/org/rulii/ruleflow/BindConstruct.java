@@ -15,35 +15,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.rulii.ruleflow.command;
+package org.rulii.ruleflow;
 
 import org.rulii.bind.ScopedBindings;
-import org.rulii.ruleflow.RuleFlowExecutionContext;
 import org.rulii.lib.spring.util.Assert;
+import org.rulii.ruleflow.command.BindCommand;
+import org.rulii.ruleflow.command.RuleFlowCommand;
 
 import java.util.function.Consumer;
 
 /**
- * Pipeline command that adds one or more bindings to the current scope.
+ * Build-time construct for a {@code bind()} step.
  *
- * <p>The actual binding strategy (declarations, name/value pair, POJO properties, etc.) is
- * captured as a {@link Consumer} at build time by {@link org.rulii.ruleflow.RuleFlowBuilderTemplate}.
+ * <p>Produces an immutable {@link BindCommand}. No capability interfaces are currently
+ * implemented; to add decorator support in the future, implement {@link Bindable},
+ * {@link Parameterizable}, or {@link ExceptionHandleable} as appropriate.
  *
  * @author Max Arulananthan
  * @since 2.0
  */
-public class BindCommand implements RuleFlowCommand {
+class BindConstruct extends CommandConstruct {
 
     private final Consumer<ScopedBindings> binder;
 
-    public BindCommand(Consumer<ScopedBindings> binder) {
+    BindConstruct(Consumer<ScopedBindings> binder) {
         super();
         Assert.notNull(binder, "binder cannot be null.");
         this.binder = binder;
     }
 
     @Override
-    public void execute(RuleFlowExecutionContext ctx) {
-        binder.accept(ctx.getRuleContext().getBindings());
+    protected RuleFlowCommand buildCommand() {
+        return new BindCommand(binder);
     }
 }

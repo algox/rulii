@@ -18,36 +18,21 @@
 package org.rulii.ruleflow;
 
 /**
- * Singleton factory for {@link DefaultRuleFlowBuilder} instances.
+ * Capability interface for constructs that accept step-scoped parameter injection.
  *
- * <p>Use {@link RuleFlow#builder()} as the public API — this class is the backing singleton.
+ * <p>Implemented by {@link RunConstruct}. Configured via {@link RunSpec#with(org.rulii.bind.BindingDeclaration[])}
+ * or {@link RunSpec#with(Object)} within the step's spec consumer.
  *
  * @author Max Arulananthan
  * @since 2.0
  */
-public final class RuleFlowBuilderBuilder {
-
-    private static final RuleFlowBuilderBuilder instance = new RuleFlowBuilderBuilder();
-
-    private RuleFlowBuilderBuilder() {
-        super();
-    }
+interface Parameterizable {
 
     /**
-     * Returns the singleton instance.
+     * Sets the step-scoped parameter source.
      *
-     * @return the singleton; never null.
+     * @param params a {@link org.rulii.bind.BindingDeclaration}{@code []} array, a JavaBean POJO,
+     *               or a {@code Map<String, Object>}; must not be null.
      */
-    public static RuleFlowBuilderBuilder getInstance() {
-        return instance;
-    }
-
-    /**
-     * Creates a fresh {@link DefaultRuleFlowBuilder}.
-     *
-     * @return a new builder; never null.
-     */
-    public DefaultRuleFlowBuilder build() {
-        return new DefaultRuleFlowBuilder();
-    }
+    void setParams(Object params);
 }

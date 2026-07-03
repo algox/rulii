@@ -19,6 +19,7 @@ package org.rulii.test.ruleflow;
 
 import org.junit.jupiter.api.Test;
 import org.rulii.bind.Bindings;
+import org.rulii.bind.load.BindingLoader;
 import org.rulii.context.RuleContext;
 import org.rulii.model.UnrulyException;
 import org.rulii.model.action.Action;
@@ -30,6 +31,7 @@ import org.rulii.ruleflow.RuleFlow;
 import org.rulii.trace.Tracer;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -85,7 +87,7 @@ public class RuleFlowTest {
     public void testApplyStep_bindsResult() {
         RuleFlow<Integer> flow = RuleFlow.builder()
                 .name("applyFlow")
-                .apply(function((Integer x) -> x * 3)).as("result")
+                .apply(function((Integer x) -> x * 3), spec -> spec.as("result"))
                 .<Integer>returning(function((Integer result) -> result))
                 .build();
 
@@ -235,7 +237,7 @@ public class RuleFlowTest {
 
         RuleFlow<String> flow = RuleFlow.builder()
                 .name("exitFlow")
-                .when(condition(() -> true)).then(b -> b
+                .when(condition(() -> true), b -> b
                         .bind(result -> "early")
                         .<String>exit(function((String result) -> result)))
                 .run(afterExitRule)
@@ -254,7 +256,7 @@ public class RuleFlowTest {
 
         RuleFlow<RuleContext> flow = RuleFlow.builder()
                 .name("exitNoArgFlow")
-                .when(condition(() -> true)).then(b -> b.exit())
+                .when(condition(() -> true), b -> b.exit())
                 .run(afterExitRule)
                 .build();
 
@@ -271,7 +273,7 @@ public class RuleFlowTest {
 
         RuleFlow<String> flow = RuleFlow.builder()
                 .name("exitInBranchFlow")
-                .when(condition(() -> true)).then(b -> b
+                .when(condition(() -> true), b -> b
                         .bind(r -> "exitValue")
                         .<String>exit(function((String r) -> r)))
                 .run(afterRule)
@@ -295,7 +297,9 @@ public class RuleFlowTest {
 
         RuleFlow<RuleContext> flow = RuleFlow.builder()
                 .name("whenThenFlow")
-                .when(condition((Integer x) -> x > 0)).run(thenRule).otherwise(b -> b.run(otherwiseRule))
+                .when(condition((Integer x) -> x > 0),
+                        b -> b.run(thenRule),
+                        b -> b.run(otherwiseRule))
                 .build();
 
         flow.run(x -> 10);
@@ -312,7 +316,9 @@ public class RuleFlowTest {
 
         RuleFlow<RuleContext> flow = RuleFlow.builder()
                 .name("whenOtherwiseFlow")
-                .when(condition((Integer x) -> x > 0)).run(thenRule).otherwise(b -> b.run(otherwiseRule))
+                .when(condition((Integer x) -> x > 0),
+                        b -> b.run(thenRule),
+                        b -> b.run(otherwiseRule))
                 .build();
 
         flow.run(x -> -5);
@@ -327,7 +333,7 @@ public class RuleFlowTest {
 
         RuleFlow<RuleContext> flow = RuleFlow.builder()
                 .name("whenNoOtherwiseFlow")
-                .when(condition(() -> false)).run(thenRule)
+                .when(condition(() -> false), b -> b.run(thenRule))
                 .build();
 
         flow.run();
@@ -343,7 +349,7 @@ public class RuleFlowTest {
 
         RuleFlow<RuleContext> flow = RuleFlow.builder()
                 .name("whenMultiFlow")
-                .when(condition(() -> true)).then(b -> b
+                .when(condition(() -> true), b -> b
                         .bind(step -> "a")
                         .bind(step2 -> "b"))
                 .run(captureRule)
@@ -364,7 +370,7 @@ public class RuleFlowTest {
 
         RuleFlow<RuleContext> flow = RuleFlow.builder()
                 .name("whenContinueFlow")
-                .when(condition(() -> true)).run(thenRule)
+                .when(condition(() -> true), b -> b.run(thenRule))
                 .run(afterRule)
                 .build();
 
@@ -381,8 +387,9 @@ public class RuleFlowTest {
 
         RuleFlow<RuleContext> flow = RuleFlow.builder()
                 .name("otherwiseMultiFlow")
-                .when(condition(() -> false)).then(b -> b.bind(x -> "then"))
-                        .otherwise(b -> b.bind(y -> "ow1").bind(z -> "ow2"))
+                .when(condition(() -> false),
+                        b -> b.bind(x -> "then"),
+                        b -> b.bind(y -> "ow1").bind(z -> "ow2"))
                 .run(captureRule)
                 .build();
 
@@ -461,16 +468,15 @@ public class RuleFlowTest {
     }
 
     // =========================================================================
-    // scope / endScope
+    // scope
     // =========================================================================
 
     @Test
     public void testScope_bindingsDiscardedAfterEnd() {
         RuleFlow<RuleContext> flow = RuleFlow.builder()
                 .name("scopeFlow")
-                .scope("myScope")
-                .bind(temp -> "temporary")
-                .endScope()
+                .scope("myScope", b -> b
+                        .bind(temp -> "temporary"))
                 .build();
 
         RuleContext ctx = flow.run();
@@ -481,9 +487,8 @@ public class RuleFlowTest {
     public void testAnonymousScope_bindingsDiscarded() {
         RuleFlow<RuleContext> flow = RuleFlow.builder()
                 .name("anonScopeFlow")
-                .scope()
-                .bind(inner -> "inside")
-                .endScope()
+                .scope(b -> b
+                        .bind(inner -> "inside"))
                 .build();
 
         RuleContext ctx = flow.run();
@@ -503,9 +508,7 @@ public class RuleFlowTest {
         RuleFlow<RuleContext> flow = RuleFlow.builder()
                 .name("scopeOuterFlow")
                 .bind(outer -> "persistent")
-                .scope()
-                .bind(inner -> "gone")
-                .endScope()
+                .scope(b -> b.bind(inner -> "gone"))
                 .run(checkRule)
                 .build();
 
@@ -573,17 +576,16 @@ public class RuleFlowTest {
         Rule afterRule = Rule.builder().name("after")
                 .then(action(() -> log.add("after"))).build();
 
-        RuleFlow<Boolean> flow = RuleFlow.builder()
+        RuleFlow<Void> flow = RuleFlow.builder()
                 .name("stepHandlerFlow")
-                .run(badRule)
-                    .onException(UnrulyException.class, b -> b.bind(handled -> true))
+                .run(badRule, spec -> spec
+                    .onException(UnrulyException.class, b -> b.execute(action(() -> log.add("handled")))))
                 .run(afterRule)
-                .<Boolean>returning(function((Boolean handled) -> handled))
+                .<Void>returning(function((RuleContext ctx) -> null))
                 .build();
 
-        Boolean result = flow.run();
-        assertEquals(List.of("after"), log);
-        assertEquals(true, result);
+        flow.run();
+        assertEquals(List.of("handled", "after"), log);
     }
 
     @Test
@@ -594,11 +596,11 @@ public class RuleFlowTest {
 
         RuleFlow<RuleContext> flow = RuleFlow.builder()
                 .name("stepHandlerExFlow")
-                .run(badRule)
+                .run(badRule, spec -> spec
                     .onException(UnrulyException.class, b ->
                             b.run(Rule.builder().name("catchRule")
                                     .then(action((UnrulyException ex) -> messages.add(ex.getClass().getSimpleName())))
-                                    .build()))
+                                    .build())))
                 .build();
 
         flow.run();
@@ -612,8 +614,8 @@ public class RuleFlowTest {
 
         RuleFlow<RuleContext> flow = RuleFlow.builder()
                 .name("noMatchHandlerFlow")
-                .run(badRule)
-                    .onException(IllegalArgumentException.class, b -> b.bind(handled -> true))
+                .run(badRule, spec -> spec
+                    .onException(IllegalArgumentException.class, b -> b.bind(handled -> true)))
                 .build();
 
         assertThrows(UnrulyException.class, flow::run);
@@ -624,40 +626,42 @@ public class RuleFlowTest {
     // =========================================================================
 
     @Test
-    public void testGlobalHandler_catchesAndContinues() {
+    public void testGlobalHandler_catchesAndStops() {
         List<String> log = new ArrayList<>();
         Rule badRule = Rule.builder().name("bad")
                 .then(action(() -> { throw new UnrulyException("global boom"); })).build();
         Rule afterRule = Rule.builder().name("after")
                 .then(action(() -> log.add("after"))).build();
 
-        RuleFlow<Boolean> flow = RuleFlow.builder()
+        RuleFlow<Void> flow = RuleFlow.builder()
                 .name("globalHandlerFlow")
                 .run(badRule)
                 .run(afterRule)
-                    .<Boolean>returning(function((Boolean globalHandled) -> globalHandled))
-                .onException(UnrulyException.class, b -> b.bind(globalHandled -> true))
+                .<Void>returning(function((RuleContext ctx) -> null))
+                .onException(UnrulyException.class, b -> b.execute(action(() -> log.add("handled"))))
                 .build();
 
-        Boolean result = flow.run();
-        assertEquals(List.of("after"), log);
-        assertEquals(true, result);
+        flow.run();
+        // Global handler fires when exception escapes the command loop — subsequent steps do not run.
+        assertEquals(List.of("handled"), log);
     }
 
     @Test
     public void testStepHandlerTakesPrecedenceOverGlobal() {
+        List<String> log = new ArrayList<>();
         Rule badRule = Rule.builder().name("bad")
                 .then(action(() -> { throw new UnrulyException("precedence"); })).build();
 
-        RuleFlow<String> flow = RuleFlow.builder()
+        RuleFlow<Void> flow = RuleFlow.builder()
                 .name("precedenceFlow")
-                .run(badRule)
-                    .onException(UnrulyException.class, b -> b.bind(handler -> "step"))
-                    .<String>returning(function((String handler) -> handler))
-                .onException(UnrulyException.class, b -> b.bind(handler -> "global"))
+                .run(badRule, spec -> spec
+                    .onException(UnrulyException.class, b -> b.execute(action(() -> log.add("step")))))
+                .<Void>returning(function((RuleContext ctx) -> null))
+                .onException(UnrulyException.class, b -> b.execute(action(() -> log.add("global"))))
                 .build();
 
-        assertEquals("step", flow.run());
+        flow.run();
+        assertEquals(List.of("step"), log);
     }
 
     // =========================================================================
@@ -816,7 +820,7 @@ public class RuleFlowTest {
     public void testApplyAs_resultAccessibleInFlow() {
         RuleFlow<Integer> flow = RuleFlow.builder()
                 .name("applyAsFlow")
-                .apply(function((Integer x) -> x * 2)).as("doubled")
+                .apply(function((Integer x) -> x * 2), spec -> spec.as("doubled"))
                 .<Integer>returning(function((Integer doubled) -> doubled))
                 .build();
 
@@ -854,24 +858,6 @@ public class RuleFlowTest {
     }
 
     @Test
-    public void testBuild_unclosedScope_throws() {
-        assertThrows(UnrulyException.class, () ->
-                RuleFlow.builder()
-                        .name("badScopeFlow")
-                        .scope("unclosed")
-                        .build());
-    }
-
-    @Test
-    public void testBuild_orphanedEndScope_throws() {
-        assertThrows(UnrulyException.class, () ->
-                RuleFlow.builder()
-                        .name("orphanEndScopeFlow")
-                        .endScope()
-                        .build());
-    }
-
-    @Test
     public void testBuild_unreachableCommandsAfterTopLevelExit_throws() {
         Rule unreachable = Rule.builder().name("unreachable")
                 .then(action(() -> {})).build();
@@ -889,7 +875,7 @@ public class RuleFlowTest {
         assertDoesNotThrow(() ->
                 RuleFlow.builder()
                         .name("exitInBranchFlow")
-                        .when(condition(() -> true)).then(b -> b.exit())
+                        .when(condition(() -> true), b -> b.exit())
                         .build());
     }
 
@@ -976,7 +962,7 @@ public class RuleFlowTest {
                 .param("amount", Integer.class)
                 .run(validateRule)
                 .run(processRule)
-                .when(condition((Integer amount) -> amount > 100)).run(bonusRule)
+                .when(condition((Integer amount) -> amount > 100), b -> b.run(bonusRule))
                 .<String>returning(function((RuleContext ctx) -> "done"))
                 .build();
 
@@ -999,7 +985,7 @@ public class RuleFlowTest {
                 .name("fullPipelineSmall")
                 .param("amount", Integer.class)
                 .run(processRule)
-                .when(condition((Integer amount) -> amount > 100)).run(bonusRule)
+                .when(condition((Integer amount) -> amount > 100), b -> b.run(bonusRule))
                 .<String>returning(function((RuleContext ctx) -> "done"))
                 .build();
 
@@ -1020,7 +1006,7 @@ public class RuleFlowTest {
 
         RuleFlow<Void> flow = RuleFlow.builder()
                 .name("withBindingDeclarations")
-                .run(captureRule).with(greeting -> "hello")
+                .run(captureRule, spec -> spec.with(greeting -> "hello"))
                 .<Void>returning(function((RuleContext ctx) -> null))
                 .build();
 
@@ -1040,7 +1026,7 @@ public class RuleFlowTest {
 
         RuleFlow<Void> flow = RuleFlow.builder()
                 .name("withNotLeaking")
-                .run(targetRule).with(greeting -> "hello")
+                .run(targetRule, spec -> spec.with(greeting -> "hello"))
                 .run(observeRule)
                 .<Void>returning(function((RuleContext ctx) -> null))
                 .build();
@@ -1061,7 +1047,7 @@ public class RuleFlowTest {
 
         RuleFlow<Void> flow = RuleFlow.builder()
                 .name("withMultipleDeclarations")
-                .run(captureRule).with(firstName -> "Alice", age -> 30)
+                .run(captureRule, spec -> spec.with(firstName -> "Alice", age -> 30))
                 .<Void>returning(function((RuleContext ctx) -> null))
                 .build();
 
@@ -1079,7 +1065,7 @@ public class RuleFlowTest {
 
         RuleFlow<Void> flow = RuleFlow.builder()
                 .name("withPojo")
-                .run(captureRule).with(new Order("ORD-42", 100))
+                .run(captureRule, spec -> spec.with(new Order("ORD-42", 100)))
                 .<Void>returning(function((RuleContext ctx) -> null))
                 .build();
 
@@ -1099,7 +1085,7 @@ public class RuleFlowTest {
 
         RuleFlow<Void> flow = RuleFlow.builder()
                 .name("withPojoNotLeaking")
-                .run(targetRule).with(new Order("ORD-99", 0))
+                .run(targetRule, spec -> spec.with(new Order("ORD-99", 0)))
                 .run(observeRule)
                 .<Void>returning(function((RuleContext ctx) -> null))
                 .build();
@@ -1118,7 +1104,7 @@ public class RuleFlowTest {
         RuleFlow<Void> flow = RuleFlow.builder()
                 .name("withShadowing")
                 .bind(label -> "flow-level")
-                .run(captureRule).with(label -> "step-level")
+                .run(captureRule, spec -> spec.with(label -> "step-level"))
                 .<Void>returning(function((RuleContext ctx) -> null))
                 .build();
 
@@ -1143,7 +1129,7 @@ public class RuleFlowTest {
                 .name("withShadowingRestore")
                 .bind(label -> "flow-level")
                 .run(before)
-                .run(target).with(label -> "step-level")
+                .run(target, spec -> spec.with(label -> "step-level"))
                 .run(after)
                 .<Void>returning(function((RuleContext ctx) -> null))
                 .build();
@@ -1231,10 +1217,9 @@ public class RuleFlowTest {
 
         RuleFlow<Void> flow = RuleFlow.builder()
                 .name("bindToDeclarations")
-                .scope("authScope")
-                    .bindTo("authScope", token -> "abc-123")
-                    .run(captureRule)
-                .endScope()
+                .scope("authScope", b -> b
+                        .bindTo("authScope", token -> "abc-123")
+                        .run(captureRule))
                 .<Void>returning(function((RuleContext ctx) -> null))
                 .build();
 
@@ -1251,10 +1236,9 @@ public class RuleFlowTest {
 
         RuleFlow<Void> flow = RuleFlow.builder()
                 .name("bindToNameValue")
-                .scope("authScope")
-                    .bindTo("authScope", "token", "xyz-789")
-                    .run(captureRule)
-                .endScope()
+                .scope("authScope", b -> b
+                        .bindTo("authScope", "token", "xyz-789")
+                        .run(captureRule))
                 .<Void>returning(function((RuleContext ctx) -> null))
                 .build();
 
@@ -1271,12 +1255,10 @@ public class RuleFlowTest {
 
         RuleFlow<Void> flow = RuleFlow.builder()
                 .name("bindToOuter")
-                .scope("outer")
-                    .scope("inner")
-                        .bindTo("outer", "result", "from-inner")
-                        .run(captureRule)
-                    .endScope()
-                .endScope()
+                .scope("outer", outer -> outer
+                        .scope("inner", inner -> inner
+                                .bindTo("outer", "result", "from-inner")
+                                .run(captureRule)))
                 .<Void>returning(function((RuleContext ctx) -> null))
                 .build();
 
@@ -1340,8 +1322,8 @@ public class RuleFlowTest {
 
         RuleFlow<Void> flow = RuleFlow.builder()
                 .name("executeOnException")
-                .execute(action(() -> { throw new UnrulyException("boom"); }))
-                    .onException(UnrulyException.class, b -> b.execute(action(() -> log.add("handled"))))
+                .execute(action(() -> { throw new UnrulyException("boom"); }), spec -> spec
+                    .onException(UnrulyException.class, b -> b.execute(action(() -> log.add("handled")))))
                 .execute(action(() -> log.add("after")))
                 .<Void>returning(function((RuleContext ctx) -> null))
                 .build();
@@ -1367,5 +1349,569 @@ public class RuleFlowTest {
         String result = flow.run();
         assertEquals(List.of("execute", "run"), log);
         assertEquals("execute,run", result);
+    }
+
+    // =========================================================================
+    // bind(Bindings) — copy from existing Bindings instance
+    // =========================================================================
+
+    @Test
+    public void testBindBindings_copiesAllIntoCurrentScope() {
+        List<String> captured = new ArrayList<>();
+        Rule captureRule = Rule.builder().name("capture")
+                .then(action((String first, String last) -> {
+                    captured.add(first);
+                    captured.add(last);
+                }))
+                .build();
+
+        Bindings source = Bindings.builder().standard();
+        source.bind("first", "Alice");
+        source.bind("last",  "Smith");
+
+        RuleFlow<Void> flow = RuleFlow.builder()
+                .name("bindBindings")
+                .bind(source)
+                .run(captureRule)
+                .<Void>returning(function((RuleContext ctx) -> null))
+                .build();
+
+        flow.run();
+        assertEquals("Alice", captured.get(0));
+        assertEquals("Smith", captured.get(1));
+    }
+
+    // =========================================================================
+    // bind(Object) — POJO / Map convenience
+    // =========================================================================
+
+    @Test
+    public void testBindObject_pojo_propertiesBound() {
+        List<String> captured = new ArrayList<>();
+        Rule captureRule = Rule.builder().name("capture")
+                .then(action((String orderId) -> captured.add(orderId)))
+                .build();
+
+        RuleFlow<Void> flow = RuleFlow.builder()
+                .name("bindObjectPojo")
+                .bind(new Order("ORD-77", 200))
+                .run(captureRule)
+                .<Void>returning(function((RuleContext ctx) -> null))
+                .build();
+
+        flow.run();
+        assertEquals(List.of("ORD-77"), captured);
+    }
+
+    @Test
+    public void testBindObject_map_entriesBound() {
+        List<Object> captured = new ArrayList<>();
+        Rule captureRule = Rule.builder().name("capture")
+                .then(action((RuleContext ctx) -> {
+                    captured.add(ctx.getBindings().getValue("city"));
+                    captured.add(ctx.getBindings().getValue("zip"));
+                }))
+                .build();
+
+        java.util.Map<String, Object> map = new java.util.LinkedHashMap<>();
+        map.put("city", "Toronto");
+        map.put("zip", "M5V");
+
+        RuleFlow<Void> flow = RuleFlow.builder()
+                .name("bindObjectMap")
+                .bind(map)
+                .run(captureRule)
+                .<Void>returning(function((RuleContext ctx) -> null))
+                .build();
+
+        flow.run();
+        assertEquals("Toronto", captured.get(0));
+        assertEquals("M5V",     captured.get(1));
+    }
+
+    // =========================================================================
+    // bind(BindingLoader, T) — custom loader
+    // =========================================================================
+
+    @Test
+    public void testBindLoader_customLoader_bindsEntries() {
+        List<Object> captured = new ArrayList<>();
+        Rule captureRule = Rule.builder().name("capture")
+                .then(action((RuleContext ctx) -> {
+                    captured.add(ctx.getBindings().getValue("orderId"));
+                    captured.add(ctx.getBindings().getValue("amount"));
+                }))
+                .build();
+
+        BindingLoader<Order> loader = (bindings, order) -> {
+            bindings.bind("orderId", order.getOrderId());
+            bindings.bind("amount",  order.getAmount());
+        };
+
+        RuleFlow<Void> flow = RuleFlow.builder()
+                .name("bindLoader")
+                .bind(loader, new Order("ORD-99", 500))
+                .run(captureRule)
+                .<Void>returning(function((RuleContext ctx) -> null))
+                .build();
+
+        flow.run();
+        assertEquals("ORD-99", captured.get(0));
+        assertEquals(500,       captured.get(1));
+    }
+
+    // =========================================================================
+    // bindTo(scopeName, Bindings) / bindTo(scopeName, Object) / bindTo(scopeName, loader, T)
+    // =========================================================================
+
+    @Test
+    public void testBindToBindings_landsInNamedScope() {
+        List<String> captured = new ArrayList<>();
+        Rule captureRule = Rule.builder().name("capture")
+                .then(action((String token) -> captured.add(token)))
+                .build();
+
+        Bindings source = Bindings.builder().standard();
+        source.bind("token", "abc-123");
+
+        RuleFlow<Void> flow = RuleFlow.builder()
+                .name("bindToBindings")
+                .scope("authScope", b -> b
+                        .bindTo("authScope", source)
+                        .run(captureRule))
+                .<Void>returning(function((RuleContext ctx) -> null))
+                .build();
+
+        flow.run();
+        assertEquals(List.of("abc-123"), captured);
+    }
+
+    @Test
+    public void testBindToObject_map_landsInNamedScope() {
+        List<Object> captured = new ArrayList<>();
+        Rule captureRule = Rule.builder().name("capture")
+                .then(action((RuleContext ctx) -> captured.add(ctx.getBindings().getValue("city"))))
+                .build();
+
+        java.util.Map<String, Object> map = new java.util.LinkedHashMap<>();
+        map.put("city", "Montreal");
+
+        RuleFlow<Void> flow = RuleFlow.builder()
+                .name("bindToObjectMap")
+                .scope("geoScope", b -> b
+                        .bindTo("geoScope", map)
+                        .run(captureRule))
+                .<Void>returning(function((RuleContext ctx) -> null))
+                .build();
+
+        flow.run();
+        assertEquals("Montreal", captured.get(0));
+    }
+
+    @Test
+    public void testBindToLoader_customLoader_landsInNamedScope() {
+        List<Object> captured = new ArrayList<>();
+        Rule captureRule = Rule.builder().name("capture")
+                .then(action((String orderId) -> captured.add(orderId)))
+                .build();
+
+        BindingLoader<Order> loader = (bindings, order) -> bindings.bind("orderId", order.getOrderId());
+
+        RuleFlow<Void> flow = RuleFlow.builder()
+                .name("bindToLoader")
+                .scope("orderScope", b -> b
+                        .bindTo("orderScope", loader, new Order("ORD-55", 0))
+                        .run(captureRule))
+                .<Void>returning(function((RuleContext ctx) -> null))
+                .build();
+
+        flow.run();
+        assertEquals(List.of("ORD-55"), captured);
+    }
+
+    // =========================================================================
+    // asyncRun / await / awaitAll / awaitAny
+    // =========================================================================
+
+    @Test
+    public void testAsyncRun_fireAndForget_ruleExecutes() throws Exception {
+        List<String> log = new ArrayList<>();
+        Rule rule = Rule.builder().name("asyncRule")
+                .then(action(() -> log.add("ran")))
+                .build();
+
+        RuleFlow<RuleContext> flow = RuleFlow.builder()
+                .name("asyncFireForget")
+                .asyncRun(rule, spec -> spec.as("future"))
+                .await("future")
+                .build();
+
+        flow.run();
+        assertEquals(List.of("ran"), log);
+    }
+
+    @Test
+    public void testAsyncRun_resultBoundAsFuture() throws Exception {
+        RuleFlow<String> innerFlow = RuleFlow.builder()
+                .name("inner")
+                .bind(result -> "hello")
+                .<String>returning(function((String result) -> result))
+                .build();
+
+        RuleFlow<RuleContext> outer = RuleFlow.builder()
+                .name("asyncResultFlow")
+                .asyncRun(innerFlow, spec -> spec.as("fut"))
+                .await("fut")
+                .build();
+
+        outer.run();
+        Object future = outer.run();
+        // just verify it completes without error — binding check via await
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testAsyncRun_futureBindingAccessibleAfterAwait() throws Exception {
+        RuleFlow<String> innerFlow = RuleFlow.builder()
+                .name("innerResult")
+                .bind(v -> "computed")
+                .<String>returning(function((String v) -> v))
+                .build();
+
+        List<String> log = new ArrayList<>();
+
+        RuleFlow<RuleContext> outer = RuleFlow.builder()
+                .name("awaitAccessFlow")
+                .asyncRun(innerFlow, spec -> spec.as("fut"))
+                .await("fut")
+                .execute(action((CompletableFuture fut) -> log.add((String) fut.getNow(null))))
+                .build();
+
+        outer.run();
+        assertEquals(List.of("computed"), log);
+    }
+
+    @Test
+    public void testAwait_timeout_throws() {
+        Rule slowRule = Rule.builder().name("slow")
+                .then(action(() -> {
+                    try { Thread.sleep(5000); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+                }))
+                .build();
+
+        RuleFlow<RuleContext> flow = RuleFlow.builder()
+                .name("timeoutFlow")
+                .asyncRun(slowRule, spec -> spec.as("fut"))
+                .await("fut", 100, TimeUnit.MILLISECONDS)
+                .build();
+
+        assertThrows(UnrulyException.class, flow::run);
+    }
+
+    @Test
+    public void testAwaitAll_bothComplete() throws Exception {
+        List<String> log = Collections.synchronizedList(new ArrayList<>());
+
+        Rule r1 = Rule.builder().name("r1").then(action(() -> log.add("r1"))).build();
+        Rule r2 = Rule.builder().name("r2").then(action(() -> log.add("r2"))).build();
+
+        RuleFlow<RuleContext> flow = RuleFlow.builder()
+                .name("awaitAllFlow")
+                .asyncRun(r1, spec -> spec.as("f1"))
+                .asyncRun(r2, spec -> spec.as("f2"))
+                .awaitAll("f1", "f2")
+                .build();
+
+        flow.run();
+        assertEquals(2, log.size());
+        assertTrue(log.contains("r1"));
+        assertTrue(log.contains("r2"));
+    }
+
+    @Test
+    public void testAwaitAny_firstCompletesSuffices() throws Exception {
+        List<String> log = Collections.synchronizedList(new ArrayList<>());
+
+        Rule fast = Rule.builder().name("fast").then(action(() -> log.add("fast"))).build();
+        Rule slow = Rule.builder().name("slow").then(action(() -> {
+            try { Thread.sleep(3000); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+            log.add("slow");
+        })).build();
+
+        RuleFlow<RuleContext> flow = RuleFlow.builder()
+                .name("awaitAnyFlow")
+                .asyncRun(fast, spec -> spec.as("f1"))
+                .asyncRun(slow, spec -> spec.as("f2"))
+                .awaitAny("f1", "f2")
+                .build();
+
+        flow.run();
+        // At least "fast" must have completed
+        assertTrue(log.contains("fast"));
+    }
+
+    @Test
+    public void testAsyncRun_immutableBindings_callerNotMutated() throws Exception {
+        List<Object> captured = new ArrayList<>();
+
+        Rule reader = Rule.builder().name("reader")
+                .then(action((String sharedValue) -> captured.add(sharedValue)))
+                .build();
+
+        RuleFlow<RuleContext> flow = RuleFlow.builder()
+                .name("immutableFlow")
+                .bind(sharedValue -> "original")
+                .asyncRun(reader, spec -> spec.as("fut").withImmutableBindings())
+                .await("fut")
+                .build();
+
+        flow.run();
+        assertEquals(List.of("original"), captured);
+    }
+
+    @Test
+    public void testAsyncRun_withExplicitTimeout_awaits() throws Exception {
+        List<String> log = new ArrayList<>();
+        Rule rule = Rule.builder().name("timed").then(action(() -> log.add("done"))).build();
+
+        RuleFlow<RuleContext> flow = RuleFlow.builder()
+                .name("awaitTimeoutFlow")
+                .asyncRun(rule, spec -> spec.as("fut"))
+                .await("fut", 5, TimeUnit.SECONDS)
+                .build();
+
+        flow.run();
+        assertEquals(List.of("done"), log);
+    }
+
+    @Test
+    public void testAwaitAll_withExplicitTimeout() throws Exception {
+        List<String> log = new ArrayList<>();
+        Rule r1 = Rule.builder().name("r1").then(action(() -> log.add("a"))).build();
+        Rule r2 = Rule.builder().name("r2").then(action(() -> log.add("b"))).build();
+
+        RuleFlow<RuleContext> flow = RuleFlow.builder()
+                .name("awaitAllTimeoutFlow")
+                .asyncRun(r1, spec -> spec.as("f1"))
+                .asyncRun(r2, spec -> spec.as("f2"))
+                .awaitAll(5, TimeUnit.SECONDS, "f1", "f2")
+                .build();
+
+        flow.run();
+        assertEquals(2, log.size());
+    }
+
+    @Test
+    public void testAwaitAny_withExplicitTimeout() throws Exception {
+        List<String> log = new ArrayList<>();
+        Rule fast = Rule.builder().name("fast").then(action(() -> log.add("first"))).build();
+
+        RuleFlow<RuleContext> flow = RuleFlow.builder()
+                .name("awaitAnyTimeoutFlow")
+                .asyncRun(fast, spec -> spec.as("f1"))
+                .awaitAny(5, TimeUnit.SECONDS, "f1")
+                .build();
+
+        flow.run();
+        assertEquals(List.of("first"), log);
+    }
+
+    // =========================================================================
+    // asyncRun / thenRun
+    // =========================================================================
+
+    @Test
+    public void testThenRun_runsAfterAsyncTask_seesResolvedValue() throws Exception {
+        List<String> log = Collections.synchronizedList(new ArrayList<>());
+
+        RuleFlow<String> inner = RuleFlow.builder()
+                .name("thenRunInner")
+                .bind(v -> "computed")
+                .<String>returning(function((String v) -> v))
+                .build();
+
+        RuleFlow<RuleContext> outer = RuleFlow.builder()
+                .name("thenRunFlow")
+                .asyncRun(inner, spec -> spec
+                        .as("fut")
+                        .thenRun("value", b -> b.execute(action((String value) -> log.add(value)))))
+                .await("fut")
+                .build();
+
+        outer.run();
+        assertEquals(List.of("computed"), log);
+    }
+
+    @Test
+    public void testThenRun_boundFutureReflectsWholeChain() throws Exception {
+        List<String> log = Collections.synchronizedList(new ArrayList<>());
+
+        Rule slowThenLoud = Rule.builder().name("slowThenLoud")
+                .then(action(() -> {
+                    try { Thread.sleep(100); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+                }))
+                .build();
+
+        RuleFlow<RuleContext> flow = RuleFlow.builder()
+                .name("chainedFutureFlow")
+                .asyncRun(slowThenLoud, spec -> spec
+                        .as("fut")
+                        .thenRun("ignored", b -> b.execute(action(() -> log.add("continuation ran")))))
+                .await("fut")
+                .build();
+
+        flow.run();
+        // await() only returns once the continuation (not just the original task) has finished
+        assertEquals(List.of("continuation ran"), log);
+    }
+
+    @Test
+    public void testThenRun_continuationBindingNotVisibleAfterCompletion() throws Exception {
+        Rule rule = Rule.builder().name("thenRunScopeRule").then(action(() -> {})).build();
+
+        RuleFlow<RuleContext> flow = RuleFlow.builder()
+                .name("thenRunScopeFlow")
+                .asyncRun(rule, spec -> spec
+                        .as("fut")
+                        .thenRun("scopedValue", b -> b.bind(marker -> true)))
+                .await("fut")
+                .<RuleContext>returning(function((RuleContext ctx) -> ctx))
+                .build();
+
+        RuleContext ctx = flow.run();
+        assertFalse(ctx.getBindings().contains("scopedValue"));
+    }
+
+    @Test
+    public void testThenRun_originalTaskFails_continuationDoesNotRun() {
+        List<String> log = Collections.synchronizedList(new ArrayList<>());
+
+        Rule failingRule = Rule.builder().name("failingRule")
+                .then(action(() -> { throw new UnrulyException("boom"); }))
+                .build();
+
+        RuleFlow<RuleContext> flow = RuleFlow.builder()
+                .name("thenRunSkipOnFailureFlow")
+                .asyncRun(failingRule, spec -> spec
+                        .as("fut")
+                        .thenRun("value", b -> b.execute(action(() -> log.add("should not run")))))
+                .await("fut")
+                .build();
+
+        assertThrows(UnrulyException.class, flow::run);
+        assertTrue(log.isEmpty());
+    }
+
+    @Test
+    public void testThenRun_continuationThrows_surfacesOnAwait() {
+        Rule rule = Rule.builder().name("okRule").then(action(() -> {})).build();
+
+        RuleFlow<RuleContext> flow = RuleFlow.builder()
+                .name("thenRunFailureFlow")
+                .asyncRun(rule, spec -> spec
+                        .as("fut")
+                        .thenRun("value", b -> b.execute(action(() -> { throw new UnrulyException("continuation boom"); }))))
+                .await("fut")
+                .build();
+
+        assertThrows(UnrulyException.class, flow::run);
+    }
+
+    // =========================================================================
+    // asyncRun / onException
+    // =========================================================================
+
+    @Test
+    public void testAsyncOnException_recoversTaskFailure_withoutAwait() throws Exception {
+        List<String> log = Collections.synchronizedList(new ArrayList<>());
+
+        Rule failingRule = Rule.builder().name("asyncFailingRule")
+                .then(action(() -> { throw new UnrulyException("task boom"); }))
+                .build();
+
+        RuleFlow<RuleContext> flow = RuleFlow.builder()
+                .name("asyncOnExceptionFlow")
+                .asyncRun(failingRule, spec -> spec
+                        .onException(UnrulyException.class, b -> b.execute(action(() -> log.add("recovered")))))
+                .build();
+
+        flow.run();
+        // No await() at all — the handler must still fire because it's chained onto the future.
+        Thread.sleep(200);
+        assertEquals(List.of("recovered"), log);
+    }
+
+    @Test
+    public void testAsyncOnException_bindsExceptionUnderReservedName() throws Exception {
+        List<UnrulyException> caught = Collections.synchronizedList(new ArrayList<>());
+
+        Rule failingRule = Rule.builder().name("asyncFailingRule2")
+                .then(action(() -> { throw new UnrulyException("specific failure"); }))
+                .build();
+
+        RuleFlow<RuleContext> flow = RuleFlow.builder()
+                .name("asyncOnExceptionBindingFlow")
+                .asyncRun(failingRule, spec -> spec
+                        .as("fut")
+                        .onException(UnrulyException.class, b -> b.execute(action((UnrulyException ex) -> caught.add(ex)))))
+                .await("fut")
+                .build();
+
+        flow.run();
+        assertEquals(1, caught.size());
+        assertTrue(caught.get(0).getMessage().contains("asyncFailingRule2"));
+    }
+
+    @Test
+    public void testAsyncOnException_recoveredFutureResolvesNull() throws Exception {
+        Rule failingRule = Rule.builder().name("asyncFailingRule3")
+                .then(action(() -> { throw new UnrulyException("boom"); }))
+                .build();
+
+        RuleFlow<RuleContext> flow = RuleFlow.builder()
+                .name("asyncOnExceptionRecoveredFlow")
+                .asyncRun(failingRule, spec -> spec
+                        .as("fut")
+                        .onException(UnrulyException.class, b -> b.bind(handled -> true)))
+                .await("fut")
+                .execute(action((CompletableFuture fut) -> assertNull(fut.getNow("not null"))))
+                .build();
+
+        assertDoesNotThrow(() -> { flow.run(); });
+    }
+
+    @Test
+    public void testAsyncOnException_nonMatchingType_stillPropagates() {
+        Rule failingRule = Rule.builder().name("asyncFailingRule4")
+                .then(action(() -> { throw new UnrulyException("unmatched"); }))
+                .build();
+
+        RuleFlow<RuleContext> flow = RuleFlow.builder()
+                .name("asyncOnExceptionUnmatchedFlow")
+                .asyncRun(failingRule, spec -> spec
+                        .as("fut")
+                        .onException(IllegalStateException.class, b -> b.bind(handled -> true)))
+                .await("fut")
+                .build();
+
+        assertThrows(UnrulyException.class, flow::run);
+    }
+
+    @Test
+    public void testAsyncOnException_recoversThenRunContinuationFailure() throws Exception {
+        List<String> log = Collections.synchronizedList(new ArrayList<>());
+        Rule rule = Rule.builder().name("asyncOkRule").then(action(() -> {})).build();
+
+        RuleFlow<RuleContext> flow = RuleFlow.builder()
+                .name("asyncOnExceptionContinuationFlow")
+                .asyncRun(rule, spec -> spec
+                        .as("fut")
+                        .thenRun("value", b -> b.execute(action(() -> { throw new UnrulyException("continuation boom"); })))
+                        .onException(UnrulyException.class, b -> b.execute(action(() -> log.add("continuation recovered")))))
+                .await("fut")
+                .build();
+
+        flow.run();
+        assertEquals(List.of("continuation recovered"), log);
     }
 }

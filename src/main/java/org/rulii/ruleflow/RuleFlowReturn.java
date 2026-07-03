@@ -32,11 +32,21 @@ public class RuleFlowReturn extends UnrulyException {
 
     private final Object result;
 
+    /**
+     * Creates a new early-exit signal carrying the given result.
+     *
+     * @param result the value to return from the flow; may be null (no-arg {@code exit()}).
+     */
     public RuleFlowReturn(Object result) {
         super();
         this.result = result;
     }
 
+    /**
+     * Returns the result value to be returned by the flow.
+     *
+     * @return result; may be null when {@code exit()} was called without an extractor.
+     */
     public Object getResult() {
         return result;
     }

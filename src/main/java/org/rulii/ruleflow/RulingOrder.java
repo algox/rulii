@@ -21,13 +21,12 @@ import org.rulii.bind.BindingDeclaration;
 import org.rulii.bind.Bindings;
 import org.rulii.context.RuleContext;
 import org.rulii.context.RuleContextBuilder;
-import org.rulii.ruleflow.command.OnExceptionCommand;
-import org.rulii.ruleflow.command.RuleFlowCommand;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.InputParameter;
 import org.rulii.model.UnrulyException;
 import org.rulii.model.action.Action;
 import org.rulii.model.function.Function;
+import org.rulii.ruleflow.command.RuleFlowCommand;
 
 import java.util.Collections;
 import java.util.List;
@@ -39,7 +38,8 @@ import java.util.function.Consumer;
  * Default implementation of {@link RuleFlow}.
  *
  * <p>Holds immutable pipeline configuration; all mutable per-run state lives in
- * {@link RuleFlowExecutionContext}. Instances are created by {@link RuleFlowBuilder#build()}.
+ * {@link RuleFlowExecutionContext}. Instances are created by
+ * {@link RuleFlowBuilderTemplate#build()}.
  *
  * @param <T> the result type.
  *
@@ -53,7 +53,7 @@ final class RulingOrder<T> implements RuleFlow<T> {
     private final List<InputParameter<?>> inputParameters;
     private final Action finalizer;
     private final Function<T> resultExtractor;
-    private final OnExceptionCommand globalHandler;
+    private final RuleFlowExceptionHandler globalHandler;
     private final Consumer<RuleContextBuilder> contextConfigurator;
     private final RuleFlowExecutionStrategy<T> executionStrategy;
     private final RuleFlowExecutionStrategy<CompletableFuture<T>> asyncExecutionStrategy;
@@ -63,7 +63,7 @@ final class RulingOrder<T> implements RuleFlow<T> {
                 List<InputParameter<?>> inputParameters,
                 Action finalizer,
                 Function<T> resultExtractor,
-                OnExceptionCommand globalHandler,
+                RuleFlowExceptionHandler globalHandler,
                 Consumer<RuleContextBuilder> contextConfigurator) {
         super();
         Assert.notNull(definition, "definition cannot be null.");
@@ -133,16 +133,19 @@ final class RulingOrder<T> implements RuleFlow<T> {
         return definition.getName();
     }
 
-    List<RuleFlowCommand> getCommands() {
+    @Override
+    public Function<T> getResultExtractor() {
+        return resultExtractor;
+    }
+
+    @Override
+    public List<RuleFlowCommand> getCommands() {
         return commands;
     }
 
-    OnExceptionCommand getGlobalHandler() {
+    @Override
+    public RuleFlowExceptionHandler getGlobalHandler() {
         return globalHandler;
-    }
-
-    Function<T> getResultExtractor() {
-        return resultExtractor;
     }
 
     @SuppressWarnings("unchecked")

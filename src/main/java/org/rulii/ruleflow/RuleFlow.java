@@ -17,24 +17,19 @@
  */
 package org.rulii.ruleflow;
 
-import org.rulii.context.RuleContext;
-import org.rulii.model.AsyncRunnable;
-import org.rulii.model.Definable;
-import org.rulii.model.InputParameter;
+import org.rulii.model.*;
 import org.rulii.model.Runnable;
-import org.rulii.model.ScopeDefining;
 import org.rulii.model.action.Action;
+import org.rulii.model.function.Function;
+import org.rulii.ruleflow.command.RuleFlowCommand;
 
 import java.util.List;
 
 /**
- * A fluent pipeline of executable steps.
+ * Represents a composable and executable flow of rules. Combines synchronous and asynchronous
+ * execution capabilities with definable metadata and scoped operations.
  *
- * <p>A {@code RuleFlow} is built with {@link RuleFlowBuilder} and executed by calling
- * {@link #run(RuleContext)} or one of the {@code runAsync} variants.
- * {@code Serializable} and {@code Identifiable} are inherited via {@link Runnable}.
- *
- * @param <T> the result type produced when the flow completes.
+ * @param <T> the result type returned after the execution of this flow.
  *
  * @author Max Arulananthan
  * @since 2.0
@@ -44,9 +39,9 @@ public interface RuleFlow<T> extends Runnable<T>, AsyncRunnable<T>, Definable<Ru
     /**
      * Entry point for the fluent flow-building DSL.
      *
-     * @return a new {@link RuleFlowBuilder}; never null.
+     * @return a new {@link DefaultRuleFlowBuilder}; never null.
      */
-    static RuleFlowBuilder builder() {
+    static DefaultRuleFlowBuilder builder() {
         return RuleFlowBuilderBuilder.getInstance().build();
     }
 
@@ -64,4 +59,27 @@ public interface RuleFlow<T> extends Runnable<T>, AsyncRunnable<T>, Definable<Ru
      */
     Action getFinalizer();
 
+    /**
+     * Provides the result extractor function for the rule flow,
+     * allowing custom transformation or extraction of the execution result.
+     *
+     * @return a {@link Function} representing the result extractor, or {@code null} if
+     *         {@code returning(Function)} was never called (the flow returns the {@code RuleContext}).
+     */
+    Function<?> getResultExtractor();
+
+    /**
+     * Retrieves the list of commands associated with the rule flow.
+     *
+     * @return a list of {@link RuleFlowCommand} objects representing
+     *         the executable steps of the rule flow; never null, but may be empty.
+     */
+    List<RuleFlowCommand> getCommands();
+
+    /**
+     * Returns the flow-level global exception handler, or {@code null} if none was registered.
+     *
+     * @return global handler; may be null.
+     */
+    RuleFlowExceptionHandler getGlobalHandler();
 }

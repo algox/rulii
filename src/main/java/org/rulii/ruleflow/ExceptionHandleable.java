@@ -18,36 +18,21 @@
 package org.rulii.ruleflow;
 
 /**
- * Singleton factory for {@link DefaultRuleFlowBuilder} instances.
+ * Capability interface for constructs that support a step-level exception handler.
  *
- * <p>Use {@link RuleFlow#builder()} as the public API — this class is the backing singleton.
+ * <p>Implemented by {@link RunConstruct} — which backs both {@code run()}/{@code apply()} and
+ * {@code execute()} steps. Configured via {@link RunSpec#onException} or
+ * {@link ExecuteSpec#onException} within the step's spec consumer.
  *
  * @author Max Arulananthan
  * @since 2.0
  */
-public final class RuleFlowBuilderBuilder {
-
-    private static final RuleFlowBuilderBuilder instance = new RuleFlowBuilderBuilder();
-
-    private RuleFlowBuilderBuilder() {
-        super();
-    }
+interface ExceptionHandleable {
 
     /**
-     * Returns the singleton instance.
+     * Attaches a step-level exception handler. Replaces any previously set handler.
      *
-     * @return the singleton; never null.
+     * @param exceptionHandler the handler; must not be null.
      */
-    public static RuleFlowBuilderBuilder getInstance() {
-        return instance;
-    }
-
-    /**
-     * Creates a fresh {@link DefaultRuleFlowBuilder}.
-     *
-     * @return a new builder; never null.
-     */
-    public DefaultRuleFlowBuilder build() {
-        return new DefaultRuleFlowBuilder();
-    }
+    void setExceptionHandler(RuleFlowExceptionHandler exceptionHandler);
 }

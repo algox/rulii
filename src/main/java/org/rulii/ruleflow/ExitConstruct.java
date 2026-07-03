@@ -17,37 +17,31 @@
  */
 package org.rulii.ruleflow;
 
+import org.rulii.model.function.Function;
+import org.rulii.ruleflow.command.ReturningCommand;
+import org.rulii.ruleflow.command.RuleFlowCommand;
+
 /**
- * Singleton factory for {@link DefaultRuleFlowBuilder} instances.
+ * Build-time construct for an {@code exit()} step.
  *
- * <p>Use {@link RuleFlow#builder()} as the public API — this class is the backing singleton.
+ * <p>Produces an immutable {@link ReturningCommand}. When {@code extractor} is {@code null}
+ * the flow returns the current {@link org.rulii.context.RuleContext}; otherwise the extractor
+ * function is evaluated against the live bindings to produce a typed result.
  *
  * @author Max Arulananthan
  * @since 2.0
  */
-public final class RuleFlowBuilderBuilder {
+class ExitConstruct extends CommandConstruct {
 
-    private static final RuleFlowBuilderBuilder instance = new RuleFlowBuilderBuilder();
+    private final Function<?> extractor;
 
-    private RuleFlowBuilderBuilder() {
+    ExitConstruct(Function<?> extractor) {
         super();
+        this.extractor = extractor;
     }
 
-    /**
-     * Returns the singleton instance.
-     *
-     * @return the singleton; never null.
-     */
-    public static RuleFlowBuilderBuilder getInstance() {
-        return instance;
-    }
-
-    /**
-     * Creates a fresh {@link DefaultRuleFlowBuilder}.
-     *
-     * @return a new builder; never null.
-     */
-    public DefaultRuleFlowBuilder build() {
-        return new DefaultRuleFlowBuilder();
+    @Override
+    protected RuleFlowCommand buildCommand() {
+        return new ReturningCommand(extractor);
     }
 }

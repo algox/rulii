@@ -18,36 +18,21 @@
 package org.rulii.ruleflow;
 
 /**
- * Singleton factory for {@link DefaultRuleFlowBuilder} instances.
+ * Capability interface for constructs whose result can be bound to a named binding.
  *
- * <p>Use {@link RuleFlow#builder()} as the public API — this class is the backing singleton.
+ * <p>Implemented by {@link RunConstruct}. Configured via {@link RunSpec#as(String)} or
+ * {@link RunSpec#as(String, String)} within the step's spec consumer.
  *
  * @author Max Arulananthan
  * @since 2.0
  */
-public final class RuleFlowBuilderBuilder {
-
-    private static final RuleFlowBuilderBuilder instance = new RuleFlowBuilderBuilder();
-
-    private RuleFlowBuilderBuilder() {
-        super();
-    }
+interface Bindable {
 
     /**
-     * Returns the singleton instance.
+     * Sets the binding target for this construct's result.
      *
-     * @return the singleton; never null.
+     * @param name      the binding name; must not be null or empty.
+     * @param scopeName the scope to bind into, or {@code null} for the current scope.
      */
-    public static RuleFlowBuilderBuilder getInstance() {
-        return instance;
-    }
-
-    /**
-     * Creates a fresh {@link DefaultRuleFlowBuilder}.
-     *
-     * @return a new builder; never null.
-     */
-    public DefaultRuleFlowBuilder build() {
-        return new DefaultRuleFlowBuilder();
-    }
+    void setBindingTarget(String name, String scopeName);
 }

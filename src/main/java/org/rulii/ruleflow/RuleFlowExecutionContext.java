@@ -18,15 +18,15 @@
 package org.rulii.ruleflow;
 
 import org.rulii.context.RuleContext;
-import org.rulii.ruleflow.command.OnExceptionCommand;
 import org.rulii.lib.spring.util.Assert;
 
 /**
  * Per-{@code run()} execution state for a {@link RuleFlow} pipeline.
  *
  * <p>Created once at the start of each {@code run()} call and discarded when it
- * completes. Holds the active {@link RuleContext}, the owning {@link RuleFlow},
- * and the optional global exception handler.
+ * completes. Holds the active {@link RuleContext} and the owning {@link RuleFlow}.
+ * The flow-level global exception handler is accessed directly via
+ * {@link RuleFlow#getGlobalHandler()}.
  *
  * @author Max Arulananthan
  * @since 2.0
@@ -35,7 +35,6 @@ public class RuleFlowExecutionContext {
 
     private final RuleContext ruleContext;
     private final RuleFlow<?> ruleFlow;
-    private OnExceptionCommand globalHandler;
 
     RuleFlowExecutionContext(RuleContext ruleContext, RuleFlow<?> ruleFlow) {
         super();
@@ -45,19 +44,35 @@ public class RuleFlowExecutionContext {
         this.ruleFlow = ruleFlow;
     }
 
+    /**
+     * Returns the {@link RuleContext} for this execution.
+     *
+     * @return rule context; never null.
+     */
     public RuleContext getRuleContext() {
         return ruleContext;
     }
 
+    /**
+     * Returns the {@link RuleFlow} being executed.
+     *
+     * @return rule flow; never null.
+     */
     public RuleFlow<?> getRuleFlow() {
         return ruleFlow;
     }
 
-    public OnExceptionCommand getGlobalHandler() {
-        return globalHandler;
-    }
-
-    void setGlobalHandler(OnExceptionCommand globalHandler) {
-        this.globalHandler = globalHandler;
+    /**
+     * Derives a new execution context bound to a different {@link RuleContext}, keeping the
+     * same owning {@link RuleFlow}. Used by async continuations (e.g. {@code asyncRun}'s
+     * {@code thenRun}) that must run their body against the resolved context of the async
+     * step (which may differ from the caller's context under IMMUTABLE/CUSTOM modes) rather
+     * than constructing a whole new {@code RuleFlowExecutionContext} from scratch.
+     *
+     * @param ruleContext the context the derived execution should run against; must not be null.
+     * @return a new execution context; never null.
+     */
+    public RuleFlowExecutionContext withRuleContext(RuleContext ruleContext) {
+        return new RuleFlowExecutionContext(ruleContext, this.ruleFlow);
     }
 }

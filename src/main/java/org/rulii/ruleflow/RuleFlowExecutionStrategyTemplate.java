@@ -62,7 +62,13 @@ public abstract class RuleFlowExecutionStrategyTemplate<T> implements RuleFlowEx
     }
 
     /**
-     * Validates a single input parameter.
+     * Validates a single input parameter against the current bindings, throwing if a required
+     * parameter is missing or has the wrong type, and applying the default value function when
+     * an optional parameter's binding is absent or {@code null}.
+     *
+     * @param parameter the parameter to check; must not be null.
+     * @param ruleFlow the flow whose parameter this is; must not be null.
+     * @param ruleContext the active context; must not be null.
      */
     protected void checkInputParameter(InputParameter<?> parameter, RuleFlow<?> ruleFlow, RuleContext ruleContext) {
         Binding<?> binding = ruleContext.getBindings().getBinding(parameter.name());
@@ -133,10 +139,21 @@ public abstract class RuleFlowExecutionStrategyTemplate<T> implements RuleFlowEx
         }
     }
 
+    /**
+     * Generates a unique scope name for the given flow's per-run flow scope.
+     *
+     * @param ruleFlow the flow being executed; must not be null.
+     * @return a scope name unique to this run; never null.
+     */
     protected String getFlowScopeName(RuleFlow<?> ruleFlow) {
         return ruleFlow.getName() + "-scope-" + UUID.randomUUID();
     }
 
+    /**
+     * Returns the shared logger for this strategy hierarchy.
+     *
+     * @return the logger; never null.
+     */
     protected Log getLogger() {
         return LOGGER;
     }
