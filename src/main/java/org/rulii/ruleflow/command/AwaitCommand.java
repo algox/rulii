@@ -57,6 +57,7 @@ public class AwaitCommand implements RuleFlowCommand {
     @Override
     public void execute(RuleFlowExecutionContext ctx) {
         Object value = ctx.getRuleContext().getBindings().getValue(bindingName);
+
         if (!(value instanceof CompletableFuture<?> future))
             throw new UnrulyException("Binding [" + bindingName + "] is not a CompletableFuture; found: "
                     + (value == null ? "null" : value.getClass().getName()));
@@ -66,7 +67,8 @@ public class AwaitCommand implements RuleFlowCommand {
             throw new UnrulyException("await [" + bindingName + "] timed out after " + timeout + " " + timeUnit + ".", e);
         } catch (ExecutionException e) {
             Throwable cause = e.getCause() != null ? e.getCause() : e;
-            throw cause instanceof UnrulyException ue ? ue
+            throw cause instanceof UnrulyException ue
+                    ? ue
                     : new UnrulyException("Async step [" + bindingName + "] failed.", cause);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();

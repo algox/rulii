@@ -80,6 +80,17 @@ public class RuleContextBuilder {
     /**
      * Creates a builder pre-populated from an existing {@link RuleContext}, preserving all its settings.
      *
+     * <p>The context's bindings are flattened into a single fresh {@link Bindings}, copying every
+     * binding visible across every scope the context currently has active — not just its
+     * {@link ScopedBindings#GLOBAL_SCOPE} — while excluding {@link ReservedBindings reserved}
+     * entries such as {@code $ruleContext}/{@code $bindings}. Copying the full {@link ScopedBindings}
+     * hierarchy verbatim (reserved entries and all) into {@link #build()}, which binds a fresh pair
+     * of its own, would leave two bindings of each reserved name once nested as the new context's
+     * global scope, making any {@code RuleContext}-typed parameter ambiguous; copying only the
+     * {@code GLOBAL_SCOPE} scope avoids that but silently drops bindings added in any other scope
+     * (e.g. a flow's own scope, or a nested {@code scope()}/{@code forEach()} scope) — this
+     * flatten-and-exclude approach avoids both problems.
+     *
      * @param context the context to copy; must not be null.
      */
     RuleContextBuilder(RuleContext context) {
@@ -94,9 +105,17 @@ public class RuleContextBuilder {
         this.converterRegistry = context.getConverterRegistry();
         this.clock = context.getClock();
         this.locale = context.getLocale();
-        this.bindings = context.getBindings();
+        this.bindings = copyNonReservedBindings(context.getBindings());
         this.executorService = context.getExecutorService();
         this.ruleRegistry = context.getRuleRegistry();
+    }
+
+    private static Bindings copyNonReservedBindings(Bindings source) {
+        Bindings result = Bindings.builder().standard();
+        for (Binding<?> binding : source) {
+            if (!ReservedBindings.isReserved(binding.getName())) result.bind(binding);
+        }
+        return result;
     }
 
     /**

@@ -19,6 +19,7 @@ package org.rulii.ruleflow.command;
 
 import org.rulii.bind.NamedScope;
 import org.rulii.context.RuleContext;
+import org.rulii.context.RuleContextBuilder;
 import org.rulii.model.AsyncRunnable;
 import org.rulii.model.Runnable;
 import org.rulii.model.UnrulyException;
@@ -40,7 +41,10 @@ import java.util.concurrent.ExecutorService;
  *
  * <p>If the target implements {@link AsyncRunnable}, its {@code runAsync()} method is used
  * directly. Otherwise the call to {@link Runnable#run(RuleContext)} is submitted to the
- * executor service from the calling {@link RuleContext}.
+ * <em>resolved</em> context's executor service - the calling context's under
+ * {@code AsyncContextMode#SHARED}/{@code IMMUTABLE}, or the supplied context's own under
+ * {@code AsyncContextMode#CUSTOM} - so {@code withContext(...)}'s executor isolation actually
+ * takes effect.
  *
  * <p>The future binding (if any) is always placed in the <em>calling</em> context so the
  * rest of the flow can access it via {@code await()}, {@code awaitAll()}, or {@code awaitAny()}.
@@ -49,10 +53,12 @@ import java.util.concurrent.ExecutorService;
  * completion thread once the task succeeds, and the bound future (if any) reflects completion
  * of the whole chain rather than just the initial task.
  *
- * <p>If an exception handler was configured via {@code AsyncRunSpec#onException}, it is chained
- * onto the future as well, so a matching failure - of the task or the {@code thenRun}
- * continuation - is recovered as soon as it occurs, whether or not anything later calls
- * {@code await()} on this step's binding.
+ * <p>A failure - of the task or the {@code thenRun} continuation - is checked against the
+ * step-level handler configured via {@code AsyncRunSpec#onException} (if any), then against
+ * the flow-level global handler (see {@link org.rulii.ruleflow.RuleFlow#getGlobalHandler()}),
+ * mirroring the step-level-then-global fallback order {@code RunCommand} uses for synchronous
+ * steps. This check always runs as soon as the failure occurs - whether or not anything later
+ * calls {@code await()} on this step's binding - since it is chained directly onto the future.
  *
  * @author Max Arulananthan
  * @since 2.0
@@ -91,25 +97,24 @@ public class AsyncRunCommand implements RuleFlowCommand {
         RuleContext ruleContext = ctx.getRuleContext();
         RuleContext effectiveCtx = resolveContext(ruleContext);
         Runnable<?> target = resolveRunnable(ruleContext);
-        ExecutorService executor = ruleContext.getExecutorService();
+        ExecutorService executor = effectiveCtx.getExecutorService();
 
         CompletableFuture<?> future;
+
         if (target instanceof AsyncRunnable asyncTarget) {
             future = asyncTarget.runAsync(effectiveCtx);
         } else {
             future = CompletableFuture.supplyAsync(() -> target.run(effectiveCtx), executor);
         }
 
-        RuleFlowExecutionContext derivedCtx = !continuation.isEmpty() || exceptionHandler != null
-                ? ctx.withRuleContext(effectiveCtx) : null;
-
         if (!continuation.isEmpty()) {
-            future = future.thenApplyAsync(result -> runContinuation(result, effectiveCtx, derivedCtx), executor);
+            RuleFlowExecutionContext continuationCtx = ctx.withRuleContext(effectiveCtx);
+            future = future.thenApplyAsync(result -> runContinuation(result, effectiveCtx, continuationCtx), executor);
         }
 
-        if (exceptionHandler != null) {
-            future = future.handleAsync((result, ex) -> handleFailure(result, ex, derivedCtx), executor);
-        }
+        // Always attach a failure stage - even with no step-level handler configured, an
+        // unhandled failure still needs the chance to fall back to the flow's global handler.
+        future = future.handleAsync((result, ex) -> handleFailure(result, ex, ctx, effectiveCtx), executor);
 
         if (bindingName != null) ruleContext.getBindings().bind(bindingName, future);
     }
@@ -119,6 +124,7 @@ public class AsyncRunCommand implements RuleFlowCommand {
 
         try {
             effectiveCtx.getBindings().bind(continuationResultBindingName, result);
+
             for (RuleFlowCommand cmd : continuation) {
                 cmd.execute(continuationCtx);
             }
@@ -129,27 +135,37 @@ public class AsyncRunCommand implements RuleFlowCommand {
         return result;
     }
 
-    private Object handleFailure(Object result, Throwable ex, RuleFlowExecutionContext continuationCtx) {
+    private Object handleFailure(Object result, Throwable ex, RuleFlowExecutionContext ctx, RuleContext effectiveCtx) {
         if (ex == null) return result;
 
         Throwable cause = ex instanceof CompletionException && ex.getCause() != null ? ex.getCause() : ex;
 
-        if (cause instanceof Exception causeEx && exceptionHandler.canHandle(causeEx)) {
-            exceptionHandler.handleException(causeEx, continuationCtx);
-            continuationCtx.getRuleContext().getTracer().fireOnRuleFlowExceptionHandled(continuationCtx.getRuleFlow(), causeEx, true);
+        if (!(cause instanceof Exception causeEx)) {
+            throw cause instanceof RuntimeException re ? re : new UnrulyException("Async step failed.", cause);
+        }
+
+        boolean stepLevel = exceptionHandler != null && exceptionHandler.canHandle(causeEx);
+        RuleFlowExceptionHandler globalHandler = ctx.getRuleFlow().getGlobalHandler();
+        RuleFlowExceptionHandler handler = stepLevel ? exceptionHandler
+                : (globalHandler != null && globalHandler.canHandle(causeEx) ? globalHandler : null);
+
+        if (handler != null) {
+            RuleFlowExecutionContext continuationCtx = ctx.withRuleContext(effectiveCtx);
+            handler.handleException(causeEx, continuationCtx);
+            ctx.getRuleContext().getTracer().fireOnRuleFlowExceptionHandled(ctx.getRuleFlow(), causeEx, stepLevel);
             return null;
         }
 
-        throw cause instanceof UnrulyException ue ? ue : new UnrulyException("Async step failed.", cause);
+        throw causeEx instanceof UnrulyException ue ? ue : new UnrulyException("Async step failed.", causeEx);
     }
 
     private RuleContext resolveContext(RuleContext ruleContext) {
         return switch (contextMode) {
             case SHARED -> ruleContext;
-            case IMMUTABLE -> RuleContext.builder()
-                    .with(ruleContext)
-                    .bindings(ruleContext.getBindings().asImmutable())
-                    .build();
+            case IMMUTABLE -> {
+                RuleContextBuilder builder = RuleContext.builder().with(ruleContext);
+                yield builder.bindings(builder.getBindings().asImmutable()).build();
+            }
             case CUSTOM -> customContext;
         };
     }

@@ -149,8 +149,9 @@ public class AsyncRunSpec<SELF extends RuleFlowBuilderTemplate<SELF>> {
      * <p>When the handler runs, the step's future (and any {@link #as(String)} binding) resolves
      * successfully with {@code null} rather than failing - the recovery has no result value to
      * offer, matching the "swallow and continue" semantics of the synchronous handlers. A
-     * failure that does not match {@code type} is left to propagate, still observable via
-     * {@code await()}.
+     * failure that does not match {@code type} falls back to the flow-level global handler (if
+     * one is registered and matches); only if neither matches is the failure left to propagate,
+     * still observable via {@code await()}.
      *
      * @param type    the exception type to catch; must not be null.
      * @param handler Consumer defining the handler commands; must not be null.

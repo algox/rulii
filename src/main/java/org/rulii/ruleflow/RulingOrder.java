@@ -86,7 +86,7 @@ final class RulingOrder<T> implements RuleFlow<T> {
         Assert.notNull(context, "context cannot be null.");
 
         try {
-            return executionStrategy.run(this, context);
+            return executionStrategy.run(this, applyContextConfigurator(context));
         } catch (RuleFlowReturn r) {
             return (T) r.getResult();
         }
@@ -95,22 +95,37 @@ final class RulingOrder<T> implements RuleFlow<T> {
     @Override
     public T run(BindingDeclaration<?>... params) throws UnrulyException {
         Bindings bindings = Bindings.builder().standard(params);
-        RuleContextBuilder builder = RuleContext.builder().with(bindings);
-        if (contextConfigurator != null) contextConfigurator.accept(builder);
-        return run(builder.build());
+        return run(RuleContext.builder().with(bindings).build());
     }
 
     @Override
     public CompletableFuture<T> runAsync(RuleContext ruleContext) {
         Assert.notNull(ruleContext, "ruleContext cannot be null.");
-        return asyncExecutionStrategy.run(this, ruleContext);
+        return asyncExecutionStrategy.run(this, applyContextConfigurator(ruleContext));
     }
 
     @Override
     public CompletableFuture<T> runAsync(RuleContext ruleContext, long timeout, TimeUnit timeUnit) {
         Assert.notNull(ruleContext, "ruleContext cannot be null.");
         Assert.notNull(timeUnit, "timeUnit cannot be null.");
-        return asyncExecutionStrategy.run(this, ruleContext).orTimeout(timeout, timeUnit);
+        return asyncExecutionStrategy.run(this, applyContextConfigurator(ruleContext)).orTimeout(timeout, timeUnit);
+    }
+
+    /**
+     * Layers this flow's {@code context(...)} configurator (if any) on top of {@code context},
+     * used by every {@code run}/{@code runAsync} entry point so the configurator is applied
+     * exactly once, regardless of whether {@code context} came from caller-supplied bindings,
+     * a caller-supplied {@link RuleContext}, or the sync or async entry point.
+     *
+     * @param context the base context; must not be null.
+     * @return {@code context} unchanged if no configurator is set, otherwise a derived context
+     *         with the configurator's settings layered on top; never null.
+     */
+    private RuleContext applyContextConfigurator(RuleContext context) {
+        if (contextConfigurator == null) return context;
+        RuleContextBuilder builder = RuleContext.builder().with(context);
+        contextConfigurator.accept(builder);
+        return builder.build();
     }
 
     @Override

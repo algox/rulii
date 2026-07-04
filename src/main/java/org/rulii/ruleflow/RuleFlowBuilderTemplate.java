@@ -173,6 +173,15 @@ public abstract class RuleFlowBuilderTemplate<SELF extends RuleFlowBuilderTempla
     }
 
     /**
+     * Returns the {@code context(...)} configurator set on this builder, or {@code null} if none.
+     * Package-private accessor used by {@link #buildBody} to detect a nested {@code context()}
+     * call on an isolated inner builder instance.
+     */
+    Consumer<RuleContextBuilder> getContextConfigurator() {
+        return contextConfigurator;
+    }
+
+    /**
      * Seals any pending construct and returns a snapshot of the root command list.
      * Used by {@link #buildBody} to harvest commands from an inner builder.
      */
@@ -287,15 +296,18 @@ public abstract class RuleFlowBuilderTemplate<SELF extends RuleFlowBuilderTempla
 
     /**
      * Customizes the {@link org.rulii.context.RuleContext} used when the flow is invoked
-     * without an explicit context. Must be the first pipeline step.
+     * without an explicit context, or used to layer settings on top of a caller-supplied
+     * context via {@code run(RuleContext)}. Must be the first pipeline step, and may only
+     * be called once per flow.
      *
      * @param configurator receives a pre-populated {@link RuleContextBuilder}; must not be null.
      * @return this builder.
      */
     public SELF context(Consumer<RuleContextBuilder> configurator) {
         Assert.notNull(configurator, "configurator cannot be null.");
+        Assert.isTrue(contextConfigurator == null && rootCommands.isEmpty() && stack.isEmpty() && lastConstruct == null,
+                "context() must be the first step in the flow, and may only be called once.");
         this.contextConfigurator = configurator;
-        addConstruct(new ContextConstruct(configurator));
         return self();
     }
 
@@ -966,11 +978,17 @@ public abstract class RuleFlowBuilderTemplate<SELF extends RuleFlowBuilderTempla
      *
      * @param body the body consumer; must not be null.
      * @return the captured commands; never null.
+     * @throws IllegalArgumentException if {@code body} calls {@code context(...)} - a nested
+     *         body runs against an already-built {@link org.rulii.context.RuleContext} that
+     *         this isolated inner builder never constructs, so a configurator set there would
+     *         otherwise be silently discarded.
      */
     final List<RuleFlowCommand> buildBody(Consumer<SELF> body) {
         Assert.notNull(body, "body cannot be null.");
         SELF inner = newInstance();
         body.accept(inner);
+        Assert.isTrue(inner.getContextConfigurator() == null,
+                "context() is not supported inside a handler/continuation body.");
         return inner.collectBodyCommands();
     }
 
@@ -1001,18 +1019,21 @@ public abstract class RuleFlowBuilderTemplate<SELF extends RuleFlowBuilderTempla
         sealLastConstruct();
         WhenConstruct construct = new WhenConstruct(condition);
         stack.push(construct);
-        then.accept(self());
-        // flush any construct at the end of the then-body
-        sealLastConstruct();
-
-        if (otherwise != null) {
-            construct.switchToOtherwise();
-            otherwise.accept(self());
-            // flush any construct at the end of the otherwise-body
+        try {
+            then.accept(self());
+            // flush any construct at the end of the then-body
             sealLastConstruct();
+
+            if (otherwise != null) {
+                construct.switchToOtherwise();
+                otherwise.accept(self());
+                // flush any construct at the end of the otherwise-body
+                sealLastConstruct();
+            }
+        } finally {
+            stack.pop();
         }
 
-        stack.pop();
         // the filled WhenConstruct becomes the new pending element
         addConstruct(construct);
         return self();
@@ -1048,9 +1069,12 @@ public abstract class RuleFlowBuilderTemplate<SELF extends RuleFlowBuilderTempla
         sealLastConstruct();
         ForEachConstruct construct = new ForEachConstruct(source, elementName, stopCondition);
         stack.push(construct);
-        body.accept(self());
-        sealLastConstruct();
-        stack.pop();
+        try {
+            body.accept(self());
+            sealLastConstruct();
+        } finally {
+            stack.pop();
+        }
         addConstruct(construct);
         return self();
     }
@@ -1070,9 +1094,12 @@ public abstract class RuleFlowBuilderTemplate<SELF extends RuleFlowBuilderTempla
         sealLastConstruct();
         ScopeConstruct construct = new ScopeConstruct(scopeName);
         stack.push(construct);
-        body.accept(self());
-        sealLastConstruct();
-        stack.pop();
+        try {
+            body.accept(self());
+            sealLastConstruct();
+        } finally {
+            stack.pop();
+        }
         addConstruct(construct);
         return self();
     }
@@ -1089,9 +1116,12 @@ public abstract class RuleFlowBuilderTemplate<SELF extends RuleFlowBuilderTempla
         sealLastConstruct();
         ScopeConstruct construct = new ScopeConstruct(null);
         stack.push(construct);
-        body.accept(self());
-        sealLastConstruct();
-        stack.pop();
+        try {
+            body.accept(self());
+            sealLastConstruct();
+        } finally {
+            stack.pop();
+        }
         addConstruct(construct);
         return self();
     }
@@ -1142,9 +1172,12 @@ public abstract class RuleFlowBuilderTemplate<SELF extends RuleFlowBuilderTempla
         sealLastConstruct();
         CustomContainerConstruct construct = new CustomContainerConstruct(cmd);
         stack.push(construct);
-        body.accept(self());
-        sealLastConstruct();
-        stack.pop();
+        try {
+            body.accept(self());
+            sealLastConstruct();
+        } finally {
+            stack.pop();
+        }
         addConstruct(construct);
         return self();
     }
@@ -1173,15 +1206,7 @@ public abstract class RuleFlowBuilderTemplate<SELF extends RuleFlowBuilderTempla
     }
 
     private void validate() {
-        validateContextPosition();
         validateReachability();
-    }
-
-    private void validateContextPosition() {
-        for (int i = 0; i < rootCommands.size(); i++) {
-            if (rootCommands.get(i) instanceof ContextCommand && i != 0)
-                throw new UnrulyException("RuleFlow [" + name + "] structural error: context() must be the first command.");
-        }
     }
 
     private void validateReachability() {

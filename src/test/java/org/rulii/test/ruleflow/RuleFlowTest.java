@@ -27,15 +27,18 @@ import org.rulii.model.condition.Condition;
 import org.rulii.model.function.Function;
 import org.rulii.registry.RuleRegistry;
 import org.rulii.rule.Rule;
+import org.rulii.ruleflow.DefaultRuleFlowBuilder;
 import org.rulii.ruleflow.RuleFlow;
 import org.rulii.trace.Tracer;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.rulii.model.action.Actions.action;
@@ -398,6 +401,26 @@ public class RuleFlowTest {
         assertEquals("ow2", captured.get(1));
     }
 
+    @Test
+    public void testWhen_bodyThrows_builderStackNotCorrupted() {
+        List<String> log = new ArrayList<>();
+
+        DefaultRuleFlowBuilder builder = RuleFlow.builder().name("stackRecoveryFlow");
+
+        assertThrows(RuntimeException.class, () -> builder.when(condition(() -> true), b -> {
+            throw new RuntimeException("boom during body construction");
+        }));
+
+        // The builder must still be usable afterward, with subsequent steps landing at the
+        // top level rather than inside the abandoned WhenConstruct's branch.
+        RuleFlow<RuleContext> flow = builder
+                .execute(action(() -> log.add("ran")))
+                .build();
+
+        flow.run();
+        assertEquals(List.of("ran"), log);
+    }
+
     // =========================================================================
     // forEach
     // =========================================================================
@@ -562,6 +585,26 @@ public class RuleFlowTest {
 
         assertThrows(UnrulyException.class, flow::run);
         assertTrue(log.isEmpty());
+    }
+
+    @Test
+    public void testFinalizer_failureDoesNotMaskOriginalException() {
+        Rule failingRule = Rule.builder().name("originalFailingRule")
+                .then(action(() -> { throw new UnrulyException("ORIGINAL_COMMAND_FAILURE"); }))
+                .build();
+
+        RuleFlow<RuleContext> flow = RuleFlow.builder()
+                .name("finalizerMasksFlow")
+                .run(failingRule)
+                .finalizer(action(() -> { throw new RuntimeException("FINALIZER_FAILURE"); }))
+                .build();
+
+        UnrulyException thrown = assertThrows(UnrulyException.class, flow::run);
+        // The propagated exception must be the ORIGINAL command failure, not the finalizer's
+        // (the finalizer's own failure is logged instead -- UnrulyException disables exception
+        // suppression, so addSuppressed() isn't an option here).
+        assertTrue(thrown.getMessage().contains("originalFailingRule"));
+        assertFalse(thrown.getMessage().contains("finalizer"));
     }
 
     // =========================================================================
@@ -843,6 +886,93 @@ public class RuleFlowTest {
                 .build();
 
         assertDoesNotThrow(() -> flow.run(x -> "value"));
+    }
+
+    @Test
+    public void testContext_configuratorAppliedOnSuppliedRuleContext() {
+        List<Locale> capturedLocale = Collections.synchronizedList(new ArrayList<>());
+        List<String> capturedBinding = Collections.synchronizedList(new ArrayList<>());
+
+        RuleFlow<RuleContext> flow = RuleFlow.builder()
+                .name("suppliedContextFlow")
+                .context(builder -> builder.locale(Locale.CANADA))
+                .execute(action((RuleContext ctx, String existing) -> {
+                    capturedLocale.add(ctx.getLocale());
+                    capturedBinding.add(existing);
+                }))
+                .build();
+
+        RuleContext supplied = RuleContext.builder().with(existing -> "from-supplied-context").build();
+        flow.run(supplied);
+
+        assertEquals(List.of(Locale.CANADA), capturedLocale);
+        assertEquals(List.of("from-supplied-context"), capturedBinding);
+    }
+
+    @Test
+    public void testContext_configuratorAppliedExactlyOnceOnDeclarationRun() {
+        AtomicInteger applyCount = new AtomicInteger(0);
+
+        RuleFlow<RuleContext> flow = RuleFlow.builder()
+                .name("contextOnceFlow")
+                .context(builder -> applyCount.incrementAndGet())
+                .build();
+
+        flow.run(x -> 1);
+        assertEquals(1, applyCount.get());
+    }
+
+    @Test
+    public void testContext_configuratorAppliedOnRunAsync() throws Exception {
+        List<Locale> capturedLocale = Collections.synchronizedList(new ArrayList<>());
+
+        RuleFlow<RuleContext> flow = RuleFlow.builder()
+                .name("suppliedContextAsyncFlow")
+                .context(builder -> builder.locale(Locale.CANADA))
+                .execute(action((RuleContext ctx) -> capturedLocale.add(ctx.getLocale())))
+                .build();
+
+        RuleContext supplied = RuleContext.builder().build();
+        flow.runAsync(supplied).get(5, TimeUnit.SECONDS);
+
+        assertEquals(List.of(Locale.CANADA), capturedLocale);
+    }
+
+    @Test
+    public void testContext_notFirstStep_throwsImmediately() {
+        assertThrows(IllegalArgumentException.class, () -> RuleFlow.builder()
+                .name("badContextOrderFlow")
+                .bind(x -> 1)
+                .context(builder -> builder.locale(Locale.CANADA)));
+    }
+
+    @Test
+    public void testContext_calledTwice_throwsImmediately() {
+        assertThrows(IllegalArgumentException.class, () -> RuleFlow.builder()
+                .name("doubleContextFlow")
+                .context(builder -> builder.locale(Locale.CANADA))
+                .context(builder -> builder.locale(Locale.US)));
+    }
+
+    @Test
+    public void testContext_insideGlobalExceptionHandlerBody_throwsImmediately() {
+        Rule failingRule = Rule.builder().name("contextInHandlerRule")
+                .then(action(() -> { throw new UnrulyException("boom"); }))
+                .build();
+
+        assertThrows(IllegalArgumentException.class, () -> RuleFlow.builder()
+                .name("contextInHandlerFlow")
+                .run(failingRule)
+                .onException(UnrulyException.class, b -> b.context(cfg -> cfg.locale(Locale.CANADA))));
+    }
+
+    @Test
+    public void testContext_insideThenRunBody_throwsImmediately() {
+        Rule rule = Rule.builder().name("contextInThenRunRule").then(action(() -> {})).build();
+
+        assertThrows(IllegalArgumentException.class, () -> RuleFlow.builder()
+                .name("contextInThenRunFlow")
+                .asyncRun(rule, spec -> spec.thenRun("value", b -> b.context(cfg -> cfg.locale(Locale.CANADA)))));
     }
 
     // =========================================================================
@@ -1670,6 +1800,50 @@ public class RuleFlowTest {
     }
 
     @Test
+    public void testAsyncRun_immutableBindings_ruleContextParamResolvesUnambiguously() throws Exception {
+        List<RuleContext> captured = Collections.synchronizedList(new ArrayList<>());
+
+        Rule reader = Rule.builder().name("contextReader")
+                .then(action((RuleContext ctx) -> captured.add(ctx)))
+                .build();
+
+        RuleFlow<RuleContext> flow = RuleFlow.builder()
+                .name("immutableContextFlow")
+                .asyncRun(reader, spec -> spec.as("fut").withImmutableBindings())
+                .await("fut")
+                .build();
+
+        flow.run();
+        assertEquals(1, captured.size());
+    }
+
+    @Test
+    public void testAsyncRun_withContext_usesCustomContextExecutor() throws Exception {
+        List<String> capturedThreadNames = Collections.synchronizedList(new ArrayList<>());
+        java.util.concurrent.ExecutorService customExecutor = java.util.concurrent.Executors.newSingleThreadExecutor(
+                r -> new Thread(r, "custom-async-pool"));
+
+        try {
+            RuleContext customContext = RuleContext.builder().standard().executeUsing(customExecutor).build();
+
+            Rule reader = Rule.builder().name("threadNameReader")
+                    .then(action(() -> capturedThreadNames.add(Thread.currentThread().getName())))
+                    .build();
+
+            RuleFlow<RuleContext> flow = RuleFlow.builder()
+                    .name("customExecutorFlow")
+                    .asyncRun(reader, spec -> spec.as("fut").withContext(customContext))
+                    .await("fut")
+                    .build();
+
+            flow.run();
+            assertEquals(List.of("custom-async-pool"), capturedThreadNames);
+        } finally {
+            customExecutor.shutdown();
+        }
+    }
+
+    @Test
     public void testAsyncRun_withExplicitTimeout_awaits() throws Exception {
         List<String> log = new ArrayList<>();
         Rule rule = Rule.builder().name("timed").then(action(() -> log.add("done"))).build();
@@ -1913,5 +2087,63 @@ public class RuleFlowTest {
 
         flow.run();
         assertEquals(List.of("continuation recovered"), log);
+    }
+
+    @Test
+    public void testAsyncOnException_fallsBackToGlobalHandler_whenNoStepHandler() throws Exception {
+        List<String> log = Collections.synchronizedList(new ArrayList<>());
+
+        Rule failingRule = Rule.builder().name("asyncFailingRuleGlobal")
+                .then(action(() -> { throw new UnrulyException("boom"); }))
+                .build();
+
+        RuleFlow<RuleContext> flow = RuleFlow.builder()
+                .name("asyncGlobalHandlerFlow")
+                .asyncRun(failingRule)
+                .onException(UnrulyException.class, b -> b.execute(action(() -> log.add("global recovered"))))
+                .build();
+
+        flow.run();
+        // No await() at all, and no step-level onException() on the asyncRun call -- only the
+        // flow-level global handler is configured, yet it must still catch the async failure.
+        Thread.sleep(200);
+        assertEquals(List.of("global recovered"), log);
+    }
+
+    @Test
+    public void testAsyncOnException_stepHandlerTakesPrecedenceOverGlobal() throws Exception {
+        List<String> log = Collections.synchronizedList(new ArrayList<>());
+
+        Rule failingRule = Rule.builder().name("asyncFailingRulePrecedence")
+                .then(action(() -> { throw new UnrulyException("boom"); }))
+                .build();
+
+        RuleFlow<RuleContext> flow = RuleFlow.builder()
+                .name("asyncStepVsGlobalFlow")
+                .asyncRun(failingRule, spec -> spec
+                        .as("fut")
+                        .onException(UnrulyException.class, b -> b.execute(action(() -> log.add("step recovered")))))
+                .await("fut")
+                .onException(UnrulyException.class, b -> b.execute(action(() -> log.add("global recovered"))))
+                .build();
+
+        flow.run();
+        assertEquals(List.of("step recovered"), log);
+    }
+
+    @Test
+    public void testAsyncOnException_noHandlerMatches_stillPropagatesOnAwait() {
+        Rule failingRule = Rule.builder().name("asyncFailingRuleUnmatched")
+                .then(action(() -> { throw new UnrulyException("boom"); }))
+                .build();
+
+        RuleFlow<RuleContext> flow = RuleFlow.builder()
+                .name("asyncNoMatchFlow")
+                .asyncRun(failingRule, spec -> spec.as("fut"))
+                .await("fut")
+                .onException(IllegalStateException.class, b -> b.bind(handled -> true))
+                .build();
+
+        assertThrows(UnrulyException.class, flow::run);
     }
 }

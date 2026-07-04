@@ -85,6 +85,7 @@ class DefaultRuleFlowExecutionStrategy<T> extends RuleFlowExecutionStrategyTempl
 
     private T runCommands(RulingOrder<T> order, RuleContext ruleContext) {
         RuleFlowExecutionContext ctx = new RuleFlowExecutionContext(ruleContext, order);
+        Throwable pending = null;
 
         try {
             for (RuleFlowCommand cmd : order.getCommands()) {
@@ -96,6 +97,7 @@ class DefaultRuleFlowExecutionStrategy<T> extends RuleFlowExecutionStrategyTempl
             if (order.getResultExtractor() != null) ruleContext.getTracer().fireOnRuleFlowResult(order, order.getResultExtractor());
             return result;
         } catch (RuleFlowReturn r) {
+            pending = r;
             throw r;
         } catch (UnrulyException e) {
             RuleFlowExceptionHandler globalHandler = order.getGlobalHandler();
@@ -104,9 +106,24 @@ class DefaultRuleFlowExecutionStrategy<T> extends RuleFlowExecutionStrategyTempl
                 ruleContext.getTracer().fireOnRuleFlowExceptionHandled(order, e, false);
                 return order.extractResult(ruleContext);
             }
+            pending = e;
             throw e;
         } finally {
-            runFinalizer(order, ruleContext);
+            // If an exception/early-exit is already propagating, a finalizer failure must not
+            // silently replace it (ordinary try/finally semantics would otherwise discard the
+            // original). UnrulyException disables exception suppression (see its constructors),
+            // so addSuppressed() would be a silent no-op here - log instead, so the finalizer
+            // failure is at least visible, and let the original keep propagating unchanged.
+            try {
+                runFinalizer(order, ruleContext);
+            } catch (UnrulyException finalizerFailure) {
+                if (pending != null) {
+                    getLogger().error("RuleFlow [" + order.getName() + "] finalizer failed while ["
+                            + pending + "] was already propagating.", finalizerFailure);
+                } else {
+                    throw finalizerFailure;
+                }
+            }
         }
     }
 }

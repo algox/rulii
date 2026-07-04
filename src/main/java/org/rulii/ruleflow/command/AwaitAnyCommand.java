@@ -61,6 +61,7 @@ public class AwaitAnyCommand implements RuleFlowCommand {
     @Override
     public void execute(RuleFlowExecutionContext ctx) {
         CompletableFuture<?>[] futures = resolveFutures(ctx);
+
         try {
             CompletableFuture.anyOf(futures).get(timeout, timeUnit);
         } catch (TimeoutException e) {
@@ -68,7 +69,8 @@ public class AwaitAnyCommand implements RuleFlowCommand {
                     + " timed out after " + timeout + " " + timeUnit + ".", e);
         } catch (ExecutionException e) {
             Throwable cause = e.getCause() != null ? e.getCause() : e;
-            throw cause instanceof UnrulyException ue ? ue
+            throw cause instanceof UnrulyException ue
+                    ? ue
                     : new UnrulyException("Async step failed: " + Arrays.toString(bindingNames) + ".", cause);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -78,6 +80,7 @@ public class AwaitAnyCommand implements RuleFlowCommand {
 
     private CompletableFuture<?>[] resolveFutures(RuleFlowExecutionContext ctx) {
         CompletableFuture<?>[] futures = new CompletableFuture<?>[bindingNames.length];
+
         for (int i = 0; i < bindingNames.length; i++) {
             String name = bindingNames[i];
             Object value = ctx.getRuleContext().getBindings().getValue(name);
@@ -86,6 +89,7 @@ public class AwaitAnyCommand implements RuleFlowCommand {
                         + (value == null ? "null" : value.getClass().getName()));
             futures[i] = f;
         }
+
         return futures;
     }
 

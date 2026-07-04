@@ -42,11 +42,12 @@ import org.rulii.ruleflow.command.RuleFlowCommand;
  * <h3>Sub-hierarchies</h3>
  * <ul>
  *   <li>{@link FlowConstruct} — container constructs ({@code when}, {@code forEach},
- *       {@code scope}, {@code onException}) that accumulate a body of commands while
- *       sitting on the builder's internal stack.</li>
- *   <li>Direct subclasses — leaf constructs ({@code BindConstruct}, {@code ContextConstruct},
- *       {@code ExitConstruct}, {@code DirectCommandConstruct}) and the concrete runnable
- *       construct ({@code RunConstruct}) that implements the relevant capability interfaces.</li>
+ *       {@code scope}) that accumulate a body of commands while sitting on the builder's
+ *       internal stack. The flow-level {@code onException()} handler body is captured
+ *       differently — see {@code RuleFlowBuilderTemplate#buildBody}, not this hierarchy.</li>
+ *   <li>Direct subclasses — leaf constructs ({@code BindConstruct}, {@code ExitConstruct},
+ *       {@code DirectCommandConstruct}) and the concrete runnable construct
+ *       ({@code RunConstruct}) that implements the relevant capability interfaces.</li>
  * </ul>
  *
  * @author Max Arulananthan
