@@ -190,4 +190,70 @@ public class FunctionBuilderTest {
         String result = decFunction.apply(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         Assertions.assertEquals("OK", result);
     }
+
+    public static class DoublerFunction implements UnaryFunction<Integer, Integer> {
+        @Override
+        public Integer apply(Integer a) {
+            return a * 2;
+        }
+    }
+
+    /**
+     * MethodDefinition/ParameterDefinition.load(Method,...) cache their result in a static
+     * IdentityHashMap keyed by the reflective Method - but java.lang.Class#getMethod() returns a
+     * fresh Method object on every call, so two independent lookups never actually collide on
+     * the same cache entry. The cache only produces a real hit when the exact same Method
+     * reference is deliberately reused (e.g. iterating one Method[] array, or the candidates[0]
+     * bug fixed elsewhere in this review) - so this test captures a Method reference once and
+     * reuses it, exactly like those real call sites do.
+     */
+    @Test
+    public void testMethodDefinitionCopy_mutatingCopyDoesNotAffectCachedOriginal() throws NoSuchMethodException {
+        java.lang.reflect.Method method = DoublerFunction.class.getMethod("apply", Integer.class);
+
+        MethodDefinition cached = MethodDefinition.load(method, true, org.rulii.model.SourceDefinition.build());
+        MethodDefinition sameCached = MethodDefinition.load(method, true, org.rulii.model.SourceDefinition.build());
+        // Same Method reference reused -> same cache entry (the premise this test guards against).
+        Assertions.assertSame(cached, sameCached);
+
+        MethodDefinition copy = cached.copy();
+        Assertions.assertNotSame(cached, copy);
+        // Each parameter is independently copied too, not just the top-level wrapper.
+        Assertions.assertNotSame(cached.getParameterDefinitions().get(0), copy.getParameterDefinitions().get(0));
+
+        copy.setName("customName");
+
+        Assertions.assertEquals("customName", copy.getName());
+        Assertions.assertNotEquals("customName", cached.getName());
+    }
+
+    public static class MultiFunctionTarget {
+        @org.rulii.annotation.Function
+        public Integer doubleIt(Integer value) {
+            return value * 2;
+        }
+
+        @org.rulii.annotation.Function
+        public Integer tripleIt(Integer value) {
+            return value * 3;
+        }
+    }
+
+    @Test
+    public void testFunctionBuilderBuilder_multipleAnnotatedMethods_eachWrapsDistinctMethod() {
+        Function<?>[] functions = Function.builder().build(new MultiFunctionTarget(), org.rulii.annotation.Function.class);
+        Assertions.assertEquals(2, functions.length);
+
+        // doubleIt(5) -> 10, tripleIt(5) -> 15. If both entries wrapped the same (first)
+        // candidate method, these would be equal instead of 10 and 15.
+        Object r0 = functions[0].apply(value -> 5);
+        Object r1 = functions[1].apply(value -> 5);
+        Assertions.assertNotEquals(r0, r1);
+    }
+
+    @Test
+    public void testFunctionBuilderBuilder_nullTarget_throwsIllegalArgumentException() {
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> Function.builder().build(null, org.rulii.annotation.Function.class));
+    }
 }

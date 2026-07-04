@@ -144,12 +144,13 @@ public final class ConditionBuilderBuilder {
      * @return list of conditions inside the input class.
      */
     public List<Condition> build(Object target, Class<? extends Annotation> annotationClass) {
+        Assert.notNull(target, "target cannot be null.");
         Assert.notNull(annotationClass, "annotationClass cannot be null.");
         Class<?> clazz = target.getClass();
         Method[] candidates = ReflectionUtils.getMethodsWithAnnotation(clazz, annotationClass);
 
         for (Method candidate : candidates) {
-            if (!(candidate.getReturnType().equals(boolean.class))) {
+            if (!boolean.class.equals(candidate.getReturnType()) && !Boolean.class.equals(candidate.getReturnType())) {
                 throw new UnrulyException("Condition" + annotationClass.getSimpleName() + " must return a boolean. "
                         + clazz.getSimpleName() + " method " + candidate
                         + "] returns a [" + candidate.getReturnType() + "]");
@@ -160,8 +161,8 @@ public final class ConditionBuilderBuilder {
         Condition[] result = new Condition[candidates.length];
 
         for (int i = 0; i < candidates.length; i++) {
-            String name = extractName(candidates[0], annotationClass);
-            Method candidate = BridgeMethodResolver.findBridgedMethod(candidates[0]);
+            String name = extractName(candidates[i], annotationClass);
+            Method candidate = BridgeMethodResolver.findBridgedMethod(candidates[i]);
             ConditionBuilder builder = with(target, MethodDefinition.load(candidate, true, SourceDefinition.build()));
             if (name != null) builder.name(name);
             result[i] = builder.build();

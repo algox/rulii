@@ -23,6 +23,7 @@ import org.rulii.bind.Bindings;
 import org.rulii.context.RuleContext;
 import org.rulii.model.function.Function;
 import org.rulii.script.BuildScriptException;
+import org.rulii.script.EvaluationException;
 import org.rulii.script.Script;
 import org.rulii.script.graaljs.GraalJsScriptProcessorFactory;
 
@@ -93,16 +94,18 @@ public class ScriptFunctionTest {
     }
 
     @Test
-    public void testFunctionCanAlsoMutateBinding() {
+    public void testFunctionCannotMutateBinding() {
+        // Function.couldChangeState() is false, so - like Condition - its RuleContext argument
+        // is converted to an immutable snapshot before invocation; a script attempting to write
+        // through it now fails, rather than silently succeeding.
         Bindings bindings = Bindings.builder().standard();
         bindings.bind("x",   int.class, 5);
         bindings.bind("out", int.class, 0);
         RuleContext ctx = contextWith(bindings);
         Function<Object> fn = Function.builder().build(
                 Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "ctx.out = ctx.x * ctx.x; ctx.out"));
-        Object result = fn.apply(ctx);
-        Assertions.assertEquals(25, ((Number) result).intValue());
-        Assertions.assertEquals(25, ((Number) bindings.getValue("out")).intValue());
+        Assertions.assertThrows(EvaluationException.class, () -> fn.apply(ctx));
+        Assertions.assertEquals(0, ((Number) bindings.getValue("out")).intValue());
     }
 
     // -----------------------------------------------------------------------

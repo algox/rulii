@@ -52,6 +52,12 @@ public class DefaultCompositeCondition implements CompositeCondition {
     public Boolean run(RuleContext context) throws UnrulyException {
         try {
             boolean leftResult = leftOperand.isTrue(context);
+
+            // Short-circuit exactly like && / || would; XOR (and any other custom predicate/
+            // symbol) needs both operands, so it falls through to evaluate the right side.
+            if ("&&".equals(symbol) && !leftResult) return false;
+            if ("||".equals(symbol) && leftResult) return true;
+
             boolean rightResult = rightOperand.isTrue(context);
             return predicate.test(leftResult, rightResult);
         } catch (UnrulyException e) {

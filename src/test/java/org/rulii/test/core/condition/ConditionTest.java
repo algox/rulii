@@ -237,4 +237,49 @@ public class ConditionTest {
         }.getType());
         Assertions.assertTrue(condition.isTrue(a -> "aa", b -> 12, map -> new HashMap<>()));
     }
+
+    public static class MultiConditionTarget {
+        @org.rulii.annotation.Condition
+        public boolean isPositive(Integer value) {
+            return value != null && value > 0;
+        }
+
+        @org.rulii.annotation.Condition
+        public boolean isEven(Integer value) {
+            return value != null && value % 2 == 0;
+        }
+    }
+
+    @Test
+    public void testConditionBuilderBuilder_multipleAnnotatedMethods_eachWrapsDistinctMethod() {
+        List<Condition> conditions = Condition.builder().build(new MultiConditionTarget(), org.rulii.annotation.Condition.class);
+        Assertions.assertEquals(2, conditions.size());
+
+        // isPositive(3) -> true, isEven(3) -> false. If both entries wrapped the same (first)
+        // candidate method, these would be equal instead of one true and one false.
+        boolean r0 = conditions.get(0).isTrue(value -> 3);
+        boolean r1 = conditions.get(1).isTrue(value -> 3);
+        Assertions.assertNotEquals(r0, r1);
+    }
+
+    @Test
+    public void testConditionBuilderBuilder_nullTarget_throwsIllegalArgumentException() {
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> Condition.builder().build(null, org.rulii.annotation.Condition.class));
+    }
+
+    public static class BoxedBooleanConditionTarget {
+        @org.rulii.annotation.Condition
+        public Boolean isPositive(Integer value) {
+            return value != null && value > 0;
+        }
+    }
+
+    @Test
+    public void testConditionBuilderBuilder_boxedBooleanReturnType_isAccepted() {
+        List<Condition> conditions = Condition.builder().build(new BoxedBooleanConditionTarget(), org.rulii.annotation.Condition.class);
+        Assertions.assertEquals(1, conditions.size());
+        Assertions.assertTrue(conditions.get(0).isTrue(value -> 3));
+        Assertions.assertFalse(conditions.get(0).isTrue(value -> -3));
+    }
 }

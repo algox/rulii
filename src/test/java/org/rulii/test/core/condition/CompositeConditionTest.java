@@ -25,6 +25,9 @@ import org.rulii.model.UnrulyException;
 import org.rulii.model.condition.CompositeCondition;
 import org.rulii.model.condition.Condition;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * This class contains unit tests for the CompositeCondition class, which represents
  * a condition that can be composed of multiple sub-conditions.
@@ -48,6 +51,22 @@ public class CompositeConditionTest {
         } catch (UnrulyException e) {
             Assertions.fail("Test failed due to UnrulyException: " + e.getMessage());
         }
+    }
+
+    private static class CustomUnrulyException extends UnrulyException {
+        CustomUnrulyException(String message) {
+            super(message);
+        }
+    }
+
+    @Test
+    public void testNot_preservesOriginalUnrulyExceptionInstance() {
+        Condition failingCondition = context -> { throw new CustomUnrulyException("boom"); };
+        Condition negated = failingCondition.not();
+
+        UnrulyException thrown = Assertions.assertThrows(UnrulyException.class,
+                () -> negated.isTrue(RuleContext.builder().build()));
+        Assertions.assertInstanceOf(CustomUnrulyException.class, thrown);
     }
 
     Condition condition1 = new Condition() {
@@ -126,5 +145,34 @@ public class CompositeConditionTest {
         CompositeCondition xorCondition = condition1.xor(condition2);
         RuleContext context = RuleContext.builder().build(Bindings.builder().scoped());
         Assertions.assertTrue(xorCondition.isTrue(context));
+    }
+
+    private static final Condition NEVER_CALLED = context -> {
+        throw new UnrulyException("Right operand must not be evaluated once the left side already decides the result.");
+    };
+
+    @Test
+    public void testAnd_shortCircuits_rightOperandNeverEvaluatedWhenLeftIsFalse() {
+        Condition falseCondition = context -> false;
+        CompositeCondition andCondition = falseCondition.and(NEVER_CALLED);
+        Assertions.assertFalse(andCondition.isTrue());
+    }
+
+    @Test
+    public void testOr_shortCircuits_rightOperandNeverEvaluatedWhenLeftIsTrue() {
+        Condition trueCondition = context -> true;
+        CompositeCondition orCondition = trueCondition.or(NEVER_CALLED);
+        Assertions.assertTrue(orCondition.isTrue());
+    }
+
+    @Test
+    public void testXor_doesNotShortCircuit_bothOperandsAlwaysEvaluated() {
+        List<String> evaluated = new ArrayList<>();
+        Condition left = context -> { evaluated.add("left"); return true; };
+        Condition right = context -> { evaluated.add("right"); return false; };
+        CompositeCondition xorCondition = left.xor(right);
+
+        Assertions.assertTrue(xorCondition.isTrue());
+        Assertions.assertEquals(List.of("left", "right"), evaluated);
     }
 }

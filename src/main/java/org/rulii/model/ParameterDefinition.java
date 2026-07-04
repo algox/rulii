@@ -90,6 +90,17 @@ public final class ParameterDefinition implements Definition {
                 original.getMatchUsing(), original.getSource(), original.annotations);
     }
 
+    /**
+     * Creates an independent copy of this parameter definition at the same index, safe to
+     * customize (e.g. via {@link ParameterDefinitionEditor}) without mutating a shared instance
+     * that may be cached elsewhere (see {@link #load(Method, boolean, SourceDefinition)}).
+     *
+     * @return an independent copy; never null.
+     */
+    public ParameterDefinition copy() {
+        return copy(this, index, containsGenericInfo);
+    }
+
     public void validate() {
 
         if (isBindingType() && getDefaultValueText() != null) {

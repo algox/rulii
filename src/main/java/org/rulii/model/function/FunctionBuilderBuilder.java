@@ -96,6 +96,7 @@ public final class FunctionBuilderBuilder {
      * @return array of functions inside the input class.
      */
     public Function<?>[] build(Object target, Class<? extends Annotation> annotationClass) {
+        Assert.notNull(target, "target cannot be null.");
         Assert.notNull(annotationClass, "annotationClass cannot be null.");
         Class<?> clazz = target.getClass();
         Method[] candidates = ReflectionUtils.getMethodsWithAnnotation(clazz, annotationClass);
@@ -103,8 +104,8 @@ public final class FunctionBuilderBuilder {
         Function<?>[] result = new Function[candidates.length];
 
         for (int i = 0; i < candidates.length; i++) {
-            String name = extractName(candidates[0]);
-            Method candidate = BridgeMethodResolver.findBridgedMethod(candidates[0]);
+            String name = extractName(candidates[i]);
+            Method candidate = BridgeMethodResolver.findBridgedMethod(candidates[i]);
             FunctionBuilder<?> builder = with(target, MethodDefinition.load(candidate, true, SourceDefinition.build()));
             if (name != null) builder.name(name);
             result[i] = builder.build();

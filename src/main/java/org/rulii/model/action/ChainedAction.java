@@ -60,6 +60,6 @@ public class ChainedAction implements Action {
 
     @Override
     public String getName() {
-        return "anonymous-chained-action(" + (after ? "after" : "before");
+        return "anonymous-chained-action(" + (after ? "after" : "before") + ")";
     }
 }

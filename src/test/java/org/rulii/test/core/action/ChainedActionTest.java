@@ -178,4 +178,13 @@ public class ChainedActionTest {
 
         Assertions.assertEquals(100, (int) bindings.getValue("arg1"));
     }
+
+    @Test
+    public void testGetName_isProperlyBalanced() {
+        Action after = action(() -> {}).andThen(action(() -> {}));
+        Assertions.assertEquals("anonymous-chained-action(after)", after.getName());
+
+        Action before = action(() -> {}).andBefore(action(() -> {}));
+        Assertions.assertEquals("anonymous-chained-action(before)", before.getName());
+    }
 }

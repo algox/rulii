@@ -49,6 +49,7 @@ public class DefaultFunction<T> extends AbstractRunnable implements Function<T> 
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public T run(RuleContext ruleContext) throws UnrulyException {
         Assert.notNull(ruleContext, "context cannot be null.");
 
@@ -62,29 +63,12 @@ public class DefaultFunction<T> extends AbstractRunnable implements Function<T> 
             // resolve parameter values
             values = ruleContext.getParameterResolver().resolve(matches, getDefinition(), ruleContext.getBindings(),
                     ruleContext.getMatchingStrategy(), ruleContext.getConverterRegistry(), ruleContext.getObjectFactory());
-            return apply(values.toArray());
+            // run the function
+            return (T) run(matches, values);
         } catch (UnrulyException e) {
             throw e;
         } catch (Exception e) {
             throw new UnrulyException("Error trying to run Function : " + RuleUtils.getSignature(this, matches, values), e);
-        }
-    }
-
-    /**
-     * Executes the Function given all the arguments it needs.
-     *
-     * @param args parameters in order.
-     * @return result of the function.
-     * @throws UnrulyException thrown if there are any runtime errors during the execution.
-     */
-    protected T apply(Object... args) throws UnrulyException {
-        // Execute the Function Method
-        try {
-            return getMethodExecutor().execute(getTarget(), args);
-        } catch (UnrulyException e) {
-            throw e;
-        } catch (Throwable e) {
-            throw new UnrulyException("Looks error happened tying to run function.", e);
         }
     }
 

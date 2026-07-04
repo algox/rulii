@@ -17,6 +17,8 @@
  */
 package org.rulii.model;
 
+import org.rulii.lib.apache.commons.logging.Log;
+import org.rulii.lib.apache.commons.logging.LogFactory;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.util.reflect.LambdaUtils;
 import org.rulii.util.reflect.MethodResolver;
@@ -34,6 +36,7 @@ import java.util.Arrays;
  */
 public abstract class RunnableBuilder<T extends RunnableBuilder<?,?>, R extends Runnable<?>> {
 
+    private static final Log LOGGER = LogFactory.getLog(RunnableBuilder.class);
     private static final MethodResolver METHOD_RESOLVER = MethodResolver.builder().build();
 
     private final Object target;
@@ -43,7 +46,11 @@ public abstract class RunnableBuilder<T extends RunnableBuilder<?,?>, R extends 
         super();
         Assert.notNull(definition, "actionMethod cannot be null.");
         this.target = target;
-        this.definition = definition;
+        // Defensive copy: definition may be a shared instance from MethodDefinition's cache
+        // (see MethodDefinition#load); customizing this builder (name/description/param edits)
+        // must not mutate that shared, cached original out from under unrelated Runnables built
+        // from the same underlying reflective Method.
+        this.definition = definition.copy();
     }
 
     /**
@@ -140,7 +147,10 @@ public abstract class RunnableBuilder<T extends RunnableBuilder<?,?>, R extends 
             methodDefinition.setReturnType(implementationMethod.getGenericReturnType());
 
         } catch (Exception e) {
-            // Log
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Unable to resolve lambda implementation method for [" + functionMethod
+                        + "]; falling back to functional-interface parameter names.", e);
+            }
         }
 
         if (methodDefinition == null) {

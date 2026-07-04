@@ -57,14 +57,14 @@ public abstract class AbstractRunnable implements Identifiable, Definable<Method
     }
 
     /**
-     * Executes the given action with the matched Bindings.
+     * Executes the given runnable with the matched Bindings.
      *
      * @param matches matched Bindings.
      * @param args actual method args.
      * @return result of the execution.
      */
     protected Object run(List<ParameterMatch> matches, List<Object> args) {
-        // Execute the Action Method
+        // Execute the target method
         try {
             return methodExecutor.execute(target, !couldChangeState() ? immutable(args) : args);
         } catch (ClassCastException e) {
@@ -72,7 +72,7 @@ public abstract class AbstractRunnable implements Identifiable, Definable<Method
         } catch (UnrulyException e) {
             throw e;
         } catch (Throwable e) {
-            throw new UnrulyException("Error trying to execute Action [" + getDefinition().getMethod()
+            throw new UnrulyException("Error trying to execute [" + getDefinition().getMethod()
                     + "] with arguments [" + args + "]", e);
         }
     }

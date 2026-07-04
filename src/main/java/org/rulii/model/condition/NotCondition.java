@@ -45,6 +45,8 @@ public class NotCondition implements Condition {
     public Boolean run(RuleContext context) throws UnrulyException {
         try {
             return !condition.isTrue(context);
+        } catch (UnrulyException e) {
+            throw e;
         } catch (Exception e) {
             throw new UnrulyException("Unable to run Not Condition.", e);
         }

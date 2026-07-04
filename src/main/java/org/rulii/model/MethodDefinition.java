@@ -122,6 +122,24 @@ public final class MethodDefinition implements Definition {
     }
 
     /**
+     * Creates an independent copy of this method definition, including an independent copy of
+     * each parameter definition, safe to customize without mutating a shared instance that may
+     * be cached elsewhere (see {@link #load(Method, boolean, SourceDefinition)}).
+     *
+     * @return an independent copy; never null.
+     */
+    public MethodDefinition copy() {
+        List<ParameterDefinition> copiedParams = parameterDefinitions.stream()
+                .map(ParameterDefinition::copy)
+                .collect(Collectors.toList());
+        MethodDefinition result = new MethodDefinition(method, containsGenericInfo, description,
+                sourceDefinition, returnTypeDefinition, copiedParams);
+        result.setName(name);
+        result.setReturnType(returnType);
+        return result;
+    }
+
+    /**
      * Reflective method behind the Method Definition.
      *
      * @return reflective method.
