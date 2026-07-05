@@ -42,6 +42,7 @@ public class NamedScope implements Immutator<NamedScope> {
      * @param bindings the bindings for the scope (cannot be null)
      */
     public NamedScope(String name, Bindings bindings) {
+        super();
         Assert.notNull(name, "name cannot be null");
         Assert.notNull(bindings, "bindings cannot be null");
         this.name = name;

@@ -29,7 +29,9 @@ import org.rulii.trace.Tracer;
 import org.rulii.util.reflect.ObjectFactory;
 
 import java.time.Clock;
+import java.util.LinkedHashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -111,10 +113,25 @@ public class RuleContextBuilder {
     }
 
     private static Bindings copyNonReservedBindings(Bindings source) {
-        Bindings result = Bindings.builder().standard();
+        // Dedupe by name (last write wins) before binding: source may be a ScopedBindings whose
+        // iterator() walks root-to-current across every scope, so a name shadowed in a nested
+        // scope would otherwise appear twice and the second bind() would throw
+        // BindingAlreadyExistsException. Iterating root-to-current means the innermost/child
+        // scope's binding overwrites the outer one, matching ScopedBindings#getBinding's own
+        // child-shadows-parent lookup semantics.
+        Map<String, Binding<?>> deduped = new LinkedHashMap<>();
+
         for (Binding<?> binding : source) {
-            if (!ReservedBindings.isReserved(binding.getName())) result.bind(binding);
+            if (!ReservedBindings.isReserved(binding.getName())) {
+                deduped.put(binding.getName(), binding);
+            }
         }
+
+        Bindings result = source instanceof ScopedBindings ? Bindings.builder().scoped() : Bindings.builder().standard();
+        for (Binding<?> binding : deduped.values()) {
+            result.bind(binding);
+        }
+
         return result;
     }
 

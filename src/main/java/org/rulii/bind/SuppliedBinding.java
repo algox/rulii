@@ -40,8 +40,7 @@ public class SuppliedBinding<T> extends DefaultBinding<T> {
     private static final Log logger = LogFactory.getLog(SuppliedBinding.class);
 
     private final Supplier<T> supplier;
-    private boolean valueSet = false;
-    private T value = null;
+    private volatile boolean valueSet = false;
 
     public SuppliedBinding(String name, Type type, Supplier<T> supplier,
                              boolean isFinal, boolean primary, String description) {
@@ -54,17 +53,43 @@ public class SuppliedBinding<T> extends DefaultBinding<T> {
     public T getValue() {
         if (!isFinal()) return supplier.get();
 
-        if (valueSet) return value;
+        if (valueSet) return super.getValue();
 
         synchronized (this) {
-            if (valueSet) return value;
-            value = supplier.get();
-            valueSet = true;
+            if (!valueSet) {
+                setValueInternal(supplier.get(), false);
+                valueSet = true;
+            }
         }
 
-        return value;
+        return super.getValue();
     }
 
+    @Override
+    public boolean equals(Object o) {
+        // Force computation so the inherited value field is populated before comparing;
+        // that.getValue() (invoked by super.equals()) already does this for the other side.
+        getValue();
+        return super.equals(o);
+    }
+
+    @Override
+    public int hashCode() {
+        getValue();
+        return super.hashCode();
+    }
+
+    @Override
+    public String getSummary() {
+        getValue();
+        return super.getSummary();
+    }
+
+    @Override
+    public String toString() {
+        getValue();
+        return super.toString();
+    }
 
     @Override
     public final SuppliedBinding<T> asImmutable() {

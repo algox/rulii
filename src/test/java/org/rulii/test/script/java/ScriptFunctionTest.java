@@ -117,12 +117,12 @@ public class ScriptFunctionTest {
     public void testFunctionMultiStatementBareLastExpression() {
         Bindings bindings = Bindings.builder().standard();
         bindings.bind("x", int.class, 5);
-        bindings.bind("out", int.class, 0);
         RuleContext ctx = contextWith(bindings);
+        // Compute into a local variable, then evaluate — last statement auto-wrapped in return.
+        // (Functions are read-only: ctx itself cannot be mutated, see BindingsSetValueTest.)
         Function<Object> fn = Function.builder().build(
-                Script.builder().build(LANG, "ctx.out = ctx.x * ctx.x;\nctx.out;"));
+                Script.builder().build(LANG, "int squared = ctx.x * ctx.x;\nsquared;"));
         Assertions.assertEquals(25, ((Number) fn.apply(ctx)).intValue());
-        Assertions.assertEquals(25, ((Number) bindings.getValue("out")).intValue());
     }
 
     @Test

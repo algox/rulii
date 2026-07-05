@@ -110,7 +110,18 @@ public class ImmutableBindings implements Bindings, Map<String, Object> {
 
     @Override
     public Iterator<Binding<?>> iterator() {
-        return getTarget().iterator();
+        Iterator<Binding<?>> target = getTarget().iterator();
+        return new Iterator<>() {
+            @Override
+            public boolean hasNext() {
+                return target.hasNext();
+            }
+
+            @Override
+            public Binding<?> next() {
+                return target.next().asImmutable();
+            }
+        };
     }
 
     protected Bindings getTarget() {

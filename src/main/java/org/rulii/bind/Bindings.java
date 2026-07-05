@@ -308,12 +308,8 @@ public interface Bindings extends Iterable<Binding<?>>, Immutator<Bindings> {
      * @param <T> generic type of the Binding.
      * @return true if Binding exists; false otherwise.
      */
-    @SuppressWarnings("SimplifiableConditionalExpression")
     default <T> boolean contains(String name, TypeReference<T> type) {
-        Binding<?> result = getBinding(name);
-        return result != null
-                ? result.getType().equals(type.getType()) ? true : false
-                : false;
+        return getBinding(name, type.getType()) != null;
     }
 
     /**

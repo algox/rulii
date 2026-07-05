@@ -180,14 +180,16 @@ public class BindingsSetValueTest {
     }
 
     @Test
-    public void testSetValueOnImmutableScopedAllowed() {
-        // ImmutableScopedBindings blocks structural changes (add/remove scope, add binding)
-        // but does NOT block setValue() on existing bindings — by design.
+    public void testSetValueOnImmutableScopedThrows() {
+        // ImmutableScopedBindings must block setValue() on existing bindings too, not just
+        // structural changes (add/remove scope, add binding) — matching ImmutableBindings'
+        // behavior and the read-only contract Condition/Function rely on for their RuleContext
+        // argument.
         ScopedBindings scoped = Bindings.builder().scoped();
         scoped.bind("x", String.class, "original");
         ScopedBindings immutable = scoped.asImmutable();
-        immutable.setValue("x", "updated");
-        Assertions.assertEquals("updated", immutable.getValue("x"));
+        Assertions.assertThrows(IllegalStateException.class, () -> immutable.setValue("x", "updated"));
+        Assertions.assertEquals("original", scoped.getValue("x"), "Original binding must be unaffected.");
     }
 
     @Test

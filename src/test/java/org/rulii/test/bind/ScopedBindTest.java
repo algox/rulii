@@ -452,6 +452,50 @@ public class ScopedBindTest {
     }
 
     @Test
+    public void testImmutableScopedBindings_getBinding_rejectsMutation() {
+        ScopedBindings bindings = Bindings.builder().scoped();
+        bindings.bind("x", String.class, "value");
+
+        ScopedBindings immutable = bindings.asImmutable();
+        Binding<String> binding = immutable.getBinding("x");
+
+        Assertions.assertThrows(IllegalStateException.class, () -> binding.setValue("mutated"));
+        Assertions.assertEquals("value", bindings.getValue("x"), "Original binding must be unaffected.");
+    }
+
+    @Test
+    public void testImmutableScopedBindings_getCurrentBindings_rejectsNewBinding() {
+        ScopedBindings bindings = Bindings.builder().scoped();
+        ScopedBindings immutable = bindings.asImmutable();
+
+        Assertions.assertThrows(UnsupportedOperationException.class, () -> immutable.getCurrentBindings().bind("y", 123));
+    }
+
+    @Test
+    public void testImmutableScopedBindings_getScopeBindings_rejectsNewBinding() {
+        ScopedBindings bindings = Bindings.builder().scoped();
+        ScopedBindings immutable = bindings.asImmutable();
+
+        Assertions.assertThrows(UnsupportedOperationException.class,
+                () -> immutable.getScopeBindings(ScopedBindings.ROOT_SCOPE).bind("y", 123));
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    @Test
+    public void testImmutableScopedBindings_iterator_rejectsMutation() {
+        ScopedBindings bindings = Bindings.builder().scoped();
+        bindings.bind("x", String.class, "value");
+
+        ScopedBindings immutable = bindings.asImmutable();
+
+        for (Binding binding : immutable) {
+            Assertions.assertThrows(IllegalStateException.class, () -> binding.setValue("mutated"));
+        }
+
+        Assertions.assertEquals("value", bindings.getValue("x"), "Original binding must be unaffected.");
+    }
+
+    @Test
     public void bindTest32() {
         ScopedBindings bindings = Bindings.builder().scoped();
         bindings.addScope("scope-1");
@@ -548,6 +592,25 @@ public class ScopedBindTest {
         ScopedBindings bindings = Bindings.builder().scoped("scope1");
         NamedScope namedScope = bindings.getCurrentScope();
         Assertions.assertEquals("scope1", namedScope.getName(), "getCurrentScope should return the current scope");
+    }
+
+    @Test
+    public void testAsMap_shadowedName_agreesBetweenGetAndEntrySet() {
+        ScopedBindings bindings = Bindings.builder().scoped();
+        bindings.bind("x", "outer");
+        bindings.addScope().getBindings().bind("x", "inner");
+
+        Map<String, ?> map = bindings.asMap();
+
+        Assertions.assertEquals("inner", map.get("x"));
+        Assertions.assertEquals("inner", bindings.getValue("x"));
+
+        for (Map.Entry<String, ?> entry : map.entrySet()) {
+            if (entry.getKey().equals("x")) {
+                Assertions.assertEquals("inner", entry.getValue(),
+                        "entrySet() must agree with get() for a shadowed name.");
+            }
+        }
     }
 
     @Test

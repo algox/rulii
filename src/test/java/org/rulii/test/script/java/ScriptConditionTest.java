@@ -82,9 +82,10 @@ public class ScriptConditionTest {
         Bindings bindings = Bindings.builder().standard();
         bindings.bind("age", int.class, 20);
         RuleContext ctx = contextWith(bindings);
-        // Increment age via local, then evaluate — last statement auto-wrapped in return
+        // Compute into a local variable, then evaluate — last statement auto-wrapped in return.
+        // (Conditions are read-only: ctx itself cannot be mutated, see BindingsSetValueTest.)
         Condition condition = Condition.builder().build(
-                Script.builder().build(LANG, "ctx.age = ctx.age + 1;\nctx.age >= 18;"));
+                Script.builder().build(LANG, "int nextAge = ctx.age + 1;\nnextAge >= 18;"));
         Assertions.assertTrue(condition.isTrue(ctx));
     }
 

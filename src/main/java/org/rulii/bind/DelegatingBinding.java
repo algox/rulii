@@ -58,6 +58,11 @@ public class DelegatingBinding<T> extends DefaultBinding<T> {
     protected void setValueInternal(T value) {
         if (setter != null) {
 
+            // Looks like they are passing us a wrong value type
+            if (value != null && !isTypeAcceptable(value.getClass())) {
+                throw new InvalidBindingException(getName(), getType(), value);
+            }
+
             if (logger.isDebugEnabled()) {
                 logger.debug("Binding change. New Value [" + value + "]");
             }

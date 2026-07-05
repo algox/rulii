@@ -492,8 +492,11 @@ public class DefaultScopedBindings implements ScopedBindings, Map<String, Object
     public Set<String> keySet() {
         Map<String, Binding<?>> result = new LinkedHashMap<>();
 
+        // iterator() walks root -> current; put() (not putIfAbsent()) lets the innermost scope's
+        // binding overwrite an outer one for a shadowed name, matching getBinding()'s own
+        // current-scope-wins lookup precedence.
         for (Binding<?> binding : this) {
-            result.putIfAbsent(binding.getName(), binding);
+            result.put(binding.getName(), binding);
         }
 
         return result.keySet();
@@ -504,7 +507,7 @@ public class DefaultScopedBindings implements ScopedBindings, Map<String, Object
         Map<String, Object> result = new LinkedHashMap<>();
 
         for (Binding<?> binding : this) {
-            result.putIfAbsent(binding.getName(), binding.getValue());
+            result.put(binding.getName(), binding.getValue());
         }
 
         return result.values();
@@ -515,7 +518,7 @@ public class DefaultScopedBindings implements ScopedBindings, Map<String, Object
         Map<String, Entry<String, Object>> result = new LinkedHashMap<>();
 
         for (Binding<?> binding : this) {
-            result.putIfAbsent(binding.getName(), new AbstractMap.SimpleEntry<>(binding.getName(), binding.getValue()));
+            result.put(binding.getName(), new AbstractMap.SimpleEntry<>(binding.getName(), binding.getValue()));
         }
 
         return new LinkedHashSet<>(result.values());

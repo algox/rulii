@@ -124,6 +124,17 @@ public class BindingsTest {
     }
 
     @Test
+    public void testContainsClassAndTypeReferenceAgreeOnAssignability() {
+        Bindings bindings = Bindings.builder().standard();
+        bindings.bind("x", Integer.class, 100);
+
+        // Integer is assignable to Number even though the declared type isn't an exact match;
+        // both overloads of contains() must agree on that.
+        Assertions.assertTrue(bindings.contains("x", Number.class));
+        Assertions.assertTrue(bindings.contains("x", new TypeReference<Number>(){}));
+    }
+
+    @Test
     public void testBindings8() {
         Bindings bindings = Bindings.builder().standard();
         bindings.bind("key1", String.class, "value");

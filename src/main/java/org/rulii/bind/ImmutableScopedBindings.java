@@ -48,17 +48,30 @@ public class ImmutableScopedBindings implements ScopedBindings, Map<String, Obje
 
     @Override
     public <T> Binding<T> getBinding(String name) {
-        return getTarget().getBinding(name);
+        Binding<T> result = getTarget().getBinding(name);
+        return result != null ? result.asImmutable() : null;
     }
 
     @Override
     public <T> Binding<T> getBinding(String name, Type type) {
-        return getTarget().getBinding(name, type);
+        Binding<T> result = getTarget().getBinding(name, type);
+        return result != null ? result.asImmutable() : null;
     }
 
     @Override
     public <T> List<Binding<T>> getBindings(Type type) {
-        return getTarget().getBindings(type);
+        return convertToImmutableList(getTarget().getBindings(type));
+    }
+
+    private <T> List<Binding<T>> convertToImmutableList(List<Binding<T>> original) {
+        if (original == null) return null;
+        List<Binding<T>> result = new LinkedList<>();
+
+        for (Binding<T> entry : original) {
+            result.add(entry.asImmutable());
+        }
+
+        return result;
     }
 
     @Override
@@ -83,12 +96,23 @@ public class ImmutableScopedBindings implements ScopedBindings, Map<String, Obje
 
     @Override
     public Iterator<Binding<?>> iterator() {
-        return getTarget().iterator();
+        Iterator<Binding<?>> target = getTarget().iterator();
+        return new Iterator<>() {
+            @Override
+            public boolean hasNext() {
+                return target.hasNext();
+            }
+
+            @Override
+            public Binding<?> next() {
+                return target.next().asImmutable();
+            }
+        };
     }
 
     @Override
     public Bindings getCurrentBindings() {
-        return getTarget().getCurrentBindings();
+        return getTarget().getCurrentBindings().asImmutable();
     }
 
     @Override
@@ -118,7 +142,8 @@ public class ImmutableScopedBindings implements ScopedBindings, Map<String, Obje
 
     @Override
     public Bindings getScopeBindings(String name) {
-        return getTarget().getScopeBindings(name);
+        Bindings result = getTarget().getScopeBindings(name);
+        return result != null ? result.asImmutable() : null;
     }
 
     @Override
@@ -156,12 +181,12 @@ public class ImmutableScopedBindings implements ScopedBindings, Map<String, Obje
 
     @Override
     public <T> List<Binding<T>> getAllBindings(Type type) {
-        return getTarget().getAllBindings(type);
+        return convertToImmutableList(getTarget().getAllBindings(type));
     }
 
     @Override
     public <T> List<Binding<T>> getAllBindings(String name) {
-        return getTarget().getAllBindings(name);
+        return convertToImmutableList(getTarget().getAllBindings(name));
     }
 
     @Override
@@ -246,8 +271,11 @@ public class ImmutableScopedBindings implements ScopedBindings, Map<String, Obje
     public Set<String> keySet() {
         Map<String, Binding<?>> result = new LinkedHashMap<>();
 
+        // iterator() walks root -> current; put() (not putIfAbsent()) lets the innermost scope's
+        // binding overwrite an outer one for a shadowed name, matching getBinding()'s own
+        // current-scope-wins lookup precedence.
         for (Binding<?> binding : this) {
-            result.putIfAbsent(binding.getName(), binding);
+            result.put(binding.getName(), binding);
         }
 
         return result.keySet();
@@ -258,7 +286,7 @@ public class ImmutableScopedBindings implements ScopedBindings, Map<String, Obje
         Map<String, Object> result = new LinkedHashMap<>();
 
         for (Binding<?> binding : this) {
-            result.putIfAbsent(binding.getName(), binding.getValue());
+            result.put(binding.getName(), binding.getValue());
         }
 
         return result.values();
@@ -269,7 +297,7 @@ public class ImmutableScopedBindings implements ScopedBindings, Map<String, Obje
         Map<String, Entry<String, Object>> result = new LinkedHashMap<>();
 
         for (Binding<?> binding : this) {
-            result.putIfAbsent(binding.getName(), new AbstractMap.SimpleEntry<>(binding.getName(), binding.getValue()));
+            result.put(binding.getName(), new AbstractMap.SimpleEntry<>(binding.getName(), binding.getValue()));
         }
 
         return new LinkedHashSet<>(result.values());

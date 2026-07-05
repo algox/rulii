@@ -25,6 +25,7 @@ import org.rulii.bind.BindingException;
 import org.rulii.bind.Bindings;
 import org.rulii.bind.ScopedBindings;
 import org.rulii.bind.match.*;
+import org.rulii.convert.ConversionException;
 import org.rulii.convert.ConverterRegistry;
 import org.rulii.model.Definable;
 import org.rulii.model.MethodDefinition;
@@ -445,6 +446,23 @@ public class ParameterResolverTest {
                 BindingMatchingStrategy.builder().matchByName(), ConverterRegistry.builder().build(), ObjectFactory.builder().build());
         Assertions.assertEquals(12345, values.get(1));
         Assertions.assertEquals(321L, values.get(3));
+    }
+
+    @Test
+    public void autoConvertFailureTest() {
+        ParameterResolver resolver = ParameterResolver.builder().build();
+        List<MethodDefinition> definitions = MethodDefinition.load(TestClass.class, method -> method.getName().equals("testMethod6"), SourceDefinition.build());
+
+        Bindings bindings = Bindings.builder().standard();
+        bindings.bind(a -> "Hello");
+        bindings.bind("b", "not-a-number");
+        bindings.bind(x -> new ArrayList<>());
+
+        List<ParameterMatch> matches = resolver.match(definitions.get(0), bindings,
+                BindingMatchingStrategy.builder().matchByName(), ObjectFactory.builder().build());
+
+        Assertions.assertThrows(ConversionException.class, () -> resolver.resolve(matches, definitions.get(0), bindings,
+                BindingMatchingStrategy.builder().matchByName(), ConverterRegistry.builder().build(), ObjectFactory.builder().build()));
     }
 
     @Test

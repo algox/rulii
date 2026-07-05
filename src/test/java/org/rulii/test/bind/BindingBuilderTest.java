@@ -28,6 +28,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -278,6 +285,23 @@ public class BindingBuilderTest {
     }
 
     @Test
+    void testSetValueOnDelegatingBindingRejectsWrongType() {
+        AtomicReference<String> initialValue = new AtomicReference<>("Initial");
+        Supplier<String> getter = () -> initialValue.get();
+        Consumer<String> setter = value -> initialValue.set(value);
+
+        Binding<String> delegating = Binding.builder().with("Test", String.class)
+                .delegate(getter, setter)
+                .build();
+
+        Bindings bindings = Bindings.builder().standard();
+        bindings.bind(delegating);
+
+        Assertions.assertThrows(InvalidBindingException.class, () -> bindings.setValue("Test", 123));
+        Assertions.assertEquals("Initial", initialValue.get(), "Backing bean value must be unaffected.");
+    }
+
+    @Test
     void testAsImmutable() {
         String name = "name";
         Type type = String.class;
@@ -318,7 +342,7 @@ public class BindingBuilderTest {
         // Create supplier object
         Supplier<String> supplier = dummyType::get;
         // Instantiate with non-final value
-        Binding<String> suppliedBinding = Binding.builder().with("Test", type)
+        Binding<String> suppliedBinding = Binding.builder().with("Test", String.class)
                 .computeIfAbsent(supplier)
                 .description("Test Binding").build();
         // Assert that object was created
@@ -336,7 +360,7 @@ public class BindingBuilderTest {
         // Create supplier object
         Supplier<String> supplier = dummyType::get;
         // Instantiate with final value
-        Binding<String> suppliedBinding = Binding.builder().with("Test", type)
+        Binding<String> suppliedBinding = Binding.builder().with("Test", String.class)
                 .computeIfAbsent(supplier)
                 .description("Test Binding").build();
         // Assert that object was created
@@ -345,5 +369,81 @@ public class BindingBuilderTest {
         // Call getValue() multiple times and assert expected result
         Assertions.assertEquals("Test Value", suppliedBinding.getValue());
         Assertions.assertEquals("Test Value", suppliedBinding.getValue());
+    }
+
+    /**
+     * Stress test for the double-checked locking in SuppliedBinding.getValue(): releases many
+     * threads simultaneously against a single final supplied binding and asserts the supplier is
+     * invoked exactly once and every thread observes the same cached value. Concurrency/visibility
+     * bugs are inherently timing-dependent, so this is a best-effort regression test rather than a
+     * deterministic proof, but a high thread count released via a shared latch reliably reproduces
+     * the race in practice.
+     */
+    @Test
+    public void testSupplierFinalValue_concurrentAccessInvokesSupplierOnce() throws InterruptedException {
+        AtomicInteger invocationCount = new AtomicInteger(0);
+        Supplier<String> supplier = () -> {
+            invocationCount.incrementAndGet();
+            return "Computed Value";
+        };
+
+        Binding<String> suppliedBinding = Binding.builder().with("Test", String.class)
+                .computeIfAbsent(supplier)
+                .description("Test Binding").build();
+
+        int threadCount = 32;
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch ready = new CountDownLatch(threadCount);
+        CountDownLatch start = new CountDownLatch(1);
+        Set<String> observedValues = ConcurrentHashMap.newKeySet();
+
+        for (int i = 0; i < threadCount; i++) {
+            executor.submit(() -> {
+                ready.countDown();
+                try {
+                    start.await();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+                observedValues.add(suppliedBinding.getValue());
+            });
+        }
+
+        ready.await();
+        start.countDown();
+        executor.shutdown();
+        Assertions.assertTrue(executor.awaitTermination(5, TimeUnit.SECONDS));
+
+        Assertions.assertEquals(1, invocationCount.get(), "Supplier must be invoked exactly once despite concurrent access.");
+        Assertions.assertEquals(Set.of("Computed Value"), observedValues, "All threads must observe the same cached value.");
+    }
+
+    @Test
+    public void testSupplierFinalValue_equalsAndHashCodeReflectSuppliedValue() {
+        Binding<String> binding1 = Binding.builder().with("Test", String.class)
+                .computeIfAbsent((Supplier<String>) () -> "Same Value")
+                .build();
+        Binding<String> binding2 = Binding.builder().with("Test", String.class)
+                .computeIfAbsent((Supplier<String>) () -> "Same Value")
+                .build();
+        Binding<String> binding3 = Binding.builder().with("Test", String.class)
+                .computeIfAbsent((Supplier<String>) () -> "Different Value")
+                .build();
+
+        Assertions.assertEquals(binding1, binding2);
+        Assertions.assertEquals(binding1.hashCode(), binding2.hashCode());
+        Assertions.assertNotEquals(binding1, binding3);
+    }
+
+    @Test
+    public void testSupplierFinalValue_toStringAndSummaryReflectSuppliedValue() {
+        Binding<String> binding = Binding.builder().with("Test", String.class)
+                .computeIfAbsent((Supplier<String>) () -> "Computed Value")
+                .build();
+
+        binding.getValue();
+
+        Assertions.assertTrue(binding.toString().contains("Computed Value"), binding.toString());
+        Assertions.assertTrue(binding.getSummary().contains("Computed Value"), binding.getSummary());
     }
 }

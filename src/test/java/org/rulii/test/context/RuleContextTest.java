@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.rulii.bind.BindingAlreadyExistsException;
 import org.rulii.bind.Bindings;
 import org.rulii.bind.ReservedBindings;
+import org.rulii.bind.ScopedBindings;
 import org.rulii.context.RuleContext;
 import org.rulii.context.RuleContextBuilder;
 import org.rulii.context.RuleContextOptions;
@@ -82,5 +83,17 @@ public class RuleContextTest {
         RuleContextBuilder builder = RuleContext.builder().with(options);
         RuleContext context = builder.build();
         Assertions.assertNotNull(context, "Rule context should not be null.");
+    }
+
+    @Test
+    public void testCopyContext_shadowedBindingNameAcrossScopes_doesNotThrow() {
+        RuleContext context = RuleContext.builder().build(Bindings.builder().standard(x -> "outer"));
+        ScopedBindings scopedBindings = context.getBindings();
+        scopedBindings.addScope("nested-scope", Bindings.builder().standard(x -> "inner"));
+
+        RuleContext copy = RuleContext.builder().with(context).build();
+
+        Assertions.assertEquals("inner", copy.getBindings().getValue("x"),
+                "Copy should keep the innermost (child) scope's shadowed value.");
     }
 }

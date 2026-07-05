@@ -354,4 +354,18 @@ public class ImmutableBindingsTest {
         List<Binding<Integer>> matches = Bindings.builder().immutable(bindings).getBindings(Integer.class);
         Assertions.assertEquals(2, matches.size());
     }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    @Test
+    public void immutabilityTest28() {
+        Bindings bindings = Bindings.builder().standard();
+        bindings.bind("x", String.class, "original");
+        Bindings immutable = bindings.asImmutable();
+
+        for (Binding binding : immutable) {
+            Assertions.assertThrows(IllegalStateException.class, () -> binding.setValue("mutated"));
+        }
+
+        Assertions.assertEquals("original", bindings.getValue("x"));
+    }
 }

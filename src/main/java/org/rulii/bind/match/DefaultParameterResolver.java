@@ -19,7 +19,6 @@ package org.rulii.bind.match;
 
 import org.rulii.bind.BindingException;
 import org.rulii.bind.Bindings;
-import org.rulii.convert.ConversionException;
 import org.rulii.convert.Converter;
 import org.rulii.convert.ConverterRegistry;
 import org.rulii.lib.apache.commons.logging.Log;
@@ -266,12 +265,8 @@ public class DefaultParameterResolver implements ParameterResolver {
             Converter converter = registry.find(match.getBinding().getType(), match.getDefinition().getType());
             // Found a converter, let's try and convert it
             if (converter != null) {
-                try {
-                    result = converter.convert(result, match.getDefinition().getType());
-                    match.setDescription("Using auto-convert from " + match.getBinding().getType());
-                } catch (ConversionException e) {
-                    // Could not convert move on
-                }
+                result = converter.convert(result, match.getDefinition().getType());
+                match.setDescription("Using auto-convert from " + match.getBinding().getType());
             }
         }
 
