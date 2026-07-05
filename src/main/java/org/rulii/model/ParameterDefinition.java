@@ -62,8 +62,6 @@ public final class ParameterDefinition implements Definition {
     private Type underlyingType;
     private final SourceDefinition sourceDefinition;
 
-    private Object defaultValue = null;
-
     private ParameterDefinition(int index, String name, Type type, AnnotatedType annotatedType,
                                 boolean containsGenericInfo,
                                 String description, String defaultValueText,
@@ -311,11 +309,9 @@ public final class ParameterDefinition implements Definition {
      * @return default value if one exists; null otherwise.
      */
     public Object getDefaultValue(Converter<String, ?> converter) {
-        if (defaultValue != null) return defaultValue;
         if (getDefaultValueText() == null) return null;
         Assert.notNull(converter, "converter cannot be null.");
-        this.defaultValue = converter.convert(getDefaultValueText(), getType());
-        return defaultValue;
+        return converter.convert(getDefaultValueText(), getType());
     }
 
     /**
@@ -392,7 +388,6 @@ public final class ParameterDefinition implements Definition {
                 ", optionalType=" + optionalType +
                 ", underlyingType=" + underlyingType +
                 ", sourceDefinition=" + sourceDefinition +
-                ", defaultValue=" + defaultValue +
                 '}';
     }
 }

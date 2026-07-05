@@ -39,7 +39,7 @@ public class TextToIntegerConverter extends ConverterTemplate<CharSequence, Inte
         if (value == null) return null;
 
         try {
-            return Integer.decode(value.toString());
+            return Integer.parseInt(value.toString());
         } catch (NumberFormatException e) {
             throw new ConversionException(e, value, getSourceType(), getTargetType());
         }

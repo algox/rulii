@@ -87,6 +87,21 @@ public class ConverterTest {
     }
 
     @Test
+    public void stringToIntegerLongBigInteger_leadingZero_parsedAsDecimalNotOctal() {
+        ConverterRegistry registry = ConverterRegistry.builder().build();
+
+        Converter<String, Integer> intConverter = registry.find(String.class, Integer.class);
+        Assertions.assertEquals(10, (int) intConverter.convert("010", Integer.class));
+        Assertions.assertEquals(89, (int) intConverter.convert("0089", Integer.class));
+
+        Converter<String, Long> longConverter = registry.find(String.class, Long.class);
+        Assertions.assertEquals(10L, (long) longConverter.convert("010", Long.class));
+
+        Converter<String, BigInteger> bigIntegerConverter = registry.find(String.class, BigInteger.class);
+        Assertions.assertEquals(new BigInteger("10"), bigIntegerConverter.convert("010", BigInteger.class));
+    }
+
+    @Test
     public void stringToBooleanTest() {
         ConverterRegistry registry = ConverterRegistry.builder().build();
         Converter<String, Boolean> converter = registry.find(String.class, Boolean.class);
@@ -95,7 +110,7 @@ public class ConverterTest {
         Assertions.assertEquals(true, converter.convert("y", Boolean.class));
         Assertions.assertEquals(true, converter.convert("true", Boolean.class));
         Assertions.assertEquals(false, converter.convert("false", Boolean.class));
-        Assertions.assertEquals(false, converter.convert("", Boolean.class));
+        Assertions.assertThrows(ConversionException.class, () -> converter.convert("", Boolean.class));
     }
 
     @Test
@@ -333,7 +348,7 @@ public class ConverterTest {
     @Test
     public void testConvertNonBoolean() {
         TextToBooleanConverter converter = new TextToBooleanConverter();
-        Assertions.assertFalse(converter.convert("Anything Else", Boolean.class));
+        Assertions.assertThrows(ConversionException.class, () -> converter.convert("Anything Else", Boolean.class));
     }
 
     @Test
@@ -391,6 +406,14 @@ public class ConverterTest {
     }
 
     @Test
+    public void testConvertWithMalformedCharsetName() {
+        TextToCharsetConverter converter = new TextToCharsetConverter();
+        // Charset.forName throws IllegalCharsetNameException (not UnsupportedCharsetException) for a
+        // malformed name containing illegal characters.
+        Assertions.assertThrows(ConversionException.class, () -> converter.convert("!!!", Charset.class));
+    }
+
+    @Test
     public void shouldConvertStringCurrencyCodeToCurrencyInstance() {
         TextToCurrencyConverter converter = new TextToCurrencyConverter();
         Currency expectedCurrency = Currency.getInstance("USD");
@@ -408,9 +431,10 @@ public class ConverterTest {
     @Test
     public void shouldThrowExceptionForInvalidCurrencyCode() {
         TextToCurrencyConverter converter = new TextToCurrencyConverter();
-        Assertions.assertThrows(ConversionException.class, () -> {
+        ConversionException e = Assertions.assertThrows(ConversionException.class, () -> {
             converter.convert("XYZ", Currency.class);
         });
+        Assertions.assertNotNull(e.getCause(), "The original IllegalArgumentException must be preserved as the cause.");
     }
 
     @Test
@@ -435,13 +459,13 @@ public class ConverterTest {
         Assertions.assertEquals(expectedDate, converter.convert("2022-01-01T12:00:00", Date.class));
     }
 
-    /*@Test
+    @Test
     public void testConvertWithDateTimeZoneFormat() throws Exception {
         SimpleDateFormat dateFormat = new SimpleDateFormat(TextToDateConverter.DATE_TIME_ZONE_FORMAT);
         Date expectedDate = dateFormat.parse("2022-01-01T12:00:00+0100");
         TextToDateConverter converter = new TextToDateConverter();
         Assertions.assertEquals(expectedDate, converter.convert("2022-01-01T12:00:00+0100", Date.class));
-    }*/
+    }
 
     @Test
     public void testConvertWithInvalidFormat() {
@@ -671,9 +695,9 @@ public class ConverterTest {
     }
 
     @Test
-    public void shouldReturnNullWhenValueIsEmpty() {
+    public void shouldThrowConversionExceptionWhenValueIsEmpty() {
         TextToUUIDConverter converter = new TextToUUIDConverter();
-        Assertions.assertNull(converter.convert("", UUID.class));
+        Assertions.assertThrows(ConversionException.class, () -> converter.convert("", UUID.class));
     }
 
     @Test
@@ -688,7 +712,9 @@ public class ConverterTest {
     @Test
     public void shouldThrowConversionExceptionWhenInvalidUUIDStringIsProvided() {
         TextToUUIDConverter converter = new TextToUUIDConverter();
-        Assertions.assertThrows(ConversionException.class, () -> converter.convert("invalid uuid string", UUID.class));
+        ConversionException e = Assertions.assertThrows(ConversionException.class,
+                () -> converter.convert("invalid uuid string", UUID.class));
+        Assertions.assertNotNull(e.getCause(), "The original IllegalArgumentException must be preserved as the cause.");
     }
 
     private enum DAYS {

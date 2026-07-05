@@ -82,7 +82,7 @@ public class ConverterRegistryTest {
      * have the same source/target combo.
      */
     @Test
-    public void registerConverter_whenCalledTwiceWithSameConverter() {
+    public void registerConverter_whenCalledTwiceWithSameSourceTarget_overwritesExisting() {
         // Given
         ConverterRegistry converterRegistry = ConverterRegistry.builder(false).build();
         converterRegistry.register(mockConverter);
@@ -115,7 +115,7 @@ public class ConverterRegistryTest {
         // Then
         Converter<String, Integer> actualConverter = converterRegistry.find(String.class, Integer.class);
         Assertions.assertNotNull(actualConverter);
-        Assertions.assertEquals(actualConverter, mockConverter);
+        Assertions.assertEquals(actualConverter, mockConverter2);
     }
 }
 

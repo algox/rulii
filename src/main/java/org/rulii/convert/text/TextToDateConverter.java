@@ -54,7 +54,7 @@ public class TextToDateConverter extends ConverterTemplate<CharSequence, Date> {
             int timeIndex = value.indexOf('T');
 
             if (timeIndex > 0) {
-                int zoneIndex = value.indexOf('-', timeIndex);
+                int zoneIndex = Math.max(value.indexOf('-', timeIndex), value.indexOf('+', timeIndex));
                 return zoneIndex > timeIndex ? parseDateTimeZone(value) : parseDateTime(value);
             } else {
                 return parseDate(value);

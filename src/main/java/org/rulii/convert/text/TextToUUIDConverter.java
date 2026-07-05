@@ -19,7 +19,6 @@ package org.rulii.convert.text;
 
 import org.rulii.convert.ConversionException;
 import org.rulii.convert.ConverterTemplate;
-import org.rulii.lib.apache.StringUtils;
 
 import java.lang.reflect.Type;
 import java.util.UUID;
@@ -41,9 +40,9 @@ public class TextToUUIDConverter extends ConverterTemplate<CharSequence, UUID> {
         if (value == null) return null;
 
         try {
-            return StringUtils.isEmpty(value) ? null : UUID.fromString(value.toString().trim());
+            return UUID.fromString(value.toString().trim());
         } catch (IllegalArgumentException e) {
-            throw new ConversionException(value, CharSequence.class, toType);
+            throw new ConversionException(e, value, getSourceType(), getTargetType());
         }
     }
 }

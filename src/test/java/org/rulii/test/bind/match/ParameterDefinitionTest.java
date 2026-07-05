@@ -25,6 +25,7 @@ import org.rulii.bind.Binding;
 import org.rulii.bind.match.MatchByNameAndTypeMatchingStrategy;
 import org.rulii.bind.match.MatchByNameMatchingStrategy;
 import org.rulii.bind.match.MatchByTypeMatchingStrategy;
+import org.rulii.convert.Converter;
 import org.rulii.model.Definable;
 import org.rulii.model.MethodDefinition;
 import org.rulii.model.ParameterDefinition;
@@ -38,6 +39,7 @@ import org.rulii.util.reflect.LambdaUtils;
 
 import java.lang.invoke.SerializedLambda;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
@@ -190,6 +192,38 @@ public class ParameterDefinitionTest {
         Assertions.assertEquals("arg1", parameters.get(0).getName());
         Assertions.assertEquals(parameters.get(0).getType(), Integer.class);
         Assertions.assertEquals("123", parameters.get(0).getDefaultValueText());
+    }
+
+    @Test
+    public void testGetDefaultValue_doesNotCacheAcrossDifferentConverters() throws NoSuchMethodException {
+        Method m = TestClass.class.getDeclaredMethod("testMethod4", Integer.class, Binding.class, Optional.class, String.class);
+        List<ParameterDefinition> parameters = ParameterDefinition.load(m, true, SourceDefinition.build());
+        ParameterDefinition arg1 = parameters.get(0);
+
+        Converter<String, Integer> parseAsIs = new Converter<>() {
+            @Override
+            public Type getSourceType() { return String.class; }
+            @Override
+            public Type getTargetType() { return Integer.class; }
+            @Override
+            public boolean canConvert(Type fromType, Type toType) { return true; }
+            @Override
+            public Integer convert(String value, Type toType) { return Integer.parseInt(value); }
+        };
+        Converter<String, Integer> alwaysNegative = new Converter<>() {
+            @Override
+            public Type getSourceType() { return String.class; }
+            @Override
+            public Type getTargetType() { return Integer.class; }
+            @Override
+            public boolean canConvert(Type fromType, Type toType) { return true; }
+            @Override
+            public Integer convert(String value, Type toType) { return -Integer.parseInt(value); }
+        };
+
+        Assertions.assertEquals(123, arg1.getDefaultValue(parseAsIs));
+        Assertions.assertEquals(-123, arg1.getDefaultValue(alwaysNegative),
+                "A second call with a different Converter must not reuse the first call's cached result.");
     }
 
     @Test

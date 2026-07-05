@@ -55,7 +55,11 @@ public class DefaultConverterRegistry implements ConverterRegistry {
         Assert.notNull(converter, "Converter cannot be null.");
         Assert.notNull(converter.getSourceType(), "Source Type cannot be null.");
         Assert.notNull(converter.getTargetType(), "Target Type cannot be null.");
-        if (converters.contains(converter)) return false;
+        // Remove by declared source/target type pair (not equals(), which also requires the same
+        // concrete class) so a custom converter genuinely overwrites a built-in for the same combo,
+        // matching this method's documented contract.
+        converters.removeIf(existing -> existing.getSourceType().equals(converter.getSourceType())
+                && existing.getTargetType().equals(converter.getTargetType()));
         return converters.add(converter);
     }
 

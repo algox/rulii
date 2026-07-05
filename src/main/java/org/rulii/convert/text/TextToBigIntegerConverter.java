@@ -19,7 +19,6 @@ package org.rulii.convert.text;
 
 import org.rulii.convert.ConversionException;
 import org.rulii.convert.ConverterTemplate;
-import org.rulii.lib.apache.math.NumberUtils;
 
 import java.lang.reflect.Type;
 import java.math.BigInteger;
@@ -41,7 +40,7 @@ public class TextToBigIntegerConverter extends ConverterTemplate<CharSequence, B
         if (value == null) return null;
 
         try {
-            return NumberUtils.createBigInteger(value.toString());
+            return new BigInteger(value.toString());
         } catch (NumberFormatException e) {
             throw new ConversionException(e, value, getSourceType(), getTargetType());
         }

@@ -39,7 +39,7 @@ public class TextToLongConverter extends ConverterTemplate<CharSequence, Long> {
         if (value == null) return null;
 
         try {
-            return Long.decode(value.toString());
+            return Long.parseLong(value.toString());
         } catch (NumberFormatException e) {
             throw new ConversionException(e, value, getSourceType(), getTargetType());
         }

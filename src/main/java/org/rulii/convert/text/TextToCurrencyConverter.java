@@ -41,7 +41,7 @@ public class TextToCurrencyConverter extends ConverterTemplate<CharSequence, Cur
         try {
             return Currency.getInstance(value.toString());
         } catch (IllegalArgumentException e) {
-            throw new ConversionException(value, CharSequence.class, toType);
+            throw new ConversionException(e, value, getSourceType(), getTargetType());
         }
     }
 }

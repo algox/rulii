@@ -17,6 +17,7 @@
  */
 package org.rulii.convert.text;
 
+import org.rulii.convert.ConversionException;
 import org.rulii.convert.ConverterTemplate;
 import org.rulii.lib.apache.BooleanUtils;
 
@@ -35,9 +36,12 @@ public class TextToBooleanConverter extends ConverterTemplate<CharSequence, Bool
     }
 
     @Override
-    public Boolean convert(CharSequence value, Type toType) {
+    public Boolean convert(CharSequence value, Type toType) throws ConversionException {
         if (value == null) return null;
         Boolean result = BooleanUtils.toBooleanObject(value.toString());
-        return result != null ? result : false;
+        if (result == null) {
+            throw new ConversionException(value, getSourceType(), getTargetType());
+        }
+        return result;
     }
 }
