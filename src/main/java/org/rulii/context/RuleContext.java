@@ -65,8 +65,8 @@ public class RuleContext implements Immutator<RuleContext> {
         return RuleContextBuilderBuilder.getInstance();
     }
 
-    private final String id = UUID.randomUUID().toString();
-    private final Date creationTime = new Date();
+    private final String id;
+    private final Date creationTime;
     private final ScopedBindings bindings;
     private final Locale locale;
     private final BindingMatchingStrategy matchingStrategy;
@@ -105,7 +105,24 @@ public class RuleContext implements Immutator<RuleContext> {
                 MessageFormatter messageFormatter, ObjectFactory objectFactory,
                 Tracer tracer, ConverterRegistry converterRegistry,
                 Clock clock, ExecutorService executorService, RuleRegistry ruleRegistry) {
+        this(UUID.randomUUID().toString(), new Date(), bindings, locale, matchingStrategy, parameterResolver,
+                messageResolver, messageFormatter, objectFactory, tracer, converterRegistry, clock,
+                executorService, ruleRegistry);
+    }
+
+    /**
+     * Full constructor allowing the id/creationTime to be carried over from another context —
+     * used by {@link #asImmutable()} so the immutable snapshot keeps the same identity as its
+     * source instead of minting a new one.
+     */
+    private RuleContext(String id, Date creationTime, ScopedBindings bindings, Locale locale,
+                BindingMatchingStrategy matchingStrategy, ParameterResolver parameterResolver,
+                MessageResolver messageResolver, MessageFormatter messageFormatter, ObjectFactory objectFactory,
+                Tracer tracer, ConverterRegistry converterRegistry, Clock clock,
+                ExecutorService executorService, RuleRegistry ruleRegistry) {
         super();
+        Assert.notNull(id, "id cannot be null.");
+        Assert.notNull(creationTime, "creationTime cannot be null.");
         Assert.notNull(bindings, "bindings cannot be null.");
         Assert.notNull(locale, "locale cannot be null.");
         Assert.notNull(matchingStrategy, "matchingStrategy cannot be null.");
@@ -117,6 +134,8 @@ public class RuleContext implements Immutator<RuleContext> {
         Assert.notNull(converterRegistry, "converterRegistry cannot be null.");
         Assert.notNull(clock, "clock cannot be null.");
         Assert.notNull(executorService, "executorService cannot be null.");
+        this.id = id;
+        this.creationTime = creationTime;
         this.bindings = bindings;
         this.locale = locale;
         this.matchingStrategy = matchingStrategy;
@@ -273,8 +292,8 @@ public class RuleContext implements Immutator<RuleContext> {
         if (scriptProcessorFactory == null) throw new UnrulyException("No ScriptProcessor found for language: " + languageName);
         ScriptProcessor scriptProcessor = scriptProcessorFactory.getScriptProcessor();
         if (scriptProcessor == null) throw new UnrulyException("Unable to create ScriptProcessor for language: " + languageName);
-        scriptProcessors.putIfAbsent(languageName, scriptProcessor);
-        return scriptProcessor;
+        ScriptProcessor existing = scriptProcessors.putIfAbsent(languageName, scriptProcessor);
+        return existing != null ? existing : scriptProcessor;
     }
 
     /**
@@ -284,8 +303,8 @@ public class RuleContext implements Immutator<RuleContext> {
      */
     @Override
     public RuleContext asImmutable() {
-        return new RuleContext(bindings.asImmutable(), locale, matchingStrategy, parameterResolver, messageResolver,
-                messageFormatter, objectFactory, tracer, converterRegistry, clock, executorService, ruleRegistry);
+        return new RuleContext(id, creationTime, bindings.asImmutable(), locale, matchingStrategy, parameterResolver,
+                messageResolver, messageFormatter, objectFactory, tracer, converterRegistry, clock, executorService, ruleRegistry);
     }
 
     @Override

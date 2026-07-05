@@ -23,12 +23,15 @@ import org.rulii.convert.ConverterRegistry;
 import org.rulii.registry.RuleRegistry;
 import org.rulii.text.MessageFormatter;
 import org.rulii.text.MessageResolver;
+import org.rulii.trace.Tracer;
 import org.rulii.util.reflect.ObjectFactory;
 
 import java.time.Clock;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Default implementation of {@link RuleContextOptions} that wires together the standard services
@@ -43,7 +46,8 @@ import java.util.concurrent.Executors;
  *   <li>{@link ObjectFactory} — standard factory</li>
  *   <li>{@link Clock} — system default zone</li>
  *   <li>{@link java.util.Locale} — JVM default locale</li>
- *   <li>{@link java.util.concurrent.ExecutorService} — fixed thread pool sized to available processors</li>
+ *   <li>{@link java.util.concurrent.ExecutorService} — thread pool sized to available processors, with a
+ *       bounded work queue and a caller-runs rejection policy for graceful degradation under load</li>
  * </ul>
  *
  * <p>Obtain an instance via {@link RuleContextOptions#standard()} or {@link #build()}.
@@ -54,7 +58,16 @@ import java.util.concurrent.Executors;
  */
 public class StandardRuleContextOptions implements RuleContextOptions {
 
-    private static final ExecutorService DEFAULT_EXECUTOR_SERVICE = Executors.newFixedThreadPool(Math.max(2, Runtime.getRuntime().availableProcessors()));
+    private static final ExecutorService DEFAULT_EXECUTOR_SERVICE = new ThreadPoolExecutor(
+            Math.max(2, Runtime.getRuntime().availableProcessors()),
+            Math.max(2, Runtime.getRuntime().availableProcessors()),
+            0L, TimeUnit.MILLISECONDS,
+            new LinkedBlockingQueue<>(1000),
+            new ThreadPoolExecutor.CallerRunsPolicy());
+
+    static {
+        Runtime.getRuntime().addShutdownHook(new Thread(DEFAULT_EXECUTOR_SERVICE::shutdown));
+    }
 
     private final BindingMatchingStrategy matchingStrategy = BindingMatchingStrategy.builder().build();
     private final ParameterResolver parameterResolver = ParameterResolver.builder().build();
@@ -65,6 +78,7 @@ public class StandardRuleContextOptions implements RuleContextOptions {
     private final Locale locale = Locale.getDefault();
     private final MessageResolver messageResolver = MessageResolver.builder().build();
     private final RuleRegistry ruleRegistry = RuleRegistry.builder().build();
+    private final Tracer tracer = Tracer.builder().build();
 
     public StandardRuleContextOptions() {
         super();
@@ -130,6 +144,11 @@ public class StandardRuleContextOptions implements RuleContextOptions {
     }
 
     @Override
+    public Tracer getTracer() {
+        return tracer;
+    }
+
+    @Override
     public String toString() {
         return "StandardRuleContextOptions{" +
                 "matchingStrategy=" + matchingStrategy +
@@ -141,6 +160,7 @@ public class StandardRuleContextOptions implements RuleContextOptions {
                 ", locale=" + locale +
                 ", messageResolver=" + messageResolver +
                 ", executorService=" + getExecutorService() +
+                ", tracer=" + tracer +
                 '}';
     }
 }

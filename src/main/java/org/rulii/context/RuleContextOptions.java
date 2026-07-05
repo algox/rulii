@@ -23,6 +23,7 @@ import org.rulii.convert.ConverterRegistry;
 import org.rulii.registry.RuleRegistry;
 import org.rulii.text.MessageFormatter;
 import org.rulii.text.MessageResolver;
+import org.rulii.trace.Tracer;
 import org.rulii.util.reflect.ObjectFactory;
 
 import java.time.Clock;
@@ -122,4 +123,13 @@ public interface RuleContextOptions {
      * @return the rule registry; may be null if not configured.
      */
     RuleRegistry getRuleRegistry();
+
+    /**
+     * Returns the tracer used to record rule execution events.
+     *
+     * @return the tracer; never null.
+     */
+    default Tracer getTracer() {
+        return Tracer.builder().build();
+    }
 }

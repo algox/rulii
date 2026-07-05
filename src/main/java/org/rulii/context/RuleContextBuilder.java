@@ -28,12 +28,12 @@ import org.rulii.text.MessageResolver;
 import org.rulii.trace.Tracer;
 import org.rulii.util.reflect.ObjectFactory;
 
+import java.lang.reflect.Type;
 import java.time.Clock;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * Fluent builder for constructing a {@link RuleContext}.
@@ -49,8 +49,6 @@ import java.util.concurrent.Executors;
  */
 public class RuleContextBuilder {
 
-    private static final ExecutorService DEFAULT_EXECUTOR_SERVICE = Executors.newFixedThreadPool(Math.max(2, Runtime.getRuntime().availableProcessors()));
-
     private Bindings bindings;
     private BindingMatchingStrategy matchingStrategy;
     private ParameterResolver parameterResolver;
@@ -60,8 +58,8 @@ public class RuleContextBuilder {
     private ConverterRegistry converterRegistry;
     private Clock clock;
     private Locale locale;
-    private Tracer tracer = Tracer.builder().build();
-    private ExecutorService executorService = DEFAULT_EXECUTOR_SERVICE;
+    private Tracer tracer;
+    private ExecutorService executorService;
     private RuleRegistry ruleRegistry;
 
     /** Creates a builder pre-populated with {@link RuleContextOptions#standard()} defaults. */
@@ -98,18 +96,23 @@ public class RuleContextBuilder {
     RuleContextBuilder(RuleContext context) {
         super();
         Assert.notNull(context, "context cannot be null.");
-        this.matchingStrategy = context.getMatchingStrategy();
-        this.parameterResolver = context.getParameterResolver();
-        this.messageResolver = context.getMessageResolver();
-        this.messageFormatter = context.getMessageFormatter();
-        this.objectFactory = context.getObjectFactory();
-        this.tracer = context.getTracer();
-        this.converterRegistry = context.getConverterRegistry();
-        this.clock = context.getClock();
-        this.locale = context.getLocale();
+        // Delegate the shared-service copying to init() via an adapter, rather than duplicating
+        // the same field-by-field assignment here — bindings is the only property with no
+        // RuleContextOptions equivalent, so it's handled separately below.
+        init(new RuleContextOptions() {
+            @Override public BindingMatchingStrategy getMatchingStrategy() { return context.getMatchingStrategy(); }
+            @Override public ParameterResolver getParameterResolver() { return context.getParameterResolver(); }
+            @Override public MessageResolver getMessageResolver() { return context.getMessageResolver(); }
+            @Override public MessageFormatter getMessageFormatter() { return context.getMessageFormatter(); }
+            @Override public ObjectFactory getObjectFactory() { return context.getObjectFactory(); }
+            @Override public ConverterRegistry getConverterRegistry() { return context.getConverterRegistry(); }
+            @Override public Clock getClock() { return context.getClock(); }
+            @Override public Locale getLocale() { return context.getLocale(); }
+            @Override public ExecutorService getExecutorService() { return context.getExecutorService(); }
+            @Override public RuleRegistry getRuleRegistry() { return context.getRuleRegistry(); }
+            @Override public Tracer getTracer() { return context.getTracer(); }
+        });
         this.bindings = copyNonReservedBindings(context.getBindings());
-        this.executorService = context.getExecutorService();
-        this.ruleRegistry = context.getRuleRegistry();
     }
 
     private static Bindings copyNonReservedBindings(Bindings source) {
@@ -129,7 +132,16 @@ public class RuleContextBuilder {
 
         Bindings result = source instanceof ScopedBindings ? Bindings.builder().scoped() : Bindings.builder().standard();
         for (Binding<?> binding : deduped.values()) {
-            result.bind(binding);
+            // Snapshot the value into a fresh Binding rather than reusing the source's reference:
+            // a later setValue() on the original binding must not be visible through this copy
+            // (this backs AsyncContextMode.IMMUTABLE's "read values visible at the time asyncRun
+            // executes" contract).
+            result.bind(Binding.builder().with(binding.getName(), binding.getType())
+                    .value(binding.getValue())
+                    .isFinal(binding.isFinal())
+                    .primary(binding.isPrimary())
+                    .description(binding.getDescription())
+                    .build());
         }
 
         return result;
@@ -147,6 +159,7 @@ public class RuleContextBuilder {
         this.messageResolver = options.getMessageResolver();
         this.messageFormatter = options.getMessageFormatter();
         this.objectFactory = options.getObjectFactory();
+        this.tracer = options.getTracer();
         this.converterRegistry = options.getConverterRegistry();
         this.clock = options.getClock();
         this.locale = options.getLocale();
@@ -185,7 +198,7 @@ public class RuleContextBuilder {
      * @return this builder, for method chaining.
      */
     public RuleContextBuilder paramResolver(ParameterResolver parameterResolver) {
-        Assert.notNull(objectFactory, "parameterResolver cannot be null.");
+        Assert.notNull(parameterResolver, "parameterResolver cannot be null.");
         this.parameterResolver = parameterResolver;
         return this;
     }
@@ -387,24 +400,24 @@ public class RuleContextBuilder {
                 messageResolver, messageFormatter, objectFactory, tracer,
                 converterRegistry, clock, executorService, ruleRegistry);
 
-        // Make the Bindings are avail.
-        ((PromiscuousBinder) (scopedBindings.getRootScope().getBindings())).promiscuousBind(Binding.builder()
-                .with(ReservedBindings.BINDINGS.getName())
-                    .type(Bindings.class)
-                    .isFinal(true)
-                    .value(scopedBindings)
-                .build());
-
-        // Make the Context avail in the bindings.
-        ((PromiscuousBinder) (scopedBindings.getRootScope().getBindings())).promiscuousBind(Binding.builder()
-                .with(ReservedBindings.RULE_CONTEXT.getName())
-                    .type(RuleContext.class)
-                    .isFinal(true)
-                    .value(result)
-                .build());
+        bindReserved(scopedBindings, ReservedBindings.BINDINGS.getName(), Bindings.class, scopedBindings);
+        bindReserved(scopedBindings, ReservedBindings.RULE_CONTEXT.getName(), RuleContext.class, result);
 
         scopedBindings.addScope(ScopedBindings.GLOBAL_SCOPE, bindings != null ? bindings : Bindings.builder().standard());
 
         return result;
+    }
+
+    /**
+     * Injects a reserved, final binding into the given scoped bindings' root scope, bypassing the
+     * normal reserved-name check via {@link PromiscuousBinder}.
+     */
+    private static void bindReserved(ScopedBindings scopedBindings, String name, Type type, Object value) {
+        ((PromiscuousBinder) (scopedBindings.getRootScope().getBindings())).promiscuousBind(Binding.builder()
+                .with(name)
+                    .type(type)
+                    .isFinal(true)
+                    .value(value)
+                .build());
     }
 }
