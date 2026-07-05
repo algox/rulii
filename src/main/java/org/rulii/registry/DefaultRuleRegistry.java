@@ -87,12 +87,11 @@ public class DefaultRuleRegistry implements MutableRuleRegistry {
     @Override
     public void register(Runnable<?> r) {
         Assert.notNull(r, "r cannot be null.");
+        Assert.hasText(r.getName(), "Runnable's name cannot be empty/null.");
 
-        if (isNameInUse(r.getName())) {
-            throw new AlreadyRegisteredException(r.getName(), r);
-        }
+        Runnable<?> existing = registry.putIfAbsent(r.getName(), r);
 
-        registry.putIfAbsent(r.getName(), r);
+        if (existing != null) throw new AlreadyRegisteredException(r.getName(), existing);
 
         if (logger.isDebugEnabled()) {
             logger.debug("Runnable [" + r.getClass().getSimpleName() + "] Registered as [" + r.getName() + "]");
@@ -112,7 +111,7 @@ public class DefaultRuleRegistry implements MutableRuleRegistry {
 
         registry.values()
                 .stream()
-                .filter(r -> type.isAssignableFrom(r.getClass()))
+                .filter(type::isInstance)
                 .forEach(r -> result.add((T) r));
 
         return Collections.unmodifiableList(result);

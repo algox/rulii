@@ -99,7 +99,7 @@ public interface RuleRegistry {
         Assert.notNull(type, "type cannot be null.");
         Runnable<R> result = get(name);
         if (result == null) return null;
-        return (type.isAssignableFrom(result.getClass())) ? (T) result : null;
+        return type.isInstance(result) ? (T) result : null;
     }
 
     /**
@@ -114,6 +114,10 @@ public interface RuleRegistry {
 
     /**
      * Retrieves a Rule object based on the provided ruleClass.
+     *
+     * <p>Matches by the exact runtime class of the Rule's target (see {@link #getRules(Class)}),
+     * not by assignability — unlike {@link #get(String, Class)}, a superclass or interface
+     * passed here will not match rules whose target is a subtype.
      *
      * @param <T> the type of the ruleClass
      * @param ruleClass the class of the Rule to retrieve
@@ -131,6 +135,9 @@ public interface RuleRegistry {
 
     /**
      * Retrieves a list of Rule objects that have the specified ruleClass.
+     *
+     * <p>Matches by exact equality against the runtime class of each Rule's target — a superclass
+     * or interface will not match rules whose target is merely a subtype of {@code ruleClass}.
      *
      * @param <T>       the ruleClass type
      * @param ruleClass the ruleClass to search for
@@ -169,7 +176,11 @@ public interface RuleRegistry {
      */
     default List<Rule> getRulesInPackage(String packageName) {
         Assert.hasText(packageName, "packageName cannot be empty/null.");
-        return getRules(r -> r.getTarget() != null && packageName.equals(r.getTarget().getClass().getPackage().getName()));
+        return getRules(r -> {
+            if (r.getTarget() == null) return false;
+            Package rulePackage = r.getTarget().getClass().getPackage();
+            return rulePackage != null && packageName.equals(rulePackage.getName());
+        });
     }
 
     /**
