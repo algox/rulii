@@ -58,6 +58,7 @@ public class ScriptBuilder {
      * @return this builder, for chaining.
      */
     public ScriptBuilder returnType(Class<?> returnType) {
+        Assert.notNull(returnType, "returnType cannot be null.");
         this.returnType = returnType;
         return this;
     }

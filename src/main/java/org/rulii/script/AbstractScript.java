@@ -56,6 +56,7 @@ public abstract class AbstractScript<T> implements Script<T> {
         super();
         Assert.hasText(languageName, "languageName cannot be empty.");
         Assert.hasText(script, "script cannot be empty.");
+        Assert.notNull(returnType, "returnType cannot be null.");
         this.languageName = languageName;
         this.script = script;
         this.returnType = returnType;

@@ -85,6 +85,12 @@ public class ScriptBuildTest {
     }
 
     @Test
+    public void testNullReturnTypeThrows() {
+        Assertions.assertThrows(IllegalArgumentException.class, () ->
+                Script.builder().with(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "1 + 2").returnType(null));
+    }
+
+    @Test
     public void testToStringContainsScript() {
         Script<?> script = Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME, "ctx.x + 1");
         Assertions.assertTrue(script.toString().contains("ctx.x + 1"));
