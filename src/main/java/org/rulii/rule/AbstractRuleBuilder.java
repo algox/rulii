@@ -26,7 +26,6 @@ import org.rulii.model.action.Action;
 import org.rulii.model.condition.Condition;
 import org.rulii.model.condition.Conditions;
 import org.rulii.util.RuleUtils;
-import org.rulii.util.RunnableComparator;
 
 import java.util.ArrayList;
 import java.util.List;

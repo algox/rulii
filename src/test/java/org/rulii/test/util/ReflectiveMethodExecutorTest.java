@@ -40,6 +40,10 @@ public class ReflectiveMethodExecutorTest {
         return "ReflectiveMethodExecutor test succeeded!";
     }
 
+    public String throwingMethod() {
+        throw new IllegalStateException("boom - the target method's own exception");
+    }
+
     @Test
     public void whenExecuteWithParameters_thenTheMethodMustExecuteSuccessfully() {
         try {
@@ -47,7 +51,7 @@ public class ReflectiveMethodExecutorTest {
             ReflectiveMethodExecutor executor = new ReflectiveMethodExecutor(method);
             String result = executor.execute(this);
             Assertions.assertTrue(result.contains("succeeded"));
-        } catch (Exception e) {
+        } catch (Throwable e) {
             // Print the stack trace to aid debugging.
             e.printStackTrace();
         }
@@ -60,7 +64,7 @@ public class ReflectiveMethodExecutorTest {
             ReflectiveMethodExecutor executor = new ReflectiveMethodExecutor(method);
             String result = executor.execute(this);
             Assertions.assertTrue(result.contains("succeeded"));
-        } catch (Exception e) {
+        } catch (Throwable e) {
             // Print the stack trace to aid debugging.
             e.printStackTrace();
         }
@@ -72,9 +76,20 @@ public class ReflectiveMethodExecutorTest {
             Method method = ReflectiveMethodExecutorTest.class.getMethod("getSuccessTestMessage");
             ReflectiveMethodExecutor executor = new ReflectiveMethodExecutor(method);
             Assertions.assertThrows(UnrulyException.class, () -> executor.execute(this, "invalidParameter"));
-        } catch (Exception e) {
+        } catch (Throwable e) {
             // Print the stack trace to aid debugging.
             e.printStackTrace();
         }
+    }
+
+    @Test
+    public void whenTargetMethodThrows_thenOriginalExceptionPropagatesUnwrapped() throws NoSuchMethodException {
+        Method method = ReflectiveMethodExecutorTest.class.getDeclaredMethod("throwingMethod");
+        ReflectiveMethodExecutor executor = new ReflectiveMethodExecutor(method);
+        // The target method's own exception must propagate directly - not wrapped in
+        // UnrulyException(InvocationTargetException(realException)) - matching what
+        // MethodHandleMethodExecutor already does for the same scenario.
+        IllegalStateException e = Assertions.assertThrows(IllegalStateException.class, () -> executor.execute(this));
+        Assertions.assertEquals("boom - the target method's own exception", e.getMessage());
     }
 }

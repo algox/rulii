@@ -131,4 +131,23 @@ public final class LambdaUtilsTest {
         Exception exception = Assertions.assertThrows(IllegalArgumentException.class, () -> LambdaUtils.isLambda(null));
         Assertions.assertEquals("target cannot be null.", exception.getMessage());
     }
+
+    @Test
+    public void testGetSerializedLambda_invokesWriteReplaceExactlyOnce() {
+        CountingWriteReplace.invocationCount = 0;
+        LambdaUtils.getSerializedLambda(new CountingWriteReplace());
+        Assertions.assertEquals(1, CountingWriteReplace.invocationCount);
+    }
+
+    private static class CountingWriteReplace implements Serializable {
+
+        static int invocationCount = 0;
+
+        private Object writeReplace() {
+            invocationCount++;
+            return new SerializedLambda(CountingWriteReplace.class, "java/lang/Runnable", "run", "()V",
+                    java.lang.invoke.MethodHandleInfo.REF_invokeStatic, "SomeClass", "someMethod", "()V", "()V",
+                    new Object[0]);
+        }
+    }
 }

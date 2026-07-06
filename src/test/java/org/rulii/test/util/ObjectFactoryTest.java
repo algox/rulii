@@ -79,5 +79,40 @@ public class ObjectFactoryTest {
         Assertions.assertNotNull(bindingMatchingStrategy);
     }
 
+    @Test
+    public void testObjectCache_isNotSharedAcrossDifferentFactoryInstances() {
+        // Two independently-built, caching-enabled factories (e.g. for two unrelated
+        // RuleContexts) must never hand out each other's cached instances.
+        ObjectFactory factory1 = ObjectFactory.builder().useCache(true).build();
+        ObjectFactory factory2 = ObjectFactory.builder().useCache(true).build();
 
+        CacheableThing instance1 = factory1.createAction(CacheableThing.class);
+        CacheableThing instance2 = factory2.createAction(CacheableThing.class);
+
+        Assertions.assertNotSame(instance1, instance2);
+    }
+
+    public static class CacheableThing {
+
+        public CacheableThing() {
+            super();
+        }
+    }
+
+    @Test
+    public void testCreate_packagePrivateConstructor_isCreatable() {
+        // This codebase's own convention (e.g. the 34 built-in ValueValidationRule subclasses)
+        // is a package-private no-arg constructor plus a separate builder entry point - the
+        // object factory must be able to instantiate those, not just public-constructor classes.
+        ObjectFactory objectFactory = ObjectFactory.builder().build();
+        PackagePrivateCtor instance = objectFactory.create(PackagePrivateCtor.class, false);
+        Assertions.assertNotNull(instance);
+    }
+
+    public static class PackagePrivateCtor {
+
+        PackagePrivateCtor() {
+            super();
+        }
+    }
 }

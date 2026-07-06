@@ -22,8 +22,10 @@ import org.rulii.convert.Converter;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.UnrulyException;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.Map;
 import java.util.WeakHashMap;
 
@@ -35,9 +37,14 @@ import java.util.WeakHashMap;
  */
 public class DefaultObjectFactory implements ObjectFactory {
 
-    // Post Ctor cache by class.
-    private static final Map<Class<?>, Method> postConstructorCache = new WeakHashMap<>();
-    private static final Map<Class<?>, Object> objectCache          = new WeakHashMap<>();
+    // Post Ctor cache by class. Safe to share across all instances (and thus static) since a
+    // class's post-construct method is a fixed structural fact, not instance/context-specific.
+    private static final Map<Class<?>, Method> postConstructorCache = Collections.synchronizedMap(new WeakHashMap<>());
+
+    // Caches actual created object instances, not just metadata - kept per-instance (not static)
+    // so two DefaultObjectFactory instances (e.g. built for unrelated RuleContexts) never share
+    // cached objects with each other, matching what the per-instance useCache flag implies.
+    private final Map<Class<?>, Object> objectCache = Collections.synchronizedMap(new WeakHashMap<>());
 
     private final boolean useCache;
 
@@ -192,9 +199,16 @@ public class DefaultObjectFactory implements ObjectFactory {
      */
     protected <T> T createInternal(Class<T> type) throws UnrulyException {
         try {
-            return type.getConstructor().newInstance();
+            // getDeclaredConstructor (not getConstructor) so package-private/protected no-arg
+            // constructors work too - this codebase's own convention (e.g. the 34 built-in
+            // ValueValidationRule subclasses) is a package-private ctor plus a separate builder
+            // entry point.
+            Constructor<T> ctor = type.getDeclaredConstructor();
+            ReflectionUtils.makeAccessible(ctor);
+            return ctor.newInstance();
         } catch (NoSuchMethodException | InvocationTargetException| InstantiationException | IllegalAccessException e) {
-            throw new UnrulyException("Unable to instantiate type [" + type + "]. Does it have a default ctor ?", e);
+            throw new UnrulyException("Unable to instantiate type [" + type
+                    + "]. Does it have a no-arg constructor (public or otherwise)?", e);
         }
     }
 

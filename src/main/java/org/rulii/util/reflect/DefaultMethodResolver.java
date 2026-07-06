@@ -61,9 +61,10 @@ public class DefaultMethodResolver implements MethodResolver {
             boolean match = true;
 
             for (int i = 0; i < method.getParameterTypes().length; i++) {
-                if (!candidate.getParameterTypes()[i].isAssignableFrom(method.getParameterTypes()[i]))
+                if (!candidate.getParameterTypes()[i].isAssignableFrom(method.getParameterTypes()[i])) {
                     match = false;
-                break;
+                    break;
+                }
             }
 
             if (match) matches.add(method);

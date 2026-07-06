@@ -99,9 +99,9 @@ public final class LambdaUtils {
                         + result + "]. is this Lambda?");
             }
 
-            return (SerializedLambda) writeReplaceMethod.invoke(target);
+            return (SerializedLambda) result;
         } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new UnrulyException("Unable to execute writeReplace method! [" + writeReplaceMethod + "]");
+            throw new UnrulyException("Unable to execute writeReplace method! [" + writeReplaceMethod + "]", e);
         }
     }
 

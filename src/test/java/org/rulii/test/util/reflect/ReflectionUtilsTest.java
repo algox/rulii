@@ -30,12 +30,18 @@ import org.rulii.util.reflect.LambdaUtils;
 import org.rulii.util.reflect.ReflectionUtils;
 
 import java.io.Serializable;
+import java.lang.invoke.MethodHandles;
 import java.lang.invoke.SerializedLambda;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Test cases related to ReflectionUtils.
@@ -92,9 +98,11 @@ public class ReflectionUtilsTest {
 
     @Test
     public void postConstructorTest3() {
-        Assertions.assertThrows(UnrulyException.class, () -> {
-            ReflectionUtils.getPostConstructMethods(ErrorClass.class);
-        });
+        // Each @PostConstruct-annotated method here is individually invalid (non-void return,
+        // has a parameter, declares a checked exception) - none of them qualify as a real
+        // post-construct method, regardless of which PostConstruct annotation type is used.
+        Method postConstructor = ReflectionUtils.getPostConstructMethods(ErrorClass.class);
+        Assertions.assertNull(postConstructor);
     }
 
     @Test
@@ -107,6 +115,47 @@ public class ReflectionUtilsTest {
     public void postConstructorTest5() {
         Method postConstructor = ReflectionUtils.getPostConstructMethods(PostConstruct2.class);
         Assertions.assertNotNull(postConstructor);
+    }
+
+    @Test
+    public void testGetMethodLookup_concurrentAccessManyDistinctClasses_doesNotThrow() throws Exception {
+        // getMethodLookup's cache is static and reached via MethodHandleMethodExecutor's
+        // constructor, which is on the build path for essentially every Condition/Action/
+        // Function/Rule - concurrent population of that cache with many distinct keys must not
+        // corrupt it.
+        Class<?>[] classes = {
+                Integer.class, Long.class, Double.class, Float.class, Boolean.class,
+                Character.class, Byte.class, Short.class, String.class, Object.class,
+                List.class, Map.class, Optional.class, Arrays.class, Serializable.class,
+                ReflectionUtilsTest.class, SomeClass.class, OtherClass.class, ErrorClass.class,
+                PostConstruct1.class, PostConstruct2.class, TestClass.class, BaseClass1.class,
+                BaseClass2.class, Interface1.class, Interface2.class, Interface3.class
+        };
+
+        int threadCount = 8;
+        int iterations = 500;
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        AtomicBoolean failed = new AtomicBoolean(false);
+        List<Future<?>> futures = new ArrayList<>();
+
+        for (int t = 0; t < threadCount; t++) {
+            futures.add(executor.submit(() -> {
+                try {
+                    for (int i = 0; i < iterations; i++) {
+                        Class<?> c = classes[i % classes.length];
+                        MethodHandles.Lookup lookup = ReflectionUtils.getMethodLookup(c);
+                        if (lookup == null) failed.set(true);
+                    }
+                } catch (Exception e) {
+                    failed.set(true);
+                }
+            }));
+        }
+
+        for (Future<?> future : futures) future.get();
+        executor.shutdown();
+
+        Assertions.assertFalse(failed.get());
     }
 
     @Test

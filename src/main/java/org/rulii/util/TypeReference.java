@@ -82,7 +82,11 @@ public abstract class TypeReference<T> {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        // Every concrete instance is always an anonymous subclass adding no state of its own
+        // (per this class's "super type token" idiom - see the constructor javadoc), so two
+        // separately-created instances capturing the same Type are never the same runtime class;
+        // equality must be based on the captured type alone, not on getClass().
+        if (!(o instanceof TypeReference)) return false;
         TypeReference<?> that = (TypeReference<?>) o;
         return type.equals(that.type);
     }

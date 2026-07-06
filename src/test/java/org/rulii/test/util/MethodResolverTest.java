@@ -50,4 +50,24 @@ public class MethodResolverTest {
         Assertions.assertThrows(NullPointerException.class, () -> methodResolver.getImplementationMethod(null, null),
                 "Expected to throw NullPointerException for null inputs");
     }
+
+    @Test
+    public void testGetImplementationMethod_multiParameter_checksAllParametersNotJustFirst() throws NoSuchMethodException {
+        Method candidate = ProcessCandidate.class.getMethod("process", String.class, Integer.class);
+        MethodResolver methodResolver = MethodResolver.builder().build();
+        Method result = methodResolver.getImplementationMethod(MismatchedSecondParam.class, candidate);
+        // process(String, String) matches the candidate on parameter 0 (String) but not
+        // parameter 1 (String is not assignable to the candidate's Integer) - it must not be
+        // silently accepted as a match just because the first parameter agreed.
+        Assertions.assertNull(result);
+    }
+
+    private interface ProcessCandidate {
+        void process(String a, Integer b);
+    }
+
+    private static class MismatchedSecondParam {
+        public void process(String a, String b) {
+        }
+    }
 }

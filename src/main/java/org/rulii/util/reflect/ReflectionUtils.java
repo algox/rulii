@@ -35,6 +35,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 
 /**
@@ -69,7 +70,7 @@ public final class ReflectionUtils {
     );
 
     private static final Map<Type, Object> DEFAULT_VALUE_MAP = new HashMap<>();
-    private static final Map<Class<?>, MethodHandles.Lookup> METHOD_HANDLE_CACHE = new HashMap<>();
+    private static final Map<Class<?>, MethodHandles.Lookup> METHOD_HANDLE_CACHE = new ConcurrentHashMap<>();
 
     private static boolean DEFAULT_BOOLEAN;
     private static byte DEFAULT_BYTE;
@@ -150,10 +151,12 @@ public final class ReflectionUtils {
         if (POST_CONSTRUCT_ANNOTATION_1 == null && POST_CONSTRUCT_ANNOTATION_2 == null) return null;
 
         List<Method> postConstructors = Arrays.stream(c.getDeclaredMethods())
-                .filter(method -> void.class.equals(method.getReturnType()) &&
-                        method.getParameterCount() == 0 && method.getExceptionTypes().length == 0 &&
-                        (POST_CONSTRUCT_ANNOTATION_1 != null && method.getAnnotation(POST_CONSTRUCT_ANNOTATION_1) != null)
-                        || (POST_CONSTRUCT_ANNOTATION_2 != null && method.getAnnotation(POST_CONSTRUCT_ANNOTATION_2) != null)).toList();
+                .filter(method -> void.class.equals(method.getReturnType())
+                        && method.getParameterCount() == 0
+                        && method.getExceptionTypes().length == 0
+                        && ((POST_CONSTRUCT_ANNOTATION_1 != null && method.getAnnotation(POST_CONSTRUCT_ANNOTATION_1) != null)
+                                || (POST_CONSTRUCT_ANNOTATION_2 != null && method.getAnnotation(POST_CONSTRUCT_ANNOTATION_2) != null)))
+                .toList();
 
         // More than one post constructor
         if (postConstructors.size() > 1) {
@@ -283,12 +286,7 @@ public final class ReflectionUtils {
     public static MethodHandles.Lookup getMethodLookup(Class<?> c) {
         Assert.notNull(c, "c cannot be null.");
 
-        MethodHandles.Lookup result = METHOD_HANDLE_CACHE.get(c);
-
-        if (result == null) {
-            result = MethodHandles.lookup().in(c);
-            METHOD_HANDLE_CACHE.put(c, result);
-        }
+        MethodHandles.Lookup result = METHOD_HANDLE_CACHE.computeIfAbsent(c, k -> MethodHandles.lookup().in(k));
 
         return result;
     }

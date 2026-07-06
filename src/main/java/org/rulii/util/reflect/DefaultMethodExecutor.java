@@ -17,6 +17,8 @@
  */
 package org.rulii.util.reflect;
 
+import org.rulii.lib.apache.commons.logging.Log;
+import org.rulii.lib.apache.commons.logging.LogFactory;
 import org.rulii.lib.spring.util.Assert;
 
 import java.lang.reflect.Method;
@@ -37,6 +39,8 @@ import java.lang.reflect.Method;
  * @since 1.0
  */
 public class DefaultMethodExecutor implements MethodExecutor {
+
+    private static final Log logger = LogFactory.getLog(DefaultMethodExecutor.class);
 
     private final Method method;
     private MethodExecutor delegate;
@@ -60,7 +64,12 @@ public class DefaultMethodExecutor implements MethodExecutor {
         ReflectionUtils.makeAccessible(method);
         try {
             this.delegate = new MethodHandleMethodExecutor(method);
-        } catch (Exception e) {
+        } catch (IllegalAccessException e) {
+            // Expected, declared fallback case - the handle couldn't be obtained due to access
+            // restrictions; reflection (with setAccessible) can still reach the method.
+            if (logger.isDebugEnabled()) {
+                logger.debug("Unable to create a MethodHandle for [" + method + "], falling back to reflection.", e);
+            }
             this.delegate = new ReflectiveMethodExecutor(method);
         }
     }

@@ -38,7 +38,7 @@ public class RunnableComparator implements Comparator<Runnable<?>> {
     public int compare(Runnable<?> r1, Runnable<?> r2) {
         if (r1 == r2) return 0;
         if (r1 == null) return 1;
-        if (r2 == null) return 1;
+        if (r2 == null) return -1;
 
         if (r1 instanceof Ordered && r2 instanceof Ordered) {
             return Integer.compare(((Ordered) r1).getOrder(), ((Ordered) r2).getOrder());

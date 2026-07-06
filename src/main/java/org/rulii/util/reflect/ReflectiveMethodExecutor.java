@@ -20,6 +20,7 @@ package org.rulii.util.reflect;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.UnrulyException;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
@@ -55,7 +56,7 @@ public record ReflectiveMethodExecutor(Method method) implements MethodExecutor 
      */
     @SuppressWarnings("unchecked")
     @Override
-    public <T> T execute(Object target, Object... userArgs) {
+    public <T> T execute(Object target, Object... userArgs) throws Throwable {
         if (method.getParameterCount() != (userArgs == null ? 0 : userArgs.length)) {
             throw new UnrulyException("Invalid number of args passed to Method call [" + method()
                     + "] required [" + method.getParameterCount() + "]");
@@ -66,8 +67,13 @@ public record ReflectiveMethodExecutor(Method method) implements MethodExecutor 
         try {
             // Execute the method with the given parameters
             return (T) method.invoke(staticMethod ? null : target, userArgs);
+        } catch (InvocationTargetException e) {
+            // Propagate the target method's own exception unwrapped, matching
+            // MethodHandleMethodExecutor's behavior - callers must see the same exception shape
+            // regardless of which execution strategy DefaultMethodExecutor happened to pick.
+            throw e.getCause() != null ? e.getCause() : e;
         } catch (Throwable e) {
-            // Something went wrong with the execution
+            // A genuine reflection-level failure (e.g. illegal access), not from the target method.
             throw new UnrulyException("Unexpected error trying to execute [" + method()
                     + "] with arguments " + Arrays.toString(userArgs), e);
         }
