@@ -124,6 +124,28 @@ public class MessageFormatterTest {
     }
 
     @Test
+    public void testMessageFormatter_formatStyleWithGroupingComma_isNotMisparsed() {
+        MessageFormatter formatter = MessageFormatter.builder().build();
+        ParameterInfo[] args = new ParameterInfo[1];
+        args[0] = new ParameterInfo(0, "amount", 1234.5);
+        // "#,##0.00" is an ordinary DecimalFormat pattern using a comma as the grouping
+        // separator - the placeholder's FormatStyle option, not a 4th top-level field.
+        String formatted = formatter.format(Locale.US, "Total: ${amount,number,#,##0.00}", args);
+        Assertions.assertEquals("Total: 1,234.50", formatted);
+    }
+
+    @Test
+    public void testMessageFormatter_argumentsPlacedByDeclaredIndex_notArrayPosition() {
+        MessageFormatter formatter = MessageFormatter.builder().build();
+        ParameterInfo[] args = new ParameterInfo[2];
+        // Deliberately out of array-position order: args[0] declares index 1, args[1] declares index 0.
+        args[0] = new ParameterInfo(1, "b", "second");
+        args[1] = new ParameterInfo(0, "a", "first");
+        String formatted = formatter.format(Locale.getDefault(), "Test: {0} {1}", args);
+        Assertions.assertEquals("Test: first second", formatted);
+    }
+
+    @Test
     public void testMessageFormatter6() {
         Assertions.assertThrows(IllegalArgumentException.class, () -> {
             MessageFormatter formatter = MessageFormatter.builder().build();
@@ -172,6 +194,20 @@ public class MessageFormatterTest {
         String expectedMessage = "Hello, World!";
         String actualMessage = messageFormatter.format(Locale.US, message);
         Assertions.assertEquals(expectedMessage, actualMessage);
+    }
+
+    @Test
+    public void testFormat_sameTemplateReusedAcrossCalls_eachCallGetsItsOwnValues() {
+        // The same DefaultMessageFormatter instance is reused across many rule executions in
+        // practice; a cached parse of the template must not leak substituted values between calls.
+        MessageFormatter formatter = MessageFormatter.builder().build();
+        String template = "Hello, ${name}!";
+
+        String first = formatter.format(Locale.US, template, new ParameterInfo(0, "name", "Alice"));
+        String second = formatter.format(Locale.US, template, new ParameterInfo(0, "name", "Bob"));
+
+        Assertions.assertEquals("Hello, Alice!", first);
+        Assertions.assertEquals("Hello, Bob!", second);
     }
 
     @Test

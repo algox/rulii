@@ -17,8 +17,6 @@
  */
 package org.rulii.text;
 
-import java.util.Objects;
-
 /**
  * The {@code ParameterInfo} class represents information about a parameter.
  * It stores the index, name, and value of a parameter.
@@ -40,7 +38,7 @@ import java.util.Objects;
  */
 public class ParameterInfo implements Comparable<ParameterInfo> {
 
-    private final Integer index;
+    private final int index;
     private final String name;
     private final Object value;
 
@@ -72,7 +70,7 @@ public class ParameterInfo implements Comparable<ParameterInfo> {
 
     @Override
     public int compareTo(ParameterInfo o) {
-        return index.compareTo(o.index);
+        return Integer.compare(index, o.index);
     }
 
     @Override
@@ -85,7 +83,7 @@ public class ParameterInfo implements Comparable<ParameterInfo> {
 
     @Override
     public int hashCode() {
-        return Objects.hash(index);
+        return Integer.hashCode(index);
     }
 
     @Override

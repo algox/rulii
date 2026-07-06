@@ -52,7 +52,7 @@ public final class FormattedTextParser {
 
         while (matcher.find()) {
             String value = matcher.group(1);
-            String[] splitValues = value.split(",");
+            String[] splitValues = value.split(",", 3);
             String placeHolderName = splitValues[0].trim();
             String[] options = new String[splitValues.length - 1];
 

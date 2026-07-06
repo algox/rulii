@@ -58,15 +58,11 @@ public class ResourceBundleMessageResolver implements MessageResolver {
     public String resolve(Locale locale, String code, String defaultMessage) {
         if (code == null) return defaultMessage;
 
-        String result = defaultMessage;
-
         try {
             ResourceBundle bundle = ResourceBundle.getBundle(baseName, locale != null ? locale : Locale.getDefault());
-            result = bundle.getString(code);
+            return bundle.getString(code);
         } catch (MissingResourceException e) {
-            if (defaultMessage == null) throw e;
+            return defaultMessage;
         }
-
-        return result;
     }
 }

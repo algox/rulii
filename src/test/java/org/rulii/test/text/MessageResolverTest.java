@@ -23,7 +23,6 @@ import org.rulii.text.MessageResolver;
 import org.rulii.text.ResourceBundleMessageResolver;
 
 import java.util.Locale;
-import java.util.MissingResourceException;
 
 public class MessageResolverTest {
 
@@ -40,11 +39,9 @@ public class MessageResolverTest {
 
     @Test
     public void testMessageFormattedText2() {
-        Assertions.assertThrows(MissingResourceException.class, () -> {
-            MessageResolver resolver = MessageResolver.builder("message-resolver").build();
-            String notFound = resolver.resolve(null, "unknown");
-            Assertions.assertNull(notFound);
-        });
+        MessageResolver resolver = MessageResolver.builder("message-resolver").build();
+        String notFound = resolver.resolve(null, "unknown");
+        Assertions.assertNull(notFound);
     }
 
     @Test
@@ -71,10 +68,8 @@ public class MessageResolverTest {
     }
 
     @Test
-    public void testResolve_ThrowsExceptionWhenCodeDoesNotExistAndNoDefaultMessageProvided() {
+    public void testResolve_ReturnsNullWhenCodeDoesNotExistAndNoDefaultMessageProvided() {
         ResourceBundleMessageResolver resolver = new ResourceBundleMessageResolver("messages");
-        Assertions.assertThrows(MissingResourceException.class, () -> {
-            resolver.resolve(Locale.US, "test.message.non.existent", null);
-        });
+        Assertions.assertNull(resolver.resolve(Locale.US, "test.message.non.existent", null));
     }
 }

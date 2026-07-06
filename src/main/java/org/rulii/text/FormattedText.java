@@ -20,7 +20,6 @@ package org.rulii.text;
 import org.rulii.lib.spring.util.Assert;
 
 import java.util.*;
-import java.util.concurrent.ArrayBlockingQueue;
 
 /**
  * Represents a formatted text with placeholders.
@@ -36,9 +35,11 @@ public class FormattedText {
     public FormattedText(String template, List<Placeholder> placeholders) {
         super();
         Assert.notNull(template, "template cannot be null.");
+        Assert.notNull(placeholders, "placeholders cannot be null.");
         this.template = template;
-        this.placeholders = Collections.unmodifiableList(placeholders);
-        Collections.sort(placeholders);
+        List<Placeholder> copy = new ArrayList<>(placeholders);
+        Collections.sort(copy);
+        this.placeholders = Collections.unmodifiableList(copy);
     }
 
     public String getTemplate() {
@@ -106,26 +107,24 @@ public class FormattedText {
         }
 
         StringBuilder result = new StringBuilder();
-        Queue<Placeholder> queue = new ArrayBlockingQueue<>(placeholders.size(), false, placeholders);
+        int lastEnd = 0;
 
-        for (int i = 0; i < template.length(); i++) {
+        // placeholders is sorted by start position (see constructor) and matches are
+        // non-overlapping, so a single forward pass copying the gaps between them suffices.
+        for (Placeholder placeholder : placeholders) {
+            result.append(template, lastEnd, placeholder.getStartPosition());
+            ParameterInfo parameter = matchMap.get(placeholder.getName());
 
-            if (!queue.isEmpty() && queue.peek().getStartPosition() == i) {
-                Placeholder match = queue.poll();
-                if (match == null) continue;
-                ParameterInfo parameter = matchMap.get(match.getName());
-
-                if (parameter != null) {
-                    result.append(match.getMessageFormatText(parameter.getIndex()));
-                } else {
-                    result.append("[").append(match.getName()).append(" not found]");
-                }
-
-                i = match.getEndPosition() - 1;
+            if (parameter != null) {
+                result.append(placeholder.getMessageFormatText(parameter.getIndex()));
             } else {
-                result.append(template.charAt(i));
+                result.append("[").append(placeholder.getName()).append(" not found]");
             }
+
+            lastEnd = placeholder.getEndPosition();
         }
+
+        result.append(template, lastEnd, template.length());
 
         return result.toString();
     }

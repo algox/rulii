@@ -83,7 +83,9 @@ public class Placeholder implements Comparable<Placeholder> {
         this.name = name;
         this.startPosition = startPosition;
         this.endPosition = endPosition;
-        this.options =  options != null ? Collections.unmodifiableList(Arrays.asList(options)) : null;
+        this.options = options != null
+                ? Collections.unmodifiableList(Arrays.asList(options.clone()))
+                : Collections.emptyList();
     }
 
     public String getName() {

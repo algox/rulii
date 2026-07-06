@@ -19,6 +19,8 @@ package org.rulii.text;
 
 import java.text.MessageFormat;
 import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The DefaultMessageFormatter class is an implementation of the MessageFormatter interface.
@@ -28,6 +30,12 @@ import java.util.Locale;
  * @since 1.0
  */
 public class DefaultMessageFormatter implements MessageFormatter {
+
+    // Message templates are fixed, author-supplied strings (validation-rule DEFAULT_MESSAGE
+    // constants, resource-bundle entries, or literal errorMessage(...) calls) - never built by
+    // interpolating runtime data into the template text itself - so caching by template string
+    // is bounded by the number of distinct templates an application defines, not by call volume.
+    private final Map<String, FormattedText> cache = new ConcurrentHashMap<>();
 
     public DefaultMessageFormatter() {
         super();
@@ -48,25 +56,35 @@ public class DefaultMessageFormatter implements MessageFormatter {
      */
     @Override
     public String format(Locale locale, String message, ParameterInfo...parameters) {
-        FormattedText formattedText = FormattedTextParser.parse(message);
+        FormattedText formattedText = cache.computeIfAbsent(message, FormattedTextParser::parse);
         String template = formattedText.hasPlaceholders() ? formattedText.replaceWithIndex(parameters) : message;
         return format(locale, template, createArguments(parameters));
     }
 
     /**
      * Creates an array of objects from the specified ParameterInfo array.
-     * The values of the ParameterInfo objects are used as the elements of the resulting array.
+     *
+     * <p>Each value is placed at its declared {@link ParameterInfo#getIndex()} position, not its
+     * position within the {@code parameters} array, so this agrees with the same
+     * {@code getIndex()} value {@link FormattedText#replaceWithIndex} embeds as the MessageFormat
+     * positional placeholder.
      *
      * @param parameters the ParameterInfo array to create arguments from
      * @return the array of objects created from the ParameterInfo values
      */
     private Object[] createArguments(ParameterInfo...parameters) {
-        Object[] result = new Object[parameters != null ? parameters.length : 0];
+        if (parameters == null || parameters.length == 0) return new Object[0];
 
-        if (parameters == null || parameters.length == 0) return result;
+        int maxIndex = 0;
 
-        for (int i = 0; i < parameters.length; i++) {
-            result[i] = parameters[i].getValue();
+        for (ParameterInfo parameter : parameters) {
+            maxIndex = Math.max(maxIndex, parameter.getIndex());
+        }
+
+        Object[] result = new Object[maxIndex + 1];
+
+        for (ParameterInfo parameter : parameters) {
+            result[parameter.getIndex()] = parameter.getValue();
         }
 
         return result;

@@ -21,6 +21,10 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.rulii.text.FormattedText;
 import org.rulii.text.FormattedTextParser;
+import org.rulii.text.Placeholder;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Test cases covering the Formatted Text.
@@ -102,5 +106,19 @@ public class FormattedTextTest {
     public void testMessageFormattedText9() {
         FormattedText formattedText = FormattedTextParser.parse("${a} ${b} ${c} ${a} ${b}");
         Assertions.assertEquals(5, formattedText.getPlaceholderSize());
+    }
+
+    @Test
+    public void testConstructor_mutatingCallerSuppliedListAfterConstruction_doesNotAffectFormattedText() {
+        FormattedText parsed = FormattedTextParser.parse("${a} ${b}");
+        List<Placeholder> callerList = new ArrayList<>(parsed.getPlaceholder("a"));
+        callerList.addAll(parsed.getPlaceholder("b"));
+
+        FormattedText formattedText = new FormattedText("${a} ${b}", callerList);
+        Assertions.assertEquals(2, formattedText.getPlaceholderSize());
+
+        callerList.clear();
+
+        Assertions.assertEquals(2, formattedText.getPlaceholderSize());
     }
 }
