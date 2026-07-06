@@ -10,6 +10,14 @@ import org.rulii.script.EvaluationException;
 import org.rulii.script.Script;
 import org.rulii.script.janino.JaninoScriptProcessorFactory;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * Integration tests for Janino Script.run() — exercises bindings access,
  * multi-statement scripts, Java stdlib, caching, and error paths.
@@ -21,6 +29,10 @@ import org.rulii.script.janino.JaninoScriptProcessorFactory;
 public class ScriptEvaluationTest {
 
     private static final String LANG = JaninoScriptProcessorFactory.LANGUAGE_NAME;
+
+    public static class Address {
+        public String zipCode = "00000";
+    }
 
     private RuleContext contextWith(Bindings bindings) {
         return RuleContext.builder().with(bindings).build();
@@ -222,6 +234,39 @@ public class ScriptEvaluationTest {
     }
 
     @Test
+    public void testConcurrentFirstEvaluation_sameScriptInstance_allThreadsSucceed() throws Exception {
+        // Documents the intended "compile once, cache forever" contract of JITScript's evaluator
+        // cache under concurrent first-use. Memory-visibility races are inherently hard to force
+        // deterministically in a plain JUnit test, so this is kept as documentation of the contract,
+        // not proof of the fix - same honesty caveat as other concurrency tests in this codebase.
+        int threadCount = 16;
+        Script<Object> script = Script.builder().build(LANG, "ctx.result = ctx.result + 1;");
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        CyclicBarrier barrier = new CyclicBarrier(threadCount);
+        AtomicInteger failures = new AtomicInteger();
+        List<Future<?>> futures = new ArrayList<>();
+
+        for (int i = 0; i < threadCount; i++) {
+            futures.add(executor.submit(() -> {
+                Bindings bindings = Bindings.builder().standard();
+                bindings.bind("result", int.class, 0);
+                RuleContext ctx = contextWith(bindings);
+                try {
+                    barrier.await();
+                    script.run(ctx);
+                } catch (Exception e) {
+                    failures.incrementAndGet();
+                }
+            }));
+        }
+
+        for (Future<?> future : futures) future.get();
+        executor.shutdown();
+
+        Assertions.assertEquals(0, failures.get());
+    }
+
+    @Test
     public void testTwoIndependentScripts() {
         Bindings bindings = Bindings.builder().standard();
         bindings.bind("a", int.class, 10);
@@ -295,6 +340,27 @@ public class ScriptEvaluationTest {
         RuleContext ctx = contextWith(bindings);
         Assertions.assertThrows(BuildScriptException.class, () ->
                 Script.builder().build(LANG, "ctx.counter--;").run(ctx));
+    }
+
+    @Test
+    public void testNestedFieldWriteThroughBindingDoesNotCorruptBinding() {
+        Bindings bindings = Bindings.builder().standard();
+        Address address = new Address();
+        // Bound as Object.class so a wrong-binding-name rewrite (pre-fix bug) would pass
+        // Bindings' own type check and silently succeed, replacing "address" with the RHS
+        // string entirely, instead of being caught by a type mismatch first.
+        bindings.bind("address", Object.class, address);
+        RuleContext ctx = contextWith(bindings);
+
+        // ctx.address.zipCode is a 3-segment ambiguous name; must not be silently
+        // rewritten as if "address" were the binding name, which would discard
+        // ".zipCode" and replace the whole "address" binding with the RHS string.
+        Assertions.assertThrows(BuildScriptException.class, () ->
+                Script.builder().build(LANG, "ctx.address.zipCode = \"90210\";").run(ctx));
+
+        // The address binding itself must remain untouched by the failed compile.
+        Assertions.assertSame(address, bindings.getValue("address"));
+        Assertions.assertEquals("00000", address.zipCode);
     }
 
     @Test

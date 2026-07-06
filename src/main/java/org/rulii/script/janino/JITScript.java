@@ -40,7 +40,7 @@ import org.rulii.script.Script;
  */
 public class JITScript<T> extends AbstractScript<T> {
 
-    private ScriptEvaluator evaluator;
+    private volatile ScriptEvaluator evaluator;
 
     /**
      * Creates a new {@code JITScript} with no compiled evaluator.
@@ -71,7 +71,7 @@ public class JITScript<T> extends AbstractScript<T> {
      *
      * @param evaluator the compiled evaluator to cache; should not be null.
      */
-    public void setEvaluator(ScriptEvaluator evaluator) {
+    public synchronized void setEvaluator(ScriptEvaluator evaluator) {
         if (this.evaluator != null) return;
         this.evaluator = evaluator;
     }

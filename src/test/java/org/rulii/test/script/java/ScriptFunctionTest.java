@@ -29,6 +29,18 @@ public class ScriptFunctionTest {
     // -----------------------------------------------------------------------
 
     @Test
+    public void testAutoReturn_textBlockWithUnbalancedQuoteBeforeSemicolon_isNotMisparsed() {
+        RuleContext ctx = contextWith(Bindings.builder().standard());
+        // The text block's content contains a bare quote followed by a semicolon before the
+        // closing delimiter - a naive quote-toggle scanner (treating the 3-quote delimiter as
+        // three independent single-quote toggles) loses track of state here and wrongly splits
+        // the script mid-text-block instead of after "int x = 5;".
+        String script = "int x = 5;\n\"\"\"\nHe said \"hi; there\n\"\"\";";
+        Function<Object> fn = Function.builder().build(Script.builder().build(LANG, script));
+        Assertions.assertEquals("He said \"hi; there\n", fn.apply(ctx));
+    }
+
+    @Test
     public void testFunctionReturnsIntLiteral() {
         RuleContext ctx = contextWith(Bindings.builder().standard());
         Function<Object> fn = Function.builder().build(Script.builder().build(LANG, "42"));

@@ -25,6 +25,13 @@ import org.rulii.script.BuildScriptException;
 import org.rulii.script.Script;
 import org.rulii.script.graaljs.GraalJsScriptProcessorFactory;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
 /**
  * Integration tests for Script.run() through a full RuleContext pipeline.
  * Covers data types, bindings mutation, multi-scope, and error propagation.
@@ -242,5 +249,39 @@ public class ScriptEvaluationTest {
 
         Assertions.assertEquals(6,  ((Number) r1).intValue());
         Assertions.assertEquals(14, ((Number) r2).intValue());
+    }
+
+    // -----------------------------------------------------------------------
+    // Concurrent execution — GraalJsScriptProcessorFactory shares a single
+    // Engine across calls/threads; each evaluation must still get its own
+    // isolated bindings/context, with no cross-thread state leakage.
+    // -----------------------------------------------------------------------
+
+    @Test
+    public void testConcurrentEvaluationsAcrossThreads_doNotShareGlobalState() throws Exception {
+        int threadCount = 16;
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        CyclicBarrier barrier = new CyclicBarrier(threadCount);
+        List<Future<Object>> futures = new ArrayList<>();
+
+        for (int i = 0; i < threadCount; i++) {
+            int value = i;
+            futures.add(executor.submit(() -> {
+                Bindings bindings = Bindings.builder().standard();
+                bindings.bind("n", int.class, value);
+                RuleContext ctx = contextWith(bindings);
+                barrier.await();
+                // A top-level "var" declaration would be visible to every later evaluation if the
+                // engine/context (not just the Engine) were shared across threads without isolation.
+                return Script.builder().build(GraalJsScriptProcessorFactory.LANGUAGE_NAME,
+                        "var shared = ctx.n; shared;").run(ctx);
+            }));
+        }
+
+        for (int i = 0; i < threadCount; i++) {
+            Assertions.assertEquals(i, ((Number) futures.get(i).get()).intValue());
+        }
+
+        executor.shutdown();
     }
 }

@@ -22,6 +22,7 @@ import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Engine;
 import org.graalvm.polyglot.HostAccess;
 import org.rulii.lib.spring.util.Assert;
+import org.rulii.lib.spring.util.ClassUtils;
 import org.rulii.script.ScriptCompiler;
 import org.rulii.script.ScriptOptions;
 import org.rulii.script.ScriptProcessor;
@@ -59,19 +60,11 @@ public class GraalJsScriptProcessorFactory implements ScriptProcessorFactory {
     /** Default language name used to register and look up this factory: {@value}. */
     public static final String LANGUAGE_NAME = "js";
 
-    private static boolean available = false;
+    private static final boolean available = ClassUtils.isPresent(
+            "com.oracle.truffle.js.scriptengine.GraalJSScriptEngine", GraalJsScriptProcessorFactory.class.getClassLoader());
 
     private final String languageName;
     private final String bindingsName;
-
-    static {
-        try {
-            Class.forName("com.oracle.truffle.js.scriptengine.GraalJSScriptEngine");
-            available = true;
-        } catch (ClassNotFoundException e) {
-            available = false;
-        }
-    }
 
     /**
      * Creates a factory with default language name ({@value #LANGUAGE_NAME}) and the default
@@ -121,19 +114,55 @@ public class GraalJsScriptProcessorFactory implements ScriptProcessorFactory {
         return new JSR223ScriptCompiler(getLanguageName(), createEngine());
     }
 
+    private static volatile Engine sharedEngine;
+
     /**
      * Creates a new {@link GraalJSScriptEngine} configured for ES2022 with full host access.
+     *
+     * <p>Backed by a single, lazily-created, shared {@link Engine} (the expensive, warmup-heavy
+     * resource GraalVM recommends reusing across many short-lived {@link Context}s and threads —
+     * see {@link #getSharedEngine()}). Each call still builds its own {@link GraalJSScriptEngine}
+     * with a private {@link Context.Builder}, since that builder is mutable and not thread-safe;
+     * sharing it across concurrently-executing rules would race.
      *
      * @return a freshly created engine instance; never null.
      */
     private static ScriptEngine createEngine() {
-        Engine engine = Engine.newBuilder("js")
-                .option("engine.WarnInterpreterOnly", "false")
-                .build();
-        return GraalJSScriptEngine.create(engine,
+        return GraalJSScriptEngine.create(getSharedEngine(),
                 Context.newBuilder("js")
                         .allowHostAccess(HostAccess.ALL)
                         .allowHostClassLookup(s -> true)
                         .option("js.ecmascript-version", "2022"));
+    }
+
+    /**
+     * Returns the process-wide, lazily-created {@link Engine} shared by every
+     * {@link GraalJsScriptProcessorFactory} instance.
+     *
+     * <p>{@link Engine} holds no per-evaluation script state (each {@link Context}/evaluation
+     * gets its own fresh bindings — see {@link org.rulii.script.jsr223.JSR223ScriptProcessor
+     * #buildContext}) and is documented by GraalVM as safe to share across threads and Contexts;
+     * only the {@link Context.Builder} used to construct each {@link GraalJSScriptEngine} is
+     * NOT thread-safe, which is why that part remains per-call.
+     *
+     * @return the shared engine; never null.
+     */
+    private static Engine getSharedEngine() {
+        Engine engine = sharedEngine;
+
+        if (engine == null) {
+            synchronized (GraalJsScriptProcessorFactory.class) {
+                engine = sharedEngine;
+
+                if (engine == null) {
+                    engine = Engine.newBuilder("js")
+                            .option("engine.WarnInterpreterOnly", "false")
+                            .build();
+                    sharedEngine = engine;
+                }
+            }
+        }
+
+        return engine;
     }
 }

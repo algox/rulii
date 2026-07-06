@@ -80,7 +80,7 @@ public class RuleContext implements Immutator<RuleContext> {
     private final ExecutorService executorService;
     private final RuleRegistry ruleRegistry;
 
-    private final ScriptProcessorManager scriptProcessorManager = new ScriptProcessorManager();
+    private final ScriptProcessorManager scriptProcessorManager = ScriptProcessorManager.getInstance();
 
     private final Map<String, ScriptProcessor> scriptProcessors = Collections.synchronizedMap(new HashMap<>());
 

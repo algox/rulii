@@ -117,12 +117,12 @@ public class ASTMutator extends DeepCopier {
     public Java.Rvalue copyRvalue(Java.Rvalue subject) throws CompileException {
 
         if (subject instanceof Java.AmbiguousName an) {
-            if (getBindingsName().equals(an.identifiers[0]) && an.n > 1) return translateName(an);
+            if (getBindingsName().equals(an.identifiers[0]) && an.n == 2) return translateName(an);
         }
 
         if (subject instanceof Java.Assignment fa) {
             if (fa.lhs instanceof Java.AmbiguousName an) {
-                if (getBindingsName().equals(an.identifiers[0]) && an.n > 1) {
+                if (getBindingsName().equals(an.identifiers[0]) && an.n == 2) {
                     return translateAssignment(fa, an, super.copyRvalue(fa.rhs));
                 }
             }
@@ -130,7 +130,7 @@ public class ASTMutator extends DeepCopier {
 
         if (subject instanceof Java.Crement crement) {
             if (crement.operand instanceof Java.AmbiguousName an) {
-                if (getBindingsName().equals(an.identifiers[0]) && an.n > 1) {
+                if (getBindingsName().equals(an.identifiers[0]) && an.n == 2) {
                     throw new UnrulyException("Cannot increment/decrement a binding. Use ctx.setValue() instead.");
                 }
             }

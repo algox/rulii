@@ -185,7 +185,7 @@ public class JaninoScriptCompiler implements ScriptCompiler {
 
     /**
      * Returns the index of the last {@code ;} character in {@code s} that is not inside a
-     * string literal, character literal, line comment, or block comment.
+     * string literal, text block, character literal, line comment, or block comment.
      *
      * @param s the source text to scan.
      * @return the index of the last top-level semicolon, or {@code -1} if none is found.
@@ -193,16 +193,21 @@ public class JaninoScriptCompiler implements ScriptCompiler {
     private static int lastTopLevelSemicolon(String s) {
         int result = -1;
         boolean inString = false;
+        boolean inTextBlock = false;
         boolean inChar = false;
         boolean inLineComment = false;
         boolean inBlockComment = false;
         for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);
             char next = i + 1 < s.length() ? s.charAt(i + 1) : 0;
+            char next2 = i + 2 < s.length() ? s.charAt(i + 2) : 0;
             if (inLineComment) {
                 if (c == '\n') inLineComment = false;
             } else if (inBlockComment) {
                 if (c == '*' && next == '/') { inBlockComment = false; i++; }
+            } else if (inTextBlock) {
+                if (c == '\\') i++;
+                else if (c == '"' && next == '"' && next2 == '"') { inTextBlock = false; i += 2; }
             } else if (inString) {
                 if (c == '\\') i++;
                 else if (c == '"') inString = false;
@@ -212,6 +217,7 @@ public class JaninoScriptCompiler implements ScriptCompiler {
             } else {
                 if (c == '/' && next == '/') { inLineComment = true; i++; }
                 else if (c == '/' && next == '*') { inBlockComment = true; i++; }
+                else if (c == '"' && next == '"' && next2 == '"') { inTextBlock = true; i += 2; }
                 else if (c == '"') inString = true;
                 else if (c == '\'') inChar = true;
                 else if (c == ';') result = i;

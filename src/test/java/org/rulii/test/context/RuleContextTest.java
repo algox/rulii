@@ -278,7 +278,7 @@ public class RuleContextTest {
                 };
             }
         };
-        new ScriptProcessorManager().register(factory);
+        ScriptProcessorManager.getInstance().register(factory);
 
         RuleContext context = RuleContext.builder().build(Bindings.builder().standard());
 

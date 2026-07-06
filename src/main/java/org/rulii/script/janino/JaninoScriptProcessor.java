@@ -106,13 +106,21 @@ public class JaninoScriptProcessor implements ScriptProcessor {
         JITScript<T> jitScript = (JITScript<T>) script;
 
         try {
-            if (jitScript.getEvaluator() == null) {
-                JaninoScriptCompiler compiler = new JaninoScriptCompiler(languageName, bindingsName);
-                ScriptEvaluator evaluator = compiler.compile(jitScript.getScript(), ruleContext.getBindings(), jitScript.getReturnType());
-                jitScript.setEvaluator(evaluator);
+            ScriptEvaluator evaluator = jitScript.getEvaluator();
+
+            if (evaluator == null) {
+                synchronized (jitScript) {
+                    evaluator = jitScript.getEvaluator();
+
+                    if (evaluator == null) {
+                        JaninoScriptCompiler compiler = new JaninoScriptCompiler(languageName, bindingsName);
+                        evaluator = compiler.compile(jitScript.getScript(), ruleContext.getBindings(), jitScript.getReturnType());
+                        jitScript.setEvaluator(evaluator);
+                    }
+                }
             }
 
-            return (T) jitScript.getEvaluator().evaluate(new Object[] {ruleContext.getBindings()});
+            return (T) evaluator.evaluate(new Object[] {ruleContext.getBindings()});
         } catch (UnrulyException e) {
             throw e;
         } catch (Exception e) {

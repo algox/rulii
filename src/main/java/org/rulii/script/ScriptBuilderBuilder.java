@@ -44,7 +44,7 @@ public final class ScriptBuilderBuilder {
 
     /** Singleton instance. */
     private static final ScriptBuilderBuilder instance = new ScriptBuilderBuilder();
-    private static final ScriptProcessorManager scriptProcessorManager = new ScriptProcessorManager();
+    private static final ScriptProcessorManager scriptProcessorManager = ScriptProcessorManager.getInstance();
 
     private ScriptBuilderBuilder() {
         super();

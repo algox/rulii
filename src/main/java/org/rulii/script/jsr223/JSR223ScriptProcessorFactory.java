@@ -94,6 +94,6 @@ public class JSR223ScriptProcessorFactory implements ScriptProcessorFactory {
 
     @Override
     public ScriptCompiler getScriptCompiler() {
-        return new JSR223ScriptCompiler(factory.getScriptEngine());
+        return new JSR223ScriptCompiler(languageName, factory.getScriptEngine());
     }
 }

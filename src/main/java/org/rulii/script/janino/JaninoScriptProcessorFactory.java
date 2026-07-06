@@ -18,6 +18,7 @@
 package org.rulii.script.janino;
 
 import org.rulii.lib.spring.util.Assert;
+import org.rulii.lib.spring.util.ClassUtils;
 import org.rulii.script.ScriptCompiler;
 import org.rulii.script.ScriptOptions;
 import org.rulii.script.ScriptProcessor;
@@ -48,16 +49,8 @@ public class JaninoScriptProcessorFactory implements ScriptProcessorFactory {
     /** Language name used to register and look up this factory: {@value}. */
     public static final String LANGUAGE_NAME = "java";
 
-    private static boolean available;
-
-    static {
-        try {
-            Class.forName("org.codehaus.janino.SimpleCompiler");
-            available = true;
-        } catch (ClassNotFoundException e) {
-            available = false;
-        }
-    }
+    private static final boolean available =
+            ClassUtils.isPresent("org.codehaus.janino.SimpleCompiler", JaninoScriptProcessorFactory.class.getClassLoader());
 
     private final String languageName;
     private final String bindingsName;

@@ -25,6 +25,7 @@ import org.rulii.script.jsr223.JSR223ScriptProcessorFactory;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.concurrent.ConcurrentHashMap;
@@ -47,6 +48,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * to creating a generic {@link JSR223ScriptProcessorFactory} wrapping whatever
  * {@link javax.script.ScriptEngine} the JVM's {@link ScriptEngineManager} can provide.
  *
+ * <p>{@code ScriptProcessorManager} is a process-wide singleton — obtain the shared instance via
+ * {@link #getInstance()}. All registrations and lookups are visible to every caller in the JVM;
+ * there is exactly one registry, not one per caller.
+ *
  * @author Max Arulananthan
  * @since 1.2
  * @see ScriptProcessorFactory
@@ -58,13 +63,21 @@ public final class ScriptProcessorManager {
 
     private static final Map<String, ScriptProcessorFactory> factories = new ConcurrentHashMap<>();
     private static final ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
-    private static boolean initialized = false;
+    private static final Object LOCK = new Object();
+    private static final ScriptProcessorManager INSTANCE = new ScriptProcessorManager();
+    private static volatile boolean initialized = false;
+
+    private ScriptProcessorManager() {
+        super();
+    }
 
     /**
-     * Creates a new {@code ScriptProcessorManager}.
+     * Returns the single, process-wide {@code ScriptProcessorManager} instance.
+     *
+     * @return the singleton instance; never null.
      */
-    public ScriptProcessorManager() {
-        super();
+    public static ScriptProcessorManager getInstance() {
+        return INSTANCE;
     }
 
     /**
@@ -134,18 +147,43 @@ public final class ScriptProcessorManager {
     /**
      * Discovers and registers all available {@link ScriptProcessorFactory} implementations
      * via the {@link ServiceLoader} mechanism.  Called lazily on the first lookup.
+     *
+     * <p>Each provider is instantiated and registered independently — a single provider that
+     * fails to load (e.g. a stale {@code META-INF/services} entry throwing
+     * {@link java.util.ServiceConfigurationError}) is logged and skipped without preventing
+     * discovery of the remaining providers.
      */
     private void load() {
-        try {
-            ServiceLoader<ScriptProcessorFactory> loader = ServiceLoader.load(ScriptProcessorFactory.class);
+        if (initialized) return;
 
-            loader.forEach(factory -> {
-                if (factory.isAvailable()) register(factory);
-            });
-        } catch (Exception e) {
-            LOGGER.warn("Error loading ScriptProcessorFactory", e);
+        synchronized (LOCK) {
+            if (initialized) return;
+
+            try {
+                Iterator<ScriptProcessorFactory> iterator = ServiceLoader.load(ScriptProcessorFactory.class).iterator();
+
+                while (true) {
+                    ScriptProcessorFactory factory;
+
+                    try {
+                        if (!iterator.hasNext()) break;
+                        factory = iterator.next();
+                    } catch (Throwable e) {
+                        LOGGER.warn("Error loading a ScriptProcessorFactory provider; skipping it", e);
+                        continue;
+                    }
+
+                    try {
+                        if (factory.isAvailable()) register(factory);
+                    } catch (Throwable e) {
+                        LOGGER.warn("Error registering ScriptProcessorFactory [" + factory + "]", e);
+                    }
+                }
+            } catch (Throwable e) {
+                LOGGER.warn("Error loading ScriptProcessorFactory providers", e);
+            }
+
+            initialized = true;
         }
-
-        initialized = true;
     }
 }
