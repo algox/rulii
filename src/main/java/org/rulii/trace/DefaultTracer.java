@@ -18,6 +18,8 @@
 package org.rulii.trace;
 
 import org.rulii.bind.NamedScope;
+import org.rulii.lib.apache.commons.logging.Log;
+import org.rulii.lib.apache.commons.logging.LogFactory;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.action.Action;
 import org.rulii.model.condition.Condition;
@@ -32,8 +34,9 @@ import org.rulii.ruleset.RuleSet;
 import org.rulii.ruleset.RuleSetExecutionStatus;
 import org.rulii.ruleset.RuleSetListener;
 
-import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.function.Consumer;
 
 
 /**
@@ -42,15 +45,27 @@ import java.util.Set;
  * <p>Maintains separate listener sets for rules, rule sets, and rule flows and dispatches
  * each fire-method to the appropriate set.
  *
+ * <p>A listener that throws is logged and skipped, not propagated — a bug in one listener must
+ * never affect other listeners, nor be mistaken by the caller for a failure of the rule/ruleset/
+ * ruleflow execution that triggered the event.
+ *
+ * <p>A single {@code Tracer} instance is propagated to derived {@link org.rulii.context.RuleContext}s
+ * (e.g. across async rule-flow steps) and so can be fired from multiple threads concurrently;
+ * the listener sets are {@link java.util.concurrent.CopyOnWriteArraySet} for thread-safe
+ * add/remove/iteration without explicit locking — a good fit given listeners are typically
+ * registered up front and rarely added or removed once execution is underway.
+ *
  * @author Max Arulananthan
  * @since 1.0
  *
  */
 public class DefaultTracer implements Tracer {
 
-    private final Set<RuleListener> ruleListeners = new LinkedHashSet<>();
-    private final Set<RuleSetListener> ruleSetListeners = new LinkedHashSet<>();
-    private final Set<RuleFlowListener> ruleFlowListeners = new LinkedHashSet<>();
+    private static final Log logger = LogFactory.getLog(DefaultTracer.class);
+
+    private final Set<RuleListener> ruleListeners = new CopyOnWriteArraySet<>();
+    private final Set<RuleSetListener> ruleSetListeners = new CopyOnWriteArraySet<>();
+    private final Set<RuleFlowListener> ruleFlowListeners = new CopyOnWriteArraySet<>();
 
     public DefaultTracer() {
         super();
@@ -65,11 +80,12 @@ public class DefaultTracer implements Tracer {
     }
 
     @Override
-    public void removeListener(RuliiListener listener) {
+    public boolean removeListener(RuliiListener listener) {
         Assert.notNull(listener, "listener cannot be null.");
-        removeListener((RuleListener) listener);
-        removeListener((RuleSetListener) listener);
-        removeListener((RuleFlowListener) listener);
+        boolean removedFromRules = removeListener((RuleListener) listener);
+        boolean removedFromRuleSets = removeListener((RuleSetListener) listener);
+        boolean removedFromRuleFlows = removeListener((RuleFlowListener) listener);
+        return removedFromRules || removedFromRuleSets || removedFromRuleFlows;
     }
 
     @Override
@@ -117,122 +133,140 @@ public class DefaultTracer implements Tracer {
 
     @Override
     public void fireOnRuleStart(Rule rule) {
-        ruleListeners.forEach(listener -> listener.onRuleStart(rule));
+        fireEvent(ruleListeners, listener -> listener.onRuleStart(rule));
     }
 
     @Override
     public void fireOnRulePreConditionCheck(Rule rule, Condition condition, boolean result) {
-        ruleListeners.forEach(listener -> listener.onPreConditionCheck(rule, condition, result));
+        fireEvent(ruleListeners, listener -> listener.onPreConditionCheck(rule, condition, result));
     }
 
     @Override
     public void fireOnRuleConditionCheck(Rule rule, Condition condition, boolean result) {
-        ruleListeners.forEach(listener -> listener.onGiven(rule, condition, result));
+        fireEvent(ruleListeners, listener -> listener.onGiven(rule, condition, result));
     }
 
     @Override
     public void fireOnRuleAction(Rule rule, Action action) {
-        ruleListeners.forEach(listener -> listener.onThen(rule, action));
+        fireEvent(ruleListeners, listener -> listener.onThen(rule, action));
     }
 
     @Override
     public void fireOnRuleOtherwiseAction(Rule rule, Action action) {
-        ruleListeners.forEach(listener -> listener.onOtherwise(rule, action));
+        fireEvent(ruleListeners, listener -> listener.onOtherwise(rule, action));
     }
 
     @Override
     public void fireOnRuleError(Rule rule, Exception e) {
-        ruleListeners.forEach(listener -> listener.onRuleError(rule, e));
+        fireEvent(ruleListeners, listener -> listener.onRuleError(rule, e));
     }
 
     @Override
     public void fireOnRuleEnd(Rule rule, RuleResult result) {
-        ruleListeners.forEach(listener -> listener.onRuleEnd(rule, result));
+        fireEvent(ruleListeners, listener -> listener.onRuleEnd(rule, result));
     }
 
     @Override
     public void fireOnRuleSetStart(RuleSet<?> ruleSet, NamedScope ruleSetScope) {
-        ruleSetListeners.forEach(listener -> listener.onRuleSetStart(ruleSet, ruleSetScope));
+        fireEvent(ruleSetListeners, listener -> listener.onRuleSetStart(ruleSet, ruleSetScope));
     }
 
     @Override
     public void fireOnRuleSetPreConditionCheck(RuleSet<?> ruleSet, Condition condition, boolean result) {
-        ruleSetListeners.forEach(listener -> listener.onRuleSetPreConditionCheck(ruleSet, condition, result));
+        fireEvent(ruleSetListeners, listener -> listener.onRuleSetPreConditionCheck(ruleSet, condition, result));
     }
 
     @Override
     public void fireOnRuleSetInitializer(RuleSet<?> ruleSet, Action initializer) {
-        ruleSetListeners.forEach(listener -> listener.onRuleSetInitializer(ruleSet, initializer));
+        fireEvent(ruleSetListeners, listener -> listener.onRuleSetInitializer(ruleSet, initializer));
     }
 
     @Override
     public void fireOnRuleSetFinalizer(RuleSet<?> ruleSet, Action finalizer) {
-        ruleSetListeners.forEach(listener -> listener.onRuleSetFinalizer(ruleSet, finalizer));
+        fireEvent(ruleSetListeners, listener -> listener.onRuleSetFinalizer(ruleSet, finalizer));
     }
 
     @Override
     public void fireOnRuleSetRuleRun(RuleSet<?> ruleSet, Rule rule, RuleResult executionResult, RuleSetExecutionStatus status) {
-        ruleSetListeners.forEach(listener -> listener.onRuleSetRuleRun(ruleSet, rule, executionResult, status));
+        fireEvent(ruleSetListeners, listener -> listener.onRuleSetRuleRun(ruleSet, rule, executionResult, status));
     }
 
     @Override
     public void fireOnRuleSetStop(RuleSet<?> ruleSet, Condition stopCondition, RuleSetExecutionStatus status) {
-        ruleSetListeners.forEach(listener -> listener.onRuleSetStop(ruleSet, stopCondition, status));
+        fireEvent(ruleSetListeners, listener -> listener.onRuleSetStop(ruleSet, stopCondition, status));
     }
 
     @Override
     public void fireOnRuleSetResult(RuleSet<?> ruleSet, Function<?> resultExtractor, RuleSetExecutionStatus status) {
-        ruleSetListeners.forEach(listener -> listener.onRuleSetResult(ruleSet, resultExtractor, status));
+        fireEvent(ruleSetListeners, listener -> listener.onRuleSetResult(ruleSet, resultExtractor, status));
     }
 
     @Override
     public void fireOnRuleSetEnd(RuleSet<?> ruleSet, NamedScope ruleSetScope, RuleSetExecutionStatus status) {
-        ruleSetListeners.forEach(listener -> listener.onRuleSetEnd(ruleSet, ruleSetScope, status));
+        fireEvent(ruleSetListeners, listener -> listener.onRuleSetEnd(ruleSet, ruleSetScope, status));
     }
 
     @Override
     public void fireOnRuleSetError(RuleSet<?> ruleSet, RuleSetExecutionStatus status, Exception e) {
-        ruleSetListeners.forEach(listener -> listener.onRuleSetError(ruleSet, status, e));
+        fireEvent(ruleSetListeners, listener -> listener.onRuleSetError(ruleSet, status, e));
     }
 
     @Override
     public void fireOnRuleFlowStart(RuleFlow<?> ruleFlow, NamedScope ruleFlowScope) {
-        ruleFlowListeners.forEach(listener -> listener.onRuleFlowStart(ruleFlow, ruleFlowScope));
+        fireEvent(ruleFlowListeners, listener -> listener.onRuleFlowStart(ruleFlow, ruleFlowScope));
     }
 
     @Override
     public void fireOnRuleFlowCommandExecuted(RuleFlow<?> ruleFlow, RuleFlowCommand command) {
-        ruleFlowListeners.forEach(listener -> listener.onRuleFlowCommandExecuted(ruleFlow, command));
+        fireEvent(ruleFlowListeners, listener -> listener.onRuleFlowCommandExecuted(ruleFlow, command));
     }
 
     @Override
     public void fireOnRuleFlowEarlyExit(RuleFlow<?> ruleFlow, Object result) {
-        ruleFlowListeners.forEach(listener -> listener.onRuleFlowEarlyExit(ruleFlow, result));
+        fireEvent(ruleFlowListeners, listener -> listener.onRuleFlowEarlyExit(ruleFlow, result));
     }
 
     @Override
     public void fireOnRuleFlowExceptionHandled(RuleFlow<?> ruleFlow, Exception e, boolean stepLevel) {
-        ruleFlowListeners.forEach(listener -> listener.onRuleFlowExceptionHandled(ruleFlow, e, stepLevel));
+        fireEvent(ruleFlowListeners, listener -> listener.onRuleFlowExceptionHandled(ruleFlow, e, stepLevel));
     }
 
     @Override
     public void fireOnRuleFlowFinalizer(RuleFlow<?> ruleFlow, Action finalizer) {
-        ruleFlowListeners.forEach(listener -> listener.onRuleFlowFinalizer(ruleFlow, finalizer));
+        fireEvent(ruleFlowListeners, listener -> listener.onRuleFlowFinalizer(ruleFlow, finalizer));
     }
 
     @Override
     public void fireOnRuleFlowResult(RuleFlow<?> ruleFlow, Function<?> resultExtractor) {
-        ruleFlowListeners.forEach(listener -> listener.onRuleFlowResult(ruleFlow, resultExtractor));
+        fireEvent(ruleFlowListeners, listener -> listener.onRuleFlowResult(ruleFlow, resultExtractor));
     }
 
     @Override
     public void fireOnRuleFlowError(RuleFlow<?> ruleFlow, Exception e) {
-        ruleFlowListeners.forEach(listener -> listener.onRuleFlowError(ruleFlow, e));
+        fireEvent(ruleFlowListeners, listener -> listener.onRuleFlowError(ruleFlow, e));
     }
 
     @Override
     public void fireOnRuleFlowEnd(RuleFlow<?> ruleFlow, NamedScope ruleFlowScope) {
-        ruleFlowListeners.forEach(listener -> listener.onRuleFlowEnd(ruleFlow, ruleFlowScope));
+        fireEvent(ruleFlowListeners, listener -> listener.onRuleFlowEnd(ruleFlow, ruleFlowScope));
+    }
+
+    /**
+     * Notifies every listener in {@code listeners}, isolating each call so that one listener's
+     * exception cannot prevent the remaining listeners from being notified, and cannot propagate
+     * into the rule/ruleset/ruleflow execution that triggered the event.
+     *
+     * @param listeners the listeners to notify.
+     * @param action    the per-listener notification to perform.
+     */
+    private <T> void fireEvent(Set<T> listeners, Consumer<T> action) {
+        for (T listener : listeners) {
+            try {
+                action.accept(listener);
+            } catch (Exception e) {
+                logger.warn("Tracer listener [" + listener + "] threw an exception handling an event. Ignoring.", e);
+            }
+        }
     }
 
     @Override

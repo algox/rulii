@@ -77,9 +77,14 @@ class DefaultRuleFlowExecutionStrategy<T> extends RuleFlowExecutionStrategyTempl
             ruleContext.getTracer().fireOnRuleFlowError(ruleFlow, e);
             throw e;
         } finally {
-            removeFlowScope(ruleContext, ruleFlowScope);
-            ruleContext.getTracer().fireOnRuleFlowEnd(ruleFlow, ruleFlowScope);
-            if (getLogger().isDebugEnabled()) getLogger().debug("RuleFlow [" + ruleFlow.getName() + "] execution finished. Scope cleared.");
+            // fireOnRuleFlowEnd is documented to always fire - nest removeFlowScope's own finally
+            // so a scope-removal failure can't prevent the fire call from running.
+            try {
+                removeFlowScope(ruleContext, ruleFlowScope);
+            } finally {
+                ruleContext.getTracer().fireOnRuleFlowEnd(ruleFlow, ruleFlowScope);
+                if (getLogger().isDebugEnabled()) getLogger().debug("RuleFlow [" + ruleFlow.getName() + "] execution finished. Scope cleared.");
+            }
         }
     }
 

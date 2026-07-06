@@ -41,6 +41,14 @@ import org.rulii.validation.rules.notnull.NotNullValidationRule;
 import org.rulii.validation.rules.numeric.NumericValidationRule;
 import org.rulii.validation.rules.uppercase.UpperCaseValidationRule;
 
+import org.rulii.trace.DefaultTracer;
+import org.rulii.trace.RuliiListener;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -617,5 +625,141 @@ public class TraceTest {
         context.getTracer().addListener(listener);
         Assertions.assertTrue(context.getTracer().removeListener(listener));
         Assertions.assertFalse(context.getTracer().removeListener(listener));
+    }
+
+    @Test
+    public void testRemoveListener_ruliiListener_returnsSuccessSignal() {
+        RuleContext context = RuleContext.builder().build();
+        RuliiListener listener = new RuliiListener() {
+        };
+
+        context.getTracer().addListener(listener);
+        Assertions.assertTrue(context.getTracer().removeListener(listener));
+        Assertions.assertFalse(context.getTracer().removeListener(listener));
+    }
+
+    @Test
+    public void testThrowingListener_onRuleStart_doesNotAbortRuleExecution() {
+        Rule rule = Rule.builder()
+                .name("Rule1")
+                .description("Test Rule")
+                .given(Conditions.condition((Boolean conditionFlag) -> conditionFlag))
+                .then(Actions.action((Binding<Integer> value) -> value.setValue(value.getValue() + 100)))
+                .build();
+
+        RuleContext context = RuleContext.builder()
+                .with(conditionFlag -> true, value -> 0)
+                .build();
+
+        context.getTracer().addListener(new RuleListener() {
+            @Override
+            public void onRuleStart(Rule rule) {
+                throw new RuntimeException("boom - a listener bug must not affect rule execution");
+            }
+        });
+
+        // A broken listener must not prevent the rule from running, nor surface as a rule failure.
+        RuleResult result = Assertions.assertDoesNotThrow(() -> rule.run(context));
+        Assertions.assertEquals(100, (int) context.getBindings().getValue("value"));
+    }
+
+    @Test
+    public void testThrowingListener_onGiven_doesNotReportRuleAsErrored() {
+        Rule rule = Rule.builder()
+                .name("Rule1")
+                .description("Test Rule")
+                .given(Conditions.condition((Boolean conditionFlag) -> conditionFlag))
+                .then(Actions.action((Binding<Integer> value) -> value.setValue(value.getValue() + 100)))
+                .build();
+
+        RuleContext context = RuleContext.builder()
+                .with(conditionFlag -> true, value -> 0)
+                .build();
+
+        context.getTracer().addListener(new RuleListener() {
+            @Override
+            public void onGiven(Rule rule, Condition condition, boolean result) {
+                throw new RuntimeException("boom - a listener bug must not turn a PASS into an ERROR");
+            }
+        });
+
+        Assertions.assertDoesNotThrow(() -> rule.run(context));
+        Assertions.assertEquals(100, (int) context.getBindings().getValue("value"));
+    }
+
+    @Test
+    public void testThrowingListener_doesNotPreventOtherListenersFromBeingNotified() {
+        Rule rule = Rule.builder()
+                .name("Rule1")
+                .description("Test Rule")
+                .given(Conditions.condition((Boolean conditionFlag) -> conditionFlag))
+                .then(Actions.action((Binding<Integer> value) -> value.setValue(value.getValue() + 100)))
+                .build();
+
+        RuleContext context = RuleContext.builder()
+                .with(conditionFlag -> true, value -> 0)
+                .build();
+
+        AtomicBoolean secondListenerNotified = new AtomicBoolean(false);
+
+        context.getTracer().addListener(new RuleListener() {
+            @Override
+            public void onRuleEnd(Rule rule, RuleResult result) {
+                throw new RuntimeException("boom - first listener throws");
+            }
+        });
+        context.getTracer().addListener(new RuleListener() {
+            @Override
+            public void onRuleEnd(Rule rule, RuleResult result) {
+                secondListenerNotified.set(true);
+            }
+        });
+
+        rule.run(context);
+        Assertions.assertTrue(secondListenerNotified.get());
+    }
+
+    @Test
+    public void testConcurrentFireAndAddRemoveListener_doesNotThrow() throws Exception {
+        // A single Tracer instance is propagated to derived RuleContexts and can be fired from
+        // multiple threads (e.g. across async rule-flow steps) - this documents that concurrent
+        // firing and concurrent add/remove of listeners don't corrupt the underlying listener set.
+        DefaultTracer tracer = new DefaultTracer();
+        Rule rule = Rule.builder()
+                .name("Rule1")
+                .description("Test Rule")
+                .given(Conditions.condition(() -> true))
+                .build();
+
+        int threadCount = 8;
+        int iterations = 2000;
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        AtomicBoolean failed = new AtomicBoolean(false);
+        List<Future<?>> futures = new ArrayList<>();
+
+        for (int t = 0; t < threadCount; t++) {
+            boolean fireThread = t % 2 == 0;
+            futures.add(executor.submit(() -> {
+                try {
+                    for (int i = 0; i < iterations; i++) {
+                        if (fireThread) {
+                            tracer.fireOnRuleStart(rule);
+                        } else {
+                            RuleListener listener = new RuleListener() {
+                            };
+                            tracer.addListener(listener);
+                            tracer.removeListener(listener);
+                        }
+                    }
+                } catch (Exception e) {
+                    failed.set(true);
+                }
+            }));
+        }
+
+        for (Future<?> future : futures) future.get();
+        executor.shutdown();
+
+        Assertions.assertFalse(failed.get());
     }
 }

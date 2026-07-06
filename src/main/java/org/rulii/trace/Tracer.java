@@ -47,6 +47,14 @@ public interface Tracer {
     /**
      * Adds a RuliiListener to receive events related to rule and ruleset execution within the framework.
      *
+     * <p>Registers the listener for all three event categories (rule, rule set, and rule flow) in
+     * one call. Note that Java resolves overloaded methods by the argument's <em>static</em> type:
+     * if a listener implements {@link RuliiListener} but is passed as a narrower-typed reference
+     * (e.g. a variable declared as {@link RuleListener}), calling {@code addListener(...)} on that
+     * reference binds to {@link #addListener(RuleListener)} instead, silently registering it for
+     * only that one event category. Reference the listener as a {@code RuliiListener} (or cast
+     * explicitly) to ensure it's registered for all three.
+     *
      * @param listener the RuliiListener to be added
      */
     void addListener(RuliiListener listener);
@@ -55,11 +63,18 @@ public interface Tracer {
      * Removes the specified RuliiListener from receiving events related to rule and ruleset execution within the framework.
      *
      * @param listener the RuliiListener to be removed from receiving events
+     * @return true if the listener was registered under at least one event category and was
+     *         removed from it; false if it was not registered under any of them.
      */
-    void removeListener(RuliiListener listener);
+    boolean removeListener(RuliiListener listener);
 
     /**
      * Adds a RuleListener to receive events related to rule execution within the framework.
+     *
+     * <p>If {@code listener} also implements {@link RuliiListener} but is referenced through a
+     * {@code RuleListener}-typed variable, this overload is selected (per Java's static overload
+     * resolution) and the listener is registered only for rule events — see
+     * {@link #addListener(RuliiListener)} for how to register it for all event categories.
      *
      * @param listener the RuleListener to be added
      */
@@ -76,6 +91,11 @@ public interface Tracer {
     /**
      * Adds a RuleSetListener to receive events related to the execution of RuleSets.
      *
+     * <p>If {@code listener} also implements {@link RuliiListener} but is referenced through a
+     * {@code RuleSetListener}-typed variable, this overload is selected (per Java's static overload
+     * resolution) and the listener is registered only for rule set events — see
+     * {@link #addListener(RuliiListener)} for how to register it for all event categories.
+     *
      * @param listener the RuleSetListener to be added
      */
     void addListener(RuleSetListener listener);
@@ -90,6 +110,11 @@ public interface Tracer {
 
     /**
      * Adds a RuleFlowListener to receive events related to the execution of RuleFlows.
+     *
+     * <p>If {@code listener} also implements {@link RuliiListener} but is referenced through a
+     * {@code RuleFlowListener}-typed variable, this overload is selected (per Java's static overload
+     * resolution) and the listener is registered only for rule flow events — see
+     * {@link #addListener(RuliiListener)} for how to register it for all event categories.
      *
      * @param listener the RuleFlowListener to be added; must not be null.
      */
