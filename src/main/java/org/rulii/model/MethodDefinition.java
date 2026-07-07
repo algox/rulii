@@ -18,6 +18,7 @@
 package org.rulii.model;
 
 import org.rulii.annotation.Description;
+import org.rulii.lib.spring.core.annotation.AnnotationUtils;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.util.reflect.ReflectionUtils;
 
@@ -114,7 +115,7 @@ public final class MethodDefinition implements Definition {
 
     private static MethodDefinition loadInternal(Method method, boolean containsGenericInfo, SourceDefinition sourceDefinition) {
         Assert.notNull(method, "method cannot be null");
-        Description descriptionAnnotation = method.getAnnotation(Description.class);
+        Description descriptionAnnotation = AnnotationUtils.getAnnotation(method, Description.class);
         return new MethodDefinition(method, containsGenericInfo,
                 descriptionAnnotation != null ? descriptionAnnotation.value() : null, sourceDefinition,
                 ReturnTypeDefinition.load(method, sourceDefinition),

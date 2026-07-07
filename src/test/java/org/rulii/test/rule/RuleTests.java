@@ -514,6 +514,45 @@ public class RuleTests {
         assertEquals(result.status(), RuleExecutionStatus.PASS);
         assertTrue(bindings.getValue("violations", RuleViolations.class).isEmpty());
     }
+
+    @Test
+    public void test48() {
+        // TestRule38 overrides and re-annotates TestRule38Base's @Given method. This must not be
+        // treated as two candidate methods; the override should win.
+        Rule rule = Rule.builder().build(TestRule38.class);
+        Bindings bindings = Bindings.builder().standard();
+        bindings.bind("flag", true);
+
+        RuleResult result = rule.run(bindings);
+
+        assertEquals(result.status(), RuleExecutionStatus.FAIL);
+    }
+
+    @Test
+    public void test49() {
+        // @PreCondition/@Given/@Then/@Otherwise methods should be named after the actual method,
+        // not the literal annotation default ("preCondition"/"given"/"then"/"otherwise").
+        Rule rule = Rule.builder().build(TestRule39.class);
+
+        assertEquals("checkApplicable", rule.getPreCondition().getName());
+        assertEquals("isEligible", rule.getCondition().getName());
+        assertEquals("applyDiscount", rule.getActions().get(0).getName());
+        assertEquals("logRejection", rule.getOtherwiseAction().getName());
+    }
+
+    @Test
+    public void test50() {
+        // TestRule40's given-method is marked with @AuditedGiven, a custom annotation composed by
+        // meta-annotating with @Given, instead of @Given directly. This only compiles (and only
+        // resolves at runtime) once @Given's @Target includes ANNOTATION_TYPE.
+        Rule rule = Rule.builder().build(TestRule40.class);
+        Bindings bindings = Bindings.builder().standard();
+        bindings.bind("flag", true);
+
+        RuleResult result = rule.run(bindings);
+
+        assertEquals(result.status(), RuleExecutionStatus.PASS);
+    }
 }
 
 

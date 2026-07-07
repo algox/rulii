@@ -387,7 +387,8 @@ public final class ActionBuilderBuilder {
 
     private static String getAnnotationNameAttribute(Method method, Annotation action) {
         Map<String, Object> attribs = AnnotationUtils.getAnnotationAttributes(action);
-        String name = attribs.containsKey("name") ? attribs.get("name").toString() : org.rulii.annotation.Action.NOT_APPLICABLE;
-        return org.rulii.annotation.Action.NOT_APPLICABLE.equals(name) ? method.getName() : name;
+        Object name = attribs.get("name");
+        Object defaultValue = AnnotationUtils.getDefaultValue(action, "name");
+        return (name == null || name.equals(defaultValue)) ? method.getName() : name.toString();
     }
 }

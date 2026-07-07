@@ -25,16 +25,22 @@ import java.lang.annotation.*;
  * @author Max Arulananthan
  * @since 1.0
  */
-@Target({ElementType.METHOD})
+@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Inherited
 public @interface Then {
 
     String name() default "then";
 
     /**
      * Get the order of the Rule Action method.
+     *
+     * <p>Actions are sorted by this value. When two or more actions share the same order
+     * (including the shared default), their relative execution order is <em>unspecified</em> —
+     * it happens to follow declaration order on the JDK implementations in common use today, but
+     * that is an artifact of {@link Class#getDeclaredMethods()}, which the JDK documents as
+     * returning elements in no particular order. Assign distinct {@code order()} values to any
+     * actions whose relative sequence matters.
      *
      * @return the order of the Rule Action (then) method.
      */

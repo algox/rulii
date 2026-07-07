@@ -131,7 +131,7 @@ public final class ParameterDefinition implements Definition {
         ParameterDefinition[] result = new ParameterDefinition[method.getParameterTypes().length];
 
         for (int i = 0; i < method.getGenericParameterTypes().length; i++) {
-            Description descriptionAnnotation = method.getParameters()[i].getAnnotation(Description.class);
+            Description descriptionAnnotation = AnnotationUtils.getAnnotation(method.getParameters()[i], Description.class);
             Param param = AnnotationUtils.getAnnotation(method.getParameters()[i], Param.class);
             Annotation[] parameterAnnotations = method.getParameterAnnotations()[i];
             result[i] = new ParameterDefinition(i, parameterNames[i], method.getGenericParameterTypes()[i],
@@ -150,7 +150,7 @@ public final class ParameterDefinition implements Definition {
 
     private static Class<? extends BindingMatchingStrategy> getMatchUsing(Param param) {
         if (param == null) return null;
-        return !Param.NoOpBindingMatchingStrategy.class.equals(param.matchUsing()) ? param.matchUsing() : null;
+        return !BindingMatchingStrategy.class.equals(param.matchUsing()) ? param.matchUsing() : null;
     }
 
     /**

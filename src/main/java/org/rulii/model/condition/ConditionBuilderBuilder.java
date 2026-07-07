@@ -374,7 +374,8 @@ public final class ConditionBuilderBuilder {
 
     private static String getAnnotationNameAttribute(Method method, Annotation condition) {
         Map<String, Object> attribs = AnnotationUtils.getAnnotationAttributes(condition);
-        String name = attribs.containsKey("name") ? attribs.get("name").toString() : org.rulii.annotation.Condition.NOT_APPLICABLE;
-        return org.rulii.annotation.Condition.NOT_APPLICABLE.equals(name) ? method.getName() : name;
+        Object name = attribs.get("name");
+        Object defaultValue = AnnotationUtils.getDefaultValue(condition, "name");
+        return (name == null || name.equals(defaultValue)) ? method.getName() : name.toString();
     }
 }

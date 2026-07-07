@@ -41,12 +41,13 @@ import java.lang.annotation.*;
  *    }
  *
  *    {@code @PreCondition}
- *    public boolean given(Date age) {
+ *    public boolean isApplicable(Date age) {
  *        // Pre-condition logic
+ *        return true;
  *    }
  *
  *    {@code @Given}
- *    public boolean given(Date age) {
+ *    public boolean when(Date age) {
  *      // Rule Logic
  *      return true;
  *    }
@@ -57,7 +58,7 @@ import java.lang.annotation.*;
  *    }
  *
  *    {@code @Otherwise}
- *    public void then(Date age) {
+ *    public void otherwise(Date age) {
  *      // Else Action
  *    }
  * }
@@ -72,7 +73,6 @@ import java.lang.annotation.*;
  */
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-@Inherited
 @Documented
 public @interface Rule {
 

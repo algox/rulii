@@ -23,6 +23,10 @@ import org.rulii.bind.Bindings;
 import org.rulii.bind.match.MatchByTypeMatchingStrategy;
 import org.rulii.context.RuleContext;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -733,6 +737,81 @@ public final class TestRules {
             assertNotNull(ctx);
             assertNotNull(bindings);
             bindings.bind("newBinding", 123);
+        }
+    }
+
+    public static class TestRule38Base {
+
+        public TestRule38Base() {
+            super();
+        }
+
+        @Given
+        public boolean when(boolean flag) {
+            return flag;
+        }
+    }
+
+    @Rule()
+    public static class TestRule38 extends TestRule38Base {
+
+        public TestRule38() {
+            super();
+        }
+
+        @Given
+        @Override
+        public boolean when(boolean flag) {
+            return !flag;
+        }
+    }
+
+    @Rule()
+    public static class TestRule39 {
+
+        public TestRule39() {
+            super();
+        }
+
+        @PreCondition
+        public boolean checkApplicable(boolean flag) {
+            return flag;
+        }
+
+        @Given
+        public boolean isEligible(boolean flag) {
+            return flag;
+        }
+
+        @Then
+        public void applyDiscount(Binding<String> someValue) {
+            assertNotNull(someValue);
+            someValue.setValue(someValue.getValue() + "zzz");
+        }
+
+        @Otherwise
+        public void logRejection(Binding<String> someValue) {
+            assertNotNull(someValue);
+            someValue.setValue(someValue.getValue() + "yyy");
+        }
+    }
+
+    @Given
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.METHOD)
+    public @interface AuditedGiven {
+    }
+
+    @Rule()
+    public static class TestRule40 {
+
+        public TestRule40() {
+            super();
+        }
+
+        @AuditedGiven
+        public boolean when(boolean flag) {
+            return flag;
         }
     }
 }

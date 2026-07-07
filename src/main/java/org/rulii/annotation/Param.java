@@ -17,8 +17,6 @@
  */
 package org.rulii.annotation;
 
-import org.rulii.bind.Bindings;
-import org.rulii.bind.match.BindingMatch;
 import org.rulii.bind.match.BindingMatchingStrategy;
 import org.rulii.lib.spring.core.annotation.AliasFor;
 
@@ -27,8 +25,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.lang.reflect.Type;
-import java.util.List;
 
 /**
  * Annotation which indicates that the method parameter's name should be taken from this annotation.
@@ -43,7 +39,7 @@ import java.util.List;
 @Documented
 public @interface Param {
 
-    String NOT_APPLICABLE = "N/A";
+    String NOT_APPLICABLE = "org.rulii.annotation.Param#NOT_APPLICABLE";
 
     /**
      * Parameter name.
@@ -72,17 +68,5 @@ public @interface Param {
      *
      * @return Binding Strategy to use.
      */
-    Class<? extends BindingMatchingStrategy> matchUsing() default NoOpBindingMatchingStrategy.class;
-
-    class NoOpBindingMatchingStrategy implements BindingMatchingStrategy {
-
-        public NoOpBindingMatchingStrategy() {
-            super();
-        }
-
-        @Override
-        public <T> List<BindingMatch<T>> match(Bindings bindings, String name, Type type, boolean lambda) {
-            throw new UnsupportedOperationException();
-        }
-    }
+    Class<? extends BindingMatchingStrategy> matchUsing() default BindingMatchingStrategy.class;
 }

@@ -18,6 +18,7 @@
 package org.rulii.model;
 
 import org.rulii.annotation.Description;
+import org.rulii.lib.spring.core.annotation.AnnotationUtils;
 import org.rulii.lib.spring.util.Assert;
 
 import java.lang.annotation.Annotation;
@@ -54,7 +55,7 @@ public class ReturnTypeDefinition implements Definition {
     }
 
     private static ReturnTypeDefinition loadInternal(Method method, SourceDefinition sourceDefinition) {
-        Description descriptionAnnotation = method.getAnnotatedReturnType().getAnnotation(Description.class);
+        Description descriptionAnnotation = AnnotationUtils.getAnnotation(method.getAnnotatedReturnType(), Description.class);
         return new ReturnTypeDefinition(descriptionAnnotation != null ? descriptionAnnotation.value() : null,
                 method.getGenericReturnType(), method.getAnnotatedReturnType(), sourceDefinition, method.getDeclaredAnnotations());
     }

@@ -33,11 +33,10 @@ import java.lang.annotation.Target;
  */
 @Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-@Inherited
 @Documented
 public @interface Condition {
 
-    String NOT_APPLICABLE = "N/A";
+    String NOT_APPLICABLE = AnnotationConstants.NOT_APPLICABLE;
 
     /**
      * Name of the condition. If one isn't provided then it defaults to the method's name.

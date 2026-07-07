@@ -412,6 +412,14 @@ public class ParameterDefinitionTest {
         Assertions.assertNotNull(m);
     }
 
+    @Test
+    public void testMethodParamDefinition12() throws NoSuchMethodException {
+        Method m = TestClass.class.getDeclaredMethod("testMethod7", Integer.class);
+        List<ParameterDefinition> parameters = ParameterDefinition.load(m, true, SourceDefinition.build());
+        // An explicit @Param(defaultValue = "N/A") must be honored literally, not treated as unset.
+        Assertions.assertEquals("N/A", parameters.get(0).getDefaultValueText());
+    }
+
     private static class TestClass {
 
         @Description("Test Method 0")
@@ -441,5 +449,7 @@ public class ParameterDefinitionTest {
         public void testMethod6(@Param(value = "salary1", defaultValue = "0.00") BigDecimal arg1,
                                 @Param(value = "salary2", matchUsing = MatchByTypeMatchingStrategy.class) Binding<BigDecimal> arg2,
                                 Optional<String> firstName) {}
+
+        public void testMethod7(@Param(defaultValue = "N/A") Integer arg1) {}
     }
 }

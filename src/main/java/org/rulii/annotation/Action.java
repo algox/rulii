@@ -31,11 +31,10 @@ import java.lang.annotation.*;
  */
 @Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-@Inherited
 @Documented
 public @interface Action {
 
-    String NOT_APPLICABLE = "N/A";
+    String NOT_APPLICABLE = AnnotationConstants.NOT_APPLICABLE;
 
     /**
      * Name of the action. If one isn't provided then it defaults to the method's name.
@@ -46,6 +45,13 @@ public @interface Action {
 
     /**
      * Get the order of the Rule Action method.
+     *
+     * <p>Actions are sorted by this value. When two or more actions share the same order
+     * (including the shared default), their relative execution order is <em>unspecified</em> —
+     * it happens to follow declaration order on the JDK implementations in common use today, but
+     * that is an artifact of {@link Class#getDeclaredMethods()}, which the JDK documents as
+     * returning elements in no particular order. Assign distinct {@code order()} values to any
+     * actions whose relative sequence matters.
      *
      * @return the order of the Rule Action (then) method.
      */

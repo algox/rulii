@@ -268,13 +268,9 @@ public final class ReflectionUtils {
         Assert.notNull(clazz, "clazz cannot be null.");
         Assert.notNull(clazz, "annotationClazz cannot be null.");
 
-        List<Method> result = new ArrayList<>();
+        Method[] methods = org.rulii.lib.spring.util.ReflectionUtils.getUniqueDeclaredMethods(clazz, filter::test);
 
-        org.rulii.lib.spring.util.ReflectionUtils.doWithMethods(clazz, m -> {
-            if (filter.test(m)) result.add(m);
-        });
-
-        return result;
+        return new ArrayList<>(Arrays.asList(methods));
     }
 
     /**

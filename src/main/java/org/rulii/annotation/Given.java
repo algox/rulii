@@ -25,7 +25,7 @@ import java.lang.annotation.*;
  * @author Max Arulananthan
  * @since 1.0
  */
-@Target({ElementType.METHOD})
+@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface Given {

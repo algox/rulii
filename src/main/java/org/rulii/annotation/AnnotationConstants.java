@@ -17,18 +17,19 @@
  */
 package org.rulii.annotation;
 
-import java.lang.annotation.*;
-
 /**
- * Annotation to mark the Otherwise method of a Rule. It is the Else condition in a Rule.
+ * Single source of truth for the "unset name" sentinel shared by {@link Action}, {@link Condition}
+ * and {@link Function}. Each of those annotations still exposes its own public {@code NOT_APPLICABLE}
+ * constant for API compatibility; they all reference this value instead of redeclaring the literal.
  *
  * @author Max Arulananthan
- * @since 1.0
+ * @since 2.0
  */
-@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
-@Retention(RetentionPolicy.RUNTIME)
-@Documented
-public @interface Otherwise {
+final class AnnotationConstants {
 
-    String name() default "otherwise";
+    static final String NOT_APPLICABLE = "N/A";
+
+    private AnnotationConstants() {
+        super();
+    }
 }
