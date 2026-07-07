@@ -708,4 +708,65 @@ public class LambdaRuleTests {
         assertEquals(result.status(), RuleExecutionStatus.PASS);
         assertEquals(321, (int) bindings.getValue("newBinding"));
     }
+
+    @Test
+    public void test46() {
+        // A composite condition (and/or/xor) is not Definable, so its getDefinition() is null,
+        // which used to leave RuleDefinition's ruleClass/conditionDefinition null and NPE in
+        // equals()/isStatic().
+        Condition composite = condition((Boolean flag) -> flag).and(condition(() -> true));
+        Rule rule = Rule.builder().name("TestRule46").given(composite).build();
+
+        assertFalse(rule.getDefinition().isStatic());
+        assertEquals(rule.getDefinition(), rule.getDefinition());
+
+        Bindings bindings = Bindings.builder().standard();
+        bindings.bind("flag", true);
+        RuleResult result = rule.run(bindings);
+        assertEquals(result.status(), RuleExecutionStatus.PASS);
+    }
+
+    @Test
+    public void test47() {
+        // Two distinct lambda-based rules built in this same class share a ruleClass (every
+        // lambda's declaring class is the enclosing class), so RuleDefinition.equals()/hashCode()
+        // must not rely on ruleClass alone or these two clearly-different rules collide.
+        Rule ruleA = Rule.builder().name("ruleA").given(condition((Integer x) -> x > 1)).build();
+        Rule ruleB = Rule.builder().name("ruleB").given(condition((Integer x) -> x < 0)).build();
+
+        assertNotEquals(ruleA.getDefinition(), ruleB.getDefinition());
+        assertNotEquals(ruleA.getDefinition().hashCode(), ruleB.getDefinition().hashCode());
+    }
+
+    @Test
+    public void test48() {
+        // A Condition failure must not be wrapped in UnrulyException three times (method-invocation
+        // layer + rule-phase layer + a redundant top-level "Error trying to run Rule" layer).
+        Rule rule = Rule.builder().name("TestRule48")
+                .given(condition((Boolean flag) -> {
+                    throw new IllegalArgumentException("boom");
+                }))
+                .build();
+
+        UnrulyException outer = assertThrows(UnrulyException.class, () -> rule.run(flag -> true));
+        Throwable inner = outer.getCause();
+        assertInstanceOf(UnrulyException.class, inner);
+        assertInstanceOf(IllegalArgumentException.class, inner.getCause());
+        assertEquals("boom", inner.getCause().getMessage());
+    }
+
+    @Test
+    public void test49() {
+        // Reusing a builder after build() must not retroactively mutate an already-built Rule's
+        // actions -- build() must snapshot the then-actions rather than just wrap the builder's
+        // own live list.
+        var builder = Rule.builder().name("TestRule49")
+                .given(condition(() -> true))
+                .then(action(() -> {}));
+        Rule rule1 = builder.build();
+
+        builder.then(action(() -> {}));
+
+        assertEquals(1, rule1.getActions().size());
+    }
 }

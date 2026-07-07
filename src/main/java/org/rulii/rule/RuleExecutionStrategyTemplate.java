@@ -91,6 +91,20 @@ public abstract class RuleExecutionStrategyTemplate implements RuleExecutionStra
     }
 
     /**
+     * Checks whether the rule's pre-condition and given condition both pass, without executing
+     * any Then/Otherwise actions.
+     *
+     * @param rule the rule to check.
+     * @param ruleContext the context in which the check is performed.
+     * @return true if the pre-condition (if any) and the given condition both pass; false otherwise.
+     */
+    @Override
+    public boolean isTrue(Rule rule, RuleContext ruleContext) {
+        if (!checkPreCondition(rule, ruleContext)) return false;
+        return checkCondition(rule, ruleContext);
+    }
+
+    /**
      * Executes the actions associated with the rule in the given rule context.
      *
      * @param rule the rule that is being executed.

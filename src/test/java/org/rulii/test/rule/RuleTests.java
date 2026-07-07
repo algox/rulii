@@ -23,6 +23,7 @@ import org.rulii.bind.Bindings;
 import org.rulii.context.RuleContext;
 import org.rulii.model.UnrulyException;
 import org.rulii.model.condition.Conditions;
+import org.rulii.rule.DefaultRuleExecutionStrategy;
 import org.rulii.rule.Rule;
 import org.rulii.rule.RuleExecutionStatus;
 import org.rulii.rule.RuleResult;
@@ -552,6 +553,17 @@ public class RuleTests {
         RuleResult result = rule.run(bindings);
 
         assertEquals(result.status(), RuleExecutionStatus.PASS);
+    }
+
+    @Test
+    public void test51() {
+        // DefaultRuleExecutionStrategy.run() is reachable directly via the public
+        // RuleExecutionStrategy interface, not just through RulingClass -- it must validate
+        // "rule" the same way every sibling method in the template hierarchy does.
+        RuleContext context = RuleContext.builder().build();
+        IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+                () -> new DefaultRuleExecutionStrategy().run(null, context));
+        assertEquals("rule cannot be null.", e.getMessage());
     }
 }
 

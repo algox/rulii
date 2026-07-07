@@ -173,7 +173,7 @@ public final class RuleDefinition implements Definition {
      * @return true if statically implemented; false otherwise.
      */
     public boolean isStatic() {
-        return conditionDefinition.isStatic();
+        return conditionDefinition != null && conditionDefinition.isStatic();
     }
 
     @Override
@@ -181,12 +181,12 @@ public final class RuleDefinition implements Definition {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         RuleDefinition that = (RuleDefinition) o;
-        return ruleClass.equals(that.ruleClass);
+        return Objects.equals(ruleClass, that.ruleClass) && Objects.equals(name, that.name);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ruleClass);
+        return Objects.hash(ruleClass, name);
     }
 
     @Override

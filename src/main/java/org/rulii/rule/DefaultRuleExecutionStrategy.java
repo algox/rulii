@@ -54,6 +54,7 @@ public class DefaultRuleExecutionStrategy extends RuleExecutionStrategyTemplate 
      */
     @Override
     public RuleResult run(Rule rule, RuleContext ruleContext) throws UnrulyException {
+        Assert.notNull(rule, "rule cannot be null.");
         Assert.notNull(ruleContext, "context cannot be null");
 
         // Notify Rule start
@@ -89,6 +90,8 @@ public class DefaultRuleExecutionStrategy extends RuleExecutionStrategyTemplate 
         } catch (Exception e) {
             if (logger.isDebugEnabled()) logger.debug("Rule [" + rule.getName() + "] failed error [" + e.getMessage() + "]");
             ruleContext.getTracer().fireOnRuleError(rule, e);
+            result = new RuleResult(rule, RuleExecutionStatus.ERROR);
+            if (e instanceof UnrulyException) throw (UnrulyException) e;
             throw new UnrulyException("Error trying to run Rule [" + rule.getName() + "]", e);
         } finally {
             // Notify Rule end

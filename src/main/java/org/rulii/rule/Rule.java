@@ -49,8 +49,13 @@ public interface Rule extends Runnable<RuleResult>, Identifiable, Definable<Rule
     }
 
     /**
-     * Executes the Rule Condition based on the RuleContext. If the result is true then any associated Actions are executed;
-     * if the result is false then the Otherwise condition will be executed (if one exists).
+     * Executes the Rule against the given RuleContext.
+     *
+     * The Pre-Condition (if any) is checked first; if it fails, the Rule is skipped entirely (status
+     * SKIPPED) and neither the Actions nor the Otherwise action are executed. Otherwise, the given
+     * Condition is checked: if it passes, the Rule's Actions are executed (status PASS); if it fails,
+     * the Otherwise action is executed instead, if one exists (status FAIL). If an error occurs at any
+     * stage, the Rule's status is ERROR and the error is (re)thrown as an UnrulyException.
      *
      * @param ruleContext used to derive the parameters required for this Rule.
      * @return execution status of the rule.
@@ -60,8 +65,7 @@ public interface Rule extends Runnable<RuleResult>, Identifiable, Definable<Rule
     RuleResult run(RuleContext ruleContext) throws UnrulyException;
 
     default boolean isTrue(RuleContext ruleContext) {
-        if (getPreCondition() != null && !getPreCondition().run(ruleContext)) return false;
-        return getCondition() != null && getCondition().run(ruleContext);
+        return RuleExecutionStrategy.build().isTrue(this, ruleContext);
     }
 
     /**

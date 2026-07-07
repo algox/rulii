@@ -18,13 +18,13 @@
 package org.rulii.rule;
 
 /**
- * Represents the possible status of rule execution: PASS, FAIL, or SKIPPED.
+ * Represents the possible status of rule execution: PASS, FAIL, SKIPPED, or ERROR.
  *
  * @author Max Arulananthan
  * @since 1.0
  */
 public enum RuleExecutionStatus {
-    PASS, FAIL, SKIPPED;
+    PASS, FAIL, SKIPPED, ERROR;
 
     /**
      * Checks if the current RuleExecutionStatus is equal to PASS.
@@ -51,5 +51,14 @@ public enum RuleExecutionStatus {
      */
     public boolean isSkipped() {
         return this == SKIPPED;
+    }
+
+    /**
+     * Checks if the current RuleExecutionStatus is equal to ERROR.
+     *
+     * @return true if the RuleExecutionStatus is ERROR, false otherwise
+     */
+    public boolean isError() {
+        return this == ERROR;
     }
 }

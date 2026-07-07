@@ -76,17 +76,6 @@ public final class RuleUtils {
     }
 
     /**
-     * Validates a given name. It throws an exception if the name is invalid.
-     *
-     * @param name the name to be validated
-     * @throws UnrulyException if the name is invalid
-     */
-    public static void validateName(String name) {
-        if (!isValidName(name)) throw new UnrulyException("Invalid name [" + name
-                + "], it must not be empty and follow regex [" + NAME_REGEX + "]");
-    }
-
-    /**
      * Merges the first rule with the rest of the Rules.
      *
      * @param rule new rule.

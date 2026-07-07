@@ -73,7 +73,7 @@ public class RulingClass<T> implements Rule {
         this.preCondition = preCondition;
         this.condition = condition;
         // Then actions (optional)
-        this.actions = thenActions != null ? Collections.unmodifiableList(thenActions) : Collections.emptyList();
+        this.actions = thenActions != null ? List.copyOf(thenActions) : Collections.emptyList();
         // Otherwise action (Optional)
         this.otherwiseAction = otherwiseAction;
         this.description = createDescription(ruleDefinition);

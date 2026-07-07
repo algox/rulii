@@ -28,6 +28,7 @@ import org.rulii.model.condition.Condition;
 import org.rulii.model.condition.Conditions;
 import org.rulii.model.function.Function;
 import org.rulii.rule.Rule;
+import org.rulii.rule.RuleExecutionStatus;
 import org.rulii.rule.RuleListener;
 import org.rulii.rule.RuleResult;
 import org.rulii.ruleset.RuleSet;
@@ -51,6 +52,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.rulii.validation.rules.Validators.binding;
 
@@ -761,5 +763,70 @@ public class TraceTest {
         executor.shutdown();
 
         Assertions.assertFalse(failed.get());
+    }
+
+    @Test
+    public void testIsTrue_notifiesTracer() {
+        // isTrue() must route through the same tracer-notifying execution strategy as run(), not
+        // bypass it (previously isTrue() called Condition.run() directly with zero tracer events).
+        Rule rule = Rule.builder()
+                .name("Rule1")
+                .description("Test Rule")
+                .preCondition(Conditions.condition((Boolean preConditionFlag) -> preConditionFlag))
+                .given(Conditions.condition((Boolean conditionFlag) -> conditionFlag))
+                .build();
+
+        RuleContext context = RuleContext.builder()
+                .with(preConditionFlag -> true, conditionFlag -> true)
+                .build();
+
+        AtomicInteger value = new AtomicInteger(0);
+        context.getTracer().addListener(new RuleListener() {
+            @Override
+            public void onPreConditionCheck(Rule rule, Condition condition, boolean result) {
+                Assertions.assertTrue(result);
+                value.incrementAndGet();
+            }
+
+            @Override
+            public void onGiven(Rule rule, Condition condition, boolean result) {
+                Assertions.assertTrue(result);
+                value.incrementAndGet();
+            }
+        });
+
+        Assertions.assertTrue(rule.isTrue(context));
+        Assertions.assertEquals(2, value.get());
+    }
+
+    @Test
+    public void testRuleFailure_notifiesOnRuleEndWithErrorResult() {
+        // Previously the finally block fired onRuleEnd(rule, null) whenever the rule execution
+        // threw (result was only ever assigned right before a normal return). It must now pass a
+        // real, non-null RuleResult with status ERROR.
+        Rule rule = Rule.builder()
+                .name("Rule1")
+                .description("Test Rule")
+                .given(Conditions.condition((Boolean conditionFlag) -> {
+                    throw new IllegalArgumentException("boom");
+                }))
+                .build();
+
+        RuleContext context = RuleContext.builder()
+                .with(conditionFlag -> true)
+                .build();
+
+        AtomicReference<RuleResult> capturedResult = new AtomicReference<>();
+        context.getTracer().addListener(new RuleListener() {
+            @Override
+            public void onRuleEnd(Rule rule, RuleResult result) {
+                capturedResult.set(result);
+            }
+        });
+
+        Assertions.assertThrows(UnrulyException.class, () -> rule.run(context));
+
+        Assertions.assertNotNull(capturedResult.get());
+        Assertions.assertEquals(RuleExecutionStatus.ERROR, capturedResult.get().status());
     }
 }

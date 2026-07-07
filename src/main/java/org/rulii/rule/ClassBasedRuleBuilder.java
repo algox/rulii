@@ -95,7 +95,7 @@ public class ClassBasedRuleBuilder<T> extends AbstractRuleBuilder<T> {
      * @return the detailed description specified in the Description annotation, or null if no annotation is present
      */
     public static <T> String getRuleDescription(Class<T> ruleClass) {
-        Description descriptionAnnotation = ruleClass.getAnnotation(Description.class);
+        Description descriptionAnnotation = AnnotationUtils.getAnnotation(ruleClass, Description.class);
         return descriptionAnnotation != null ? descriptionAnnotation.value() : null;
     }
 

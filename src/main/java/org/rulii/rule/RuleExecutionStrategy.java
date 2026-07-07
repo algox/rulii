@@ -47,4 +47,15 @@ public interface RuleExecutionStrategy {
      * @throws UnrulyException if there are any errors during the execution
      */
     RuleResult run(Rule rule, RuleContext ruleContext) throws UnrulyException;
+
+    /**
+     * Checks whether the rule's pre-condition and given condition both pass, without executing
+     * any Then/Otherwise actions.
+     *
+     * @param rule the rule to check.
+     * @param ruleContext the context in which the check is performed.
+     * @return true if the pre-condition (if any) and the given condition both pass; false otherwise.
+     * @throws UnrulyException if there are any errors during the check.
+     */
+    boolean isTrue(Rule rule, RuleContext ruleContext) throws UnrulyException;
 }
