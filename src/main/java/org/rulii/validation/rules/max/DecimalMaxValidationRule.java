@@ -73,20 +73,13 @@ public class DecimalMaxValidationRule extends ValueValidationRule {
     protected boolean isValid(RuleContext ruleContext, Object value) {
         if (value == null) return false;
 
-        Number number = null;
+        Number number = toNumber(value);
 
-        if (value instanceof Number) number = (Number) value;
-        if (value instanceof CharSequence) {
-            try {
-                number = new BigDecimal(value.toString());
-            } catch (NumberFormatException e) {
-                return false;
-            }
-        }
-
-        if (number == null)
+        if (number == null) {
+            if (value instanceof CharSequence) return false;
             throw new ValidationRuleException("DecimalMaxValidationRule only applies to Numbers/CharSequences."
                     + "Supplied Class [" + value.getClass() + "] value [" + value + "]");
+        }
 
         Integer result = NumberComparator.compare(number, max);
         return result == null || (isInclusive() ? result <= 0 : result < 0);

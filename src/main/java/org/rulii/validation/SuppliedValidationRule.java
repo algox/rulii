@@ -25,6 +25,7 @@ import org.rulii.bind.match.MatchByTypeMatchingStrategy;
 import org.rulii.bind.match.ParameterMatch;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.spring.util.Assert;
+import org.rulii.model.UnrulyException;
 import org.rulii.model.condition.Condition;
 import org.rulii.util.RuleUtils;
 
@@ -60,6 +61,9 @@ public class SuppliedValidationRule extends ValidationRule {
     @Otherwise
     public void otherwise(@Param(matchUsing = MatchByTypeMatchingStrategy.class) RuleContext ruleContext,
                           @Param(matchUsing = MatchByTypeMatchingStrategy.class) RuleViolations ruleViolations) {
+        if (ruleContext == null) throw new UnrulyException("RuleContext not defined.");
+        if (ruleViolations == null) throw new UnrulyException("RuleViolations not defined. Please define org.rulii.validation.RuleViolations binding and try again.");
+
         List<ParameterMatch> matches = ruleContext.getParameterResolver().match(condition.getDefinition(),
                 ruleContext.getBindings(), ruleContext.getMatchingStrategy(), ruleContext.getObjectFactory());
         List<Object> values = ruleContext.getParameterResolver().resolve(matches, condition.getDefinition(),

@@ -67,7 +67,7 @@ public class NumericValidationRule extends ValueValidationRule {
         if (value == null) return false;
 
         if (!(value instanceof CharSequence))
-            throw new ValidationRuleException("UpperCaseValidationRule only applies to CharSequences."
+            throw new ValidationRuleException("NumericValidationRule only applies to CharSequences."
                     + "Supplied Class [" + value.getClass() + "] value [" + value + "]");
 
         return isAllowSpace() ? StringUtils.isNumericSpace((CharSequence) value) : StringUtils.isNumeric((CharSequence) value);

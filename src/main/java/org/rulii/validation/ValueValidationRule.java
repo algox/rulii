@@ -27,6 +27,7 @@ import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.UnrulyException;
 import org.rulii.model.function.Function;
 
+import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -145,5 +146,24 @@ public abstract class ValueValidationRule extends ValidationRule {
 
     protected String getValueName() {
         return valueName;
+    }
+
+    /**
+     * Coerces the given value into a Number. Returns null if the value is neither a Number
+     * nor a parseable CharSequence.
+     *
+     * @param value the value to coerce.
+     * @return the coerced Number, or null if it could not be coerced.
+     */
+    protected static Number toNumber(Object value) {
+        if (value instanceof Number) return (Number) value;
+        if (value instanceof CharSequence) {
+            try {
+                return new BigDecimal(value.toString());
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+        return null;
     }
 }

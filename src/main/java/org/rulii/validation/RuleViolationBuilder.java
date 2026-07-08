@@ -30,7 +30,7 @@ import java.util.*;
  * It provides methods to set various attributes of the RuleViolation such as error code, error message,
  * severity, default message, and parameters.
  * The build() method is used to create the RuleViolation object with the specified attributes.
- * The RuleViolationBuilder is immutable and thread-safe.
+ * Note: this builder is mutable and not thread-safe — each instance should be used by a single thread only.
  *
  * @author Max Arulananthan
  * @since 1.0

@@ -39,6 +39,8 @@ public class ValidationExceptionThrowingRule {
     public void then(RuleViolations violations) {
         if (violations == null || violations.isEmpty()) return;
         // Check if there are any ERROR or FATAL_ERROR errors.
-        if (violations.hasSevereErrors()) throw new ValidationException(violations);
+        if (violations.hasSevereErrors()) {
+            throw new ValidationException("Validation rules have failed. " + System.lineSeparator() + violations, violations);
+        }
     }
 }

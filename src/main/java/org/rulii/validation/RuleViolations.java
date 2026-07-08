@@ -20,6 +20,7 @@ package org.rulii.validation;
 import org.rulii.lib.spring.util.Assert;
 
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Container for all Rule Violations.
@@ -30,7 +31,7 @@ import java.util.*;
  */
 public class RuleViolations implements Iterable<RuleViolation> {
 
-    private final List<RuleViolation> errors = Collections.synchronizedList(new ArrayList<>());
+    private final List<RuleViolation> errors = new CopyOnWriteArrayList<>();
 
     public RuleViolations() {
         super();
@@ -112,9 +113,11 @@ public class RuleViolations implements Iterable<RuleViolation> {
     }
 
     /**
-     * Determines if this container has any associated errors.
+     * Determines if this container has any associated ERROR-severity violations.
+     * Note: this does NOT include FATAL-severity violations — use {@link #hasSevereErrors()}
+     * to check for FATAL or ERROR.
      *
-     * @return true if this container has any errors; false otherwise.
+     * @return true if this container has any ERROR-severity violations; false otherwise.
      */
     public boolean hasErrors() {
         return getErrorCount(Severity.ERROR) > 0;

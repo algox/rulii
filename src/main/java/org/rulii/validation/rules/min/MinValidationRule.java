@@ -27,7 +27,6 @@ import org.rulii.validation.Severity;
 import org.rulii.validation.ValidationRuleException;
 import org.rulii.validation.ValueValidationRule;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -69,20 +68,13 @@ public class MinValidationRule extends ValueValidationRule {
     protected boolean isValid(RuleContext ruleContext, Object value) {
         if (value == null) return false;
 
-        Number number = null;
+        Number number = toNumber(value);
 
-        if (value instanceof CharSequence) {
-            try {
-                number = new BigDecimal(value.toString());
-            } catch (NumberFormatException e) {
-                return false;
-            }
-        }
-        if (value instanceof Number) number = (Number) value;
-
-        if (number == null)
+        if (number == null) {
+            if (value instanceof CharSequence) return false;
             throw new ValidationRuleException("MinValidationRule only applies to Numbers/CharSequences."
                     + "Supplied Class [" + value.getClass() + "] value [" + value + "]");
+        }
 
         Integer result = NumberComparator.compare(number, min);
         return result == null || result >= 0;

@@ -67,6 +67,7 @@ public class InValidationRule extends ValueValidationRule {
 
     @Override
     protected boolean isValid(RuleContext ruleContext, Object value) {
+        if (value == null) return false;
         return values.contains(value);
     }
 
