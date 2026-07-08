@@ -38,7 +38,6 @@ public class DefaultRuleSetExecutionStrategy<T> extends RuleSetExecutionStrategy
         super();
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public T run(RuleSet<?> ruleSet, RuleContext ruleContext) throws UnrulyException {
         Assert.notNull(ruleContext, "context cannot be null");
@@ -60,7 +59,7 @@ public class DefaultRuleSetExecutionStrategy<T> extends RuleSetExecutionStrategy
             if (!preConditionCheck) {
                 if (getLogger().isDebugEnabled())
                     getLogger().debug("RuleSet [" + ruleSet.getName() + "] pre-condition check failed. RuleSet is skipped.");
-                return (T) ruleSetStatus;
+                return extractResult(ruleSet, ruleContext, ruleSetStatus);
             }
             // Run the rules
             runRules(ruleSet, ruleContext, ruleSetStatus);
@@ -81,10 +80,10 @@ public class DefaultRuleSetExecutionStrategy<T> extends RuleSetExecutionStrategy
      * @param status      the RuleSetStatus to keep track of rule execution results (must not be null)
      */
     protected void runRules(RuleSet<?> ruleSet, RuleContext ruleContext, RuleSetExecutionStatus status) {
-        // Run any PreAction if one is available.
-        runInitializer(ruleSet, ruleContext);
-
         try {
+            // Run any PreAction if one is available.
+            runInitializer(ruleSet, ruleContext);
+
             // Execute the rules/actions in order; STOP if the stopCondition is met.
             for (Rule rule : ruleSet.getRules()) {
                 // Run the rule/action
@@ -101,9 +100,20 @@ public class DefaultRuleSetExecutionStrategy<T> extends RuleSetExecutionStrategy
                     break;
                 }
             }
-        } finally {
-            // Run the Finalizer after executing the Rules
-            runFinalizer(ruleSet, ruleContext);
+        } catch (RuntimeException executionException) {
+            // Still run the Finalizer, but don't let a finalizer failure mask the original failure.
+            // Note: UnrulyException disables Java's suppressed-exception mechanism, so a finalizer
+            // failure here is logged rather than attached via addSuppressed().
+            try {
+                runFinalizer(ruleSet, ruleContext);
+            } catch (RuntimeException finalizerException) {
+                getLogger().error("RuleSet [" + ruleSet.getName() + "] finalizer failed while handling an initializer/rule "
+                        + "failure. Logging here instead of throwing so it doesn't mask the original failure.", finalizerException);
+            }
+            throw executionException;
         }
+
+        // Run the Finalizer after executing the Rules
+        runFinalizer(ruleSet, ruleContext);
     }
 }

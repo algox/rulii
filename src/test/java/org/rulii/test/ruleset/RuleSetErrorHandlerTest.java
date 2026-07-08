@@ -26,6 +26,7 @@ import org.rulii.model.function.Functions;
 import org.rulii.rule.Rule;
 import org.rulii.ruleset.RuleSet;
 import org.rulii.ruleset.RuleSetExecutionStatus;
+import org.rulii.ruleset.RulingFamily;
 import org.rulii.validation.RuleViolations;
 import org.rulii.validation.ValidationException;
 import org.rulii.validation.rules.notnull.NotNullValidationRule;
@@ -397,5 +398,57 @@ public class RuleSetErrorHandlerTest {
         ruleSet.run(ctx2);
 
         Assertions.assertEquals(2, callCount.get());
+    }
+
+    // -----------------------------------------------------------------------
+    // Copy constructor (RuleSet.builder().with(existingRuleSet)) preserves errorHandler
+    // -----------------------------------------------------------------------
+
+    @Test
+    public void testCopyConstructorPreservesCustomErrorHandler() {
+        AtomicBoolean customCalled = new AtomicBoolean(false);
+
+        RuleSet<?> original = RuleSet.builder()
+                .with("testCopySource")
+                .initializer(action(() -> { throw new RuntimeException("test"); }))
+                .rule(Rule.builder().build(condition(() -> true)))
+                .errorHandler(function((Exception ex) -> {
+                    customCalled.set(true);
+                    return null;
+                }))
+                .build();
+
+        // Clone-and-extend via the copy constructor must not silently revert to the default errorHandler.
+        RuleSet<?> copy = RuleSet.builder().with(original).build();
+
+        RuleContext ctx = RuleContext.builder().build(Bindings.builder().standard());
+        Assertions.assertDoesNotThrow(() -> copy.run(ctx));
+        Assertions.assertTrue(customCalled.get());
+    }
+
+    // -----------------------------------------------------------------------
+    // Directly-constructed RuleSet (bypassing RuleSetBuilder) with a null errorHandler
+    // -----------------------------------------------------------------------
+
+    @Test
+    public void testHandleErrorRethrowsWhenNoErrorHandlerConfigured() {
+        RuleSet<Object> withDefaultHandler = RuleSet.builder()
+                .with("testNullHandler")
+                .initializer(action(() -> { throw new RuntimeException("boom"); }))
+                .rule(Rule.builder().build(condition(() -> true)))
+                .build();
+
+        // RuleSetBuilder always installs a non-null default errorHandler; construct directly via
+        // RulingFamily (a public constructor) with errorHandler = null to bypass that default.
+        RuleSet<Object> ruleSet = new RulingFamily<>(withDefaultHandler.getDefinition(),
+                withDefaultHandler.getInputParameters(), withDefaultHandler.getPreCondition(),
+                withDefaultHandler.getStopCondition(), withDefaultHandler.getInitializer(),
+                withDefaultHandler.getFinalizer(), withDefaultHandler.getResultExtractor(), null,
+                withDefaultHandler.getRules());
+
+        RuleContext ctx = RuleContext.builder().build(Bindings.builder().standard());
+
+        UnrulyException ex = Assertions.assertThrows(UnrulyException.class, () -> ruleSet.run(ctx));
+        Assertions.assertTrue(ex.getMessage().contains("testNullHandler"));
     }
 }

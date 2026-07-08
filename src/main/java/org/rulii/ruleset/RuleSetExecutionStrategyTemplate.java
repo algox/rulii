@@ -99,19 +99,25 @@ public abstract class RuleSetExecutionStrategyTemplate<T> implements RuleSetExec
 
         NamedScope result = ruleContext.getBindings().addScope(getRuleSetScopeName(ruleSet));
 
-        if (!(result.getBindings() instanceof PromiscuousBinder bindings)) {
-            throw new UnrulyException("IllegalState CurrentScope does not allow reserved keyword binding.");
+        try {
+            if (!(result.getBindings() instanceof PromiscuousBinder bindings)) {
+                throw new UnrulyException("IllegalState CurrentScope does not allow reserved keyword binding.");
+            }
+
+            bindings.promiscuousBind(Binding.builder().with(ReservedBindings.RULE_SET.getName())
+                    .type(RuleSet.class)
+                    .value(ruleSet)
+                    .build());
+
+            bindings.promiscuousBind(Binding.builder().with(ReservedBindings.RULE_SET_STATUS.getName())
+                    .type(RuleSetExecutionStatus.class)
+                    .value(ruleResultSet)
+                    .build());
+        } catch (RuntimeException e) {
+            // Don't leak the just-pushed scope if we fail partway through setting it up.
+            removeRuleSetScope(ruleContext, result);
+            throw e;
         }
-
-        bindings.promiscuousBind(Binding.builder().with(ReservedBindings.RULE_SET.getName())
-                .type(RuleSet.class)
-                .value(ruleSet)
-                .build());
-
-        bindings.promiscuousBind(Binding.builder().with(ReservedBindings.RULE_SET_STATUS.getName())
-                .type(RuleSetExecutionStatus.class)
-                .value(ruleResultSet)
-                .build());
 
         return result;
     }
@@ -227,13 +233,15 @@ public abstract class RuleSetExecutionStrategyTemplate<T> implements RuleSetExec
     /**
      * Handles errors that occur during the execution of a RuleSet by invoking the configured error handler.
      * If the RuleSet has an error handler set, it binds the exception to the current scope's bindings
-     * and delegates the handling to the error handler.
+     * and delegates the handling to the error handler. If no error handler is configured, the exception
+     * is rethrown wrapped in an UnrulyException.
      *
      * @param ruleSet the RuleSet for which the error occurred (must not be null)
      * @param ruleContext the RuleContext containing the runtime execution context (must not be null)
      * @param ruleSetStatus the RuleSetExecutionStatus to track execution details (must not be null)
      * @param e the exception that was raised during the execution (must not be null)
-     * @return the result from the error handler if one is configured, otherwise null
+     * @return the result from the error handler
+     * @throws UnrulyException if no error handler is configured
      */
     @SuppressWarnings("unchecked")
     protected T handleError(RuleSet<?> ruleSet, RuleContext ruleContext, RuleSetExecutionStatus ruleSetStatus, Exception e) {
@@ -241,19 +249,22 @@ public abstract class RuleSetExecutionStrategyTemplate<T> implements RuleSetExec
         Assert.notNull(ruleContext, "ruleContext cannot be null.");
         Assert.notNull(e, "e cannot be null.");
 
-        T result = null;
-
-        if (ruleSet.getErrorHandler() != null) {
-            ((PromiscuousBinder) ruleContext.getBindings().getCurrentScope().getBindings()).promiscuousBind(Binding.builder()
-                    .with(ReservedBindings.EXCEPTION.getName())
-                    .type(Exception.class)
-                    .isFinal(true)
-                    .value(e)
-                    .build());
-            result = (T) ruleSet.getErrorHandler().apply(ruleContext);
+        if (ruleSet.getErrorHandler() == null) {
+            throw new UnrulyException("Error trying to run RuleSet [" + ruleSet.getName() + "]", e);
         }
 
-        return result;
+        if (!(ruleContext.getBindings().getCurrentScope().getBindings() instanceof PromiscuousBinder bindings)) {
+            throw new UnrulyException("IllegalState CurrentScope does not allow reserved keyword binding.", e);
+        }
+
+        bindings.promiscuousBind(Binding.builder()
+                .with(ReservedBindings.EXCEPTION.getName())
+                .type(Exception.class)
+                .isFinal(true)
+                .value(e)
+                .build());
+
+        return (T) ruleSet.getErrorHandler().apply(ruleContext);
     }
 
     /**

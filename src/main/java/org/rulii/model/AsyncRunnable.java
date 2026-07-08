@@ -39,6 +39,11 @@ public interface AsyncRunnable<T> {
     /**
      * Executes this construct asynchronously using the given context.
      *
+     * <p><b>Warning:</b> the same {@code RuleContext} must not be reused for concurrent
+     * invocations of this method (or {@link #runAsync(RuleContext, long, TimeUnit)}). Execution
+     * mutates the context's binding scope stack; concurrent executions sharing one RuleContext
+     * can corrupt or discard each other's scopes. Use a separate RuleContext per concurrent run.
+     *
      * @param ruleContext the execution context; must not be null.
      * @return a future that completes with the result.
      */
@@ -46,6 +51,11 @@ public interface AsyncRunnable<T> {
 
     /**
      * Executes this construct asynchronously with a timeout.
+     *
+     * <p><b>Warning:</b> the same {@code RuleContext} must not be reused for concurrent
+     * invocations of this method (or {@link #runAsync(RuleContext)}). Execution mutates the
+     * context's binding scope stack; concurrent executions sharing one RuleContext can corrupt
+     * or discard each other's scopes. Use a separate RuleContext per concurrent run.
      *
      * @param ruleContext the execution context; must not be null.
      * @param timeout     maximum time to wait for completion.

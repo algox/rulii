@@ -68,6 +68,7 @@ public class RuleSetBuilder {
         }
     });
     private final LinkedList<Rule> ruleSetItems = new LinkedList<>();
+    private boolean validating = false;
 
     /**
      * Constructs a new RuleSetBuilder instance with the provided name.
@@ -101,11 +102,13 @@ public class RuleSetBuilder {
         Assert.notNull(rules, "rules cannot be null.");
         name(rules.getName());
         description(rules.getDescription());
+        this.inputParameters.addAll(rules.getInputParameters());
         if (rules.getPreCondition() != null) preCondition(rules.getPreCondition());
         if (rules.getStopCondition() != null) stopCondition(rules.getStopCondition());
         if (rules.getInitializer() != null) initializer(rules.getInitializer());
         if (rules.getFinalizer() != null) finalizer(rules.getFinalizer());
         resultExtractor(rules.getResultExtractor());
+        if (rules.getErrorHandler() != null) errorHandler(rules.getErrorHandler());
         this.rules(rules.getRules());
     }
 
@@ -343,14 +346,27 @@ public class RuleSetBuilder {
     public RuleSetBuilder validating() {
         // Make ruleViolations are defined
         param("ruleViolations", RuleViolations.class, Functions.function(() -> new RuleViolations()));
+        this.validating = true;
+        return this;
+    }
+
+    /**
+     * Computes the finalizer that will actually run: if validating() was called, the violation-checking
+     * action is appended (via andThen) to whatever finalizer is set, regardless of call order.
+     *
+     * @return the effective finalizer for this builder.
+     */
+    private Action getEffectiveFinalizer() {
+        if (!validating) return finalizer;
+
         // Throw a ValidationException if there are any errors during the run.
-        finalizer(Action.builder().with((RuleViolations ruleViolations) -> {
+        Action validationCheck = Action.builder().with((RuleViolations ruleViolations) -> {
                     if (ruleViolations.hasSevereErrors()) throw new ValidationException("RuleSet [" + getName()
                             + "] validation rules have failed. " + System.lineSeparator() + ruleViolations, ruleViolations);
                 }).param(0).matchUsing(MatchByTypeMatchingStrategy.class).build()
-                .build());
+                .build();
 
-        return this;
+        return finalizer != null ? finalizer.andThen(validationCheck) : validationCheck;
     }
     /**
      * Returns the size of the RuleSetItems.
@@ -419,7 +435,7 @@ public class RuleSetBuilder {
                 getInitializer() != null ? getInitializer().getDefinition() : null,
                 getPreCondition() != null ? getPreCondition().getDefinition() : null,
                 getStopCondition() != null ? getStopCondition().getDefinition() : null,
-                getFinalizer() != null ? getFinalizer().getDefinition() : null,
+                getEffectiveFinalizer() != null ? getEffectiveFinalizer().getDefinition() : null,
                 getResultExtractor() != null ? getResultExtractor().getDefinition() : null,
                 definitions);
     }
@@ -433,7 +449,7 @@ public class RuleSetBuilder {
     @SuppressWarnings("unchecked")
     public <T> RuleSet<T> build() {
         return new RulingFamily<>(buildRuleSetDefinition(), getInputParameters(), getPreCondition(), getStopCondition(),
-                getInitializer(), getFinalizer(), (Function<T>) getResultExtractor(), (Function<T>) getErrorHandler(),
+                getInitializer(), getEffectiveFinalizer(), (Function<T>) getResultExtractor(), (Function<T>) getErrorHandler(),
                 Collections.unmodifiableList(getRules()));
     }
 

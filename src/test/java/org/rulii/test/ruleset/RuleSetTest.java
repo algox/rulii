@@ -46,6 +46,7 @@ import org.rulii.validation.rules.uppercase.UpperCaseValidationRule;
 import org.rulii.validation.rules.url.UrlValidationRule;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -808,5 +809,135 @@ public class RuleSetTest {
         if (violations.hasErrors()) {
             throw new ValidationException(violations);
         }
+    }
+
+    @Test
+    public void test40() {
+        List<String> log = new ArrayList<>();
+
+        RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
+                .rule(NotEmptyValidationRule.builder(binding("a")).build())
+                .finalizer(action(() -> log.add("finalizerRan")))
+                .validating()
+                .build();
+
+        // finalizer() called before validating() must not be silently dropped by validating()
+        Assertions.assertThrows(ValidationException.class, () -> ruleSet.run(a -> ""));
+        Assertions.assertEquals(List.of("finalizerRan"), log);
+    }
+
+    @Test
+    public void test41() {
+        List<String> log = new ArrayList<>();
+
+        RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
+                .rule(NotEmptyValidationRule.builder(binding("a")).build())
+                .validating()
+                .finalizer(action(() -> log.add("finalizerRan")))
+                .build();
+
+        // finalizer() called after validating() must not silently disable the validation check
+        Assertions.assertThrows(ValidationException.class, () -> ruleSet.run(a -> ""));
+        Assertions.assertEquals(List.of("finalizerRan"), log);
+    }
+
+    @Test
+    public void test42() {
+        RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
+                .rule(NotNullValidationRule.builder(binding("a")).build())   // PASS
+                .rule(NotNullValidationRule.builder(binding("b")).build())   // FAIL
+                .rule(NumericValidationRule.builder(binding("c")).build())   // SKIP (wrong type)
+                .build();
+
+        RuleSetExecutionStatus result = ruleSet.run(a -> "value", b -> null, c -> Boolean.TRUE, violations -> new RuleViolations());
+
+        Assertions.assertTrue(result.isAnyPass());
+        Assertions.assertTrue(result.isAnyFail());
+        Assertions.assertTrue(result.isAnySkip());
+
+        Assertions.assertFalse(result.isAllPass());
+        Assertions.assertFalse(result.isAllFail());
+        Assertions.assertFalse(result.isAllSkip());
+    }
+
+    @Test
+    public void test43() {
+        RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
+                .rule(NotNullValidationRule.builder(binding("a")).build())
+                .rule(NotNullValidationRule.builder(binding("b")).build())
+                .build();
+
+        RuleSetExecutionStatus result = ruleSet.run(a -> "value1", b -> "value2");
+
+        Assertions.assertTrue(result.isAnyPass());
+        Assertions.assertFalse(result.isAnyFail());
+        Assertions.assertFalse(result.isAnySkip());
+        Assertions.assertTrue(result.isAllPass());
+    }
+
+    @Test
+    public void test44() {
+        RuleSet<String> ruleSet = RuleSet.builder().with("TestRuleSet")
+                .preCondition(Conditions.FALSE())
+                .rule(NotNullValidationRule.builder(binding("a")).build())
+                .resultExtractor(function(() -> "defaultResult"))
+                .build();
+
+        // A false precondition must still route through the configured resultExtractor,
+        // not return the internal RuleSetExecutionStatus cast to T.
+        String result = ruleSet.run(a -> "value1");
+        Assertions.assertEquals("defaultResult", result);
+    }
+
+    @Test
+    public void test45() {
+        RuleSet<?> original = RuleSet.builder().with("original")
+                .rule(NotNullValidationRule.builder(binding("a")).build())
+                .validating()
+                .build();
+
+        // Clone-and-extend must preserve the "ruleViolations" input parameter (with its default-value
+        // supplier) registered by validating() on the original — otherwise the clone can't auto-bind
+        // RuleViolations and validation silently breaks.
+        RuleSet<?> copy = RuleSet.builder().with(original).build();
+
+        Assertions.assertThrows(ValidationException.class, () -> copy.run(a -> null));
+    }
+
+    @Test
+    public void test46() {
+        Rule failingRule = Rule.builder()
+                .name("failingRule")
+                .given(Conditions.TRUE())
+                .then(action(() -> { throw new RuntimeException("rule boom"); }))
+                .build();
+
+        RuleSet<?> ruleSet = RuleSet.builder().with("TestRuleSet")
+                .rule(failingRule)
+                .finalizer(action(() -> { throw new RuntimeException("finalizer boom"); }))
+                .build();
+
+        // The finalizer also throwing must not mask the original rule failure — the rule's exception
+        // must still be the one that surfaces, not replaced by the finalizer's.
+        UnrulyException thrown = Assertions.assertThrows(UnrulyException.class, () -> ruleSet.run(RuleContext.builder().build(Bindings.builder().standard())));
+
+        Throwable cause = thrown;
+        while (cause.getCause() != null) cause = cause.getCause();
+        Assertions.assertEquals("rule boom", cause.getMessage());
+    }
+
+    @Test
+    public void test47() {
+        List<String> log = new ArrayList<>();
+
+        RuleSet<?> ruleSet = RuleSet.builder().with("TestRuleSet")
+                .initializer(action(() -> { throw new RuntimeException("initializer boom"); }))
+                .rule(Rule.builder().name("r1").given(Conditions.TRUE()).then(action(() -> {})).build())
+                .finalizer(action(() -> log.add("finalizerRan")))
+                .build();
+
+        // An initializer failure must not skip the finalizer's cleanup logic.
+        Assertions.assertThrows(UnrulyException.class, () -> ruleSet.run(RuleContext.builder().build(Bindings.builder().standard())));
+        Assertions.assertEquals(List.of("finalizerRan"), log);
     }
 }
