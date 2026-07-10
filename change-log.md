@@ -1,5 +1,132 @@
 # Changelog
 
+## [2.0.0]
+
+### New Feature: RuleFlow (`org.rulii.ruleflow`)
+
+A fluent, pipeline-style orchestration API for composing Rules, RuleSets, and other RuleFlows into a single executable flow — reducing the boilerplate of wiring bindings, scopes, conditionals, and error handling by hand.
+
+#### Builder API
+```java
+RuleFlow<Boolean> flow = RuleFlow.builder()
+    .name("myFlow")
+    .bind(x -> 42)
+    .run(rule, spec -> spec.as("result").with(y -> 10)
+                           .onException(UnrulyException.class, b -> b.bind(ok -> false)))
+    .when(condition, b -> b.run(rule2))
+    .onException(Exception.class, b -> b.bind(handled -> true))
+    .<Boolean>returning(function((Boolean handled) -> handled))
+    .build();
+```
+- `RuleFlow.builder()` — entry point; all pipeline methods are fluent (CRTP self-type, no casting)
+- **Steps**: `run(...)` / `apply(...)` / `execute(...)` — run a Rule, RuleSet, RuleFlow, Condition, Action, or Function, or look one up from the `RuleRegistry` by name or class
+- **Step configuration** via `RunSpec` / `ExecuteSpec` Consumer lambdas:
+  - `.as(bindingName)` / `.as(scopeName, bindingName)` — bind the step result
+  - `.with(BindingDeclaration...)` — step-scoped parameters
+  - `.onException(type, handlerBody)` — step-level exception handler
+- **Containers** (Consumer-body): `when(condition, body)` / `when(condition, body, otherwiseBody)`, `forEach(listFn, "item", body)`, `scope("name", body)`
+- **Other commands**: `bind(...)`, `exit(...)`, `returning(...)`, `context(...)` (must be the first step; validated eagerly)
+- `ContainerCommand` is a public extension point for custom container commands
+
+#### Exception handling
+- `RuleFlowExceptionHandler` — step-level (`RunSpec.onException`) and flow-level/global (`builder.onException(...)`) handlers
+- Handler body receives the exception bound as `"ex"`; a matched handler swallows the exception and execution continues with the next step
+- Step handler is checked first, then the global handler; unmatched exceptions propagate
+
+#### Async execution
+- `asyncRun(...)` — launch a Rule / RuleSet / RuleFlow / registry lookup asynchronously; result bound as a `CompletableFuture<T>` via `.as(name)`
+- `await(name)`, `awaitAll(names...)`, `awaitAny(names...)` — blocking waits with optional timeout (default 30s)
+- `AsyncContextMode` — SHARED (default), IMMUTABLE (`withImmutableBindings()`), or CUSTOM (`withContext(ctx)`) context for the async task
+- `AsyncRunSpec.thenRun(resultBindingName, body)` — continuation chained onto the async completion, without blocking the flow
+- `AsyncRunSpec.onException(type, handlerBody)` — fires as soon as the async task (or its continuation) fails, whether or not the future is ever awaited
+- New `org.rulii.model.AsyncRunnable` interface — `runAsync(RuleContext)` support for Rule / RuleSet / RuleFlow
+
+#### Integration
+- `RuleRegistry` — new `getRuleFlow(String)` and `getRuleFlows()` methods; RuleFlows are registrable like Rules and RuleSets
+- Tracing — `RuleFlowListener` events fired through the `Tracer` for flow/command start, completion, and errors
+
+---
+
+### Correctness & Hardening Pass (all packages)
+
+A systematic multi-angle code review was run over every main package; the notable, user-visible fixes are listed per package below. Test suite grew from 1039 to 1274 tests.
+
+#### `org.rulii.model`
+- `MethodDefinition` / `ParameterDefinition` no longer share a mutable cache across instances (could corrupt definitions under concurrent builds)
+- `DefaultFunction` now executes through `AbstractRunnable.run()` like Condition/Action — consistent tracing and parameter-mutation semantics
+- Composite conditions (`and` / `or`) now short-circuit
+- `NotCondition` preserves the original exception type instead of re-wrapping
+- `ChainedAction.getName()` typo fixed; `RunnableBuilder.loadLambda()` no longer silently swallows load failures
+
+#### `org.rulii.bind`
+- `ImmutableScopedBindings` now actually enforces immutability (including via `iterator()` and supplied bindings)
+- `RuleContextBuilder` no longer crashes on shadowed scopes; `RuleContext.builder().with(existingContext)` no longer duplicates reserved bindings (`BindingException: Multiple matches found`)
+- `ScopedBindings.get()` vs `entrySet()` shadowing behavior reconciled
+- `DelegatingBinding` no longer bypasses type checks; `DefaultParameterResolver` no longer swallows `ConversionException`
+- `contains(TypeReference)` / `contains(Class)` now agree; `SuppliedBinding` double-checked locking made thread-safe
+
+#### `org.rulii.context`
+- `RuleContext.asImmutable()` no longer leaks mutable binding values, and gets a fresh id/creation time
+- Internal executor upgraded from an unbounded, never-shutdown pool to a bounded `ThreadPoolExecutor` with `CallerRunsPolicy` and a JVM shutdown hook
+- `RuleContextOptions` gained `getTracer()`; `getScriptProcessor()` initialization race fixed
+
+#### `org.rulii.convert`
+- Numeric text converters no longer misparse leading-zero strings as octal (`"010"` → 10, not 8)
+- `TextToBooleanConverter` no longer silently returns `false` for unrecognized input
+- `TextToDateConverter` detects `+HHmm` zone offsets; `TextToCharsetConverter` handles `IllegalCharsetNameException`; UUID/Currency converters preserve the original exception cause; blank UUID input converts to `null`
+- `ParameterDefinition.getDefaultValue()` no longer serves a stale cached value when called with a different `Converter`
+- `ConverterRegistry.register()` override contract fixed
+
+#### `org.rulii.registry`
+- `register()` check-then-act race fixed; duplicate-name exception now reports the actual conflicting entry
+- `getRulesInPackage()` no longer NPEs on classes without a package; empty-string names rejected
+
+#### `org.rulii.script`
+- `ScriptProcessorManager` made a true singleton (was static state behind a public constructor) with initialization race fixed
+- Janino `ASTMutator` no longer silently corrupts bindings on nested field writes
+- GraalJS processor caches the `Engine` instead of building a script engine per execution
+- `JITScript` evaluator visibility race fixed; `autoReturn()` no longer mis-scans text blocks; `JSR223ScriptProcessorFactory` respects its `languageName` override; `ServiceLoader` discovery isolates per-provider failures
+
+#### `org.rulii.text`
+- Format patterns containing literal commas (e.g. `{0, number, #,##0.00}`) no longer break the parser
+- `ParameterInfo.equals()` Integer reference-equality bug fixed
+- `MessageResolver` missing-key behavior reconciled to the documented "returns null" contract
+- Placeholder values are now placed by declared index; defensive copies added; template-parse caching added to `DefaultMessageFormatter`
+
+#### `org.rulii.trace`
+- A throwing listener can no longer alter a rule's outcome or abort execution — per-listener exceptions are now isolated across all execution strategies
+- Listener collection is now thread-safe (`CopyOnWriteArraySet`); `removeListener(RuliiListener)` now returns `boolean`
+
+#### `org.rulii.util`
+- `ReflectionUtils.getPostConstructMethods()` operator-precedence bug fixed (could match wrong methods)
+- `DefaultMethodResolver` now checks all parameters of multi-parameter methods, not just the first
+- Static caches on the hot build path made thread-safe; `DefaultObjectFactory` no longer leaks cached instances across factory instances and now supports package-private no-arg constructors
+- Exception wrapping reconciled between `MethodHandleMethodExecutor` and `ReflectiveMethodExecutor`; `RunnableComparator` and `TypeReference.equals()` contract violations fixed
+
+#### `org.rulii.annotation`
+- Annotation scanning no longer produces duplicate matches for inherited/overridden methods (`findMethods()` dedup)
+- New `AnnotationConstants` class centralizes annotation default constants
+- **Removed**: `Param.NoOpBindingMatchingStrategy` (unused)
+
+#### `org.rulii.rule`
+- `RuleExecutionStatus` gained **`ERROR`** (and `isError()`)
+- `Rule.isTrue()` now goes through `RuleExecutionStrategy.isTrue()` — no longer bypasses the tracer
+- `RuleDefinition.equals()` / `hashCode()` fixed for composite-condition NPEs and lambda-rule identity collisions
+- `RulingClass` defensively copies then-actions; exception wrapping reduced from three layers to two
+- **Removed**: dead `RuleUtils.validateName()`
+
+#### `org.rulii.validation`
+- Numeric validation rules (`max`, `min`, `decimalMax`, `decimalMin`, `positive`, `positiveOrZero`, `negative`, `negativeOrZero`) now coerce string values via `BigDecimal` instead of `Long` — decimal strings like `"10.5"` no longer falsely FAIL; coercion consolidated into `ValueValidationRule.toNumber()`
+- `RuleViolations.hasErrors()` documented: counts `Severity.ERROR` only (by design)
+
+#### `org.rulii.ruleset`
+- `validating()` and `finalizer()` no longer silently overwrite each other — actions are now composed
+- `RuleSetExecutionStatus.isAnyPass()` / `isAnySkip()` / `isAnyFail()` were logically inverted — fixed
+- A finalizer exception no longer masks an already-propagating original exception
+- Async execution documented: concurrent runs share one mutable `RuleContext` scope stack — supply separate contexts for parallel runs
+
+---
+
 ## [1.2.0]
 
 ### New Feature: Scripting Support (`org.rulii.script`)
