@@ -127,6 +127,23 @@ A systematic multi-angle code review was run over every main package; the notabl
 
 ---
 
+### Integration-Driven Additions & Fixes
+
+Additions and fixes driven by the rulii-spring 2.0 integration work:
+
+#### API additions
+- `BindingDeclaration.of(String name, T value)` — explicit-name factory for callers whose binding names are only known at runtime (configuration, XML); complements the lambda parameter-name form
+- `ScriptProcessorManager.setScriptTextResolver(UnaryOperator<String>)` / `clearScriptTextResolver(expected)` / `resolveScriptText(String)` — a script-text pre-processing hook applied in `ScriptBuilderBuilder` before compilation (identity by default); integrations use it for e.g. Spring `${property:default}` placeholder resolution
+- `DefaultConverterRegistry.registerDefaults()` made public — build with `registerDefaults=false`, register higher-precedence converters, then append the built-ins as fallbacks (`find()` is first-match)
+- `RuleFlowBuilderTemplate.run(...)` / `asyncRun(...)` string-lookup parameter renamed `registryName` → `nameInRegistry`, matching the command internals
+
+#### RuleFlow fixes
+- `AsyncRunCommand` now binds the caller-visible future handle **before** launching the task — binding after launch could land the future inside the async child's transient scope (shared bindings) and vanish with it, making `await` fail with `NoSuchBindingException`
+- `RunCommand` — a step's `as(...)` result no longer binds into the transient `with(...)` param scope (where it was destroyed with the scope, making `as()` + `with()` mutually exclusive in practice); the result destination is now captured before the param scope is pushed
+- `DefaultConverterRegistry` no longer registers `TextToUrlConverter` twice
+
+---
+
 ## [1.2.0]
 
 ### New Feature: Scripting Support (`org.rulii.script`)
