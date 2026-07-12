@@ -1,15 +1,15 @@
-[rulii Maven Central]:http://search.maven.org/#artifactdetails|org.rulii|rulii|1.2.0|
+[rulii Maven Central]:https://central.sonatype.com/artifact/org.rulii/rulii
 [Apache 2.0 License]:https://opensource.org/licenses/Apache-2.0
 
 # _rulii_
 **A lightweight, lambda-based business rule engine for Java 17+** <br/>
-<sub> _100% Java_ &middot; _Zero dependencies_ &middot; _Declarative & Functional_ &middot; _34 built-in validators_ &middot; _Scripting support_ &middot; _Spring support_ </sub>
+<sub> _100% Java_ &middot; _Zero dependencies_ &middot; _Declarative & Functional_ &middot; _RuleFlow orchestration_ &middot; _34 built-in validators_ &middot; _Scripting support_ &middot; _Spring support_ </sub>
 
 ---
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-orange.svg)][Apache 2.0 License]
 [![Maven Central Version](https://img.shields.io/maven-central/v/org.rulii/rulii)][rulii Maven Central]
-[![Javadoc](https://javadoc.io/badge2/org.rulii/rulii/1.2.0/javadoc.svg)](https://javadoc.io/doc/org.rulii/rulii/1.2.0)
+[![Javadoc](https://javadoc.io/badge2/org.rulii/rulii/javadoc.svg)](https://javadoc.io/doc/org.rulii/rulii/latest)
 ![Build](https://github.com/algox/rulii/actions/workflows/maven.yml/badge.svg)
 
 ---
@@ -18,9 +18,11 @@
 
 - [What is it?](#what-is-it)
 - [Why rulii?](#why-rulii)
+- [What's New in 2.0.0](#whats-new-in-200)
 - [Getting Started](#getting-started)
 - [Writing Rules](#writing-rules)
 - [Writing RuleSets](#writing-rulesets)
+- [Writing RuleFlows](#writing-ruleflows)
 - [Built-in Validators](#built-in-validators)
 - [Scripting Support](#scripting-support)
 - [Spring Integration](#spring-integration)
@@ -49,6 +51,7 @@ pricing logic, and any scenario where decisions are driven by a configurable set
 | Zero dependencies | ✅ | ❌ | ✅ |
 | Lambda / functional API | ✅ | ❌ | Partial |
 | Declarative annotation API | ✅ | ✅ | ✅ |
+| Flow orchestration (RuleFlow) | ✅ | Separate (jBPM) | ❌ |
 | 34 built-in validators | ✅ | ❌ | ❌ |
 | Scripting (JSR-223) | ✅ | ✅ | ❌ |
 | Spring integration | ✅ | ✅ | ✅ |
@@ -60,6 +63,23 @@ Rules are plain Java — no proprietary DSL, no XML, no extra runtime.
 
 ---
 
+## What's New in 2.0.0
+
+- **RuleFlow** (`org.rulii.ruleflow`) — a new fluent orchestration API that composes Rules, RuleSets, and other
+  RuleFlows into a single executable pipeline, with conditional branches (`when`), loops (`forEach`), scoped
+  bindings (`scope`), step-level and global exception handlers (`onException`), and async steps
+  (`asyncRun` / `await` / `awaitAll` / `awaitAny`). See [Writing RuleFlows](#writing-ruleflows).
+- **`RuleExecutionStatus.ERROR`** — rule results now distinguish execution errors from PASS/FAIL/SKIPPED.
+- **Correctness & hardening pass** — a systematic review of every package fixed thread-safety issues on the
+  rule-build hot path, immutability leaks in `Bindings`/`RuleContext`, numeric coercion in validation rules
+  (decimal strings no longer falsely fail `min`/`max`), inverted `RuleSetExecutionStatus.isAnyPass()`/`isAnySkip()`/`isAnyFail()`,
+  text-converter parsing bugs (leading zeros parsed as octal), and tracer listener isolation — a throwing
+  listener can no longer alter a rule's outcome.
+
+Full details in the [changelog](change-log.md).
+
+---
+
 ## Getting Started
 
 **Maven**
@@ -67,13 +87,13 @@ Rules are plain Java — no proprietary DSL, no XML, no extra runtime.
 <dependency>
     <groupId>org.rulii</groupId>
     <artifactId>rulii</artifactId>
-    <version>1.2.0</version>
+    <version>2.0.0</version>
 </dependency>
 ```
 
 **Gradle**
 ```groovy
-implementation 'org.rulii:rulii:1.2.0'
+implementation 'org.rulii:rulii:2.0.0'
 ```
 
 ---
@@ -176,6 +196,53 @@ if (violations.hasErrors()) {
     throw new ValidationException(violations);
 }
 ```
+
+---
+
+## Writing RuleFlows
+
+**New in 2.0.0** — a `RuleFlow` orchestrates Rules, RuleSets, and other RuleFlows into a single executable
+pipeline. Flows support conditional branches, loops, scoped bindings, exception handling, and a returned result:
+
+```java
+RuleFlow<BigDecimal> flow = RuleFlow.builder()
+        .name("orderFlow")
+        .bind(price -> BigDecimal.ZERO)
+        .run(userValidationRuleSet, spec -> spec.as("violations"))
+        .when(condition((RuleViolations violations) -> !violations.hasErrors()), body -> body
+                .run(pricingRuleSet, spec -> spec.as("price")))
+        .forEach(function((Order order) -> order.getItems()), "item", body -> body
+                .run(itemDiscountRule))
+        .onException(UnrulyException.class, handler -> handler
+                .bind(price -> BigDecimal.ZERO))
+        .<BigDecimal>returning(function((BigDecimal price) -> price))
+        .build();
+
+BigDecimal price = flow.run(bindings);
+```
+
+Steps can be configured individually — bind the result to a name (`as`), pass step-scoped parameters (`with`),
+or attach a step-level exception handler (`onException`):
+
+```java
+.run(rule, spec -> spec.as("result")
+                       .with(threshold -> 10)
+                       .onException(UnrulyException.class, b -> b.bind(result -> false)))
+```
+
+Long-running steps can run concurrently with `asyncRun` — results are bound as `CompletableFuture`s and
+awaited with `await` / `awaitAll` / `awaitAny`:
+
+```java
+RuleFlow<?> flow = RuleFlow.builder()
+        .name("parallelChecks")
+        .asyncRun(creditCheckRuleSet, spec -> spec.as("creditFuture"))
+        .asyncRun(fraudCheckRuleSet, spec -> spec.as("fraudFuture"))
+        .awaitAll("creditFuture", "fraudFuture")
+        .build();
+```
+
+See the [changelog](change-log.md) for the full RuleFlow feature list.
 
 ---
 
@@ -372,24 +439,22 @@ npm install -g @anthropic-ai/claude-code
 
 **[Full documentation at rulii.com](https://rulii.com)**
 
-- [Getting Started](https://rulii.com/introduction.html)
-- [Spring integration docs](https://rulii.com/spring/introduction.html)
-- [Javadoc (1.2.0)](https://javadoc.io/doc/org.rulii/rulii/1.2.0)
+- [Getting Started](https://rulii.com/introduction)
+- [What's New](https://rulii.com/whats-new)
+- [Spring integration docs](https://rulii.com/spring/introduction)
+- [Javadoc](https://javadoc.io/doc/org.rulii/rulii/latest)
 - [Sample projects](https://github.com/algox/rulii-samples)
-
-### Markdown Documentation
-
-Full GitHub-readable documentation is also available in the [`docs/`](docs/) folder:
 
 | Section | Pages |
 |---|---|
-| **Getting Started** | [Introduction](docs/introduction.md) · [Installation](docs/installation.md) · [Core Concepts](docs/core-concepts.md) · [What's New](docs/whats-new.md) |
-| **Core** | [Bindings](docs/bindings.md) · [Rules (Functional)](docs/lambda-rules.md) · [Rules (Declarative)](docs/annotation-rules.md) · [RuleSets](docs/rulesets.md) |
-| **Validation** | [Built-in Validators](docs/validation-rules.md) · [RuleViolations](docs/rule-violations.md) · [Custom Validation](docs/custom-validation.md) |
-| **Advanced** | [Condition Composition](docs/condition-composition.md) · [Scripting](docs/scripting.md) · [Async Execution](docs/async-execution.md) · [Rule Tracing](docs/rule-tracing.md) |
-| **Spring** | [Spring Introduction](docs/spring/introduction.md) · [Auto-Configuration](docs/spring/auto-configuration.md) · [Rule Scanning](docs/spring/rule-scanning.md) |
+| **Getting Started** | [Introduction](https://rulii.com/introduction) · [Installation](https://rulii.com/installation) · [Core Concepts](https://rulii.com/core-concepts) · [What's New](https://rulii.com/whats-new) |
+| **Core** | [Bindings](https://rulii.com/bindings) · [Rules (Functional)](https://rulii.com/lambda-rules) · [Rules (Declarative)](https://rulii.com/annotation-rules) · [RuleSets](https://rulii.com/rulesets) |
+| **Validation** | [Built-in Validators](https://rulii.com/validation-rules) · [RuleViolations](https://rulii.com/rule-violations) · [Custom Validation](https://rulii.com/custom-validation) |
+| **Advanced** | [Condition Composition](https://rulii.com/condition-composition) · [Scripting](https://rulii.com/scripting) · [Async Execution](https://rulii.com/async-execution) · [Rule Tracing](https://rulii.com/rule-tracing) |
+| **Spring** | [Spring Introduction](https://rulii.com/spring/introduction) · [Auto-Configuration](https://rulii.com/spring/auto-configuration) · [Rule Scanning](https://rulii.com/spring/rule-scanning) |
 
-See the full [documentation index](docs/README.md) for all pages.
+The Markdown sources for all documentation pages are in the [`docs/`](docs/) folder — see the
+[documentation index](docs/README.md) for the full page list.
 
 ---
 

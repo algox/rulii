@@ -42,7 +42,7 @@ public class DefaultConverterRegistry implements ConverterRegistry {
      */
     public DefaultConverterRegistry(boolean registerDefaults) {
         super();
-        if (registerDefaults) init();
+        if (registerDefaults) registerDefaults();
     }
 
     /**
@@ -86,7 +86,17 @@ public class DefaultConverterRegistry implements ConverterRegistry {
         return result;
     }
 
-    private void init() {
+    /**
+     * Registers all the built-in default converters, appending them after any converters
+     * already registered. Because {@link #find(Type, Type)} returns the first match in
+     * registration order, callers can register higher-precedence converters first and then
+     * invoke this method so the built-ins act as fallbacks (e.g. the Spring integration
+     * registers application converters and its ConversionService bridge before the defaults).
+     *
+     * <p>Invoked automatically by {@link #DefaultConverterRegistry(boolean)} when
+     * {@code registerDefaults} is {@code true}.
+     */
+    public void registerDefaults() {
         register(new TextToIntegerConverter());
         register(new TextToLongConverter());
         register(new TextToEnumConverter());
@@ -95,7 +105,6 @@ public class DefaultConverterRegistry implements ConverterRegistry {
         register(new TextToLocalDateConverter());
         register(new TextToLocalDateTimeConverter());
         register(new TextToDateConverter());
-        register(new TextToUrlConverter());
         register(new TextToUrlConverter());
         register(new TextToBigDecimalConverter());
         register(new TextToBooleanConverter());
