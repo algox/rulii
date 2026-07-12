@@ -103,4 +103,78 @@ public class ScriptProcessorManagerTest {
         // there is exactly one global registry, not one per caller.
         Assertions.assertSame(factory, ScriptProcessorManager.getInstance().getScriptProcessorFactory(language));
     }
+
+    @Test
+    public void testScriptTextResolver_defaultIsIdentity() {
+        Assertions.assertEquals("${unresolved}",
+                ScriptProcessorManager.getInstance().resolveScriptText("${unresolved}"));
+        Assertions.assertNull(ScriptProcessorManager.getInstance().resolveScriptText(null));
+    }
+
+    @Test
+    public void testScriptTextResolver_isAppliedByScriptBuilder() {
+        String language = "resolver-test-lang-" + UUID.randomUUID();
+        // Compiler that records the text it receives so we can assert pre-processing happened.
+        StringBuilder seen = new StringBuilder();
+        ScriptProcessorFactory factory = new ScriptProcessorFactory() {
+            @Override
+            public String getLanguageName() { return language; }
+            @Override
+            public String getBindingsName() { return "ctx"; }
+            @Override
+            public ScriptProcessor getScriptProcessor() { return namedFactory(language).getScriptProcessor(); }
+            @Override
+            public ScriptCompiler getScriptCompiler() {
+                return new ScriptCompiler() {
+                    @Override
+                    public String getLanguageName() { return language; }
+                    @Override
+                    public <T> Script<T> compile(String script, Class<?> returnType) {
+                        seen.setLength(0);
+                        seen.append(script);
+                        return null;
+                    }
+                };
+            }
+        };
+        ScriptProcessorManager.getInstance().register(factory);
+
+        try {
+            ScriptProcessorManager.getInstance().setScriptTextResolver(text -> text.replace("${answer}", "42"));
+            Script.builder().build(language, "value == ${answer}");
+            Assertions.assertEquals("value == 42", seen.toString(),
+                    "the resolver must run before the compiler sees the text");
+        } finally {
+            ScriptProcessorManager.getInstance().setScriptTextResolver(java.util.function.UnaryOperator.identity());
+        }
+
+        Script.builder().build(language, "value == ${answer}");
+        Assertions.assertEquals("value == ${answer}", seen.toString(),
+                "resetting to identity must stop pre-processing");
+    }
+
+    @Test
+    public void testScriptTextResolver_nullResolverRejected() {
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> ScriptProcessorManager.getInstance().setScriptTextResolver(null));
+    }
+
+    @Test
+    public void testClearScriptTextResolver_onlyResetsWhenExpectedResolverIsActive() {
+        java.util.function.UnaryOperator<String> mine = text -> text + "-mine";
+        java.util.function.UnaryOperator<String> other = text -> text + "-other";
+
+        try {
+            ScriptProcessorManager.getInstance().setScriptTextResolver(mine);
+            Assertions.assertFalse(ScriptProcessorManager.getInstance().clearScriptTextResolver(other),
+                    "clearing with a non-active resolver must be a no-op");
+            Assertions.assertEquals("x-mine", ScriptProcessorManager.getInstance().resolveScriptText("x"));
+
+            Assertions.assertTrue(ScriptProcessorManager.getInstance().clearScriptTextResolver(mine));
+            Assertions.assertEquals("x", ScriptProcessorManager.getInstance().resolveScriptText("x"),
+                    "clearing the active resolver must restore identity");
+        } finally {
+            ScriptProcessorManager.getInstance().setScriptTextResolver(java.util.function.UnaryOperator.identity());
+        }
+    }
 }

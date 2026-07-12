@@ -72,7 +72,9 @@ public final class ScriptBuilderBuilder {
 
         if (factory == null) throw new UnrulyException("No ScriptProcessorFactory found for language: " + language);
 
-        return new ScriptBuilder(factory, script);
+        // Apply the configured script-text resolver (e.g. Spring ${property:default}
+        // placeholder resolution) before the text reaches the compiler.
+        return new ScriptBuilder(factory, scriptProcessorManager.resolveScriptText(script));
     }
 
     /**

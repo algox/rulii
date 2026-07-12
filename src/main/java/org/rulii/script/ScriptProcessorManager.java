@@ -29,6 +29,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.UnaryOperator;
 
 /**
  * Registry and lookup service for {@link ScriptProcessorFactory} instances.
@@ -66,6 +67,7 @@ public final class ScriptProcessorManager {
     private static final Object LOCK = new Object();
     private static final ScriptProcessorManager INSTANCE = new ScriptProcessorManager();
     private static volatile boolean initialized = false;
+    private static volatile UnaryOperator<String> scriptTextResolver = UnaryOperator.identity();
 
     private ScriptProcessorManager() {
         super();
@@ -90,6 +92,52 @@ public final class ScriptProcessorManager {
     public void register(ScriptProcessorFactory factory) {
         Assert.notNull(factory, "factory cannot be null.");
         factories.put(factory.getLanguageName(), factory);
+    }
+
+    /**
+     * Sets the script-text resolver applied to every script's source text before it is
+     * compiled (see {@code ScriptBuilderBuilder#with}). Integrations use this to
+     * pre-process script text — e.g. the Spring integration resolves
+     * {@code ${property:default}} placeholders against the application environment.
+     *
+     * <p>The default is the identity function (no pre-processing). Like the factory
+     * registrations, the resolver is process-wide state.
+     *
+     * @param resolver the resolver to apply; must not be null — pass
+     *                 {@link UnaryOperator#identity()} to remove a previously set resolver.
+     */
+    public void setScriptTextResolver(UnaryOperator<String> resolver) {
+        Assert.notNull(resolver, "resolver cannot be null.");
+        scriptTextResolver = resolver;
+    }
+
+    /**
+     * Resets the script-text resolver to the identity function, but only when the
+     * currently active resolver is the given one. Lets an integration tear down the
+     * resolver it installed without clobbering one installed later by someone else
+     * (e.g. a newer application context in the same JVM).
+     *
+     * @param expected the resolver believed to be active; must not be null.
+     * @return true if the resolver was reset; false if a different resolver was active.
+     */
+    public boolean clearScriptTextResolver(UnaryOperator<String> expected) {
+        Assert.notNull(expected, "expected cannot be null.");
+
+        synchronized (LOCK) {
+            if (scriptTextResolver != expected) return false;
+            scriptTextResolver = UnaryOperator.identity();
+            return true;
+        }
+    }
+
+    /**
+     * Applies the configured script-text resolver to the given script source text.
+     *
+     * @param script the raw script text; may be null.
+     * @return the resolved text (unchanged when no resolver is configured).
+     */
+    public String resolveScriptText(String script) {
+        return script == null ? null : scriptTextResolver.apply(script);
     }
 
     /**
