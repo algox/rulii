@@ -36,34 +36,34 @@
 
         <javax.annotation.api>1.3.2</javax.annotation.api>
         <jakarta.annotation.api.version>3.0.0</jakarta.annotation.api.version>
-        <slf4j.version>2.0.17</slf4j.version>
-        <log4j.verion>2.24.3</log4j.verion>
-        <logback.classic.version>1.5.32</logback.classic.version>
-        <junit.version>5.12.1</junit.version>
-        <graalvm.version>24.1.0</graalvm.version>
+        <slf4j.version>2.0.18</slf4j.version>
+        <log4j.verion>2.26.1</log4j.verion>
+        <logback.classic.version>1.5.38</logback.classic.version>
+        <junit.version>6.1.1</junit.version>
+        <graalvm.version>25.1.3</graalvm.version>
         <janino.version>3.1.12</janino.version>
 
-        <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
-        <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
-        <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
-        <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
-        <central-publishing-plugin.version>0.7.0</central-publishing-plugin.version>
-        <maven-gpg-plugin.version>3.2.7</maven-gpg-plugin.version>
+        <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
+        <maven-resources-plugin.version>3.5.0</maven-resources-plugin.version>
+        <maven-source-plugin.version>3.4.0</maven-source-plugin.version>
+        <maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version>
+        <central-publishing-plugin.version>0.11.0</central-publishing-plugin.version>
+        <maven-gpg-plugin.version>3.2.8</maven-gpg-plugin.version>
     </properties>
 
     <dependencies>
 
         <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-api</artifactId>
-            <version>${log4j.verion}</version>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>${slf4j.version}</version>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>${log4j.verion}</version>
             <scope>provided</scope>
         </dependency>
 
