@@ -553,12 +553,12 @@ public abstract class RuleFlowBuilderTemplate<SELF extends RuleFlowBuilderTempla
     /**
      * Executes a runnable looked up by name from the {@link org.rulii.registry.RuleRegistry}.
      *
-     * @param registryName name to look up at runtime; must not be null or empty.
+     * @param nameInRegistry name to look up at runtime; must not be null or empty.
      * @return this builder.
      */
-    public SELF run(String registryName) {
-        Assert.hasText(registryName, "registryName cannot be empty/null.");
-        addConstruct(RunConstruct.ofName(registryName));
+    public SELF run(String nameInRegistry) {
+        Assert.hasText(nameInRegistry, "nameInRegistry cannot be empty/null.");
+        addConstruct(RunConstruct.ofName(nameInRegistry));
         return self();
     }
 
@@ -566,15 +566,15 @@ public abstract class RuleFlowBuilderTemplate<SELF extends RuleFlowBuilderTempla
      * Executes a runnable looked up by name from the {@link org.rulii.registry.RuleRegistry},
      * with step-level configuration.
      *
-     * @param registryName name to look up at runtime; must not be null or empty.
+     * @param nameInRegistry name to look up at runtime; must not be null or empty.
      * @param config       Consumer that configures the step via {@link RunSpec}; must not be null.
      * @return this builder.
      */
-    public SELF run(String registryName, Consumer<RunSpec<SELF>> config) {
-        Assert.hasText(registryName, "registryName cannot be empty/null.");
+    public SELF run(String nameInRegistry, Consumer<RunSpec<SELF>> config) {
+        Assert.hasText(nameInRegistry, "nameInRegistry cannot be empty/null.");
         Assert.notNull(config, "config cannot be null.");
         sealLastConstruct();
-        RunConstruct construct = RunConstruct.ofName(registryName);
+        RunConstruct construct = RunConstruct.ofName(nameInRegistry);
         config.accept(new RunSpec<>(construct, this));
         lastConstruct = construct;
         return self();
@@ -762,12 +762,12 @@ public abstract class RuleFlowBuilderTemplate<SELF extends RuleFlowBuilderTempla
      * Launches a runnable looked up by name from the {@link org.rulii.registry.RuleRegistry}
      * asynchronously. The resulting {@link java.util.concurrent.CompletableFuture} is not bound.
      *
-     * @param registryName name to look up at runtime; must not be null or empty.
+     * @param nameInRegistry name to look up at runtime; must not be null or empty.
      * @return this builder.
      */
-    public SELF asyncRun(String registryName) {
-        Assert.hasText(registryName, "registryName cannot be empty/null.");
-        addConstruct(AsyncRunConstruct.ofName(registryName));
+    public SELF asyncRun(String nameInRegistry) {
+        Assert.hasText(nameInRegistry, "nameInRegistry cannot be empty/null.");
+        addConstruct(AsyncRunConstruct.ofName(nameInRegistry));
         return self();
     }
 
@@ -775,15 +775,15 @@ public abstract class RuleFlowBuilderTemplate<SELF extends RuleFlowBuilderTempla
      * Launches a runnable looked up by name from the {@link org.rulii.registry.RuleRegistry}
      * asynchronously, with step-level configuration.
      *
-     * @param registryName name to look up at runtime; must not be null or empty.
+     * @param nameInRegistry name to look up at runtime; must not be null or empty.
      * @param config       Consumer that configures the step via {@link AsyncRunSpec}; must not be null.
      * @return this builder.
      */
-    public SELF asyncRun(String registryName, Consumer<AsyncRunSpec<SELF>> config) {
-        Assert.hasText(registryName, "registryName cannot be empty/null.");
+    public SELF asyncRun(String nameInRegistry, Consumer<AsyncRunSpec<SELF>> config) {
+        Assert.hasText(nameInRegistry, "nameInRegistry cannot be empty/null.");
         Assert.notNull(config, "config cannot be null.");
         sealLastConstruct();
-        AsyncRunConstruct construct = AsyncRunConstruct.ofName(registryName);
+        AsyncRunConstruct construct = AsyncRunConstruct.ofName(nameInRegistry);
         config.accept(new AsyncRunSpec<>(construct, this));
         lastConstruct = construct;
         return self();

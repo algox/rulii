@@ -41,6 +41,36 @@ public interface BindingDeclaration<T> extends Function<String, T>, Serializable
     long serialVersionUID = -0L;
 
     /**
+     * Creates a declaration with an explicit name and constant value.
+     *
+     * <p>The lambda form ({@code age -> 25}) derives the binding name from the lambda's
+     * parameter identifier, which requires the name to be known at compile time. Use this
+     * factory when the name is only available at runtime — e.g. loaded from configuration
+     * or declared in XML (the Spring integration's {@code <r:with name="..." value="..."/>}).
+     *
+     * @param name  the binding name; must be a valid binding name.
+     * @param value the constant value; may be null.
+     * @param <T>   the value type.
+     * @return a declaration reporting the given name and value; never null.
+     * @throws UnrulyException if the name is not a valid binding name.
+     */
+    static <T> BindingDeclaration<T> of(String name, T value) {
+        if (!RuleUtils.isValidName(name)) throw new UnrulyException("Invalid Binding name [" + name + "]");
+
+        return new BindingDeclaration<>() {
+            @Override
+            public String name() {
+                return name;
+            }
+
+            @Override
+            public T apply(String bindingName) {
+                return value;
+            }
+        };
+    }
+
+    /**
      * Retrieves the name of the Binding from the Function (Lambda).
      *
      * @return name of the Binding.

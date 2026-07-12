@@ -1145,6 +1145,24 @@ public class RuleFlowTest {
     }
 
     @Test
+    public void testWith_combinedWithAs_resultSurvivesParamScopeRemoval() {
+        List<Object> captured = new ArrayList<>();
+
+        RuleFlow<Void> flow = RuleFlow.builder()
+                .name("asCombinedWithWith")
+                .apply(function((Integer bonus) -> bonus + 1), spec -> spec.as("result").with(bonus -> 41))
+                .execute(action((RuleContext ctx) -> captured.add(ctx.getBindings().getValue("result"))))
+                .<Void>returning(function((RuleContext ctx) -> null))
+                .build();
+
+        flow.run();
+
+        // Regression: the result used to be bound INTO the transient with-param scope
+        // and was destroyed with it, making as() + with() mutually exclusive in practice.
+        assertEquals(List.of(42), captured);
+    }
+
+    @Test
     public void testWith_bindingDeclarations_notVisibleAfterStep() {
         List<Object> observed = new ArrayList<>();
         Rule observeRule = Rule.builder().name("observe")

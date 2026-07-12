@@ -67,15 +67,22 @@ public class RunCommand implements RuleFlowCommand {
 
     @Override
     public void execute(RuleFlowExecutionContext ctx) {
+        RuleContext ruleContext = ctx.getRuleContext();
+
+        // Capture the result destination BEFORE pushing the transient param scope: the
+        // result belongs to the scope that is current when the command starts, never to
+        // the step-scoped param scope (which is discarded after the step).
+        Bindings resultTarget = bindingName != null ? resolveResultTarget(ruleContext) : null;
         NamedScope paramScope = null;
+
         try {
-            if (params != null) paramScope = pushParamScope(ctx.getRuleContext());
-            Object result = resolveRunnable(ctx.getRuleContext()).run(ctx.getRuleContext());
-            if (bindingName != null) bindResult(ctx.getRuleContext(), result);
+            if (params != null) paramScope = pushParamScope(ruleContext);
+            Object result = resolveRunnable(ruleContext).run(ruleContext);
+            if (resultTarget != null) resultTarget.bind(bindingName, result);
         } catch (UnrulyException e) {
             if (!handleException(e, ctx)) throw e;
         } finally {
-            if (paramScope != null) ctx.getRuleContext().getBindings().removeScope(paramScope);
+            if (paramScope != null) ruleContext.getBindings().removeScope(paramScope);
         }
     }
 
@@ -114,11 +121,17 @@ public class RunCommand implements RuleFlowCommand {
         return result;
     }
 
-    private void bindResult(RuleContext ruleContext, Object result) {
-        Bindings bindings = bindingScopeName != null
+    /**
+     * Resolves the Bindings the step result will be bound into: the named scope when
+     * {@code as(scope, binding)} was used, otherwise the currently active scope.
+     *
+     * @param ruleContext the rule context.
+     * @return the destination bindings.
+     */
+    private Bindings resolveResultTarget(RuleContext ruleContext) {
+        return bindingScopeName != null
                 ? ruleContext.getBindings().getScopeBindings(bindingScopeName)
-                : ruleContext.getBindings();
-        bindings.bind(bindingName, result);
+                : ruleContext.getBindings().getCurrentScope().getBindings();
     }
 
     private boolean handleException(UnrulyException e, RuleFlowExecutionContext ctx) {

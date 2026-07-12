@@ -99,6 +99,17 @@ public class AsyncRunCommand implements RuleFlowCommand {
         Runnable<?> target = resolveRunnable(ruleContext);
         ExecutorService executor = effectiveCtx.getExecutorService();
 
+        // Bind the caller-visible handle BEFORE launching the task: in SHARED mode the task
+        // pushes/pops its own scopes on these very bindings from the executor thread, so
+        // binding after launch could land the future inside a transient child scope - and
+        // vanish with it when that scope is removed.
+        CompletableFuture<Object> handle = null;
+
+        if (bindingName != null) {
+            handle = new CompletableFuture<>();
+            ruleContext.getBindings().bind(bindingName, handle);
+        }
+
         CompletableFuture<?> future;
 
         if (target instanceof AsyncRunnable asyncTarget) {
@@ -116,7 +127,13 @@ public class AsyncRunCommand implements RuleFlowCommand {
         // unhandled failure still needs the chance to fall back to the flow's global handler.
         future = future.handleAsync((result, ex) -> handleFailure(result, ex, ctx, effectiveCtx), executor);
 
-        if (bindingName != null) ruleContext.getBindings().bind(bindingName, future);
+        if (handle != null) {
+            CompletableFuture<Object> boundHandle = handle;
+            future.whenComplete((result, ex) -> {
+                if (ex != null) boundHandle.completeExceptionally(ex);
+                else boundHandle.complete(result);
+            });
+        }
     }
 
     private Object runContinuation(Object result, RuleContext effectiveCtx, RuleFlowExecutionContext continuationCtx) {
