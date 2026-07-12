@@ -407,6 +407,7 @@ If you have Claude Code installed, invoke any skill with its slash command from 
 |---|---|---|
 | New Rule | `/new-rule` | Step-by-step guide for creating a Rule — lambda and class-based styles, conditions, actions, preConditions, and running rules manually |
 | New RuleSet | `/new-ruleset` | Full RuleSet builder API — lifecycle hooks, input params, stop conditions, `.validating()` mode, async execution, and error handling |
+| New RuleFlow | `/new-ruleflow` | Full RuleFlow pipeline API — bind/run/apply/execute steps, step specs (`as`/`with`/`onException`), `when`/`forEach`/`scope` containers, early exit, async steps (`asyncRun`/`await`), exception handling, and custom containers |
 | New Validation Rule | `/new-validation-rule` | Creates a custom `ValueValidationRule` with its companion builder — covers supported types, `isValid()` logic, violation customisation, and the full checklist |
 | Write Test | `/write-test` | JUnit 5 test patterns for rulii — PASS/FAIL/SKIP scenarios, missing-binding cases, validation exceptions, and JUnit 5.12.1 ambiguity workarounds |
 | Debug Rule | `/debug-rule` | Diagnostic guide for rules that produce the wrong result — walks through SKIP (type mismatch), missing bindings, missing violations, and how to enable tracing |
@@ -419,6 +420,7 @@ copy the skills into your own project's `.claude/skills/` directory:
 ```bash
 cp -r <path-to-rulii>/.claude/skills/new-rule        .claude/skills/
 cp -r <path-to-rulii>/.claude/skills/new-ruleset      .claude/skills/
+cp -r <path-to-rulii>/.claude/skills/new-ruleflow     .claude/skills/
 cp -r <path-to-rulii>/.claude/skills/new-validation-rule .claude/skills/
 cp -r <path-to-rulii>/.claude/skills/write-test       .claude/skills/
 cp -r <path-to-rulii>/.claude/skills/debug-rule       .claude/skills/
