@@ -14,6 +14,10 @@
 
 ---
 
+**📖 Official documentation at [rulii.com](https://rulii.com) or the mirror [here](https://rulii.netlify.app/)**
+
+---
+
 ## Table of Contents
 
 - [What is it?](#what-is-it)
