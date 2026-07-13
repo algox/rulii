@@ -11,6 +11,7 @@
 [![Maven Central Version](https://img.shields.io/maven-central/v/org.rulii/rulii)][rulii Maven Central]
 [![Javadoc](https://javadoc.io/badge2/org.rulii/rulii/javadoc.svg)](https://javadoc.io/doc/org.rulii/rulii/latest)
 ![Build](https://github.com/algox/rulii/actions/workflows/maven.yml/badge.svg)
+[![codecov](https://codecov.io/gh/algox/rulii/branch/develop/graph/badge.svg)](https://codecov.io/gh/algox/rulii)
 
 ---
 
