@@ -16,6 +16,8 @@
 
 **📖 Official documentation at [rulii.com](https://rulii.com) or the mirror [here](https://rulii.netlify.app/)**
 
+**🧪 Sample projects at [rulii-samples](https://github.com/algox/rulii-samples)**
+
 ---
 
 ## Table of Contents
