@@ -19,7 +19,9 @@ package org.rulii.test.util;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.rulii.context.RuleContext;
 import org.rulii.model.Runnable;
+import org.rulii.util.Ordered;
 import org.rulii.util.RunnableComparator;
 
 /**
@@ -51,5 +53,53 @@ public class RunnableComparatorTest {
     public void testCompare_bothNull_isZero() {
         RunnableComparator comparator = new RunnableComparator();
         Assertions.assertEquals(0, comparator.compare(null, null));
+    }
+
+    @Test
+    public void testCompare_sameInstance_isZero() {
+        RunnableComparator comparator = new RunnableComparator();
+        Runnable<Object> runnable = ctx -> null;
+        Assertions.assertEquals(0, comparator.compare(runnable, runnable));
+    }
+
+    @Test
+    public void testCompare_bothOrdered_sortsByOrder() {
+        RunnableComparator comparator = new RunnableComparator();
+        OrderedRunnable low = new OrderedRunnable(1);
+        OrderedRunnable high = new OrderedRunnable(10);
+
+        Assertions.assertTrue(comparator.compare(low, high) < 0);
+        Assertions.assertTrue(comparator.compare(high, low) > 0);
+        Assertions.assertEquals(0, comparator.compare(low, new OrderedRunnable(1)));
+    }
+
+    @Test
+    public void testCompare_onlyOneOrdered_isZero() {
+        RunnableComparator comparator = new RunnableComparator();
+        OrderedRunnable ordered = new OrderedRunnable(5);
+        Runnable<Object> plain = ctx -> null;
+
+        Assertions.assertEquals(0, comparator.compare(ordered, plain));
+        Assertions.assertEquals(0, comparator.compare(plain, ordered));
+    }
+
+    private static class OrderedRunnable implements Runnable<Object>, Ordered {
+
+        private final int order;
+
+        public OrderedRunnable(int order) {
+            super();
+            this.order = order;
+        }
+
+        @Override
+        public Object run(RuleContext ctx) {
+            return null;
+        }
+
+        @Override
+        public int getOrder() {
+            return order;
+        }
     }
 }

@@ -29,9 +29,13 @@ import org.rulii.model.function.TriFunction;
 import org.rulii.util.reflect.LambdaUtils;
 import org.rulii.util.reflect.ReflectionUtils;
 
+import java.beans.BeanInfo;
 import java.io.Serializable;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.SerializedLambda;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -219,6 +223,189 @@ public class ReflectionUtilsTest {
         LambdaUtils.getSafeSerializedLambda(condition.getTarget());
         Assertions.assertEquals(ReflectionUtils.getUnderlyingType(method.getGenericParameterTypes()[0], Binding.class), Object.class);
         Assertions.assertEquals(ReflectionUtils.getUnderlyingType(method.getGenericParameterTypes()[1], Optional.class), Object.class);
+    }
+
+    @Test
+    public void testGetParameterNamesForConstructor() throws NoSuchMethodException {
+        Constructor<?> ctor = ConstructorNamesClass.class.getDeclaredConstructor(String.class, Integer.class);
+        String[] names = ReflectionUtils.getParameterNames(ctor);
+        Assertions.assertNotNull(names);
+        Assertions.assertEquals(2, names.length);
+        Assertions.assertEquals("firstName", names[0]);
+        Assertions.assertEquals("age", names[1]);
+    }
+
+    @Test
+    public void testGetDefaultValue() {
+        Assertions.assertEquals(0, ReflectionUtils.getDefaultValue(int.class));
+        Assertions.assertEquals(false, ReflectionUtils.getDefaultValue(boolean.class));
+        Assertions.assertEquals((long) 0, ReflectionUtils.getDefaultValue(long.class));
+        Assertions.assertEquals((char) 0, ReflectionUtils.getDefaultValue(char.class));
+        Assertions.assertNull(ReflectionUtils.getDefaultValue(void.class));
+        // Non-primitive types have no default value entry.
+        Assertions.assertNull(ReflectionUtils.getDefaultValue(String.class));
+    }
+
+    @Test
+    public void testGetWrapperClass() {
+        Assertions.assertEquals(Integer.class, ReflectionUtils.getWrapperClass(int.class));
+        Assertions.assertEquals(Boolean.class, ReflectionUtils.getWrapperClass(boolean.class));
+        Assertions.assertEquals(Void.class, ReflectionUtils.getWrapperClass(void.class));
+        Assertions.assertEquals(Double.class, ReflectionUtils.getWrapperClass(double.class));
+        // Non-primitive types come back unchanged.
+        Assertions.assertEquals(String.class, ReflectionUtils.getWrapperClass(String.class));
+    }
+
+    @Test
+    public void testInvokePostConstruct_targetMethodThrows_wrappedInIllegalArgumentException() {
+        Method postConstructor = ReflectionUtils.getPostConstructMethods(ThrowingInit.class);
+        Assertions.assertNotNull(postConstructor);
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> ReflectionUtils.invokePostConstruct(postConstructor, new ThrowingInit()));
+    }
+
+    @Test
+    public void testLoadBeanInfo() {
+        BeanInfo beanInfo = ReflectionUtils.loadBeanInfo(ConstructorNamesClass.class);
+        Assertions.assertNotNull(beanInfo);
+        Assertions.assertTrue(beanInfo.getPropertyDescriptors().length > 0);
+    }
+
+    @Test
+    public void testIsBindingAndIsOptional() throws NoSuchMethodException {
+        Method method = Interface3.class.getDeclaredMethod("test", Binding.class, Optional.class, Optional.class);
+        // Parameterized declarations
+        Assertions.assertTrue(ReflectionUtils.isBinding(method.getGenericParameterTypes()[0]));
+        Assertions.assertTrue(ReflectionUtils.isOptional(method.getGenericParameterTypes()[1]));
+        // Raw class equals the wrapper itself
+        Assertions.assertTrue(ReflectionUtils.isBinding(Binding.class));
+        Assertions.assertTrue(ReflectionUtils.isOptional(Optional.class));
+        // Unrelated types
+        Assertions.assertFalse(ReflectionUtils.isBinding(String.class));
+        Assertions.assertFalse(ReflectionUtils.isOptional(method.getGenericParameterTypes()[0]));
+        Assertions.assertFalse(ReflectionUtils.isBinding(method.getGenericParameterTypes()[1]));
+    }
+
+    @Test
+    public void testGetUnderlyingBindingAndOptionalTypes() throws NoSuchMethodException {
+        Method method = Interface3.class.getDeclaredMethod("test", Binding.class, Optional.class, Optional.class);
+        Assertions.assertEquals(String.class, ReflectionUtils.getUnderlyingBindingType(method.getGenericParameterTypes()[0]));
+        Assertions.assertEquals(Integer.class, ReflectionUtils.getUnderlyingOptionalType(method.getGenericParameterTypes()[1]));
+    }
+
+    @Test
+    public void testGetUnderlyingType_rawWrapperClass_returnsObject() {
+        Assertions.assertEquals(Object.class, ReflectionUtils.getUnderlyingType(Binding.class, Binding.class));
+        Assertions.assertEquals(Object.class, ReflectionUtils.getUnderlyingType(Optional.class, Optional.class));
+    }
+
+    @Test
+    public void testGetUnderlyingType_notAParameterizedType_throwsUnrulyException() {
+        Assertions.assertThrows(UnrulyException.class,
+                () -> ReflectionUtils.getUnderlyingType(String.class, Binding.class));
+    }
+
+    @Test
+    public void testGetUnderlyingType_wrongRawType_throwsUnrulyException() throws NoSuchMethodException {
+        Method method = Interface3.class.getDeclaredMethod("test", Binding.class, Optional.class, Optional.class);
+        // Parameter 1 is Optional<Integer> - asking for its underlying Binding type must fail.
+        Assertions.assertThrows(UnrulyException.class,
+                () -> ReflectionUtils.getUnderlyingType(method.getGenericParameterTypes()[1], Binding.class));
+    }
+
+    @Test
+    public void testFindRunMethodWithRuleContext() {
+        Assertions.assertNotNull(ReflectionUtils.findRunMethodWithRuleContext(WithRunMethod.class));
+        Assertions.assertNull(ReflectionUtils.findRunMethodWithRuleContext(String.class));
+    }
+
+    @Test
+    public void testIsJavaCoreClass() {
+        Assertions.assertTrue(ReflectionUtils.isJavaCoreClass(int.class));
+        Assertions.assertTrue(ReflectionUtils.isJavaCoreClass(String[].class));
+        Assertions.assertTrue(ReflectionUtils.isJavaCoreClass(String.class));
+        Assertions.assertTrue(ReflectionUtils.isJavaCoreClass(List.class));
+        Assertions.assertFalse(ReflectionUtils.isJavaCoreClass(ReflectionUtilsTest.class));
+    }
+
+    @Test
+    public void testGetAnnotationText_withExplicitValues() throws NoSuchMethodException {
+        Method method = AnnotatedMethods.class.getDeclaredMethod("customized");
+        String text = ReflectionUtils.getAnnotationText(method.getAnnotation(TextMarker.class));
+        Assertions.assertTrue(text.startsWith("TextMarker("));
+        Assertions.assertTrue(text.contains("label=custom"));
+        Assertions.assertTrue(text.contains("tags=[a, b]"));
+    }
+
+    @Test
+    public void testGetAnnotationText_allDefaults_rendersEmptyParens() throws NoSuchMethodException {
+        Method method = AnnotatedMethods.class.getDeclaredMethod("defaults");
+        String text = ReflectionUtils.getAnnotationText(method.getAnnotation(TextMarker.class));
+        Assertions.assertEquals("TextMarker()", text);
+    }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    private @interface TextMarker {
+
+        String label() default "";
+
+        String[] tags() default {};
+    }
+
+    private static class AnnotatedMethods {
+
+        public AnnotatedMethods() {
+            super();
+        }
+
+        @TextMarker(label = "custom", tags = {"a", "b"})
+        void customized() {}
+
+        @TextMarker
+        void defaults() {}
+    }
+
+    public static class ConstructorNamesClass {
+
+        private String firstName;
+        private Integer age;
+
+        public ConstructorNamesClass(String firstName, Integer age) {
+            super();
+            this.firstName = firstName;
+            this.age = age;
+        }
+
+        public String getFirstName() {
+            return firstName;
+        }
+
+        public Integer getAge() {
+            return age;
+        }
+    }
+
+    private static class ThrowingInit {
+
+        public ThrowingInit() {
+            super();
+        }
+
+        @PostConstruct
+        private void init() {
+            throw new IllegalStateException("init failed");
+        }
+    }
+
+    private static class WithRunMethod {
+
+        public WithRunMethod() {
+            super();
+        }
+
+        public void run(org.rulii.context.RuleContext ctx) {
+            // no-op
+        }
     }
 
     private static class SomeClass {

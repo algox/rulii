@@ -81,4 +81,47 @@ public class MethodHandleMethodExecutorTest {
         String ret = executor.execute(null, "World");
         Assertions.assertEquals("Hello World", ret);
     }
+
+    public static class ZeroParamTestObject {
+
+        public ZeroParamTestObject() {
+            super();
+        }
+
+        public String runTest() {
+            return "no args needed";
+        }
+    }
+
+    @Test
+    public void testNullArgsOnZeroParamMethod_executesSuccessfully() throws Throwable {
+        // Regression test: null userArgs used to NPE in the arg-copy loop even though the
+        // parameter-count check accepted it - ReflectiveMethodExecutor handles the same input,
+        // and both strategies must behave identically behind DefaultMethodExecutor.
+        MethodExecutor executor = new MethodHandleMethodExecutor(ZeroParamTestObject.class.getMethod("runTest"));
+        String ret = executor.execute(new ZeroParamTestObject(), (Object[]) null);
+        Assertions.assertEquals("no args needed", ret);
+    }
+
+    @Test
+    public void testNullArgsListOnZeroParamMethod_executesSuccessfully() throws Throwable {
+        // The List overload converts a null list to a null array - the original path that
+        // exposed the NPE.
+        MethodExecutor executor = new MethodHandleMethodExecutor(ZeroParamTestObject.class.getMethod("runTest"));
+        String ret = executor.execute(new ZeroParamTestObject(), (java.util.List<Object>) null);
+        Assertions.assertEquals("no args needed", ret);
+    }
+
+    @Test
+    public void testNullArgsOnMethodWithParams_throwsUnrulyException() throws Throwable {
+        class TestObject {
+            public String runTest(String param) {
+                return "Hello " + param;
+            }
+        }
+
+        // Null args must still fail the parameter-count check when the method expects arguments.
+        MethodExecutor executor = new MethodHandleMethodExecutor(TestObject.class.getMethod("runTest", String.class));
+        Assertions.assertThrows(UnrulyException.class, () -> executor.execute(new TestObject(), (Object[]) null));
+    }
 }

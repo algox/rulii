@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.rulii.lib.spring.core.ParameterNameDiscoverer;
 import org.rulii.model.Runnable;
+import org.rulii.model.UnrulyException;
 import org.rulii.model.action.Action;
 import org.rulii.model.function.TriFunction;
 import org.rulii.model.function.UnaryFunction;
@@ -137,6 +138,71 @@ public final class LambdaUtilsTest {
         CountingWriteReplace.invocationCount = 0;
         LambdaUtils.getSerializedLambda(new CountingWriteReplace());
         Assertions.assertEquals(1, CountingWriteReplace.invocationCount);
+    }
+
+    @Test
+    public void testGetSerializedLambda_noWriteReplaceMethod_throwsUnrulyException() {
+        UnrulyException e = Assertions.assertThrows(UnrulyException.class,
+                () -> LambdaUtils.getSerializedLambda(new PlainSerializable()));
+        Assertions.assertTrue(e.getMessage().contains("writeReplace"));
+    }
+
+    @Test
+    public void testGetSerializedLambda_writeReplaceReturnsNonLambda_throwsUnrulyException() {
+        UnrulyException e = Assertions.assertThrows(UnrulyException.class,
+                () -> LambdaUtils.getSerializedLambda(new BadWriteReplace()));
+        Assertions.assertTrue(e.getMessage().contains("did not return a SerializedLambda"));
+    }
+
+    @Test
+    public void testGetImplementationClass_unloadableClass_throwsUnrulyException() {
+        SerializedLambda lambda = new SerializedLambda(LambdaUtilsTest.class, "java/lang/Runnable", "run", "()V",
+                java.lang.invoke.MethodHandleInfo.REF_invokeStatic, "no/such/pkg/NoSuchClazzXyz", "someMethod",
+                "()V", "()V", new Object[0]);
+        Assertions.assertThrows(UnrulyException.class, () -> LambdaUtils.getImplementationClass(lambda));
+    }
+
+    @Test
+    public void testGetImplementationMethod_methodNotFound_throwsUnrulyException() {
+        SerializedLambda lambda = new SerializedLambda(LambdaUtilsTest.class, "java/lang/Runnable", "run", "()V",
+                java.lang.invoke.MethodHandleInfo.REF_invokeStatic, "SomeClass", "noSuchMethodXyz",
+                "()V", "()V", new Object[0]);
+        Assertions.assertThrows(UnrulyException.class,
+                () -> LambdaUtils.getImplementationMethod(lambda, LambdaUtilsTest.class));
+    }
+
+    @Test
+    public void testGetImplementationMethodFromTarget_lambda_returnsMethod() {
+        UnaryFunction<Boolean, Integer> lambda = (Integer x) -> x > 5;
+        Method method = LambdaUtils.getImplementationMethod(lambda);
+        Assertions.assertNotNull(method);
+        Assertions.assertEquals(Boolean.class, method.getReturnType());
+        Assertions.assertEquals(Integer.class, method.getParameterTypes()[0]);
+    }
+
+    @Test
+    public void testGetImplementationMethodFromTarget_nonLambda_throwsUnrulyException() {
+        UnrulyException e = Assertions.assertThrows(UnrulyException.class,
+                () -> LambdaUtils.getImplementationMethod(new PlainSerializable()));
+        Assertions.assertTrue(e.getMessage().contains("not a Lambda"));
+    }
+
+    private static class PlainSerializable implements Serializable {
+
+        public PlainSerializable() {
+            super();
+        }
+    }
+
+    private static class BadWriteReplace implements Serializable {
+
+        public BadWriteReplace() {
+            super();
+        }
+
+        private Object writeReplace() {
+            return "definitely not a SerializedLambda";
+        }
     }
 
     private static class CountingWriteReplace implements Serializable {

@@ -92,4 +92,56 @@ public class ReflectiveMethodExecutorTest {
         IllegalStateException e = Assertions.assertThrows(IllegalStateException.class, () -> executor.execute(this));
         Assertions.assertEquals("boom - the target method's own exception", e.getMessage());
     }
+
+    public static String staticMethod() {
+        return "static result";
+    }
+
+    @Test
+    public void whenExecuteStaticMethod_thenTargetIsIgnored() throws Throwable {
+        Method method = ReflectiveMethodExecutorTest.class.getMethod("staticMethod");
+        ReflectiveMethodExecutor executor = new ReflectiveMethodExecutor(method);
+        // Static methods must execute even with a null target.
+        String result = executor.execute(null);
+        Assertions.assertEquals("static result", result);
+    }
+
+    @Test
+    public void whenExecuteWithNullArgsOnZeroParamMethod_thenExecutesSuccessfully() throws Throwable {
+        Method method = ReflectiveMethodExecutorTest.class.getDeclaredMethod("getSuccessTestMessage");
+        ReflectiveMethodExecutor executor = new ReflectiveMethodExecutor(method);
+        String result = executor.execute(this, (Object[]) null);
+        Assertions.assertTrue(result.contains("succeeded"));
+    }
+
+    @Test
+    public void whenExecuteWithNullArgsList_thenExecutesSuccessfully() throws Throwable {
+        Method method = ReflectiveMethodExecutorTest.class.getDeclaredMethod("getSuccessTestMessage");
+        ReflectiveMethodExecutor executor = new ReflectiveMethodExecutor(method);
+        // Covers the null branch of MethodExecutor's List-overload default method.
+        String result = executor.execute(this, (java.util.List<Object>) null);
+        Assertions.assertTrue(result.contains("succeeded"));
+    }
+
+    @Test
+    public void whenConstructedWithNullMethod_thenIllegalArgumentExceptionIsThrown() {
+        Assertions.assertThrows(IllegalArgumentException.class, () -> new ReflectiveMethodExecutor(null));
+    }
+
+    @Test
+    public void whenMethodAccessor_thenReturnsUnderlyingMethod() throws NoSuchMethodException {
+        Method method = ReflectiveMethodExecutorTest.class.getDeclaredMethod("getSuccessTestMessage");
+        ReflectiveMethodExecutor executor = new ReflectiveMethodExecutor(method);
+        Assertions.assertEquals(method, executor.method());
+    }
+
+    @Test
+    public void whenReflectionLevelFailure_thenWrappedInUnrulyException() throws NoSuchMethodException {
+        // A private method of a foreign class without setAccessible(true) - invoke() fails with
+        // IllegalAccessException, which is a reflection-level failure (not the target method's
+        // own exception) and must be wrapped in UnrulyException.
+        Method method = java.util.ArrayList.class.getDeclaredMethod("grow");
+        ReflectiveMethodExecutor executor = new ReflectiveMethodExecutor(method);
+        Assertions.assertThrows(UnrulyException.class, () -> executor.execute(new java.util.ArrayList<>()));
+    }
 }

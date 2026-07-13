@@ -59,7 +59,11 @@ public class MethodHandleMethodExecutor implements MethodExecutor {
     @SuppressWarnings("unchecked")
     @Override
     public <T> T execute(Object target, Object... userArgs) throws Throwable {
-        if (method.getParameterCount() != (userArgs == null ? 0 : userArgs.length)) {
+        // Null args are legal for zero-param methods (e.g. via the List overload of
+        // MethodExecutor.execute) - ReflectiveMethodExecutor accepts them, so this strategy must too.
+        if (userArgs == null) userArgs = new Object[0];
+
+        if (method.getParameterCount() != userArgs.length) {
             throw new UnrulyException("Invalid number of args passed to Method call [" + method()
                     + "] required [" + method.getParameterCount() + "]");
         }
