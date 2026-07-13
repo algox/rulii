@@ -284,7 +284,9 @@ public class ImmutableBindings implements Bindings, Map<String, Object> {
 
     @Override
     public int hashCode() {
-        return Objects.hash(target);
+        // equals() delegates to the target, so the hash code must too - wrapping it
+        // (e.g. Objects.hash(target)) would give equal objects different hash codes.
+        return target.hashCode();
     }
 
     @Override

@@ -378,7 +378,7 @@ public interface Bindings extends Iterable<Binding<?>>, Immutator<Bindings> {
     default <T> Optional<T> getOptionalValue(String name, Class<T> type) {
         try {
             Binding<T> result = getBinding(name, type);
-            return Optional.of(result.getValue());
+            return Optional.ofNullable(result != null ? result.getValue() : null);
         } catch (NoSuchBindingException e) {
             return Optional.empty();
         }

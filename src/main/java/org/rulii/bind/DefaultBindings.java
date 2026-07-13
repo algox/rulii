@@ -248,12 +248,16 @@ public class DefaultBindings implements Bindings, PromiscuousBinder, Map<String,
         if (o == null) return false;
         if (!Bindings.class.isAssignableFrom(o.getClass())) return false;
         Bindings other = (Bindings) o;
-        return asMap().equals(other.asMap());
+        // Compare entry snapshots - calling asMap().equals(other.asMap()) would recurse forever,
+        // since asMap() returns this and other.asMap() is (or wraps) another Bindings.
+        return entrySet().equals(other.asMap().entrySet());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(bindings);
+        // Must be derived from the same view equals() compares, and matches the Map contract
+        // (a Map's hash code is the sum of its entries' hash codes).
+        return entrySet().hashCode();
     }
 
     @Override
