@@ -23,6 +23,9 @@ import org.rulii.context.RuleContext;
 import org.rulii.model.Runnable;
 import org.rulii.registry.AlreadyRegisteredException;
 import org.rulii.registry.DefaultRuleRegistry;
+import org.rulii.rule.Rule;
+import org.rulii.ruleflow.RuleFlow;
+import org.rulii.ruleset.RuleSet;
 
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -32,6 +35,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static org.rulii.model.condition.Conditions.condition;
 
 /**
  * Tests for DefaultRuleRegistry.
@@ -56,6 +61,73 @@ public class DefaultRuleRegistryTest {
                 return name;
             }
         };
+    }
+
+    @Test
+    public void testRegister_nullRunnable_throwsIllegalArgumentException() {
+        DefaultRuleRegistry registry = new DefaultRuleRegistry();
+        Assertions.assertThrows(IllegalArgumentException.class, () -> registry.register(null));
+    }
+
+    @Test
+    public void testIsNameInUse() {
+        DefaultRuleRegistry registry = new DefaultRuleRegistry();
+        registry.register(namedRunnable("taken"));
+
+        Assertions.assertTrue(registry.isNameInUse("taken"));
+        Assertions.assertFalse(registry.isNameInUse("free"));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> registry.isNameInUse(null));
+    }
+
+    @Test
+    public void testGetByName_foundAndMissing() {
+        DefaultRuleRegistry registry = new DefaultRuleRegistry();
+        Runnable<Object> runnable = namedRunnable("myRunnable");
+        registry.register(runnable);
+
+        Assertions.assertSame(runnable, registry.get("myRunnable"));
+        Assertions.assertNull(registry.get("noSuchName"));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> registry.get(null));
+    }
+
+    @Test
+    public void testTypeFiltering_rulesRuleSetsAndRuleFlows() {
+        DefaultRuleRegistry registry = new DefaultRuleRegistry();
+
+        Rule rule = Rule.builder().name("aRule").given(condition(() -> true)).build();
+        RuleSet<?> ruleSet = RuleSet.builder().with("aRuleSet").rule(rule).build();
+        RuleFlow<?> ruleFlow = RuleFlow.builder().name("aRuleFlow").bind(x -> 1).build();
+
+        registry.register(rule);
+        registry.register(ruleSet);
+        registry.register(ruleFlow);
+
+        Assertions.assertEquals(3, registry.getCount());
+
+        Assertions.assertEquals(1, registry.getRules().size());
+        Assertions.assertSame(rule, registry.getRules().get(0));
+
+        Assertions.assertEquals(1, registry.getRuleSets().size());
+        Assertions.assertSame(ruleSet, registry.getRuleSets().get(0));
+
+        Assertions.assertEquals(1, registry.getRuleFlows().size());
+        Assertions.assertSame(ruleFlow, registry.getRuleFlows().get(0));
+    }
+
+    @Test
+    public void testFilteredLists_areUnmodifiable() {
+        DefaultRuleRegistry registry = new DefaultRuleRegistry();
+        Rule rule = Rule.builder().name("aRule").given(condition(() -> true)).build();
+        registry.register(rule);
+
+        Assertions.assertThrows(UnsupportedOperationException.class, () -> registry.getRules().add(rule));
+    }
+
+    @Test
+    public void testToString_containsRegisteredName() {
+        DefaultRuleRegistry registry = new DefaultRuleRegistry();
+        registry.register(namedRunnable("visibleInToString"));
+        Assertions.assertTrue(registry.toString().contains("visibleInToString"));
     }
 
     @Test

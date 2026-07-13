@@ -21,9 +21,11 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.rulii.context.RuleContext;
 import org.rulii.model.Runnable;
+import org.rulii.model.UnrulyException;
 import org.rulii.model.action.Action;
 import org.rulii.model.condition.Condition;
 import org.rulii.registry.RuleRegistry;
+import org.rulii.ruleflow.RuleFlow;
 import org.rulii.rule.Rule;
 import org.rulii.rule.RuleDefinition;
 import org.rulii.rule.RuleResult;
@@ -125,5 +127,144 @@ public class RuleRegistryTest {
 
         Assertions.assertEquals(1, matches.size());
         Assertions.assertSame(normalTargetRule, matches.get(0));
+    }
+
+    // =========================================================================
+    // Builder + typed lookups against a real registry
+    // =========================================================================
+
+    private static RuleRegistry buildPopulatedRegistry() {
+        Rule lambdaRule = Rule.builder().name("lambdaRule")
+                .given(org.rulii.model.condition.Conditions.condition(() -> true)).build();
+        Rule classRule = Rule.builder().build(ClassRuleA.class);
+        RuleSet<?> ruleSet = RuleSet.builder().with("aRuleSet").rule(lambdaRule).build();
+        RuleFlow<?> ruleFlow = RuleFlow.builder().name("aRuleFlow").bind(x -> 1).build();
+
+        return RuleRegistry.builder()
+                .register(lambdaRule)
+                .register(classRule)
+                .register(ruleSet)
+                .register(ruleFlow)
+                .build();
+    }
+
+    @Test
+    public void testBuilder_registersAndBuilds() {
+        RuleRegistry registry = buildPopulatedRegistry();
+        Assertions.assertEquals(4, registry.getCount());
+        Assertions.assertTrue(registry.isNameInUse("lambdaRule"));
+    }
+
+    @Test
+    public void testGetWithType() {
+        RuleRegistry registry = buildPopulatedRegistry();
+
+        Assertions.assertNotNull(registry.get("lambdaRule", Rule.class));
+        // Registered under that name, but not of the requested type.
+        Assertions.assertNull(registry.get("lambdaRule", RuleSet.class));
+        // Not registered at all.
+        Assertions.assertNull(registry.get("noSuchName", Rule.class));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> registry.get("lambdaRule", null));
+    }
+
+    @Test
+    public void testGetRuleByName() {
+        RuleRegistry registry = buildPopulatedRegistry();
+        Rule rule = registry.getRule("lambdaRule");
+        Assertions.assertNotNull(rule);
+        Assertions.assertEquals("lambdaRule", rule.getName());
+        Assertions.assertNull(registry.getRule("noSuchRule"));
+    }
+
+    @Test
+    public void testGetRuleSetByName() {
+        RuleRegistry registry = buildPopulatedRegistry();
+        Assertions.assertNotNull(registry.getRuleSet("aRuleSet"));
+        // A Rule name is not a RuleSet.
+        Assertions.assertNull(registry.getRuleSet("lambdaRule"));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> registry.getRuleSet(" "));
+    }
+
+    @Test
+    public void testGetRuleFlowByName() {
+        RuleRegistry registry = buildPopulatedRegistry();
+        Assertions.assertNotNull(registry.getRuleFlow("aRuleFlow"));
+        Assertions.assertNull(registry.getRuleFlow("lambdaRule"));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> registry.getRuleFlow(""));
+    }
+
+    @Test
+    public void testGetRuleFlows_defaultImplementation_isEmpty() {
+        // The interface default (used by registries that don't override it) returns an empty list.
+        Assertions.assertTrue(registryOf(List.of()).getRuleFlows().isEmpty());
+    }
+
+    @Test
+    public void testGetRuleByClass_uniqueMatch() {
+        RuleRegistry registry = buildPopulatedRegistry();
+        Rule rule = registry.getRule(ClassRuleA.class);
+        Assertions.assertNotNull(rule);
+        Assertions.assertInstanceOf(ClassRuleA.class, rule.getTarget());
+    }
+
+    @Test
+    public void testGetRuleByClass_noMatch_returnsNull() {
+        RuleRegistry registry = buildPopulatedRegistry();
+        Assertions.assertNull(registry.getRule(String.class));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> registry.getRule((Class<?>) null));
+    }
+
+    @Test
+    public void testGetRuleByClass_multipleMatches_throwsUnrulyException() {
+        // Two distinct rules sharing the same target class - lookup by class cannot be unique.
+        Rule rule1 = ruleWithTarget(new ClassRuleA());
+        Rule rule2 = ruleWithTarget(new ClassRuleA());
+        RuleRegistry registry = registryOf(List.of(rule1, rule2));
+
+        Assertions.assertThrows(UnrulyException.class, () -> registry.getRule(ClassRuleA.class));
+    }
+
+    @Test
+    public void testGetRulesByClass_exactMatchOnly() {
+        RuleRegistry registry = buildPopulatedRegistry();
+        // Targets are subtypes of Object, but matching is by exact class - no assignability.
+        Assertions.assertTrue(registry.getRules(Object.class).isEmpty());
+        Assertions.assertEquals(1, registry.getRules(ClassRuleA.class).size());
+    }
+
+    @Test
+    public void testGetRulesByPredicate() {
+        RuleRegistry registry = buildPopulatedRegistry();
+        List<Rule> all = registry.getRules(r -> true);
+        Assertions.assertEquals(2, all.size());
+        Assertions.assertTrue(registry.getRules(r -> false).isEmpty());
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> registry.getRules((java.util.function.Predicate<Rule>) null));
+    }
+
+    @Test
+    public void testGetRulesByPredicate_emptyRegistry_shortCircuits() {
+        List<Rule> empty = List.of();
+        // The default method returns the empty list itself without streaming.
+        Assertions.assertSame(empty, registryOf(empty).getRules(r -> true));
+    }
+
+    @Test
+    public void testGetRulesInPackage_blankPackageName_throws() {
+        RuleRegistry registry = buildPopulatedRegistry();
+        Assertions.assertThrows(IllegalArgumentException.class, () -> registry.getRulesInPackage("  "));
+    }
+
+    @org.rulii.annotation.Rule
+    public static class ClassRuleA {
+
+        public ClassRuleA() {
+            super();
+        }
+
+        @org.rulii.annotation.Given
+        public boolean when() {
+            return true;
+        }
     }
 }
