@@ -115,6 +115,12 @@ public final class RuleSetConditions {
     /**
      * Creates a Condition that checks if all rules in the RuleSet pass.
      *
+     * <p>Each rule is evaluated live via {@link org.rulii.rule.Rule#isTrue(org.rulii.context.RuleContext)}
+     * (not read from recorded execution results), which checks the pre-condition before the
+     * condition. A rule whose pre-condition does not hold — e.g. skipped due to an unsupported
+     * type or a null value with {@code failOnNull(false)} — counts as <b>not</b> passing: this
+     * Condition requires every rule to be both applicable and passing.</p>
+     *
      * @return the Condition instance that checks if all rules pass
      */
     public static Condition allMustPass() {

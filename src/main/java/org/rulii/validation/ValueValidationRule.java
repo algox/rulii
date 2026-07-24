@@ -37,6 +37,7 @@ public abstract class ValueValidationRule extends ValidationRule {
     private final Function<?> valueFunction;
     private final String valueName;
     private final Set<Class<?>> supportedTypes;
+    private boolean failOnNull = true;
 
     public ValueValidationRule(Function<?> valueFunction, String errorCode, Severity severity, String errorMessage,
                                String defaultMessage, String valueName) {
@@ -49,14 +50,18 @@ public abstract class ValueValidationRule extends ValidationRule {
 
     /**
      * Checks the type of the value in the given RuleContext against the supported types.
+     * A null value passes the check when {@code failOnNull} is true (default), letting the
+     * rule condition decide the outcome; when {@code failOnNull} is false a null value fails
+     * the precondition and the rule is skipped.
      *
      * @param ruleContext The RuleContext containing the value to check.
-     * @return true if the value is null or its type is supported, false otherwise.
+     * @return true if the value passes the null handling and type check, false otherwise.
      */
     @PreCondition
     public boolean checkType(@Param(matchUsing = MatchByTypeMatchingStrategy.class) RuleContext ruleContext) {
         Object value = getValue(ruleContext);
-        return value == null || isSupported(value.getClass());
+        if (value == null) return failOnNull;
+        return isSupported(value.getClass());
     }
 
     /**
@@ -134,6 +139,25 @@ public abstract class ValueValidationRule extends ValidationRule {
         }
 
         return result;
+    }
+
+    /**
+     * Determines how this rule treats a null value: passed on to the rule condition
+     * (and typically failing validation), or skipped via the precondition.
+     *
+     * @return true if a null value proceeds to the rule condition (default); false if a null value skips the rule.
+     */
+    public boolean isFailOnNull() {
+        return failOnNull;
+    }
+
+    /**
+     * Sets the null handling behavior of this rule. Invoked by the builder during build.
+     *
+     * @param failOnNull true to pass null values on to the rule condition (default); false to skip the rule on null values.
+     */
+    void setFailOnNull(boolean failOnNull) {
+        this.failOnNull = failOnNull;
     }
 
     public Function<?> getValueFunction() {

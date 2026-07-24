@@ -20,7 +20,6 @@ package org.rulii.validation.rules.pattern;
 import org.rulii.annotation.Description;
 import org.rulii.annotation.Rule;
 import org.rulii.context.RuleContext;
-import org.rulii.lib.apache.validation.RegexValidator;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.function.Function;
 import org.rulii.validation.RuleViolationBuilder;
@@ -29,6 +28,7 @@ import org.rulii.validation.ValidationRuleException;
 import org.rulii.validation.ValueValidationRule;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * Validation Rule to make sure the value must match one of the given regex patterns.
@@ -48,7 +48,8 @@ public class PatternValidationRule extends ValueValidationRule {
 
     private final String pattern;
     private final boolean caseSensitive;
-    private final RegexValidator validator;
+    private final int flags;
+    private final Pattern compiledPattern;
 
     /**
      * Creates a new builder for this validation rule.
@@ -62,12 +63,13 @@ public class PatternValidationRule extends ValueValidationRule {
     }
 
     PatternValidationRule(Function<?> valueFunction, String errorCode, Severity severity,
-                          String errorMessage, String valueName, boolean caseSensitive, String pattern) {
+                          String errorMessage, String valueName, boolean caseSensitive, String pattern, int flags) {
         super(valueFunction, errorCode, severity, errorMessage, DEFAULT_MESSAGE, valueName);
         Assert.notNull(pattern, "pattern cannot be null.");
         this.pattern = pattern;
         this.caseSensitive = caseSensitive;
-        this.validator = new RegexValidator(pattern, caseSensitive);
+        this.flags = caseSensitive ? flags : flags | Pattern.CASE_INSENSITIVE;
+        this.compiledPattern = Pattern.compile(pattern, this.flags);
     }
 
     @Override
@@ -78,7 +80,8 @@ public class PatternValidationRule extends ValueValidationRule {
             throw new ValidationRuleException("PatternValidationRule only applies to CharSequences."
                     + "Supplied Class [" + value.getClass() + "] value [" + value + "]");
 
-        return validator.isValid(value.toString());
+        // The pattern is matched against the entire input.
+        return compiledPattern.matcher(value.toString()).matches();
     }
 
     @Override
@@ -99,11 +102,16 @@ public class PatternValidationRule extends ValueValidationRule {
         return caseSensitive;
     }
 
+    public int getFlags() {
+        return flags;
+    }
+
     @Override
     public String toString() {
         return "PatternValidationRule{" +
                 "pattern=" + pattern +
                 ", caseSensitive=" + caseSensitive +
+                ", flags=" + flags +
                 '}';
     }
 }

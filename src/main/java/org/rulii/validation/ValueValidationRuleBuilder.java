@@ -44,6 +44,7 @@ public abstract class ValueValidationRuleBuilder<T extends ValueValidationRuleBu
     private Severity severity = Severity.ERROR;
     private String errorMessage;
     private String valueName;
+    private boolean failOnNull = true;
 
     /**
      * Creates a new builder configured with the given value function.
@@ -123,6 +124,20 @@ public abstract class ValueValidationRuleBuilder<T extends ValueValidationRuleBu
         return (T) this;
     }
 
+    /**
+     * Sets the null handling behavior of the rule. When {@code true} (default) a null value is
+     * passed on to the rule condition (and typically fails validation); when {@code false} a
+     * null value fails the rule's precondition and the rule is skipped.
+     *
+     * @param failOnNull true to fail on null values (default); false to skip the rule on null values
+     * @return this builder for fluent chaining
+     */
+    @SuppressWarnings("unchecked")
+    public T failOnNull(boolean failOnNull) {
+        this.failOnNull = failOnNull;
+        return (T) this;
+    }
+
     protected String getErrorCode() {
         return errorCode;
     }
@@ -143,6 +158,10 @@ public abstract class ValueValidationRuleBuilder<T extends ValueValidationRuleBu
         return valueName;
     }
 
+    protected boolean isFailOnNull() {
+        return failOnNull;
+    }
+
     /**
      * Creates the concrete {@link ValueValidationRule} instance configured by this builder.
      * Subclasses must implement this method to instantiate their specific rule type.
@@ -157,7 +176,9 @@ public abstract class ValueValidationRuleBuilder<T extends ValueValidationRuleBu
      * @return the fully configured {@link org.rulii.rule.Rule}
      */
     public Rule build() {
-        ClassBasedRuleBuilder<?> builder = Rule.builder().with(createValueValidationRule());
+        V target = createValueValidationRule();
+        target.setFailOnNull(failOnNull);
+        ClassBasedRuleBuilder<?> builder = Rule.builder().with(target);
         if (name != null) builder.name(name);
         builder.description(description);
         return builder.build();

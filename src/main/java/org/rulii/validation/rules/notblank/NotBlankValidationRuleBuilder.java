@@ -17,6 +17,7 @@
  */
 package org.rulii.validation.rules.notblank;
 
+import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.function.Function;
 import org.rulii.validation.Severity;
 import org.rulii.validation.ValueValidationRuleBuilder;
@@ -40,6 +41,19 @@ public class NotBlankValidationRuleBuilder
         errorCode(NotBlankValidationRule.ERROR_CODE);
         severity(Severity.ERROR);
         message(NotBlankValidationRule.DEFAULT_MESSAGE);
+    }
+
+    /**
+     * Disallowed with {@code false} for this rule: a presence rule that skips null values
+     * could never fail.
+     *
+     * @param failOnNull must be true; false is not allowed for this rule
+     * @return this builder for fluent chaining
+     */
+    @Override
+    public NotBlankValidationRuleBuilder failOnNull(boolean failOnNull) {
+        Assert.isTrue(failOnNull, "failOnNull(false) is not allowed on [notBlankValidationRule]. A presence rule that skips null values could never fail.");
+        return super.failOnNull(failOnNull);
     }
 
     /**

@@ -32,6 +32,7 @@ public class PatternValidationRuleBuilder
 
     private final String pattern;
     private boolean caseSensitive = true;
+    private int flags = 0;
 
     /**
      * Creates a new builder for {@link PatternValidationRule}.
@@ -59,12 +60,26 @@ public class PatternValidationRuleBuilder
     }
 
     /**
+     * Sets the regex flags used when compiling the pattern — {@link java.util.regex.Pattern}
+     * constants, e.g. {@code Pattern.MULTILINE | Pattern.DOTALL}. Combines with
+     * {@link #caseSensitive(boolean)}: case-insensitive matching adds
+     * {@link java.util.regex.Pattern#CASE_INSENSITIVE} to the given flags.
+     *
+     * @param flags the {@link java.util.regex.Pattern} flag bits to compile with; default none
+     * @return this builder for fluent chaining
+     */
+    public PatternValidationRuleBuilder flags(int flags) {
+        this.flags = flags;
+        return this;
+    }
+
+    /**
      * Creates a new {@link PatternValidationRule} configured with this builder's settings.
      *
      * @return a new {@link PatternValidationRule}
      */
     @Override
     protected PatternValidationRule createValueValidationRule() {
-        return new PatternValidationRule(getValueFunction(), getErrorCode(), getSeverity(), getErrorMessage(), getValueName(), caseSensitive, pattern);
+        return new PatternValidationRule(getValueFunction(), getErrorCode(), getSeverity(), getErrorMessage(), getValueName(), caseSensitive, pattern, flags);
     }
 }
