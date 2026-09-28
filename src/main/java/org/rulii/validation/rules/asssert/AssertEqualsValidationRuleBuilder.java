@@ -43,7 +43,6 @@ public class AssertEqualsValidationRuleBuilder
         this.value = value;
         errorCode(AssertEqualsValidationRule.ERROR_CODE);
         severity(Severity.ERROR);
-        message(AssertEqualsValidationRule.DEFAULT_MESSAGE);
     }
 
     /**

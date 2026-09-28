@@ -39,7 +39,6 @@ public class PositiveValidationRuleBuilder
         super(valueFunction);
         errorCode(PositiveValidationRule.ERROR_CODE);
         severity(Severity.ERROR);
-        message(PositiveValidationRule.DEFAULT_MESSAGE);
     }
 
     /**

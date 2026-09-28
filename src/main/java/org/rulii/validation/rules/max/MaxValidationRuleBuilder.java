@@ -43,7 +43,6 @@ public class MaxValidationRuleBuilder
         this.max = max;
         errorCode(MaxValidationRule.ERROR_CODE);
         severity(Severity.ERROR);
-        message(MaxValidationRule.DEFAULT_MESSAGE);
     }
 
     /**

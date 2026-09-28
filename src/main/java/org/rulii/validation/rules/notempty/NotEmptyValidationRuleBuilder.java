@@ -40,7 +40,6 @@ public class NotEmptyValidationRuleBuilder
         super(valueFunction);
         errorCode(NotEmptyValidationRule.ERROR_CODE);
         severity(Severity.ERROR);
-        message(NotEmptyValidationRule.DEFAULT_MESSAGE);
     }
 
     /**

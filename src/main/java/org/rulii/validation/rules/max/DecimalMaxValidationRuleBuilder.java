@@ -46,7 +46,6 @@ public class DecimalMaxValidationRuleBuilder
         this.max = max;
         errorCode(DecimalMaxValidationRule.ERROR_CODE);
         severity(Severity.ERROR);
-        message(DecimalMaxValidationRule.DEFAULT_MESSAGE);
     }
 
     /**

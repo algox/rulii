@@ -39,7 +39,6 @@ public class AssertFalseValidationRuleBuilder
         super(valueFunction);
         errorCode(AssertFalseValidationRule.ERROR_CODE);
         severity(Severity.ERROR);
-        message(AssertFalseValidationRule.DEFAULT_MESSAGE);
     }
 
     /**

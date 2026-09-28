@@ -45,7 +45,6 @@ public class PatternValidationRuleBuilder
         this.pattern = pattern;
         errorCode(PatternValidationRule.ERROR_CODE);
         severity(Severity.ERROR);
-        message(PatternValidationRule.DEFAULT_MESSAGE);
     }
 
     /**

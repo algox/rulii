@@ -45,7 +45,6 @@ public class InValidationRuleBuilder
         this.values = values;
         errorCode(InValidationRule.ERROR_CODE);
         severity(Severity.ERROR);
-        message(InValidationRule.DEFAULT_MESSAGE);
     }
 
     /**

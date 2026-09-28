@@ -39,7 +39,6 @@ public class PastValidationRuleBuilder
         super(valueFunction);
         errorCode(PastValidationRule.ERROR_CODE);
         severity(Severity.ERROR);
-        message(PastValidationRule.DEFAULT_MESSAGE);
     }
 
     /**

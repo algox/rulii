@@ -39,7 +39,6 @@ public class UrlValidationRuleBuilder
         super(valueFunction);
         errorCode(UrlValidationRule.ERROR_CODE);
         severity(Severity.ERROR);
-        message(UrlValidationRule.DEFAULT_MESSAGE);
     }
 
     /**

@@ -40,7 +40,6 @@ public class AlphaValidationRuleBuilder extends ValueValidationRuleBuilder<Alpha
         super(valueFunction);
         errorCode(AlphaValidationRule.ERROR_CODE);
         severity(Severity.ERROR);
-        message(AlphaValidationRule.DEFAULT_MESSAGE);
     }
 
     /**

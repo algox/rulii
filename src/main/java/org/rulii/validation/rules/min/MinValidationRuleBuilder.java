@@ -43,7 +43,6 @@ public class MinValidationRuleBuilder
         this.min = min;
         errorCode(MinValidationRule.ERROR_CODE);
         severity(Severity.ERROR);
-        message(MinValidationRule.DEFAULT_MESSAGE);
     }
 
     /**

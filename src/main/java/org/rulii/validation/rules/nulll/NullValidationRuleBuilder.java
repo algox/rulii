@@ -39,7 +39,6 @@ public class NullValidationRuleBuilder
         super(valueFunction);
         errorCode(NullValidationRule.ERROR_CODE);
         severity(Severity.ERROR);
-        message(NullValidationRule.DEFAULT_MESSAGE);
     }
 
     /**

@@ -43,7 +43,6 @@ public class EndsWithValidationRuleBuilder
         this.suffixes = suffixes;
         errorCode(EndsWithValidationRule.ERROR_CODE);
         severity(Severity.ERROR);
-        message(EndsWithValidationRule.DEFAULT_MESSAGE);
     }
 
     /**

@@ -39,7 +39,6 @@ public class PastOrPresentValidationRuleBuilder
         super(valueFunction);
         errorCode(PastOrPresentValidationRule.ERROR_CODE);
         severity(Severity.ERROR);
-        message(PastOrPresentValidationRule.DEFAULT_MESSAGE);
     }
 
     /**

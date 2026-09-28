@@ -39,7 +39,6 @@ public class FileExistsValidationRuleBuilder
         super(valueFunction);
         errorCode(FileExistsValidationRule.ERROR_CODE);
         severity(Severity.ERROR);
-        message(FileExistsValidationRule.DEFAULT_MESSAGE);
     }
 
     /**

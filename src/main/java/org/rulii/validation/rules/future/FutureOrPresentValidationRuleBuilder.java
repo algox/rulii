@@ -39,7 +39,6 @@ public class FutureOrPresentValidationRuleBuilder
         super(valueFunction);
         errorCode(FutureOrPresentValidationRule.ERROR_CODE);
         severity(Severity.ERROR);
-        message(FutureOrPresentValidationRule.DEFAULT_MESSAGE);
     }
 
     /**

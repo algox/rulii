@@ -39,7 +39,6 @@ public class NegativeValidationRuleBuilder
         super(valueFunction);
         errorCode(NegativeValidationRule.ERROR_CODE);
         severity(Severity.ERROR);
-        message(NegativeValidationRule.DEFAULT_MESSAGE);
     }
 
     /**

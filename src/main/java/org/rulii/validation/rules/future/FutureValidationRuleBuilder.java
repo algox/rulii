@@ -39,7 +39,6 @@ public class FutureValidationRuleBuilder
         super(valueFunction);
         errorCode(FutureValidationRule.ERROR_CODE);
         severity(Severity.ERROR);
-        message(FutureValidationRule.DEFAULT_MESSAGE);
     }
 
     /**

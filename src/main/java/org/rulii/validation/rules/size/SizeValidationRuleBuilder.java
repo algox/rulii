@@ -46,7 +46,6 @@ public class SizeValidationRuleBuilder
         this.max = max;
         errorCode(SizeValidationRule.ERROR_CODE);
         severity(Severity.ERROR);
-        message(SizeValidationRule.DEFAULT_MESSAGE);
     }
 
     /**

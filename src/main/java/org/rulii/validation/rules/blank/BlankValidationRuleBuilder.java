@@ -39,7 +39,6 @@ public class BlankValidationRuleBuilder
         super(valueFunction);
         errorCode(BlankValidationRule.ERROR_CODE);
         severity(Severity.ERROR);
-        message(BlankValidationRule.DEFAULT_MESSAGE);
     }
 
     /**

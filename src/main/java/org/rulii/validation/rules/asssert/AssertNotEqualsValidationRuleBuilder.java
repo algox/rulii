@@ -43,7 +43,6 @@ public class AssertNotEqualsValidationRuleBuilder
         this.value = value;
         errorCode(AssertNotEqualsValidationRule.ERROR_CODE);
         severity(Severity.ERROR);
-        message(AssertNotEqualsValidationRule.DEFAULT_MESSAGE);
     }
 
     /**

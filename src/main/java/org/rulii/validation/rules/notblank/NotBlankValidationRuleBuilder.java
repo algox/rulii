@@ -40,7 +40,6 @@ public class NotBlankValidationRuleBuilder
         super(valueFunction);
         errorCode(NotBlankValidationRule.ERROR_CODE);
         severity(Severity.ERROR);
-        message(NotBlankValidationRule.DEFAULT_MESSAGE);
     }
 
     /**

@@ -39,7 +39,6 @@ public class NegativeOrZeroValidationRuleBuilder
         super(valueFunction);
         errorCode(NegativeOrZeroValidationRule.ERROR_CODE);
         severity(Severity.ERROR);
-        message(NegativeOrZeroValidationRule.DEFAULT_MESSAGE);
     }
 
     /**

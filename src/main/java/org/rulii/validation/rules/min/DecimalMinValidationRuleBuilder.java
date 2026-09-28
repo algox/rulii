@@ -46,7 +46,6 @@ public class DecimalMinValidationRuleBuilder
         this.min = min;
         errorCode(DecimalMinValidationRule.ERROR_CODE);
         severity(Severity.ERROR);
-        message(DecimalMinValidationRule.DEFAULT_MESSAGE);
     }
 
     /**

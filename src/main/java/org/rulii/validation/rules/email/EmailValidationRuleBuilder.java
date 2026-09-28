@@ -42,7 +42,6 @@ public class EmailValidationRuleBuilder
         super(valueFunction);
         errorCode(EmailValidationRule.ERROR_CODE);
         severity(Severity.ERROR);
-        message(EmailValidationRule.DEFAULT_MESSAGE);
     }
 
     /**

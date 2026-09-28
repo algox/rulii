@@ -41,7 +41,6 @@ public class NumericValidationRuleBuilder
         super(valueFunction);
         errorCode(NumericValidationRule.ERROR_CODE);
         severity(Severity.ERROR);
-        message(NumericValidationRule.DEFAULT_MESSAGE);
     }
 
     /**

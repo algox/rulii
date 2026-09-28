@@ -39,7 +39,6 @@ public class UpperCaseValidationRuleBuilder
         super(valueFunction);
         errorCode(UpperCaseValidationRule.ERROR_CODE);
         severity(Severity.ERROR);
-        message(UpperCaseValidationRule.DEFAULT_MESSAGE);
     }
 
     /**

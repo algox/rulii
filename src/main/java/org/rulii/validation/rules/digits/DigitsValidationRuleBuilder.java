@@ -46,7 +46,6 @@ public class DigitsValidationRuleBuilder
         this.maxFractionLength = maxFractionLength;
         errorCode(DigitsValidationRule.ERROR_CODE);
         severity(Severity.ERROR);
-        message(DigitsValidationRule.DEFAULT_MESSAGE);
     }
 
     /**

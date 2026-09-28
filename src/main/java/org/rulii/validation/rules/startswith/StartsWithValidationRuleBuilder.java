@@ -43,7 +43,6 @@ public class StartsWithValidationRuleBuilder
         this.prefixes = prefixes;
         errorCode(StartsWithValidationRule.ERROR_CODE);
         severity(Severity.ERROR);
-        message(StartsWithValidationRule.DEFAULT_MESSAGE);
     }
 
     /**

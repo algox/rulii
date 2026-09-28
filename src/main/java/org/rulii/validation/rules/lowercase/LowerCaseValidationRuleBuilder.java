@@ -39,7 +39,6 @@ public class LowerCaseValidationRuleBuilder
         super(valueFunction);
         errorCode(LowerCaseValidationRule.ERROR_CODE);
         severity(Severity.ERROR);
-        message(LowerCaseValidationRule.DEFAULT_MESSAGE);
     }
 
     /**

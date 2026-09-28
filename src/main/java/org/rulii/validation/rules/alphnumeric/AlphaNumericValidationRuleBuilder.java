@@ -41,7 +41,6 @@ public class AlphaNumericValidationRuleBuilder
         super(valueFunction);
         errorCode(AlphaNumericValidationRule.ERROR_CODE);
         severity(Severity.ERROR);
-        message(AlphaNumericValidationRule.DEFAULT_MESSAGE);
     }
 
     /**

@@ -39,7 +39,6 @@ public class AsciiValidationRuleBuilder
         super(valueFunction);
         errorCode(AsciiValidationRule.ERROR_CODE);
         severity(Severity.ERROR);
-        message(AsciiValidationRule.DEFAULT_MESSAGE);
     }
 
     /**

@@ -41,7 +41,6 @@ public class DecimalValidationRuleBuilder
         super(valueFunction);
         errorCode(DecimalValidationRule.ERROR_CODE);
         severity(Severity.ERROR);
-        message(DecimalValidationRule.DEFAULT_MESSAGE);
     }
 
     /**

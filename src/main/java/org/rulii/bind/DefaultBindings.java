@@ -65,7 +65,10 @@ public class DefaultBindings implements Bindings, PromiscuousBinder, Map<String,
         Assert.notNull(binding, "binding cannot be null");
 
         if (logger.isDebugEnabled()) {
-            logger.debug("New Binding Name [" + binding.getName() + "] Type [" + binding.getTypeName() + "] value [" + binding.getValue() + "]");
+            // Never force a supplied (lazy) binding just to log it — reading the value is
+            // a side effect the caller deliberately deferred.
+            Object loggedValue = binding instanceof SuppliedBinding ? "<supplied>" : binding.getValue();
+            logger.debug("New Binding Name [" + binding.getName() + "] Type [" + binding.getTypeName() + "] value [" + loggedValue + "]");
         }
 
         // Try and put the Binding

@@ -39,7 +39,6 @@ public class NotNullValidationRuleBuilder extends ValueValidationRuleBuilder<Not
         super(valueFunction);
         errorCode(NotNullValidationRule.ERROR_CODE);
         severity(Severity.ERROR);
-        message(NotNullValidationRule.DEFAULT_MESSAGE);
     }
 
     /**
