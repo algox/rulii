@@ -23,9 +23,12 @@ import org.rulii.bind.NamedScope;
 import org.rulii.context.RuleContext;
 import org.rulii.model.Runnable;
 import org.rulii.model.UnrulyException;
+import org.rulii.model.action.Action;
+import org.rulii.model.function.Function;
 import org.rulii.registry.RuleRegistry;
 import org.rulii.ruleflow.RuleFlowExceptionHandler;
 import org.rulii.ruleflow.RuleFlowExecutionContext;
+import org.rulii.ruleflow.info.CommandInfo;
 
 import java.util.Map;
 import java.util.UUID;
@@ -143,6 +146,27 @@ public class RunCommand implements RuleFlowCommand {
         }
 
         return false;
+    }
+
+    /**
+     * Reports {@link CommandInfo.Apply} for a function, {@link CommandInfo.Execute} for an action
+     * and {@link CommandInfo.Run} for everything else.
+     */
+    @Override
+    public CommandInfo getInfo() {
+        CommandInfo.Bind paramInfo = CommandInfo.Bind.params(params);
+        CommandInfo.Handler handlerInfo = exceptionHandler != null ? exceptionHandler.getInfo() : null;
+
+        if (runnable instanceof Function<?> function) {
+            return new CommandInfo.Apply(function.getExpression(), bindingName, bindingScopeName, paramInfo, handlerInfo);
+        }
+
+        if (runnable instanceof Action action) {
+            return new CommandInfo.Execute(action.getExpression(), handlerInfo);
+        }
+
+        return new CommandInfo.Run(CommandInfo.Target.of(runnable, nameInRegistry, classInRegistry),
+                bindingName, bindingScopeName, paramInfo, handlerInfo);
     }
 
     public Runnable<?> getRunnable() { return runnable; }

@@ -17,9 +17,10 @@
  */
 package org.rulii.ruleflow.command;
 
+import org.rulii.model.function.Function;
 import org.rulii.ruleflow.RuleFlowExecutionContext;
 import org.rulii.ruleflow.RuleFlowReturn;
-import org.rulii.model.function.Function;
+import org.rulii.ruleflow.info.CommandInfo;
 
 /**
  * Pipeline command that terminates the flow and returns a result.
@@ -46,5 +47,19 @@ public class ReturningCommand implements RuleFlowCommand {
                 ? resultExtractor.apply(ctx.getRuleContext())
                 : ctx.getRuleContext();
         throw new RuleFlowReturn(result);
+    }
+
+    /**
+     * The function that produces the flow result.
+     *
+     * @return result extractor, or null when the flow returns its rule context.
+     */
+    public Function<?> getResultExtractor() {
+        return resultExtractor;
+    }
+
+    @Override
+    public CommandInfo getInfo() {
+        return new CommandInfo.Exit(resultExtractor != null ? resultExtractor.getExpression() : null);
     }
 }

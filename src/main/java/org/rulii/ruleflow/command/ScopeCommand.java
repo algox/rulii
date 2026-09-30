@@ -20,6 +20,7 @@ package org.rulii.ruleflow.command;
 import org.rulii.bind.NamedScope;
 import org.rulii.model.ScopeDefining;
 import org.rulii.ruleflow.RuleFlowExecutionContext;
+import org.rulii.ruleflow.info.CommandInfo;
 
 /**
  * Pipeline command that pushes a named binding scope, executes its body commands,
@@ -65,5 +66,10 @@ public class ScopeCommand extends ContainerCommand implements ScopeDefining {
      */
     public String getScopeName() {
         return scopeName;
+    }
+
+    @Override
+    public CommandInfo getInfo() {
+        return new CommandInfo.Scope(scopeName, CommandInfo.of(getBody()));
     }
 }

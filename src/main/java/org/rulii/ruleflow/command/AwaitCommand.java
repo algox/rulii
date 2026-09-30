@@ -20,7 +20,10 @@ package org.rulii.ruleflow.command;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.UnrulyException;
 import org.rulii.ruleflow.RuleFlowExecutionContext;
+import org.rulii.ruleflow.info.CommandInfo;
 
+import java.time.Duration;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -74,6 +77,12 @@ public class AwaitCommand implements RuleFlowCommand {
             Thread.currentThread().interrupt();
             throw new UnrulyException("await [" + bindingName + "] interrupted.", e);
         }
+    }
+
+    @Override
+    public CommandInfo getInfo() {
+        return new CommandInfo.Await(CommandInfo.AwaitKind.ONE, List.of(bindingName),
+                Duration.of(timeout, timeUnit.toChronoUnit()));
     }
 
     public String getBindingName() {

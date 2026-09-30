@@ -18,6 +18,9 @@
 package org.rulii.ruleflow.command;
 
 import org.rulii.ruleflow.RuleFlowExecutionContext;
+import org.rulii.ruleflow.info.CommandInfo;
+
+import java.util.List;
 
 /**
  * A single executable step in a {@link org.rulii.ruleflow.RuleFlow} pipeline.
@@ -37,4 +40,21 @@ public interface RuleFlowCommand {
      * @param ctx the current execution context; never null.
      */
     void execute(RuleFlowExecutionContext ctx);
+
+    /**
+     * Describes what this command does, without running it.
+     *
+     * <p>The built-in commands report their real structure. The default reports
+     * {@link CommandInfo.Custom} with this command's class name, plus the body when this is a
+     * {@link ContainerCommand}. Override it in a custom command to report real structure.
+     *
+     * @return command info; never null.
+     * @since 2.1
+     */
+    default CommandInfo getInfo() {
+        List<CommandInfo> body = this instanceof ContainerCommand container
+                ? CommandInfo.of(container.getBody())
+                : List.of();
+        return new CommandInfo.Custom(getClass().getName(), body);
+    }
 }

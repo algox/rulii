@@ -27,6 +27,7 @@ import org.rulii.registry.RuleRegistry;
 import org.rulii.ruleflow.AsyncContextMode;
 import org.rulii.ruleflow.RuleFlowExceptionHandler;
 import org.rulii.ruleflow.RuleFlowExecutionContext;
+import org.rulii.ruleflow.info.CommandInfo;
 
 import java.util.Collections;
 import java.util.List;
@@ -204,6 +205,15 @@ public class AsyncRunCommand implements RuleFlowCommand {
         Runnable<?> result = registry.getRule(classInRegistry);
         if (result == null) throw new UnrulyException("No Runnable found in RuleRegistry for class [" + classInRegistry + "]");
         return result;
+    }
+
+    @Override
+    public CommandInfo getInfo() {
+        CommandInfo.Continuation then = continuationResultBindingName != null
+                ? new CommandInfo.Continuation(continuationResultBindingName, CommandInfo.of(continuation))
+                : null;
+        return new CommandInfo.AsyncRun(CommandInfo.Target.of(runnable, nameInRegistry, classInRegistry),
+                bindingName, contextMode, then, exceptionHandler != null ? exceptionHandler.getInfo() : null);
     }
 
     public Runnable<?> getRunnable() {

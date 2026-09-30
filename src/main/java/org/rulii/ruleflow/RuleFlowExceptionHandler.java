@@ -21,6 +21,7 @@ import org.rulii.bind.*;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.UnrulyException;
 import org.rulii.ruleflow.command.RuleFlowCommand;
+import org.rulii.ruleflow.info.CommandInfo;
 
 import java.util.Collections;
 import java.util.List;
@@ -114,8 +115,23 @@ public class RuleFlowExceptionHandler {
         this.body = Collections.unmodifiableList(body);
     }
 
-    List<RuleFlowCommand> getBody() {
+    /**
+     * The commands run when this handler handles an exception.
+     *
+     * @return unmodifiable body; never null.
+     */
+    public List<RuleFlowCommand> getBody() {
         return body;
+    }
+
+    /**
+     * Describes this handler without running it.
+     *
+     * @return handler info; never null.
+     * @since 2.1
+     */
+    public CommandInfo.Handler getInfo() {
+        return new CommandInfo.Handler(exceptionType, CommandInfo.of(body));
     }
 
     protected String getScopeName() {

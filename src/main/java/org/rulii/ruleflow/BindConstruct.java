@@ -21,8 +21,10 @@ import org.rulii.bind.ScopedBindings;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.ruleflow.command.BindCommand;
 import org.rulii.ruleflow.command.RuleFlowCommand;
+import org.rulii.ruleflow.info.CommandInfo;
 
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * Build-time construct for a {@code bind()} step.
@@ -37,15 +39,18 @@ import java.util.function.Consumer;
 class BindConstruct extends CommandConstruct {
 
     private final Consumer<ScopedBindings> binder;
+    private final Supplier<CommandInfo.Bind> info;
 
-    BindConstruct(Consumer<ScopedBindings> binder) {
+    BindConstruct(Consumer<ScopedBindings> binder, Supplier<CommandInfo.Bind> info) {
         super();
         Assert.notNull(binder, "binder cannot be null.");
+        Assert.notNull(info, "info cannot be null.");
         this.binder = binder;
+        this.info = info;
     }
 
     @Override
     protected RuleFlowCommand buildCommand() {
-        return new BindCommand(binder);
+        return new BindCommand(binder, info);
     }
 }

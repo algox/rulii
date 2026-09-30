@@ -21,6 +21,7 @@ import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.ScopeDefining;
 import org.rulii.model.condition.Condition;
 import org.rulii.ruleflow.RuleFlowExecutionContext;
+import org.rulii.ruleflow.info.CommandInfo;
 
 import java.util.Collections;
 import java.util.List;
@@ -55,6 +56,29 @@ public class WhenCommand extends ContainerCommand implements ScopeDefining {
     public void setOtherwiseBody(List<RuleFlowCommand> commands) {
         Assert.notNull(commands, "commands cannot be null.");
         this.otherwiseBody = Collections.unmodifiableList(commands);
+    }
+
+    /**
+     * The condition that picks the branch.
+     *
+     * @return condition; never null.
+     */
+    public Condition getCondition() {
+        return condition;
+    }
+
+    /**
+     * The commands run when the condition is false.
+     *
+     * @return unmodifiable otherwise-body; empty when there is no otherwise branch.
+     */
+    public List<RuleFlowCommand> getOtherwiseBody() {
+        return otherwiseBody;
+    }
+
+    @Override
+    public CommandInfo getInfo() {
+        return new CommandInfo.When(condition.getExpression(), CommandInfo.of(getBody()), CommandInfo.of(otherwiseBody));
     }
 
     @Override

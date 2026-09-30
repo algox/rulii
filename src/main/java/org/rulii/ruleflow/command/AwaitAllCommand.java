@@ -20,7 +20,9 @@ package org.rulii.ruleflow.command;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.UnrulyException;
 import org.rulii.ruleflow.RuleFlowExecutionContext;
+import org.rulii.ruleflow.info.CommandInfo;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -90,6 +92,12 @@ public class AwaitAllCommand implements RuleFlowCommand {
         }
 
         return futures;
+    }
+
+    @Override
+    public CommandInfo getInfo() {
+        return new CommandInfo.Await(CommandInfo.AwaitKind.ALL, Arrays.asList(bindingNames),
+                Duration.of(timeout, timeUnit.toChronoUnit()));
     }
 
     public long getTimeout() {

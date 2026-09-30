@@ -31,6 +31,7 @@ import org.rulii.model.condition.Condition;
 import org.rulii.model.function.Function;
 import org.rulii.rule.Rule;
 import org.rulii.ruleflow.command.*;
+import org.rulii.ruleflow.info.CommandInfo;
 import org.rulii.ruleset.RuleSet;
 import org.rulii.util.RuleUtils;
 
@@ -319,7 +320,8 @@ public abstract class RuleFlowBuilderTemplate<SELF extends RuleFlowBuilderTempla
      */
     public SELF bind(BindingDeclaration<?>... declarations) {
         Assert.notNull(declarations, "declarations cannot be null.");
-        addConstruct(new BindConstruct(bindings -> bindings.bind(declarations)));
+        addConstruct(new BindConstruct(bindings -> bindings.bind(declarations),
+                () -> CommandInfo.Bind.declarations(null, declarations)));
         return self();
     }
 
@@ -332,7 +334,8 @@ public abstract class RuleFlowBuilderTemplate<SELF extends RuleFlowBuilderTempla
      */
     public SELF bind(String name, Object value) {
         Assert.hasText(name, "name cannot be empty/null.");
-        addConstruct(new BindConstruct(bindings -> bindings.bind(name, value)));
+        addConstruct(new BindConstruct(bindings -> bindings.bind(name, value),
+                () -> CommandInfo.Bind.literal(null, name, value)));
         return self();
     }
 
@@ -346,7 +349,7 @@ public abstract class RuleFlowBuilderTemplate<SELF extends RuleFlowBuilderTempla
         Assert.notNull(source, "source cannot be null.");
         addConstruct(new BindConstruct(bindings -> {
             for (Binding<?> b : source) bindings.bind(b);
-        }));
+        }, () -> CommandInfo.Bind.bindings(null, source)));
         return self();
     }
 
@@ -364,7 +367,7 @@ public abstract class RuleFlowBuilderTemplate<SELF extends RuleFlowBuilderTempla
         addConstruct(new BindConstruct(bindings -> {
             if (object instanceof Map<?, ?> m) bindings.loadMap((Map<String, Object>) m);
             else bindings.loadProperties(object);
-        }));
+        }, () -> CommandInfo.Bind.object(null, object)));
         return self();
     }
 
@@ -378,7 +381,8 @@ public abstract class RuleFlowBuilderTemplate<SELF extends RuleFlowBuilderTempla
     public <T> SELF bind(BindingLoader<T> loader, T value) {
         Assert.notNull(loader, "loader cannot be null.");
         Assert.notNull(value,  "value cannot be null.");
-        addConstruct(new BindConstruct(bindings -> bindings.load(loader, value)));
+        addConstruct(new BindConstruct(bindings -> bindings.load(loader, value),
+                () -> CommandInfo.Bind.loader(null, loader)));
         return self();
     }
 
@@ -392,7 +396,8 @@ public abstract class RuleFlowBuilderTemplate<SELF extends RuleFlowBuilderTempla
     public SELF bindTo(String scopeName, BindingDeclaration<?>... declarations) {
         Assert.hasText(scopeName, "scopeName cannot be empty/null.");
         Assert.notNull(declarations, "declarations cannot be null.");
-        addConstruct(new BindConstruct(bindings -> bindings.getScopeBindings(scopeName).bind(declarations)));
+        addConstruct(new BindConstruct(bindings -> bindings.getScopeBindings(scopeName).bind(declarations),
+                () -> CommandInfo.Bind.declarations(scopeName, declarations)));
         return self();
     }
 
@@ -407,7 +412,8 @@ public abstract class RuleFlowBuilderTemplate<SELF extends RuleFlowBuilderTempla
     public SELF bindTo(String scopeName, String name, Object value) {
         Assert.hasText(scopeName, "scopeName cannot be empty/null.");
         Assert.hasText(name, "name cannot be empty/null.");
-        addConstruct(new BindConstruct(bindings -> bindings.getScopeBindings(scopeName).bind(name, value)));
+        addConstruct(new BindConstruct(bindings -> bindings.getScopeBindings(scopeName).bind(name, value),
+                () -> CommandInfo.Bind.literal(scopeName, name, value)));
         return self();
     }
 
@@ -424,7 +430,7 @@ public abstract class RuleFlowBuilderTemplate<SELF extends RuleFlowBuilderTempla
         addConstruct(new BindConstruct(bindings -> {
             Bindings target = bindings.getScopeBindings(scopeName);
             for (Binding<?> b : source) target.bind(b);
-        }));
+        }, () -> CommandInfo.Bind.bindings(scopeName, source)));
         return self();
     }
 
@@ -443,7 +449,7 @@ public abstract class RuleFlowBuilderTemplate<SELF extends RuleFlowBuilderTempla
             Bindings target = bindings.getScopeBindings(scopeName);
             if (object instanceof Map<?, ?> m) target.loadMap((Map<String, Object>) m);
             else target.loadProperties(object);
-        }));
+        }, () -> CommandInfo.Bind.object(scopeName, object)));
         return self();
     }
 
@@ -459,7 +465,8 @@ public abstract class RuleFlowBuilderTemplate<SELF extends RuleFlowBuilderTempla
         Assert.hasText(scopeName, "scopeName cannot be empty/null.");
         Assert.notNull(loader, "loader cannot be null.");
         Assert.notNull(value,  "value cannot be null.");
-        addConstruct(new BindConstruct(bindings -> bindings.getScopeBindings(scopeName).load(loader, value)));
+        addConstruct(new BindConstruct(bindings -> bindings.getScopeBindings(scopeName).load(loader, value),
+                () -> CommandInfo.Bind.loader(scopeName, loader)));
         return self();
     }
 

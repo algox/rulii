@@ -18,10 +18,12 @@
 package org.rulii.ruleflow.command;
 
 import org.rulii.bind.ScopedBindings;
-import org.rulii.ruleflow.RuleFlowExecutionContext;
 import org.rulii.lib.spring.util.Assert;
+import org.rulii.ruleflow.RuleFlowExecutionContext;
+import org.rulii.ruleflow.info.CommandInfo;
 
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * Pipeline command that adds one or more bindings to the current scope.
@@ -35,11 +37,36 @@ import java.util.function.Consumer;
 public class BindCommand implements RuleFlowCommand {
 
     private final Consumer<ScopedBindings> binder;
+    private final Supplier<CommandInfo.Bind> info;
 
+    /**
+     * Creates a bind command whose structure is unknown; {@link #getInfo()} reports
+     * {@link CommandInfo.Custom}.
+     *
+     * @param binder the binding logic; must not be null.
+     */
     public BindCommand(Consumer<ScopedBindings> binder) {
+        this(binder, null);
+    }
+
+    /**
+     * Creates a bind command that can describe itself.
+     *
+     * @param binder the binding logic; must not be null.
+     * @param info   supplies the description on demand; may be null when unknown.
+     * @since 2.1
+     */
+    public BindCommand(Consumer<ScopedBindings> binder, Supplier<CommandInfo.Bind> info) {
         super();
         Assert.notNull(binder, "binder cannot be null.");
         this.binder = binder;
+        this.info = info;
+    }
+
+    @Override
+    public CommandInfo getInfo() {
+        CommandInfo.Bind result = info != null ? info.get() : null;
+        return result != null ? result : RuleFlowCommand.super.getInfo();
     }
 
     @Override

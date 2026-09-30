@@ -76,7 +76,12 @@ public abstract class ContainerCommand implements RuleFlowCommand {
      *
      * @return immutable list; never null.
      */
-    protected List<RuleFlowCommand> getBody() {
+    /**
+     * The commands this container runs.
+     *
+     * @return unmodifiable body; never null.
+     */
+    public List<RuleFlowCommand> getBody() {
         return body;
     }
 }

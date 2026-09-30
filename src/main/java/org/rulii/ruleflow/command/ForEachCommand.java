@@ -24,6 +24,7 @@ import org.rulii.model.UnrulyException;
 import org.rulii.model.condition.Condition;
 import org.rulii.model.function.Function;
 import org.rulii.ruleflow.RuleFlowExecutionContext;
+import org.rulii.ruleflow.info.CommandInfo;
 
 import java.util.Collection;
 import java.util.UUID;
@@ -86,6 +87,39 @@ public class ForEachCommand extends ContainerCommand implements ScopeDefining {
 
             index++;
         }
+    }
+
+    /**
+     * The function that produces the collection to iterate over.
+     *
+     * @return source function; never null.
+     */
+    public Function<?> getListSource() {
+        return listSource;
+    }
+
+    /**
+     * The binding name of the current element inside the body.
+     *
+     * @return element binding name; never empty.
+     */
+    public String getElementBindingName() {
+        return elementBindingName;
+    }
+
+    /**
+     * The condition checked after each iteration to stop early.
+     *
+     * @return stop condition, or null when there is none.
+     */
+    public Condition getStopCondition() {
+        return stopCondition;
+    }
+
+    @Override
+    public CommandInfo getInfo() {
+        return new CommandInfo.ForEach(elementBindingName, listSource.getExpression(),
+                stopCondition != null ? stopCondition.getExpression() : null, CommandInfo.of(getBody()));
     }
 
     protected String getScopeName(int index) {
