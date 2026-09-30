@@ -1,5 +1,38 @@
 # Changelog
 
+## [2.1.0] (unreleased)
+
+### Introspection: rules, rule sets and rule flows describe themselves
+
+Everything a rule, rule set or rule flow is made of can now be read off the built object without running it. This is the foundation for rulii-explorer.
+
+#### Expressions (`org.rulii.model.ExpressionInfo`)
+- `Condition`, `Action` and `Function` gain `getExpression()`, returning an `ExpressionInfo` alongside the existing `getDefinition()`. Kinds: `SCRIPT` (language + source text), `COMPILED` (the `MethodDefinition`, or null when not introspectable) and `COMPOSITE` (operator + operands, for `and`/`or`/`xor`/`not`, chained actions and composed functions).
+- Script-backed runnables are now `ScriptCondition`, `ScriptAction` and `ScriptFunction` (subclasses of the defaults) and keep their `Script`.
+- `Script.getSourceText()` returns the text as written, before `${...}` placeholder resolution; `getScript()` is still the resolved text the compiler saw. `ScriptBuilder` stamps the source text after compilation, so `ScriptCompiler` implementations are unchanged.
+- `ChainedAction`, `ComposeWithBeforeFunction` and `ComposeWithAfterFunction` expose their parts (including the result binding name).
+
+#### Rule flow commands (`org.rulii.ruleflow.info.CommandInfo`)
+- `RuleFlowCommand.getInfo()` describes a command: `Run`, `Apply`, `Execute`, `AsyncRun`, `Await`, `Bind`, `When`, `ForEach`, `Scope`, `Exit` or `Custom`. Container bodies, handlers and continuations are included. A custom command can override it to report real structure.
+- `Bind` records the names and types a step binds, never the values. `BindCommand` gains a constructor taking a `Supplier<CommandInfo.Bind>` for commands built outside the builder.
+- `WhenCommand`, `ForEachCommand` and `ReturningCommand` expose their condition, source, stop condition and result extractor. `RuleFlowExceptionHandler.getBody()` is public and `getInfo()` returns a `Handler`.
+
+#### Definitions
+- `RuleFlowDefinition` carries the command tree (`getCommands()`), the global handler, and the finalizer and returning expressions. `getResultType()` is the explicit type from the new `returning(Class<T>, Function<T>)` overload, else the extractor's declared return type, else `Object`.
+- `RuleSetDefinition` carries the input parameters and the error handler. `getStopConditionDefinition()` replaces the misnamed `getStopActionDefinition()`.
+- `InputParameter` gains a `description`; the rule set and rule flow builders gain `param(name, type, required, description)` and `param(name, type, defaultValue, description)`.
+- `SourceDefinition.build()` now records the caller's location. It used to skip the pre-2.0 `org.algorithmx.` package instead of `org.rulii.`, so every location pointed at `SourceDefinition.build` itself.
+
+#### Registry and validation
+- `RuleRegistry.getNames()` returns the keys every runnable can be looked up by. `getRuleFlows()` now has a real default derived from it instead of returning an empty list.
+- `ValueValidationRule.getValueName()` is public.
+
+### Breaking changes
+- `RuleRegistry.getNames()` is abstract: custom registries must implement it.
+- `ContainerCommand.getBody()` is public (was protected): subclasses that override it must widen it too.
+- The `RuleFlowDefinition` and `RuleSetDefinition` constructors take the new fields. Only the builders call them.
+- `RuleSetDefinition.getStopActionDefinition()` is deprecated for removal; use `getStopConditionDefinition()`.
+
 ## [2.0.0]
 
 ### New Feature: RuleFlow (`org.rulii.ruleflow`)
