@@ -20,6 +20,7 @@ package org.rulii.ruleflow;
 import org.rulii.bind.Binding;
 import org.rulii.bind.BindingDeclaration;
 import org.rulii.bind.Bindings;
+import org.rulii.bind.ScopedBindings;
 import org.rulii.bind.load.BindingLoader;
 import org.rulii.context.RuleContextBuilder;
 import org.rulii.lib.spring.util.Assert;
@@ -41,6 +42,7 @@ import java.lang.reflect.TypeVariable;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * Abstract base for all RuleFlow fluent builders.
@@ -116,6 +118,7 @@ public abstract class RuleFlowBuilderTemplate<SELF extends RuleFlowBuilderTempla
     private Function<?> resultExtractor;
     private Type resultType;
     private Consumer<RuleContextBuilder> contextConfigurator;
+    private String contextLabel;
     private RuleFlowExceptionHandler globalHandler;
 
     // State machine — root command list and construct stack
@@ -365,9 +368,41 @@ public abstract class RuleFlowBuilderTemplate<SELF extends RuleFlowBuilderTempla
      */
     public SELF context(Consumer<RuleContextBuilder> configurator) {
         Assert.notNull(configurator, "configurator cannot be null.");
+        return context(configurator, configurator.getClass().getName());
+    }
+
+    /**
+     * Same as {@link #context(Consumer)}, with a label that
+     * {@link RuleFlowDefinition#getContextLabel()} reports instead of the configurator's class
+     * name (an XML bean name, for example).
+     *
+     * @param configurator receives a pre-populated {@link RuleContextBuilder}; must not be null.
+     * @param label        what to call the configurator; must not be empty.
+     * @return this builder.
+     * @since 2.1
+     */
+    public SELF context(Consumer<RuleContextBuilder> configurator, String label) {
+        Assert.notNull(configurator, "configurator cannot be null.");
+        Assert.hasText(label, "label cannot be empty/null.");
         Assert.isTrue(contextConfigurator == null && rootCommands.isEmpty() && stack.isEmpty() && lastConstruct == null,
                 "context() must be the first step in the flow, and may only be called once.");
         this.contextConfigurator = configurator;
+        this.contextLabel = label;
+        return self();
+    }
+
+    /**
+     * Extension hook: adds a bind step with a caller-supplied binder and description. For bind
+     * steps the built-in overloads can't describe accurately, such as a bean referenced by name
+     * from XML.
+     *
+     * @param binder binds into the scoped bindings when the step runs; must not be null.
+     * @param info   describes the step without running it; must not be null.
+     * @return this builder.
+     * @since 2.1
+     */
+    protected final SELF bindWith(Consumer<ScopedBindings> binder, Supplier<CommandInfo.Bind> info) {
+        addConstruct(new BindConstruct(binder, info));
         return self();
     }
 
@@ -1268,7 +1303,8 @@ public abstract class RuleFlowBuilderTemplate<SELF extends RuleFlowBuilderTempla
                 resolveResultType(extractor), params, CommandInfo.of(rootCommands),
                 globalHandler != null ? globalHandler.getInfo() : null,
                 finalizer != null ? finalizer.getExpression() : null,
-                extractor != null ? extractor.getExpression() : null);
+                extractor != null ? extractor.getExpression() : null,
+                contextLabel);
 
         return new RulingOrder<>(def, new ArrayList<>(rootCommands), params, finalizer,
                 extractor, globalHandler, contextConfigurator);

@@ -129,4 +129,22 @@ public class RuleFlowDefinitionTest {
         Assertions.assertNull(reset.getDefinition().getResultType());
         Assertions.assertNull(reset.getDefinition().getReturning());
     }
+
+    @Test
+    public void contextLabelNamesTheConfigurator() {
+        RuleFlow<RuleContext> plain = RuleFlow.builder().name("noContextFlow").bind("a", 1).build();
+        Assertions.assertNull(plain.getDefinition().getContextLabel());
+
+        RuleFlow<RuleContext> labelled = RuleFlow.builder().name("labelledFlow")
+                .context(builder -> {}, "orderContext")
+                .bind("a", 1)
+                .build();
+        Assertions.assertEquals("orderContext", labelled.getDefinition().getContextLabel());
+
+        RuleFlow<RuleContext> unlabelled = RuleFlow.builder().name("unlabelledFlow")
+                .context(builder -> {})
+                .bind("a", 1)
+                .build();
+        Assertions.assertNotNull(unlabelled.getDefinition().getContextLabel(), "falls back to the configurator class name");
+    }
 }

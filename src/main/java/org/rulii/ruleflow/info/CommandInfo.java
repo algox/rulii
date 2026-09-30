@@ -248,7 +248,8 @@ public sealed interface CommandInfo permits CommandInfo.Run, CommandInfo.Apply, 
      * @param scope target scope; null for the current scope.
      * @param kind  how the values are obtained.
      * @param names names bound, where known; empty for {@link BindKind#BEAN} and {@link BindKind#LOADER}.
-     * @param label class name of the bean or loader for {@link BindKind#BEAN} and {@link BindKind#LOADER}; null otherwise.
+     * @param label class name of the bean or loader for {@link BindKind#BEAN} and {@link BindKind#LOADER}, or a name the
+     *              builder gave the source (an XML bean name); null otherwise.
      */
     record Bind(String scope, BindKind kind, List<BoundName> names, String label) implements CommandInfo {
         public Bind {

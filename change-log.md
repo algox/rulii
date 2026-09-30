@@ -14,11 +14,11 @@ Everything a rule, rule set or rule flow is made of can now be read off the buil
 
 #### Rule flow commands (`org.rulii.ruleflow.info.CommandInfo`)
 - `RuleFlowCommand.getInfo()` describes a command: `Run`, `Apply`, `Execute`, `AsyncRun`, `Await`, `Bind`, `When`, `ForEach`, `Scope`, `Exit` or `Custom`. Container bodies, handlers and continuations are included. A custom command can override it to report real structure.
-- `Bind` records the names and types a step binds, never the values. `BindCommand` gains a constructor taking a `Supplier<CommandInfo.Bind>` for commands built outside the builder.
+- `Bind` records the names and types a step binds, never the values. `BindCommand` gains a constructor taking a `Supplier<CommandInfo.Bind>` for commands built outside the builder. Builder subclasses get a protected `bindWith(binder, info)` hook for bind steps the built-in overloads can't describe.
 - `WhenCommand`, `ForEachCommand` and `ReturningCommand` expose their condition, source, stop condition and result extractor. `RuleFlowExceptionHandler.getBody()` is public and `getInfo()` returns a `Handler`.
 
 #### Definitions
-- `RuleFlowDefinition` carries the command tree (`getCommands()`), the global handler, and the finalizer and returning expressions. `getResultType()` is the explicit type from the new `returning(Class<T>, Function<T>)` overload, else the extractor's declared return type, else `Object`.
+- `RuleFlowDefinition` carries the command tree (`getCommands()`), the global handler, and the finalizer and returning expressions. `getContextLabel()` names the context configurator (`context(Consumer, String label)` sets the label; the class name is the default; null without one). `getResultType()` is the explicit type from the new `returning(Class<T>, Function<T>)` overload, else the extractor's declared return type, else `Object`.
 - `RuleSetDefinition` carries the input parameters and the error handler. `getStopConditionDefinition()` replaces the misnamed `getStopActionDefinition()`.
 - `InputParameter` gains a `description`; the rule set and rule flow builders gain `param(name, type, required, description)` and `param(name, type, defaultValue, description)`.
 - `SourceDefinition.build()` now records the caller's location. It used to skip the pre-2.0 `org.algorithmx.` package instead of `org.rulii.`, so every location pointed at `SourceDefinition.build` itself.

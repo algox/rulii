@@ -47,6 +47,7 @@ public final class RuleFlowDefinition implements Definition {
     private final CommandInfo.Handler globalHandler;
     private final ExpressionInfo finalizer;
     private final ExpressionInfo returning;
+    private final String contextLabel;
 
     /**
      * Creates a definition.
@@ -60,10 +61,12 @@ public final class RuleFlowDefinition implements Definition {
      * @param globalHandler    flow-level exception handler; null when none.
      * @param finalizer        the finalizer action; null when none.
      * @param returning        the result extractor; null when the flow returns its rule context.
+     * @param contextLabel     label of the context configurator; null when the flow has none.
      */
     public RuleFlowDefinition(String name, String description, SourceDefinition sourceDefinition, Type resultType,
                               List<InputParameter<?>> inputParameters, List<CommandInfo> commands,
-                              CommandInfo.Handler globalHandler, ExpressionInfo finalizer, ExpressionInfo returning) {
+                              CommandInfo.Handler globalHandler, ExpressionInfo finalizer, ExpressionInfo returning,
+                              String contextLabel) {
         super();
         Assert.hasText(name, "name cannot be empty/null.");
         Assert.notNull(sourceDefinition, "sourceDefinition cannot be null.");
@@ -78,6 +81,7 @@ public final class RuleFlowDefinition implements Definition {
         this.globalHandler = globalHandler;
         this.finalizer = finalizer;
         this.returning = returning;
+        this.contextLabel = contextLabel;
     }
 
     @Override
@@ -157,6 +161,18 @@ public final class RuleFlowDefinition implements Definition {
         return returning;
     }
 
+    /**
+     * How the flow configures its own rule context.
+     *
+     * @return the label given to {@code context(Consumer, String)} (an XML bean name, for
+     * example), else the configurator's class name, or null when the flow runs in the caller's
+     * context.
+     * @since 2.1
+     */
+    public String getContextLabel() {
+        return contextLabel;
+    }
+
     @Override
     public String toString() {
         return "RuleFlowDefinition{" +
@@ -168,6 +184,7 @@ public final class RuleFlowDefinition implements Definition {
                 ", globalHandler=" + globalHandler +
                 ", finalizer=" + finalizer +
                 ", returning=" + returning +
+                ", contextLabel='" + contextLabel + '\'' +
                 '}';
     }
 }
