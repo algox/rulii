@@ -65,8 +65,8 @@ public class SourceDefinition {
 
         for (StackTraceElement element : elements) {
             if (element.getClassName().startsWith("java")
-                    || (element.getClassName().startsWith("org.algorithmx.")
-                    && !element.getClassName().startsWith("org.algorithmx.rulii.test"))) {
+                    || (element.getClassName().startsWith("org.rulii.")
+                    && !element.getClassName().startsWith("org.rulii.test"))) {
                 continue;
             }
 
