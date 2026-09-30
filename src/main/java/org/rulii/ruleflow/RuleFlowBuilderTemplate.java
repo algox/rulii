@@ -24,6 +24,7 @@ import org.rulii.bind.load.BindingLoader;
 import org.rulii.context.RuleContextBuilder;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.InputParameter;
+import org.rulii.model.MethodDefinition;
 import org.rulii.model.SourceDefinition;
 import org.rulii.model.UnrulyException;
 import org.rulii.model.action.Action;
@@ -35,6 +36,8 @@ import org.rulii.ruleflow.info.CommandInfo;
 import org.rulii.ruleset.RuleSet;
 import org.rulii.util.RuleUtils;
 
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -111,6 +114,7 @@ public abstract class RuleFlowBuilderTemplate<SELF extends RuleFlowBuilderTempla
     private final Set<InputParameter<?>> inputParameters = new LinkedHashSet<>();
     private Action finalizer;
     private Function<?> resultExtractor;
+    private Type resultType;
     private Consumer<RuleContextBuilder> contextConfigurator;
     private RuleFlowExceptionHandler globalHandler;
 
@@ -258,6 +262,41 @@ public abstract class RuleFlowBuilderTemplate<SELF extends RuleFlowBuilderTempla
     }
 
     /**
+     * Declares a described input parameter.
+     *
+     * @param name        the binding name.
+     * @param type        the expected type.
+     * @param required    {@code true} if the binding must exist.
+     * @param description what the parameter is for; may be null.
+     * @return this builder.
+     * @since 2.1
+     */
+    public <P> SELF param(String name, Class<P> type, boolean required, String description) {
+        Assert.hasText(name, "name cannot be empty/null.");
+        Assert.notNull(type, "type cannot be null.");
+        inputParameters.add(new InputParameter<>(name, type, required, null, description));
+        return self();
+    }
+
+    /**
+     * Declares a described optional input parameter with a default value function.
+     *
+     * @param name         the binding name.
+     * @param type         the expected type.
+     * @param defaultValue function supplying the default when the binding is absent.
+     * @param description  what the parameter is for; may be null.
+     * @return this builder.
+     * @since 2.1
+     */
+    public <P> SELF param(String name, Class<P> type, Function<P> defaultValue, String description) {
+        Assert.hasText(name, "name cannot be empty/null.");
+        Assert.notNull(type, "type cannot be null.");
+        Assert.notNull(defaultValue, "defaultValue cannot be null.");
+        inputParameters.add(new InputParameter<>(name, type, false, defaultValue, description));
+        return self();
+    }
+
+    /**
      * Registers an action that always runs after command iteration completes, regardless of
      * early exit or exceptions.
      *
@@ -281,6 +320,25 @@ public abstract class RuleFlowBuilderTemplate<SELF extends RuleFlowBuilderTempla
         Assert.notNull(extractor, "extractor cannot be null.");
         sealLastConstruct();
         this.resultExtractor = extractor;
+        this.resultType = null;
+        return self();
+    }
+
+    /**
+     * Sets the typed result extractor and states the result type explicitly, for when the
+     * extractor's declared return type isn't specific enough (a script, or a generic lambda).
+     *
+     * @param type      the result type recorded in the {@link RuleFlowDefinition}; must not be null.
+     * @param extractor function that extracts {@code T} from the bindings; must not be null.
+     * @return this builder.
+     * @since 2.1
+     */
+    public <T> SELF returning(Class<T> type, Function<T> extractor) {
+        Assert.notNull(type, "type cannot be null.");
+        Assert.notNull(extractor, "extractor cannot be null.");
+        sealLastConstruct();
+        this.resultExtractor = extractor;
+        this.resultType = type;
         return self();
     }
 
@@ -292,6 +350,7 @@ public abstract class RuleFlowBuilderTemplate<SELF extends RuleFlowBuilderTempla
     public SELF returning() {
         sealLastConstruct();
         this.resultExtractor = null;
+        this.resultType = null;
         return self();
     }
 
@@ -1206,10 +1265,26 @@ public abstract class RuleFlowBuilderTemplate<SELF extends RuleFlowBuilderTempla
         Function<T> extractor = (Function<T>) resultExtractor;
 
         RuleFlowDefinition def = new RuleFlowDefinition(name, description, SourceDefinition.build(),
-                extractor != null ? Object.class : null, rootCommands.size(), params);
+                resolveResultType(extractor), params, CommandInfo.of(rootCommands),
+                globalHandler != null ? globalHandler.getInfo() : null,
+                finalizer != null ? finalizer.getExpression() : null,
+                extractor != null ? extractor.getExpression() : null);
 
         return new RulingOrder<>(def, new ArrayList<>(rootCommands), params, finalizer,
                 extractor, globalHandler, contextConfigurator);
+    }
+
+    /**
+     * The result type: the explicit type from {@code returning(Class, Function)} when given,
+     * else the extractor's declared return type, else {@code Object}; null without an extractor.
+     */
+    private Type resolveResultType(Function<?> extractor) {
+        if (extractor == null) return null;
+        if (resultType != null) return resultType;
+
+        MethodDefinition definition = extractor.getDefinition();
+        Type declared = definition != null ? definition.getReturnType() : null;
+        return declared == null || declared instanceof TypeVariable<?> ? Object.class : declared;
     }
 
     private void validate() {

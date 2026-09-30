@@ -19,15 +19,19 @@ package org.rulii.ruleflow;
 
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.Definition;
+import org.rulii.model.ExpressionInfo;
 import org.rulii.model.InputParameter;
 import org.rulii.model.SourceDefinition;
+import org.rulii.ruleflow.info.CommandInfo;
 
 import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.List;
 
 /**
- * Metadata describing a {@link RuleFlow} pipeline.
+ * Metadata describing a {@link RuleFlow} pipeline: its identity, input parameters, result type
+ * and, since 2.1, the full structure of its commands, global exception handler, finalizer and
+ * result extractor. Nothing here runs anything.
  *
  * @author Max Arulananthan
  * @since 2.0
@@ -38,21 +42,42 @@ public final class RuleFlowDefinition implements Definition {
     private final String description;
     private final SourceDefinition sourceDefinition;
     private final Type resultType;
-    private final int commandCount;
     private final List<InputParameter<?>> inputParameters;
+    private final List<CommandInfo> commands;
+    private final CommandInfo.Handler globalHandler;
+    private final ExpressionInfo finalizer;
+    private final ExpressionInfo returning;
 
+    /**
+     * Creates a definition.
+     *
+     * @param name             flow name; must not be empty.
+     * @param description      flow description; may be null.
+     * @param sourceDefinition where the flow was built; must not be null.
+     * @param resultType       type of the result, or null when the flow returns its rule context.
+     * @param inputParameters  declared input parameters; must not be null.
+     * @param commands         info of the top-level commands in order; must not be null.
+     * @param globalHandler    flow-level exception handler; null when none.
+     * @param finalizer        the finalizer action; null when none.
+     * @param returning        the result extractor; null when the flow returns its rule context.
+     */
     public RuleFlowDefinition(String name, String description, SourceDefinition sourceDefinition, Type resultType,
-                              int commandCount, List<InputParameter<?>> inputParameters) {
+                              List<InputParameter<?>> inputParameters, List<CommandInfo> commands,
+                              CommandInfo.Handler globalHandler, ExpressionInfo finalizer, ExpressionInfo returning) {
         super();
         Assert.hasText(name, "name cannot be empty/null.");
         Assert.notNull(sourceDefinition, "sourceDefinition cannot be null.");
         Assert.notNull(inputParameters, "inputParameters cannot be null.");
+        Assert.notNull(commands, "commands cannot be null.");
         this.name = name;
         this.description = description;
         this.sourceDefinition = sourceDefinition;
         this.resultType = resultType;
-        this.commandCount = commandCount;
         this.inputParameters = Collections.unmodifiableList(inputParameters);
+        this.commands = Collections.unmodifiableList(commands);
+        this.globalHandler = globalHandler;
+        this.finalizer = finalizer;
+        this.returning = returning;
     }
 
     @Override
@@ -60,11 +85,6 @@ public final class RuleFlowDefinition implements Definition {
         return name;
     }
 
-    /**
-     * Returns the optional human-readable description, or {@code null} if not set.
-     *
-     * @return description text; may be null.
-     */
     public String getDescription() {
         return description;
     }
@@ -74,28 +94,67 @@ public final class RuleFlowDefinition implements Definition {
         return sourceDefinition;
     }
 
-    /** Result type declared via {@code returning()}, or {@code null} if the flow returns the RuleContext. */
+    /**
+     * The type of the flow's result.
+     *
+     * @return the type given to {@code returning(Class, Function)}, else the extractor's declared
+     * return type, else null when the flow returns its rule context.
+     */
     public Type getResultType() {
         return resultType;
     }
 
     /**
-     * Returns the number of top-level pipeline commands in this flow.
-     * Container constructs ({@code when}, {@code forEach}, {@code scope}) each count as one.
+     * Number of top-level commands.
      *
-     * @return non-negative command count.
+     * @return command count.
      */
     public int getCommandCount() {
-        return commandCount;
+        return commands.size();
+    }
+
+    public List<InputParameter<?>> getInputParameters() {
+        return inputParameters;
     }
 
     /**
-     * Returns the declared input parameters for this flow.
+     * The top-level commands in order, each describing itself (and its body, for containers).
      *
-     * @return immutable list; never null, may be empty.
+     * @return unmodifiable list; never null.
+     * @since 2.1
      */
-    public List<InputParameter<?>> getInputParameters() {
-        return inputParameters;
+    public List<CommandInfo> getCommands() {
+        return commands;
+    }
+
+    /**
+     * The flow-level exception handler.
+     *
+     * @return handler info, or null when there is none.
+     * @since 2.1
+     */
+    public CommandInfo.Handler getGlobalHandler() {
+        return globalHandler;
+    }
+
+    /**
+     * The finalizer action.
+     *
+     * @return expression info, or null when there is none.
+     * @since 2.1
+     */
+    public ExpressionInfo getFinalizer() {
+        return finalizer;
+    }
+
+    /**
+     * The result extractor.
+     *
+     * @return expression info, or null when the flow returns its rule context.
+     * @since 2.1
+     */
+    public ExpressionInfo getReturning() {
+        return returning;
     }
 
     @Override
@@ -104,8 +163,11 @@ public final class RuleFlowDefinition implements Definition {
                 "name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", resultType=" + resultType +
-                ", commandCount=" + commandCount +
+                ", commandCount=" + commands.size() +
                 ", inputParameters=" + inputParameters +
+                ", globalHandler=" + globalHandler +
+                ", finalizer=" + finalizer +
+                ", returning=" + returning +
                 '}';
     }
 }

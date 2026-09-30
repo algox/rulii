@@ -22,14 +22,33 @@ import org.rulii.model.function.Function;
 import java.util.Objects;
 
 /**
- * Represents an input parameter with a name, type, required flag, and default value.
+ * Declares an input a RuleSet or RuleFlow expects to find in its bindings.
  *
- * @param <T> the type of the input parameter
+ * <p>Two parameters are equal when their names are equal.
  *
+ * @param name         binding name.
+ * @param type         expected type.
+ * @param required     whether the binding must exist.
+ * @param defaultValue supplies the value when the binding is absent; null when there is no default.
+ * @param description  what the parameter is for; null when not given.
+ * @param <T>          parameter type.
  * @author Max Arulananthan
- * @since 1.1
+ * @since 2.0
  */
-public record InputParameter<T>(String name, Class<T> type, boolean required, Function<T> defaultValue) {
+public record InputParameter<T>(String name, Class<T> type, boolean required, Function<T> defaultValue,
+                                String description) {
+
+    /**
+     * Creates a parameter without a description.
+     *
+     * @param name         binding name.
+     * @param type         expected type.
+     * @param required     whether the binding must exist.
+     * @param defaultValue supplies the value when the binding is absent; may be null.
+     */
+    public InputParameter(String name, Class<T> type, boolean required, Function<T> defaultValue) {
+        this(name, type, required, defaultValue, null);
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -51,6 +70,7 @@ public record InputParameter<T>(String name, Class<T> type, boolean required, Fu
                 ", type=" + type +
                 ", required=" + required +
                 ", defaultValue=" + defaultValue +
+                ", description='" + description + '\'' +
                 '}';
     }
 }

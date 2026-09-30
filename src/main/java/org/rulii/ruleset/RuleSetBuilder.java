@@ -179,6 +179,42 @@ public class RuleSetBuilder {
     }
 
     /**
+     * Adds a described parameter.
+     *
+     * @param name        the name of the parameter. Must not be empty or null.
+     * @param type        the Class representing the type of the parameter. Must not be null.
+     * @param required    specifies if the parameter is required or optional.
+     * @param description what the parameter is for; may be null.
+     * @return this RuleSetBuilder instance for method chaining.
+     * @since 2.1
+     */
+    public <T> RuleSetBuilder param(String name, Class<T> type, boolean required, String description) {
+        Assert.hasText(name, "name cannot be empty/null.");
+        Assert.notNull(type, "type cannot be null.");
+        this.inputParameters.add(new InputParameter<>(name, type, required, null, description));
+        return this;
+    }
+
+    /**
+     * Adds a described optional parameter with a default value.
+     *
+     * @param <T>          the generic type for the parameter value
+     * @param name         the name of the parameter. Must not be empty or null.
+     * @param type         the Class representing the type of the parameter. Must not be null.
+     * @param defaultValue the default value for the parameter. Must not be null.
+     * @param description  what the parameter is for; may be null.
+     * @return this RuleSetBuilder instance for method chaining
+     * @since 2.1
+     */
+    public <T> RuleSetBuilder param(String name, Class<T> type, Function<T> defaultValue, String description) {
+        Assert.hasText(name, "name cannot be empty/null.");
+        Assert.notNull(type, "type cannot be null.");
+        Assert.notNull(defaultValue, "defaultValue cannot be null.");
+        this.inputParameters.add(new InputParameter<>(name, type, false, defaultValue, description));
+        return this;
+    }
+
+    /**
      * PreCondition(Optional) Condition to be met before the execution of the RuleSet.
      *
      * @param preCondition pre-check before execution of the RuleSet.
@@ -432,11 +468,13 @@ public class RuleSetBuilder {
         });
 
         return new RuleSetDefinition(getName(), getDescription(), SourceDefinition.build(),
+                getInputParameters(),
                 getInitializer() != null ? getInitializer().getDefinition() : null,
                 getPreCondition() != null ? getPreCondition().getDefinition() : null,
                 getStopCondition() != null ? getStopCondition().getDefinition() : null,
                 getEffectiveFinalizer() != null ? getEffectiveFinalizer().getDefinition() : null,
                 getResultExtractor() != null ? getResultExtractor().getDefinition() : null,
+                getErrorHandler() != null ? getErrorHandler().getDefinition() : null,
                 definitions);
     }
 

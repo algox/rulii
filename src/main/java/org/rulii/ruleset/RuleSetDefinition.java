@@ -19,6 +19,7 @@ package org.rulii.ruleset;
 
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.Definition;
+import org.rulii.model.InputParameter;
 import org.rulii.model.MethodDefinition;
 import org.rulii.model.SourceDefinition;
 import org.rulii.rule.RuleDefinition;
@@ -29,7 +30,9 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Represents a RuleSet Definition, which defines a set of rules with pre-condition and stop actions.
+ * Metadata describing a {@link RuleSet}: its identity, input parameters, the methods behind its
+ * lifecycle hooks (initializer, pre-condition, stop condition, finalizer, result extractor and
+ * error handler) and the definitions of its rules. Nothing here runs anything.
  *
  * @author Max Arulananthan
  * @since 1.0
@@ -41,32 +44,55 @@ public final class RuleSetDefinition implements Definition {
     // Description of the RuleSet
     private final String description;
     private final SourceDefinition sourceDefinition;
+    private final List<InputParameter<?>> inputParameters;
     private final MethodDefinition initActionDefinition;
     // PreCondition method details
     private final MethodDefinition preConditionDefinition;
-    // StopAction method details
-    private final MethodDefinition stopActionDefinition;
+    // Stop condition method details
+    private final MethodDefinition stopConditionDefinition;
     private final MethodDefinition finallyActionDefinition;
     private final MethodDefinition resultActionDefinition;
+    private final MethodDefinition errorHandlerDefinition;
     private final List<RuleDefinition> definitions;
 
+    /**
+     * Creates a definition.
+     *
+     * @param name                    rule set name; must be a valid name.
+     * @param description             description; may be null.
+     * @param sourceDefinition        where the rule set was built.
+     * @param inputParameters         declared input parameters; must not be null.
+     * @param initActionDefinition    initializer method; may be null.
+     * @param preConditionDefinition  pre-condition method; may be null.
+     * @param stopConditionDefinition stop condition method; may be null.
+     * @param finallyActionDefinition finalizer method; may be null.
+     * @param resultActionDefinition  result extractor method; may be null.
+     * @param errorHandlerDefinition  error handler method; may be null.
+     * @param definitions             definitions of the rules in order; must not be null.
+     */
     public RuleSetDefinition(String name, String description,
                              SourceDefinition sourceDefinition,
+                             List<InputParameter<?>> inputParameters,
                              MethodDefinition initActionDefinition,
                              MethodDefinition preConditionDefinition,
-                             MethodDefinition stopActionDefinition,
+                             MethodDefinition stopConditionDefinition,
                              MethodDefinition finallyActionDefinition,
                              MethodDefinition resultActionDefinition,
+                             MethodDefinition errorHandlerDefinition,
                              List<RuleDefinition> definitions) {
         super();
         setName(name);
+        Assert.notNull(inputParameters, "inputParameters cannot be null.");
+        Assert.notNull(definitions, "definitions cannot be null.");
         this.description = description;
         this.sourceDefinition = sourceDefinition;
+        this.inputParameters = Collections.unmodifiableList(inputParameters);
         this.initActionDefinition = initActionDefinition;
         this.preConditionDefinition = preConditionDefinition;
-        this.stopActionDefinition = stopActionDefinition;
+        this.stopConditionDefinition = stopConditionDefinition;
         this.finallyActionDefinition = finallyActionDefinition;
         this.resultActionDefinition = resultActionDefinition;
+        this.errorHandlerDefinition = errorHandlerDefinition;
         this.definitions = Collections.unmodifiableList(definitions);
     }
 
@@ -89,6 +115,16 @@ public final class RuleSetDefinition implements Definition {
         return sourceDefinition;
     }
 
+    /**
+     * The declared input parameters.
+     *
+     * @return unmodifiable list; never null.
+     * @since 2.1
+     */
+    public List<InputParameter<?>> getInputParameters() {
+        return inputParameters;
+    }
+
     public MethodDefinition getInitActionDefinition() {
         return initActionDefinition;
     }
@@ -97,8 +133,26 @@ public final class RuleSetDefinition implements Definition {
         return preConditionDefinition;
     }
 
+    /**
+     * The method behind the stop condition.
+     *
+     * @return method definition, or null when there is no stop condition.
+     * @since 2.1
+     */
+    public MethodDefinition getStopConditionDefinition() {
+        return stopConditionDefinition;
+    }
+
+    /**
+     * The method behind the stop condition.
+     *
+     * @return method definition, or null when there is no stop condition.
+     * @deprecated since 2.1; this always held the stop <em>condition</em>. Use
+     * {@link #getStopConditionDefinition()}.
+     */
+    @Deprecated(since = "2.1", forRemoval = true)
     public MethodDefinition getStopActionDefinition() {
-        return stopActionDefinition;
+        return stopConditionDefinition;
     }
 
     public MethodDefinition getFinallyActionDefinition() {
@@ -107,6 +161,16 @@ public final class RuleSetDefinition implements Definition {
 
     public MethodDefinition getResultActionDefinition() {
         return resultActionDefinition;
+    }
+
+    /**
+     * The method behind the error handler.
+     *
+     * @return method definition, or null when there is no error handler.
+     * @since 2.1
+     */
+    public MethodDefinition getErrorHandlerDefinition() {
+        return errorHandlerDefinition;
     }
 
     public List<RuleDefinition> getDefinitions() {
@@ -125,11 +189,13 @@ public final class RuleSetDefinition implements Definition {
                 "name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", sourceDefinition=" + sourceDefinition +
+                ", inputParameters=" + inputParameters +
                 ", initActionDefinition=" + initActionDefinition +
                 ", preConditionDefinition=" + preConditionDefinition +
-                ", stopActionDefinition=" + stopActionDefinition +
+                ", stopConditionDefinition=" + stopConditionDefinition +
                 ", finallyActionDefinition=" + finallyActionDefinition +
                 ", resultActionDefinition=" + resultActionDefinition +
+                ", errorHandlerDefinition=" + errorHandlerDefinition +
                 ", definitions=" + definitions +
                 '}';
     }
