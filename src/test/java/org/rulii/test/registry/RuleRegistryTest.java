@@ -25,14 +25,16 @@ import org.rulii.model.UnrulyException;
 import org.rulii.model.action.Action;
 import org.rulii.model.condition.Condition;
 import org.rulii.registry.RuleRegistry;
-import org.rulii.ruleflow.RuleFlow;
 import org.rulii.rule.Rule;
 import org.rulii.rule.RuleDefinition;
 import org.rulii.rule.RuleResult;
+import org.rulii.ruleflow.RuleFlow;
 import org.rulii.ruleset.RuleSet;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Tests for RuleRegistry default methods.
@@ -111,6 +113,11 @@ public class RuleRegistryTest {
             @Override
             public <R, T extends Runnable<R>> T get(String name) {
                 return null;
+            }
+
+            @Override
+            public Set<String> getNames() {
+                return rules.stream().map(Rule::getName).collect(Collectors.toSet());
             }
         };
     }

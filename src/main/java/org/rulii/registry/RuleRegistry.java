@@ -18,14 +18,17 @@
 
 package org.rulii.registry;
 
-import org.rulii.ruleflow.RuleFlow;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.Runnable;
 import org.rulii.model.UnrulyException;
 import org.rulii.rule.Rule;
+import org.rulii.ruleflow.RuleFlow;
 import org.rulii.ruleset.RuleSet;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 
 /**
@@ -215,7 +218,30 @@ public interface RuleRegistry {
      *
      * @return list of all registered flows; never null, may be empty.
      */
+    /**
+     * The names every registered runnable can be looked up by with {@link #get(String)}.
+     *
+     * <p>This is the one enumeration primitive: everything else can be derived from it. The
+     * names are registry keys, which may differ from {@link Runnable#getName()} (a Spring bean
+     * name, for example).
+     *
+     * @return unmodifiable snapshot of the names; never null.
+     * @since 2.1
+     */
+    Set<String> getNames();
+
+    /**
+     * All registered rule flows. The default derives them from {@link #getNames()} and
+     * {@link #get(String)}; implementations with a cheaper way should override it.
+     *
+     * @return unmodifiable list; never null.
+     */
     default List<RuleFlow<?>> getRuleFlows() {
-        return List.of();
+        List<RuleFlow<?>> result = new ArrayList<>();
+        for (String name : getNames()) {
+            Runnable<?> candidate = get(name);
+            if (candidate instanceof RuleFlow<?> ruleFlow) result.add(ruleFlow);
+        }
+        return Collections.unmodifiableList(result);
     }
 }

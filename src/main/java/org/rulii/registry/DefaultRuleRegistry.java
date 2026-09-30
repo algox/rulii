@@ -18,18 +18,20 @@
 
 package org.rulii.registry;
 
-import org.rulii.ruleflow.RuleFlow;
 import org.rulii.lib.apache.commons.logging.Log;
 import org.rulii.lib.apache.commons.logging.LogFactory;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.Runnable;
 import org.rulii.rule.Rule;
+import org.rulii.ruleflow.RuleFlow;
 import org.rulii.ruleset.RuleSet;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -77,6 +79,11 @@ public class DefaultRuleRegistry implements MutableRuleRegistry {
     @Override
     public List<RuleFlow<?>> getRuleFlows() {
         return (List<RuleFlow<?>>) (List<?>) filter(RuleFlow.class);
+    }
+
+    @Override
+    public Set<String> getNames() {
+        return Collections.unmodifiableSet(new TreeSet<>(registry.keySet()));
     }
 
     @Override

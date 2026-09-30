@@ -168,7 +168,12 @@ public abstract class ValueValidationRule extends ValidationRule {
         return valueFunction.run(ruleContext);
     }
 
-    protected String getValueName() {
+    /**
+     * The binding name of the value this rule validates.
+     *
+     * @return value name; never null.
+     */
+    public String getValueName() {
         return valueName;
     }
 
