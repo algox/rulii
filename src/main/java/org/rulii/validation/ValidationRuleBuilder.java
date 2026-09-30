@@ -18,6 +18,7 @@
 package org.rulii.validation;
 
 import org.rulii.lib.spring.util.Assert;
+import org.rulii.model.SourceDefinition;
 import org.rulii.model.condition.Condition;
 import org.rulii.rule.ClassBasedRuleBuilder;
 import org.rulii.rule.Rule;
@@ -66,5 +67,14 @@ public class ValidationRuleBuilder extends ClassBasedRuleBuilder<SuppliedValidat
         load(SuppliedValidationRule.class, new SuppliedValidationRule(condition, errorCode, severity, errorMessage, defaultMessage));
         name(ruleName);
         return super.build();
+    }
+
+    /**
+     * The rule class here is rulii's own {@link SuppliedValidationRule}, which says nothing
+     * about where the rule was declared, so the caller is recorded instead.
+     */
+    @Override
+    protected SourceDefinition defaultSource() {
+        return SourceDefinition.build();
     }
 }

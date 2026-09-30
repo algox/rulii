@@ -69,6 +69,7 @@ public class RuleSetBuilder {
     });
     private final LinkedList<Rule> ruleSetItems = new LinkedList<>();
     private boolean validating = false;
+    private SourceDefinition source;
 
     /**
      * Constructs a new RuleSetBuilder instance with the provided name.
@@ -133,6 +134,20 @@ public class RuleSetBuilder {
      */
     public RuleSetBuilder description(String description) {
         this.description = description;
+        return this;
+    }
+
+    /**
+     * Where the rule set is declared, when the caller knows better than a stack walk: an XML
+     * file and line, for example. Without it, the code that called {@link #build()} is recorded.
+     *
+     * @param source the source; must not be null.
+     * @return this RuleSetBuilder instance for method chaining
+     * @since 2.1
+     */
+    public RuleSetBuilder source(SourceDefinition source) {
+        Assert.notNull(source, "source cannot be null.");
+        this.source = source;
         return this;
     }
 
@@ -467,7 +482,7 @@ public class RuleSetBuilder {
             definitions.add(r.getDefinition());
         });
 
-        return new RuleSetDefinition(getName(), getDescription(), SourceDefinition.build(),
+        return new RuleSetDefinition(getName(), getDescription(), source != null ? source : SourceDefinition.build(),
                 getInputParameters(),
                 getInitializer() != null ? getInitializer().getDefinition() : null,
                 getPreCondition() != null ? getPreCondition().getDefinition() : null,

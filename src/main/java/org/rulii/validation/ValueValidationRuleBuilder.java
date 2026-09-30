@@ -18,6 +18,7 @@
 package org.rulii.validation;
 
 import org.rulii.lib.spring.util.Assert;
+import org.rulii.model.SourceDefinition;
 import org.rulii.model.function.Function;
 import org.rulii.rule.ClassBasedRuleBuilder;
 import org.rulii.rule.Rule;
@@ -45,6 +46,7 @@ public abstract class ValueValidationRuleBuilder<T extends ValueValidationRuleBu
     private String errorMessage;
     private String valueName;
     private boolean failOnNull = true;
+    private SourceDefinition source;
 
     /**
      * Creates a new builder configured with the given value function.
@@ -138,6 +140,21 @@ public abstract class ValueValidationRuleBuilder<T extends ValueValidationRuleBu
         return (T) this;
     }
 
+    /**
+     * Where the rule is declared, when the caller knows better than a stack walk: an XML
+     * file and line, for example. Without it, the code that called {@link #build()} is recorded.
+     *
+     * @param source the source; must not be null
+     * @return this builder for fluent chaining
+     * @since 2.1
+     */
+    @SuppressWarnings("unchecked")
+    public T source(SourceDefinition source) {
+        Assert.notNull(source, "source cannot be null.");
+        this.source = source;
+        return (T) this;
+    }
+
     protected String getErrorCode() {
         return errorCode;
     }
@@ -181,6 +198,9 @@ public abstract class ValueValidationRuleBuilder<T extends ValueValidationRuleBu
         ClassBasedRuleBuilder<?> builder = Rule.builder().with(target);
         if (name != null) builder.name(name);
         builder.description(description);
+        // The rule class is one of rulii's validators, which says nothing about where the
+        // rule was declared: record the caller unless a source was given.
+        builder.source(source != null ? source : SourceDefinition.build());
         return builder.build();
     }
 }

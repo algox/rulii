@@ -21,6 +21,7 @@ import org.rulii.annotation.Rule;
 import org.rulii.annotation.*;
 import org.rulii.lib.spring.core.annotation.AnnotationUtils;
 import org.rulii.lib.spring.util.Assert;
+import org.rulii.model.SourceDefinition;
 import org.rulii.model.UnrulyException;
 import org.rulii.model.action.Action;
 import org.rulii.model.condition.Condition;
@@ -56,6 +57,17 @@ public class ClassBasedRuleBuilder<T> extends AbstractRuleBuilder<T> {
     protected ClassBasedRuleBuilder(Class<T> ruleClass, T target) {
         super(false);
         load(ruleClass, target);
+    }
+
+    /**
+     * A class-based rule lives in its rule class, so that is the source recorded unless one
+     * was given explicitly. The call site of the builder is rarely where the rule is.
+     *
+     * @return the rule class as a source, or the caller when no rule class is loaded.
+     */
+    @Override
+    protected SourceDefinition defaultSource() {
+        return getRuleClass() != null ? SourceDefinition.forClass(getRuleClass()) : super.defaultSource();
     }
 
     /**

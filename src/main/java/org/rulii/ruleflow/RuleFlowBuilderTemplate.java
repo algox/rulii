@@ -119,6 +119,7 @@ public abstract class RuleFlowBuilderTemplate<SELF extends RuleFlowBuilderTempla
     private Type resultType;
     private Consumer<RuleContextBuilder> contextConfigurator;
     private String contextLabel;
+    private SourceDefinition source;
     private RuleFlowExceptionHandler globalHandler;
 
     // State machine — root command list and construct stack
@@ -219,6 +220,20 @@ public abstract class RuleFlowBuilderTemplate<SELF extends RuleFlowBuilderTempla
      */
     public SELF description(String description) {
         this.description = description;
+        return self();
+    }
+
+    /**
+     * Where the flow is declared, when the caller knows better than a stack walk: an XML
+     * file and line, for example. Without it, the code that called {@link #build()} is recorded.
+     *
+     * @param source the source; must not be null.
+     * @return this builder.
+     * @since 2.1
+     */
+    public SELF source(SourceDefinition source) {
+        Assert.notNull(source, "source cannot be null.");
+        this.source = source;
         return self();
     }
 
@@ -1299,7 +1314,7 @@ public abstract class RuleFlowBuilderTemplate<SELF extends RuleFlowBuilderTempla
         List<InputParameter<?>> params = new ArrayList<>(inputParameters);
         Function<T> extractor = (Function<T>) resultExtractor;
 
-        RuleFlowDefinition def = new RuleFlowDefinition(name, description, SourceDefinition.build(),
+        RuleFlowDefinition def = new RuleFlowDefinition(name, description, source != null ? source : SourceDefinition.build(),
                 resolveResultType(extractor), params, CommandInfo.of(rootCommands),
                 globalHandler != null ? globalHandler.getInfo() : null,
                 finalizer != null ? finalizer.getExpression() : null,

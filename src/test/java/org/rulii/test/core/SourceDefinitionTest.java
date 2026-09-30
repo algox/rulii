@@ -23,6 +23,9 @@ import org.rulii.model.SourceDefinition;
 import org.rulii.model.action.Action;
 import org.rulii.model.condition.Condition;
 import org.rulii.rule.Rule;
+import org.rulii.ruleflow.RuleFlow;
+import org.rulii.ruleset.RuleSet;
+import org.rulii.validation.rules.Validators;
 
 import static org.rulii.model.action.Actions.action;
 import static org.rulii.model.condition.Conditions.condition;
@@ -76,5 +79,56 @@ public class SourceDefinitionTest {
         SourceDefinition source = rule.getDefinition().getSource();
         Assertions.assertEquals(SourceDefinitionTest.class.getName(), source.getClassName());
         Assertions.assertEquals("ruleBuilderRecordsCaller", source.getMethodName());
+    }
+
+    @Test
+    public void classBasedRuleRecordsTheRuleClass() {
+        Rule rule = Rule.builder().build(TestRule1.class);
+
+        SourceDefinition source = rule.getDefinition().getSource();
+        Assertions.assertEquals(TestRule1.class.getName(), source.getClassName());
+        Assertions.assertNull(source.getMethodName());
+        Assertions.assertNull(source.getLineNumber());
+    }
+
+    @Test
+    public void validationRulesRecordCaller() {
+        Rule supplied = Rule.builder().validationRule("suppliedRule", condition(() -> true)).errorCode("E1").build();
+        Assertions.assertEquals(SourceDefinitionTest.class.getName(), supplied.getDefinition().getSource().getClassName());
+        Assertions.assertEquals("validationRulesRecordCaller", supplied.getDefinition().getSource().getMethodName());
+
+        Rule predefined = Validators.notNull(Validators.binding("value")).name("notNullRule").build();
+        Assertions.assertEquals(SourceDefinitionTest.class.getName(), predefined.getDefinition().getSource().getClassName());
+        Assertions.assertEquals("validationRulesRecordCaller", predefined.getDefinition().getSource().getMethodName());
+    }
+
+    @Test
+    public void explicitSourceWins() {
+        SourceDefinition xml = SourceDefinition.forFile("classpath:rules/order.xml", 42);
+        Assertions.assertNull(xml.getClassName());
+        Assertions.assertNull(xml.getMethodName());
+        Assertions.assertEquals("classpath:rules/order.xml", xml.getFileName());
+        Assertions.assertEquals(42, xml.getLineNumber());
+
+        Rule rule = Rule.builder().name("xmlRule").given(condition(() -> true)).source(xml).build();
+        Assertions.assertSame(xml, rule.getDefinition().getSource());
+
+        Rule classBased = Rule.builder().with(TestRule1.class).source(xml).build();
+        Assertions.assertSame(xml, classBased.getDefinition().getSource());
+
+        Rule supplied = Rule.builder().validationRule("xmlValidationRule", condition(() -> true)).errorCode("E1").source(xml).build();
+        Assertions.assertSame(xml, supplied.getDefinition().getSource());
+
+        Rule predefined = Validators.notNull(Validators.binding("value")).name("xmlNotNull").source(xml).build();
+        Assertions.assertSame(xml, predefined.getDefinition().getSource());
+
+        RuleSet<?> ruleSet = RuleSet.builder().with("xmlRuleSet").source(xml).rule(rule).build();
+        Assertions.assertSame(xml, ruleSet.getDefinition().getSource());
+
+        RuleFlow<?> flow = RuleFlow.builder().name("xmlFlow").source(xml).bind("a", 1).build();
+        Assertions.assertSame(xml, flow.getDefinition().getSource());
+
+        Assertions.assertThrows(IllegalArgumentException.class, () -> SourceDefinition.forFile(" ", 1));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> SourceDefinition.forClass(null));
     }
 }

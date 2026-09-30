@@ -48,6 +48,31 @@ public class SourceDefinition {
     }
 
     /**
+     * A source that is a file rather than Java code: an XML rule file, for example.
+     *
+     * @param fileName   the file, in whatever form the loader knows it ({@code classpath:rules/order.xml}); must not be empty.
+     * @param lineNumber 1-based line of the declaring element; null when unknown.
+     * @return source definition with no class or method.
+     * @since 2.1
+     */
+    public static SourceDefinition forFile(String fileName, Integer lineNumber) {
+        if (fileName == null || fileName.isBlank()) throw new IllegalArgumentException("fileName cannot be empty/null.");
+        return new SourceDefinition(null, null, fileName, lineNumber);
+    }
+
+    /**
+     * A source that is a class: the rule class of a class-based rule.
+     *
+     * @param type the class; must not be null.
+     * @return source definition with the class name only.
+     * @since 2.1
+     */
+    public static SourceDefinition forClass(Class<?> type) {
+        if (type == null) throw new IllegalArgumentException("type cannot be null.");
+        return new SourceDefinition(type.getName(), null, null, null);
+    }
+
+    /**
      * Builds a source definition using a stacktrace.
      *
      * @return source defintion.

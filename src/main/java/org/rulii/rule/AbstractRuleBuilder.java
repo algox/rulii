@@ -52,6 +52,7 @@ public abstract class AbstractRuleBuilder<T> {
     private Action otherwiseAction;
     private T target;
     private final List<Action> thenActions = new ArrayList<>();
+    private SourceDefinition source;
 
     /**
      * Initializes a new AbstractRuleBuilder object with the specified inline flag.
@@ -97,6 +98,35 @@ public abstract class AbstractRuleBuilder<T> {
     public AbstractRuleBuilder<T> description(String description) {
         this.description = description;
         return this;
+    }
+
+    /**
+     * Where the rule is declared, when the caller knows better than a stack walk: an XML
+     * file and line, for example. Without it, {@link #defaultSource()} decides.
+     *
+     * @param source the source; must not be null.
+     * @return this for fluency.
+     * @since 2.1
+     */
+    public AbstractRuleBuilder<T> source(SourceDefinition source) {
+        Assert.notNull(source, "source cannot be null.");
+        this.source = source;
+        return this;
+    }
+
+    /**
+     * The source recorded when none was given: the code that called the builder.
+     * Class-based builders record the rule class instead.
+     *
+     * @return source definition; never null.
+     * @since 2.1
+     */
+    protected SourceDefinition defaultSource() {
+        return SourceDefinition.build();
+    }
+
+    protected SourceDefinition getSource() {
+        return source;
     }
 
     /**
@@ -205,7 +235,7 @@ public abstract class AbstractRuleBuilder<T> {
         }
 
         return new RuleDefinition(getRuleClass(), inline, getName(), getDescription(),
-                SourceDefinition.build(),
+                source != null ? source : defaultSource(),
                 getConditionDefinition(getPreCondition()),
                 getConditionDefinition(getCondition()),
                 thenActionDefinitions,
