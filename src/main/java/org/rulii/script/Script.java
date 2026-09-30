@@ -71,6 +71,23 @@ public interface Script<T> extends Runnable<T> {
     String getScript();
 
     /**
+     * Returns the script text exactly as it was written, before any configured script-text
+     * resolver (for example Spring {@code ${...}} placeholder resolution) was applied.
+     *
+     * <p>{@link #getScript()} is the resolved text that the compiler saw. This is the text to show
+     * to people: it never contains resolved placeholder values, which may be secrets.
+     *
+     * <p>The default returns {@link #getScript()}, which is correct for scripts that were never
+     * resolved. Scripts built through {@link ScriptBuilder} carry the original text.
+     *
+     * @return the unresolved script source; never null or empty.
+     * @since 2.1
+     */
+    default String getSourceText() {
+        return getScript();
+    }
+
+    /**
      * Returns the expected return type of the script.
      *
      * <p>The default return type when built via {@link ScriptBuilder} is {@code void.class}.

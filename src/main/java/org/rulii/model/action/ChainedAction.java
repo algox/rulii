@@ -20,6 +20,7 @@ package org.rulii.model.action;
 
 import org.rulii.context.RuleContext;
 import org.rulii.lib.spring.util.Assert;
+import org.rulii.model.ExpressionInfo;
 import org.rulii.model.UnrulyException;
 
 /**
@@ -61,5 +62,43 @@ public class ChainedAction implements Action {
     @Override
     public String getName() {
         return "anonymous-chained-action(" + (after ? "after" : "before") + ")";
+    }
+
+    /**
+     * The action this chain was created from.
+     *
+     * @return main action; never null.
+     */
+    public Action getMainAction() {
+        return mainAction;
+    }
+
+    /**
+     * The action chained before or after the main action.
+     *
+     * @return chained action; never null.
+     */
+    public Action getChainedAction() {
+        return beforeAfter;
+    }
+
+    /**
+     * Whether the chained action runs after the main action (true) or before it (false).
+     *
+     * @return true for {@link Action#andThen(Action)}, false for {@link Action#andBefore(Action)}.
+     */
+    public boolean isAfter() {
+        return after;
+    }
+
+    /**
+     * Reports a composite expression, operator {@code andThen} or {@code andBefore}, with the
+     * operands in execution order.
+     */
+    @Override
+    public ExpressionInfo getExpression() {
+        return after
+                ? ExpressionInfo.composite("andThen", mainAction.getExpression(), beforeAfter.getExpression())
+                : ExpressionInfo.composite("andBefore", beforeAfter.getExpression(), mainAction.getExpression());
     }
 }

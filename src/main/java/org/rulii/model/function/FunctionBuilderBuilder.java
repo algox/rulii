@@ -131,7 +131,7 @@ public final class FunctionBuilderBuilder {
                 }).param(0)
                 .matchUsing(MatchByTypeMatchingStrategy.class)
                 .build()
-                .build();
+                .build(script);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})

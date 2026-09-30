@@ -20,6 +20,7 @@ package org.rulii.model.action;
 import org.rulii.model.RunnableBuilder;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.MethodDefinition;
+import org.rulii.script.Script;
 
 /**
  * Builder class for Actions.
@@ -73,6 +74,18 @@ public final class ActionBuilder extends RunnableBuilder<ActionBuilder, Action> 
         getDefinition().createParameterNameIndex();
         getDefinition().validate();
         return new DefaultAction(getTarget(), name, getDefinition());
+    }
+
+    /**
+     * Builds a script-backed Action that keeps the given script for introspection.
+     *
+     * @param script the script the target runs.
+     * @return a new ScriptAction.
+     */
+    ScriptAction build(Script<?> script) {
+        getDefinition().createParameterNameIndex();
+        getDefinition().validate();
+        return new ScriptAction(script, getTarget(), name, getDefinition());
     }
 
 }

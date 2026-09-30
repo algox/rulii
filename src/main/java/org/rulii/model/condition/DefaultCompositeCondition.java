@@ -19,6 +19,7 @@ package org.rulii.model.condition;
 
 import org.rulii.context.RuleContext;
 import org.rulii.lib.spring.util.Assert;
+import org.rulii.model.ExpressionInfo;
 import org.rulii.model.UnrulyException;
 
 import java.util.function.BiPredicate;
@@ -80,6 +81,11 @@ public class DefaultCompositeCondition implements CompositeCondition {
     @Override
     public String getSymbol() {
         return symbol;
+    }
+
+    @Override
+    public ExpressionInfo getExpression() {
+        return ExpressionInfo.composite(symbol, leftOperand.getExpression(), rightOperand.getExpression());
     }
 
     @Override

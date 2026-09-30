@@ -20,6 +20,7 @@ package org.rulii.model.function;
 import org.rulii.bind.NamedScope;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.spring.util.Assert;
+import org.rulii.model.ExpressionInfo;
 import org.rulii.model.UnrulyException;
 
 import java.util.UUID;
@@ -76,5 +77,41 @@ public class ComposeWithBeforeFunction<V, T> implements Function<T> {
     @Override
     public String getName() {
         return "anonymous-compose-before-function";
+    }
+
+    /**
+     * The function that runs first.
+     *
+     * @return before function; never null.
+     */
+    public Function<V> getBefore() {
+        return before;
+    }
+
+    /**
+     * The function that runs second, with the before function's result bound under
+     * {@link #getResultBindingName()}.
+     *
+     * @return main function; never null.
+     */
+    public Function<T> getMainFunction() {
+        return mainFunction;
+    }
+
+    /**
+     * The binding name the before function's result is stored under.
+     *
+     * @return binding name; never empty.
+     */
+    public String getResultBindingName() {
+        return resultBindingName;
+    }
+
+    /**
+     * Reports a composite expression, operator {@code compose}, with the operands in execution order.
+     */
+    @Override
+    public ExpressionInfo getExpression() {
+        return ExpressionInfo.composite("compose", before.getExpression(), mainFunction.getExpression());
     }
 }

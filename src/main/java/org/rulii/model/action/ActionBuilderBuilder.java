@@ -156,7 +156,7 @@ public final class ActionBuilderBuilder {
         }).param(0)
                 .matchUsing(MatchByTypeMatchingStrategy.class)
                 .build()
-                .build();
+                .build(script);
     }
 
     private static class ActionComparator implements Comparator<Action> {

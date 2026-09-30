@@ -33,19 +33,23 @@ public class ScriptBuilder {
 
     private final ScriptProcessorFactory factory;
     private final String script;
+    private final String sourceText;
     private Class<?> returnType = void.class;
     /**
      * Package-private constructor — use {@link ScriptBuilderBuilder#with(String, String)}.
      *
-     * @param factory the factory for the target scripting language; must not be null.
-     * @param script  the script source text; must not be null or empty.
+     * @param factory    the factory for the target scripting language; must not be null.
+     * @param script     the resolved script text handed to the compiler; must not be null or empty.
+     * @param sourceText the script text as written, before resolution; must not be null or empty.
      */
-    ScriptBuilder(ScriptProcessorFactory factory, String script) {
+    ScriptBuilder(ScriptProcessorFactory factory, String script, String sourceText) {
         super();
         Assert.notNull(factory, "factory cannot be null.");
         Assert.hasText(script, "script cannot be empty.");
+        Assert.hasText(sourceText, "sourceText cannot be empty.");
         this.factory = factory;
         this.script = script;
+        this.sourceText = sourceText;
     }
 
     /**
@@ -67,13 +71,20 @@ public class ScriptBuilder {
      * Compiles and returns the {@link Script}.
      *
      * <p>Delegates to {@link ScriptCompiler#compile(String, Class)} for the factory associated
-     * with the chosen language.
+     * with the chosen language, then stamps the unresolved source text on the result so that
+     * {@link Script#getSourceText()} returns the text as written.
      *
      * @param <T> the expected return type of the compiled script.
      * @return the compiled (or lazily-compiled) script; never null.
      * @throws BuildScriptException if the underlying compiler rejects the source.
      */
     public <T> Script<T> build() {
-        return factory.getScriptCompiler().compile(script, returnType);
+        Script<T> result = factory.getScriptCompiler().compile(script, returnType);
+
+        if (result instanceof AbstractScript<T> abstractScript) {
+            abstractScript.setSourceText(sourceText);
+        }
+
+        return result;
     }
 }

@@ -20,6 +20,7 @@ package org.rulii.model.function;
 import org.rulii.bind.NamedScope;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.spring.util.Assert;
+import org.rulii.model.ExpressionInfo;
 import org.rulii.model.UnrulyException;
 
 import java.util.UUID;
@@ -79,5 +80,41 @@ public class ComposeWithAfterFunction<V, T> implements Function<T> {
     @Override
     public String getName() {
         return "anonymous-compose-after-function";
+    }
+
+    /**
+     * The function that runs first.
+     *
+     * @return main function; never null.
+     */
+    public Function<V> getMainFunction() {
+        return mainFunction;
+    }
+
+    /**
+     * The function that runs second, with the main function's result bound under
+     * {@link #getResultBindingName()}.
+     *
+     * @return after function; never null.
+     */
+    public Function<T> getAfter() {
+        return after;
+    }
+
+    /**
+     * The binding name the main function's result is stored under.
+     *
+     * @return binding name; never empty.
+     */
+    public String getResultBindingName() {
+        return resultBindingName;
+    }
+
+    /**
+     * Reports a composite expression, operator {@code andThen}, with the operands in execution order.
+     */
+    @Override
+    public ExpressionInfo getExpression() {
+        return ExpressionInfo.composite("andThen", mainFunction.getExpression(), after.getExpression());
     }
 }

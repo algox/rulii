@@ -19,6 +19,7 @@ package org.rulii.model.condition;
 
 import org.rulii.context.RuleContext;
 import org.rulii.lib.spring.util.Assert;
+import org.rulii.model.ExpressionInfo;
 import org.rulii.model.UnrulyException;
 
 /**
@@ -55,6 +56,11 @@ public class NotCondition implements Condition {
     @Override
     public String getName() {
         return "!";
+    }
+
+    @Override
+    public ExpressionInfo getExpression() {
+        return ExpressionInfo.composite("!", condition.getExpression());
     }
 
     @Override

@@ -18,6 +18,7 @@
 package org.rulii.model.function;
 
 import org.rulii.model.*;
+import org.rulii.script.Script;
 
 /**
  * Builder class for Functions.
@@ -84,6 +85,18 @@ public class FunctionBuilder<T> extends RunnableBuilder<FunctionBuilder<T>, Func
     public Function<T> build() {
         getDefinition().createParameterNameIndex();
         getDefinition().validate();
-        return new DefaultFunction(getTarget(), getName(), getDefinition());
+        return new DefaultFunction<>(getTarget(), getName(), getDefinition());
+    }
+
+    /**
+     * Builds a script-backed Function that keeps the given script for introspection.
+     *
+     * @param script the script the target evaluates.
+     * @return a new ScriptFunction.
+     */
+    ScriptFunction<T> build(Script<T> script) {
+        getDefinition().createParameterNameIndex();
+        getDefinition().validate();
+        return new ScriptFunction<>(script, getTarget(), getName(), getDefinition());
     }
 }

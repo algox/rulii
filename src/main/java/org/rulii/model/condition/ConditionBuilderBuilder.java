@@ -133,7 +133,7 @@ public final class ConditionBuilderBuilder {
         }).param(0)
                     .matchUsing(MatchByTypeMatchingStrategy.class)
                 .build()
-                .build();
+                .build(script);
     }
 
     /**

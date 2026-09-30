@@ -42,6 +42,8 @@ public abstract class AbstractScript<T> implements Script<T> {
     private final String languageName;
     private final String script;
     private Class<?> returnType;
+    // Text as written, before placeholder resolution; null until stamped by ScriptBuilder.
+    private volatile String sourceText;
 
     /**
      * Creates a new Script.
@@ -90,6 +92,29 @@ public abstract class AbstractScript<T> implements Script<T> {
     @Override
     public String getScript() {
         return script;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getSourceText() {
+        String result = sourceText;
+        return result != null ? result : script;
+    }
+
+    /**
+     * Records the script text as it was written, before placeholder resolution.
+     *
+     * <p>Called by {@link ScriptBuilder} after compilation. Application code does not normally
+     * call this.
+     *
+     * @param sourceText the unresolved script text; must not be null or empty.
+     * @since 2.1
+     */
+    public void setSourceText(String sourceText) {
+        Assert.hasText(sourceText, "sourceText cannot be empty.");
+        this.sourceText = sourceText;
     }
 
     /**

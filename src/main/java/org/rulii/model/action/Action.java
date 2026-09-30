@@ -19,6 +19,7 @@ package org.rulii.model.action;
 
 import org.rulii.model.Runnable;
 import org.rulii.model.Definable;
+import org.rulii.model.ExpressionInfo;
 import org.rulii.model.MethodDefinition;
 
 /**
@@ -43,6 +44,20 @@ public interface Action extends Runnable<Void> {
     @SuppressWarnings("unchecked")
     default MethodDefinition getDefinition() {
         return this instanceof Definable ? ((Definable<MethodDefinition>) this).getDefinition() : null;
+    }
+
+    /**
+     * Describes what this Action is made of, without running it.
+     *
+     * <p>The default reports a {@link ExpressionInfo.Kind#COMPILED} expression with
+     * {@link #getDefinition()} as the method (which may be null). Script-backed and chained
+     * actions override this.
+     *
+     * @return expression info; never null.
+     * @since 2.1
+     */
+    default ExpressionInfo getExpression() {
+        return ExpressionInfo.compiled(getDefinition());
     }
 
     /**

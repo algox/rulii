@@ -19,6 +19,7 @@ package org.rulii.model.condition;
 
 import org.rulii.model.RunnableBuilder;
 import org.rulii.model.MethodDefinition;
+import org.rulii.script.Script;
 
 /**
  * Builder class used to defaultObjectFactory Conditions.
@@ -75,5 +76,17 @@ public class ConditionBuilder extends RunnableBuilder<ConditionBuilder, Conditio
         getDefinition().createParameterNameIndex();
         getDefinition().validate();
         return new DefaultCondition(getTarget(), getName(), getDefinition());
+    }
+
+    /**
+     * Builds a script-backed Condition that keeps the given script for introspection.
+     *
+     * @param script the script the target evaluates.
+     * @return a new ScriptCondition.
+     */
+    ScriptCondition build(Script<?> script) {
+        getDefinition().createParameterNameIndex();
+        getDefinition().validate();
+        return new ScriptCondition(script, getTarget(), getName(), getDefinition());
     }
 }
