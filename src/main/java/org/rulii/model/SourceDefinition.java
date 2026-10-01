@@ -17,6 +17,10 @@
  */
 package org.rulii.model;
 
+import java.net.URL;
+import java.security.CodeSource;
+import java.security.ProtectionDomain;
+
 /**
  * Details about of the source of the implementation.
  * ie: class/line/method details of a Definable Object (Rule/Action/Condition etc)
@@ -72,34 +76,38 @@ public class SourceDefinition {
         return new SourceDefinition(type.getName(), null, null, null);
     }
 
+    private static final StackWalker WALKER = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
+    private static final URL RULII_LOCATION = locationOf(SourceDefinition.class);
+
     /**
-     * Builds a source definition using a stacktrace.
+     * Builds a source definition from the call stack: the nearest frame that is neither the JDK
+     * nor rulii itself. Rulii is recognised by code location (the jar or classes directory this
+     * class was loaded from), so application code in any package, including {@code org.rulii.*}
+     * packages such as the explorer, is recorded correctly.
      *
-     * @return source defintion.
+     * @return source definition; a placeholder when no such frame exists.
      */
     public static SourceDefinition build() {
-        StackTraceElement element = findElement((new Exception()).getStackTrace());
-
-        return element != null
-                ? new SourceDefinition(element.getClassName(), element.getMethodName(), element.getFileName(), element.getLineNumber())
-                : new SourceDefinition();
+        return WALKER.walk(frames -> frames.filter(frame -> !isInternal(frame.getDeclaringClass())).findFirst())
+                .map(frame -> new SourceDefinition(frame.getClassName(), frame.getMethodName(), frame.getFileName(), frame.getLineNumber()))
+                .orElseGet(SourceDefinition::new);
     }
 
-    private static StackTraceElement findElement(StackTraceElement[] elements ) {
-        StackTraceElement result = null;
+    private static boolean isInternal(Class<?> type) {
+        String name = type.getName();
+        if (name.startsWith("java.") || name.startsWith("jdk.") || name.startsWith("sun.")) return true;
+        URL location = locationOf(type);
+        return location != null && location.equals(RULII_LOCATION);
+    }
 
-        for (StackTraceElement element : elements) {
-            if (element.getClassName().startsWith("java")
-                    || (element.getClassName().startsWith("org.rulii.")
-                    && !element.getClassName().startsWith("org.rulii.test"))) {
-                continue;
-            }
-
-            result = element;
-            break;
+    private static URL locationOf(Class<?> type) {
+        try {
+            ProtectionDomain domain = type.getProtectionDomain();
+            CodeSource source = domain != null ? domain.getCodeSource() : null;
+            return source != null ? source.getLocation() : null;
+        } catch (SecurityException e) {
+            return null;
         }
-
-        return result;
     }
 
     public String getClassName() {

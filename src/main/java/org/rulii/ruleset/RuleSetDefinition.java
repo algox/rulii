@@ -54,6 +54,7 @@ public final class RuleSetDefinition implements Definition {
     private final MethodDefinition resultActionDefinition;
     private final MethodDefinition errorHandlerDefinition;
     private final List<RuleDefinition> definitions;
+    private final boolean validating;
 
     /**
      * Creates a definition.
@@ -69,6 +70,8 @@ public final class RuleSetDefinition implements Definition {
      * @param resultActionDefinition  result extractor method; may be null.
      * @param errorHandlerDefinition  error handler method; may be null.
      * @param definitions             definitions of the rules in order; must not be null.
+     * @param validating              whether {@code validating()} was called: the finalizer
+     *                                then ends by throwing on severe violations.
      */
     public RuleSetDefinition(String name, String description,
                              SourceDefinition sourceDefinition,
@@ -79,8 +82,10 @@ public final class RuleSetDefinition implements Definition {
                              MethodDefinition finallyActionDefinition,
                              MethodDefinition resultActionDefinition,
                              MethodDefinition errorHandlerDefinition,
-                             List<RuleDefinition> definitions) {
+                             List<RuleDefinition> definitions,
+                             boolean validating) {
         super();
+        this.validating = validating;
         setName(name);
         Assert.notNull(inputParameters, "inputParameters cannot be null.");
         Assert.notNull(definitions, "definitions cannot be null.");
@@ -123,6 +128,18 @@ public final class RuleSetDefinition implements Definition {
      */
     public List<InputParameter<?>> getInputParameters() {
         return inputParameters;
+    }
+
+    /**
+     * Whether the rule set validates: {@code validating()} declares a {@code ruleViolations}
+     * parameter and appends a check to the finalizer that throws a
+     * {@link org.rulii.validation.ValidationException} on severe violations.
+     *
+     * @return true when validating.
+     * @since 2.1
+     */
+    public boolean isValidating() {
+        return validating;
     }
 
     public MethodDefinition getInitActionDefinition() {

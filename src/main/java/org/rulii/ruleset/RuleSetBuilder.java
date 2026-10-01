@@ -490,7 +490,7 @@ public class RuleSetBuilder {
                 getEffectiveFinalizer() != null ? getEffectiveFinalizer().getDefinition() : null,
                 getResultExtractor() != null ? getResultExtractor().getDefinition() : null,
                 getErrorHandler() != null ? getErrorHandler().getDefinition() : null,
-                definitions);
+                definitions, validating);
     }
 
     /**

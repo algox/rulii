@@ -19,9 +19,11 @@ Everything a rule, rule set or rule flow is made of can now be read off the buil
 
 #### Definitions
 - `RuleFlowDefinition` carries the command tree (`getCommands()`), the global handler, and the finalizer and returning expressions. `getContextLabel()` names the context configurator (`context(Consumer, String label)` sets the label; the class name is the default; null without one). `getResultType()` is the explicit type from the new `returning(Class<T>, Function<T>)` overload, else the extractor's declared return type, else `Object`.
-- `RuleSetDefinition` carries the input parameters and the error handler. `getStopConditionDefinition()` replaces the misnamed `getStopActionDefinition()`.
+- `RuleSetDefinition` carries the input parameters and the error handler. `isValidating()` says whether `validating()` was called. `getStopConditionDefinition()` replaces the misnamed `getStopActionDefinition()`.
 - `InputParameter` gains a `description`; the rule set and rule flow builders gain `param(name, type, required, description)` and `param(name, type, defaultValue, description)`.
-- `SourceDefinition.build()` now records the caller's location. It used to skip the pre-2.0 `org.algorithmx.` package instead of `org.rulii.`, so every location pointed at `SourceDefinition.build` itself.
+- `SourceDefinition.build()` now records the caller's location. It used to skip the pre-2.0 `org.algorithmx.` package instead of `org.rulii.`, so every location pointed at `SourceDefinition.build` itself. Rulii frames are now recognised by code location (the rulii jar) rather than by package prefix, so application code in `org.rulii.*` packages is recorded too.
+- `SuppliedValidationRule.getCondition()` exposes the supplied condition.
+- `ValidationRuleBuilder.build()` no longer drops the description set on the builder.
 - Builders accept an explicit source: `source(SourceDefinition)` on the rule, validation rule, value validation rule, rule set and rule flow builders, for loaders that know where an artifact was declared (rulii-spring records the XML file and line). `SourceDefinition.forFile(fileName, line)` and `forClass(type)` create them. Class-based rules now record their rule class as the source instead of the code that called the builder.
 
 #### Registry and validation

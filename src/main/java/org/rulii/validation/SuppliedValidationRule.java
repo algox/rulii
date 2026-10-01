@@ -53,6 +53,16 @@ public class SuppliedValidationRule extends ValidationRule {
         this.condition = condition;
     }
 
+    /**
+     * The supplied condition this rule checks.
+     *
+     * @return the condition; never null.
+     * @since 2.1
+     */
+    public Condition getCondition() {
+        return condition;
+    }
+
     @Given
     public boolean isValid(@Param(matchUsing = MatchByTypeMatchingStrategy.class) RuleContext ruleContext) {
         return condition.isTrue(ruleContext);

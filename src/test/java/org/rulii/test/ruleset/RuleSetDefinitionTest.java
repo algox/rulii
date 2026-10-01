@@ -72,6 +72,8 @@ public class RuleSetDefinitionTest {
     @Test
     public void definitionWithoutHooksHasNulls() {
         RuleSet<?> rules = RuleSet.builder().with("bareSet").build();
+        Assertions.assertFalse(rules.getDefinition().isValidating());
+        Assertions.assertTrue(RuleSet.builder().with("validatingSet").validating().build().getDefinition().isValidating());
         RuleSetDefinition def = rules.getDefinition();
 
         Assertions.assertTrue(def.getInputParameters().isEmpty());
