@@ -30,7 +30,9 @@ import java.util.List;
  * <p>There are three kinds:
  * <ul>
  *   <li>{@link Kind#SCRIPT}: built from a {@link org.rulii.script.Script}. Carries the language and
- *       the source text as written (see {@link org.rulii.script.Script#getSourceText()}).</li>
+ *       the source text as written (see {@link org.rulii.script.Script#getSourceText()}) and, when
+ *       known, the resolved text the compiler saw (see {@link org.rulii.script.Script#getScript()}):
+ *       the same text with every {@code ${property:default}} placeholder replaced by its value.</li>
  *   <li>{@link Kind#COMPILED}: compiled code (a lambda, a method or a class). Carries the
  *       {@link MethodDefinition} when one is known; {@code method} is {@code null} when the
  *       implementation is not introspectable, in which case only the runtime class is known.</li>
@@ -43,15 +45,18 @@ import java.util.List;
  * @param kind       what the expression is made of.
  * @param language   scripting language name ({@code SCRIPT} only).
  * @param sourceText unresolved script text ({@code SCRIPT} only).
+ * @param resolvedText the script text after placeholder resolution, exactly as compiled ({@code SCRIPT}
+ *                   only; null when not known, such as a definition built from text alone).
  * @param method     method signature ({@code COMPILED} only; may be null).
  * @param operator   operator symbol or name ({@code COMPOSITE} only).
  * @param operands   operand expressions in evaluation order ({@code COMPOSITE} only; empty otherwise).
  *
  * @author Max Arulananthan
  * @since 2.1
+ *
  */
-public record ExpressionInfo(Kind kind, String language, String sourceText, MethodDefinition method,
-                                   String operator, List<ExpressionInfo> operands) {
+public record ExpressionInfo(Kind kind, String language, String sourceText, String resolvedText,
+                             MethodDefinition method, String operator, List<ExpressionInfo> operands) {
 
     /**
      * What an expression is made of.
@@ -83,7 +88,19 @@ public record ExpressionInfo(Kind kind, String language, String sourceText, Meth
      * @return new definition.
      */
     public static ExpressionInfo script(String language, String sourceText) {
-        return new ExpressionInfo(Kind.SCRIPT, language, sourceText, null, null, null);
+        return new ExpressionInfo(Kind.SCRIPT, language, sourceText, null, null, null, null);
+    }
+
+    /**
+     * A script expression whose compiled text is known.
+     *
+     * @param language     scripting language name; must not be empty.
+     * @param sourceText   script text as written; must not be empty.
+     * @param resolvedText the text the compiler saw, placeholders resolved; may be null when unknown.
+     * @return new definition.
+     */
+    public static ExpressionInfo script(String language, String sourceText, String resolvedText) {
+        return new ExpressionInfo(Kind.SCRIPT, language, sourceText, resolvedText, null, null, null);
     }
 
     /**
@@ -93,7 +110,7 @@ public record ExpressionInfo(Kind kind, String language, String sourceText, Meth
      * @return new definition.
      */
     public static ExpressionInfo compiled(MethodDefinition method) {
-        return new ExpressionInfo(Kind.COMPILED, null, null, method, null, null);
+        return new ExpressionInfo(Kind.COMPILED, null, null, null, method, null, null);
     }
 
     /**
@@ -105,7 +122,7 @@ public record ExpressionInfo(Kind kind, String language, String sourceText, Meth
      */
     public static ExpressionInfo composite(String operator, ExpressionInfo... operands) {
         Assert.notNull(operands, "operands cannot be null.");
-        return new ExpressionInfo(Kind.COMPOSITE, null, null, null, operator, Arrays.asList(operands));
+        return new ExpressionInfo(Kind.COMPOSITE, null, null, null, null, operator, Arrays.asList(operands));
     }
 
     /**
@@ -116,7 +133,7 @@ public record ExpressionInfo(Kind kind, String language, String sourceText, Meth
      * @return new definition.
      */
     public static ExpressionInfo composite(String operator, List<ExpressionInfo> operands) {
-        return new ExpressionInfo(Kind.COMPOSITE, null, null, null, operator, operands);
+        return new ExpressionInfo(Kind.COMPOSITE, null, null, null, null, operator, operands);
     }
 
     /**

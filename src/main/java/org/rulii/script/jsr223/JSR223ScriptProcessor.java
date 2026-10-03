@@ -39,7 +39,9 @@ import javax.script.SimpleScriptContext;
  * <p>Before evaluation, the processor builds a {@link ScriptContext} that exposes the rule
  * bindings as a plain {@code Map} under the variable name returned by {@link #getBindingsName()}.
  * If the script carries a pre-compiled {@link javax.script.CompiledScript} it is used directly;
- * otherwise the raw source is interpreted by the underlying engine.
+ * otherwise the raw source is interpreted by the underlying engine. After evaluation the
+ * per-evaluation context is released again whenever the result allows it; see
+ * {@link #isContextReleasable} and {@link #releaseContext}.
  *
  * @author Max Arulananthan
  * @since 1.2
@@ -85,21 +87,82 @@ public class JSR223ScriptProcessor implements ScriptProcessor {
 
         ScriptContext scriptContext = buildContext(context);
         JSR223Script<T> jsr223Script = (JSR223Script<T>) script;
-
-        if (jsr223Script.getCompiledScript() == null) {
-            try {
-                return (T) scriptEngine.eval(script.getScript(), scriptContext);
-            } catch (Exception e) {
-                throw new EvaluationException(script.getScript(), e.getMessage(), e);
-            }
-        }
+        boolean release = true;
 
         try {
-            return (T) jsr223Script.getCompiledScript().eval(scriptContext);
-        } catch (UnrulyException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new EvaluationException(script.getScript(), e.getMessage(), e);
+            T result;
+
+            if (jsr223Script.getCompiledScript() == null) {
+                try {
+                    result = (T) scriptEngine.eval(script.getScript(), scriptContext);
+                } catch (Exception e) {
+                    throw new EvaluationException(script.getScript(), e.getMessage(), e);
+                }
+            } else {
+                try {
+                    result = (T) jsr223Script.getCompiledScript().eval(scriptContext);
+                } catch (UnrulyException e) {
+                    throw e;
+                } catch (Exception e) {
+                    throw new EvaluationException(script.getScript(), e.getMessage(), e);
+                }
+            }
+
+            release = isContextReleasable(scriptContext, result);
+            return result;
+        } finally {
+            // Always release on failure (there is no result to protect); on success only when the
+            // result does not depend on the engine-side context staying alive.
+            if (release) releaseContext(scriptContext);
+        }
+    }
+
+    /**
+     * Decides whether the per-evaluation {@link ScriptContext} built by {@link #buildContext}
+     * can be released (see {@link #releaseContext}) now that {@code result} has been produced.
+     *
+     * <p>Some engines (GraalJS among them) hand back guest objects, such as JavaScript object
+     * literals, arrays or functions, as proxies that stop working the moment their context is
+     * closed. Releasing the context in that case would hand the caller a broken result. The
+     * default implementation is therefore conservative: it answers {@code true} only for
+     * {@code null}, {@link String}, {@link Number}, {@link Boolean} and {@link Character} results,
+     * which every engine converts to plain Java values. Engine-specific subclasses that can tell
+     * host values from guest values should override this with a more precise answer.
+     *
+     * @param scriptContext the context the script was evaluated in; never null.
+     * @param result        the value the script produced; may be null.
+     * @return {@code true} if the context may be released without invalidating {@code result}.
+     */
+    protected boolean isContextReleasable(ScriptContext scriptContext, Object result) {
+        return result == null
+                || result instanceof String
+                || result instanceof Number
+                || result instanceof Boolean
+                || result instanceof Character;
+    }
+
+    /**
+     * Releases the engine-side resources behind a per-evaluation {@link ScriptContext}.
+     *
+     * <p>{@link ScriptEngine#createBindings()} is allowed to allocate real resources: GraalJS, for
+     * example, backs every {@link Bindings} instance with its own polyglot {@code Context}, which
+     * is only reclaimed by an explicit {@code close()}. Left unclosed, those contexts accumulate
+     * until the heap is exhausted. This method closes the {@link ScriptContext#ENGINE_SCOPE}
+     * bindings when they implement {@link AutoCloseable}; engines whose bindings are plain maps
+     * are unaffected. Failures to close are ignored: they must never mask the script's own
+     * outcome, and a context that could not be closed is in no worse a state than before.
+     *
+     * @param scriptContext the context to release; never null.
+     */
+    protected void releaseContext(ScriptContext scriptContext) {
+        Bindings engineBindings = scriptContext.getBindings(ScriptContext.ENGINE_SCOPE);
+
+        if (engineBindings instanceof AutoCloseable) {
+            try {
+                ((AutoCloseable) engineBindings).close();
+            } catch (Exception ignored) {
+                // Best effort; see javadoc.
+            }
         }
     }
 

@@ -17,6 +17,9 @@
  */
 package org.rulii.script;
 
+import java.util.Collection;
+import java.util.Collections;
+
 /**
  * Factory interface for creating language-specific {@link ScriptProcessor} and {@link ScriptCompiler} instances.
  *
@@ -54,6 +57,22 @@ public interface ScriptProcessorFactory {
      * @return the language name; never null or empty.
      */
     String getLanguageName();
+
+    /**
+     * Returns alternate names this factory should also be registered under.
+     *
+     * <p>{@link ScriptProcessorManager#register(ScriptProcessorFactory)} registers the factory
+     * under each alias as well as under {@link #getLanguageName()}, so that every spelling an
+     * engine answers to resolves to the same, fully configured factory instead of falling through
+     * to the generic JSR-223 wrapper. Aliases never displace a factory that was registered under
+     * that name explicitly. The default is no aliases.
+     *
+     * @return the alias names; never null, possibly empty.
+     * @since 2.1
+     */
+    default Collection<String> getAliases() {
+        return Collections.emptyList();
+    }
 
     /**
      * Returns the name of the variable under which the rule bindings map will be exposed inside scripts.

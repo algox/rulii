@@ -25,6 +25,10 @@ import org.rulii.script.ScriptProcessor;
 import org.rulii.script.ScriptProcessorFactory;
 
 import javax.script.ScriptEngineFactory;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * JSR-223 implementation of {@link ScriptProcessorFactory} that wraps a {@link ScriptEngineFactory}
@@ -80,6 +84,21 @@ public class JSR223ScriptProcessorFactory implements ScriptProcessorFactory {
     @Override
     public String getLanguageName() {
         return languageName;
+    }
+
+    /**
+     * Returns the names the wrapped engine registers with {@code ScriptEngineManager}
+     * ({@link ScriptEngineFactory#getNames()}), minus this factory's own language name, so that
+     * every spelling of the engine's name resolves to this one factory.
+     */
+    @Override
+    public Collection<String> getAliases() {
+        List<String> names = factory.getNames();
+        if (names == null) return Collections.emptyList();
+
+        List<String> result = new ArrayList<>(names);
+        result.remove(languageName);
+        return result;
     }
 
     @Override

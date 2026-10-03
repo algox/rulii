@@ -17,6 +17,7 @@
  */
 package org.rulii.script.graaljs;
 
+import com.oracle.truffle.js.scriptengine.GraalJSEngineFactory;
 import com.oracle.truffle.js.scriptengine.GraalJSScriptEngine;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Engine;
@@ -31,23 +32,45 @@ import org.rulii.script.jsr223.JSR223ScriptCompiler;
 import org.rulii.script.jsr223.JSR223ScriptProcessor;
 
 import javax.script.ScriptEngine;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * {@link ScriptProcessorFactory} implementation for GraalVM's JavaScript engine (GraalJS).
  *
- * <p>This factory creates {@link JSR223ScriptProcessor} and {@link JSR223ScriptCompiler} instances
- * backed by a {@link GraalJSScriptEngine} configured with the following defaults:
+ * <p>This factory creates {@link GraalJsScriptProcessor} and {@link GraalJsScriptCompiler} instances
+ * (GraalJS-aware specialisations of {@link JSR223ScriptProcessor} and {@link JSR223ScriptCompiler}
+ * that release polyglot contexts promptly) backed by a {@link GraalJSScriptEngine} configured with
+ * the following defaults:
  * <ul>
  *   <li>ECMAScript version 2022</li>
- *   <li>Full host access ({@link HostAccess#ALL})</li>
+ *   <li>Full host access ({@link HostAccess#ALL}), with JavaScript arrays, objects, maps, sets
+ *       and dates detached into plain Java copies as they cross into Java; see
+ *       {@link GraalJsHostAccess#DETACHING}</li>
  *   <li>Unrestricted host class lookup</li>
  *   <li>Interpreter-only warning suppressed</li>
+ *   <li>Nashorn compatibility mode ({@code js.nashorn-compat}) enabled; see below</li>
  * </ul>
+ *
+ * <p><b>Nashorn compatibility mode.</b> GraalJS does not expose Java bean properties by default:
+ * {@code ctx.person.name} silently evaluates to {@code null} unless written as
+ * {@code ctx.person.getName()}. Nashorn compatibility mode restores bean-style access
+ * ({@code name} resolves to {@code getName()}, {@code active} to {@code isActive()}, and
+ * assignment calls {@code setXxx()}), which is what rule authors generally expect. It also
+ * enables the Nashorn {@code Java.*} helpers, {@code JavaImporter}, and the {@code exit()} /
+ * {@code quit()} globals (these terminate the script with a {@code PolyglotException}, not the
+ * JVM). Bean-style access is a GraalJS feature; scripts relying on it will not evaluate
+ * identically on a generic JSR-223 engine. GraalJS flags the option as experimental, hence
+ * {@code allowExperimentalOptions(true)} on the shared engine. The explicit ECMAScript version
+ * above takes precedence over the ES5 default that compatibility mode would otherwise imply.
  *
  * <p>The factory reports {@link #isAvailable()} as {@code false} when the GraalJS classes are
  * not present on the class path, allowing the engine to be an optional dependency.
  *
- * <p>The default language name is {@value #LANGUAGE_NAME}; the default bindings variable name
+ * <p>The default language name is {@value #LANGUAGE_NAME}, and the factory also answers to every
+ * other name GraalJS registers with JSR-223 (see {@link #getAliases()}); the default bindings variable name
  * is taken from {@link ScriptOptions#DEFAULT}.
  *
  * @author Max Arulananthan
@@ -99,6 +122,25 @@ public class GraalJsScriptProcessorFactory implements ScriptProcessorFactory {
         return languageName;
     }
 
+    /**
+     * Returns every name GraalJS itself answers to through {@code ScriptEngineManager}
+     * ({@code "JS"}, {@code "JavaScript"}, {@code "ECMAScript"}, {@code "graal.js"}, ...), as
+     * reported by {@link GraalJSEngineFactory#getNames()}, minus this factory's own language name.
+     *
+     * <p>Registering the factory under each of them keeps a lookup such as {@code "javascript"}
+     * on this fully configured factory rather than letting it fall through to the generic
+     * JSR-223 wrapper around a default GraalJS engine, which has neither the host access policy
+     * nor the context release behaviour of this one. Empty when GraalJS is not on the class path.
+     */
+    @Override
+    public Collection<String> getAliases() {
+        if (!available) return Collections.emptyList();
+
+        List<String> result = new ArrayList<>(new GraalJSEngineFactory().getNames());
+        result.remove(languageName);
+        return result;
+    }
+
     @Override
     public String getBindingsName() {
         return bindingsName;
@@ -106,12 +148,12 @@ public class GraalJsScriptProcessorFactory implements ScriptProcessorFactory {
 
     @Override
     public ScriptProcessor getScriptProcessor() {
-        return new JSR223ScriptProcessor(createEngine(), languageName, bindingsName);
+        return new GraalJsScriptProcessor(createEngine(), languageName, bindingsName);
     }
 
     @Override
     public ScriptCompiler getScriptCompiler() {
-        return new JSR223ScriptCompiler(getLanguageName(), createEngine());
+        return new GraalJsScriptCompiler(getLanguageName());
     }
 
     private static volatile Engine sharedEngine;
@@ -125,12 +167,18 @@ public class GraalJsScriptProcessorFactory implements ScriptProcessorFactory {
      * with a private {@link Context.Builder}, since that builder is mutable and not thread-safe;
      * sharing it across concurrently-executing rules would race.
      *
+     * <p>The engine's own default polyglot {@code Context} is created lazily and only when the
+     * engine itself is asked to evaluate or compile something; evaluation through
+     * {@link GraalJsScriptProcessor} never touches it. Callers that do use it (see
+     * {@link GraalJsScriptCompiler}) must {@link GraalJSScriptEngine#close() close} the engine
+     * afterwards, otherwise that context is never reclaimed.
+     *
      * @return a freshly created engine instance; never null.
      */
-    private static ScriptEngine createEngine() {
+    static GraalJSScriptEngine createEngine() {
         return GraalJSScriptEngine.create(getSharedEngine(),
                 Context.newBuilder("js")
-                        .allowHostAccess(HostAccess.ALL)
+                        .allowHostAccess(GraalJsHostAccess.DETACHING)
                         .allowHostClassLookup(s -> true)
                         .option("js.ecmascript-version", "2022"));
     }
@@ -156,7 +204,13 @@ public class GraalJsScriptProcessorFactory implements ScriptProcessorFactory {
 
                 if (engine == null) {
                     engine = Engine.newBuilder("js")
+                            // js.nashorn-compat is flagged experimental by GraalJS.
+                            .allowExperimentalOptions(true)
                             .option("engine.WarnInterpreterOnly", "false")
+                            // Bean-style property access on host objects (ctx.person.name).
+                            // The per-Context js.ecmascript-version=2022 overrides the ES5
+                            // default this mode would otherwise imply.
+                            .option("js.nashorn-compat", "true")
                             .build();
                     sharedEngine = engine;
                 }

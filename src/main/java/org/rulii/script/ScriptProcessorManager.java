@@ -20,11 +20,13 @@ package org.rulii.script;
 import org.rulii.lib.apache.commons.logging.Log;
 import org.rulii.lib.apache.commons.logging.LogFactory;
 import org.rulii.lib.spring.util.Assert;
+import org.rulii.lib.spring.util.StringUtils;
 import org.rulii.model.UnrulyException;
 import org.rulii.script.jsr223.JSR223ScriptProcessorFactory;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.ServiceLoader;
@@ -83,15 +85,31 @@ public final class ScriptProcessorManager {
     }
 
     /**
-     * Registers a {@link ScriptProcessorFactory} for its declared language.
+     * Registers a {@link ScriptProcessorFactory} for its declared language and its aliases.
      *
      * <p>If a factory for the same language name was previously registered, it is replaced.
+     * Each name in {@link ScriptProcessorFactory#getAliases()} is registered too, but only
+     * where no factory holds that name yet: an explicit registration always wins over an alias.
      *
      * @param factory the factory to register; must not be null.
      */
     public void register(ScriptProcessorFactory factory) {
         Assert.notNull(factory, "factory cannot be null.");
         factories.put(factory.getLanguageName(), factory);
+        registerAliases(factory);
+    }
+
+    /**
+     * Registers {@code factory} under each of its {@link ScriptProcessorFactory#getAliases() aliases}
+     * that is not already taken.
+     */
+    private static void registerAliases(ScriptProcessorFactory factory) {
+        Collection<String> aliases = factory.getAliases();
+        if (aliases == null) return;
+
+        for (String alias : aliases) {
+            if (StringUtils.hasText(alias)) factories.putIfAbsent(alias, factory);
+        }
     }
 
     /**
@@ -164,6 +182,11 @@ public final class ScriptProcessorManager {
             if (scriptEngine != null) {
                 result = new JSR223ScriptProcessorFactory(scriptEngine.getFactory());
                 factories.put(languageName, result);
+                // The engine's own language name and every other spelling it answers to map onto
+                // this same wrapper, so a later lookup under "Groovy" after "groovy" does not
+                // build a second one. Names already taken are left alone.
+                factories.putIfAbsent(result.getLanguageName(), result);
+                registerAliases(result);
             }
         }
 

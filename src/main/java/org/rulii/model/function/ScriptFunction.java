@@ -29,6 +29,7 @@ import org.rulii.script.Script;
  * @param <T> result type.
  * @author Max Arulananthan
  * @since 2.1
+ *
  */
 public class ScriptFunction<T> extends DefaultFunction<T> {
 
@@ -51,6 +52,6 @@ public class ScriptFunction<T> extends DefaultFunction<T> {
 
     @Override
     public ExpressionInfo getExpression() {
-        return ExpressionInfo.script(script.getLanguageName(), script.getSourceText());
+        return ExpressionInfo.script(script.getLanguageName(), script.getSourceText(), script.getScript());
     }
 }

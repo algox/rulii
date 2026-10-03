@@ -28,6 +28,7 @@ import org.rulii.script.Script;
  *
  * @author Max Arulananthan
  * @since 2.1
+ *
  */
 public class ScriptAction extends DefaultAction {
 
@@ -50,6 +51,6 @@ public class ScriptAction extends DefaultAction {
 
     @Override
     public ExpressionInfo getExpression() {
-        return ExpressionInfo.script(script.getLanguageName(), script.getSourceText());
+        return ExpressionInfo.script(script.getLanguageName(), script.getSourceText(), script.getScript());
     }
 }

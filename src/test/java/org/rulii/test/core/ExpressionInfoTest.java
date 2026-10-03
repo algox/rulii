@@ -47,6 +47,7 @@ import static org.rulii.model.condition.Conditions.condition;
  *
  * @author Max Arulananthan
  * @since 2.1
+ *
  */
 public class ExpressionInfoTest {
 
@@ -156,6 +157,7 @@ public class ExpressionInfoTest {
 
             Condition c = Condition.builder().build(script);
             Assertions.assertEquals("ctx.age >= ${min}", c.getExpression().sourceText());
+            Assertions.assertEquals("ctx.age >= 18", c.getExpression().resolvedText(), "the explorer can show what the rule acts on");
             Assertions.assertTrue(c.isTrue(contextWithAge(20)));
         } finally {
             manager.setScriptTextResolver(UnaryOperator.identity());
@@ -166,6 +168,8 @@ public class ExpressionInfoTest {
     public void sourceTextEqualsScriptWhenNothingWasResolved() {
         Script<?> script = Script.builder().build(LANG, "ctx.age >= 18");
         Assertions.assertEquals(script.getScript(), script.getSourceText());
+        Assertions.assertEquals("ctx.age >= 18", Condition.builder().build(script).getExpression().resolvedText());
+        Assertions.assertNull(ExpressionInfo.script(LANG, "ctx.age >= 18").resolvedText(), "unknown when built from text alone");
     }
 
     // -----------------------------------------------------------------------
@@ -256,7 +260,7 @@ public class ExpressionInfoTest {
         Assertions.assertThrows(IllegalArgumentException.class,
                 () -> ExpressionInfo.composite(null, ExpressionInfo.compiled(null)));
         Assertions.assertThrows(IllegalArgumentException.class,
-                () -> new ExpressionInfo(null, null, null, null, null, null));
+                () -> new ExpressionInfo(null, null, null, null, null, null, null));
         // COMPILED without a method is allowed: it means "not introspectable".
         Assertions.assertNotNull(ExpressionInfo.compiled(null));
     }

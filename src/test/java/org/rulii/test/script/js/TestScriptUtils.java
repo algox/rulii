@@ -20,8 +20,8 @@ package org.rulii.test.script.js;
 import com.oracle.truffle.js.scriptengine.GraalJSScriptEngine;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Engine;
-import org.graalvm.polyglot.HostAccess;
 import org.rulii.script.ScriptOptions;
+import org.rulii.script.graaljs.GraalJsHostAccess;
 import org.rulii.script.ScriptProcessorFactory;
 import org.rulii.script.graaljs.GraalJsScriptProcessorFactory;
 
@@ -39,11 +39,13 @@ public final class TestScriptUtils {
 
     public static ScriptEngine createEngine() {
         Engine engine = Engine.newBuilder("js")
+                .allowExperimentalOptions(true)
                 .option("engine.WarnInterpreterOnly", "false")
+                .option("js.nashorn-compat", "true")
                 .build();
         return GraalJSScriptEngine.create(engine,
                 Context.newBuilder("js")
-                        .allowHostAccess(HostAccess.ALL)
+                        .allowHostAccess(GraalJsHostAccess.DETACHING)
                         .allowHostClassLookup(s -> true)
                         .option("js.ecmascript-version", "2022"));
     }
