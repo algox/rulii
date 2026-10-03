@@ -25,13 +25,13 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
-import java.util.Collections;
-import java.util.IdentityHashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ReturnTypeDefinition implements Definition {
 
-    private static final Map<Method, ReturnTypeDefinition> CACHE = Collections.synchronizedMap(new IdentityHashMap<>());
+    // Keyed by Method value, not identity; see MethodDefinition.CACHE.
+    private static final Map<Method, ReturnTypeDefinition> CACHE = new ConcurrentHashMap<>();
 
     private final String description;
     private final Type type;

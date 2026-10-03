@@ -31,6 +31,7 @@ import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Defines a parameter within a method that is to be isPass dynamically (such as "when" and "then")
@@ -46,7 +47,11 @@ import java.util.*;
  */
 public final class ParameterDefinition implements Definition {
 
-    private static final Map<Method, List<ParameterDefinition>> CACHE = Collections.synchronizedMap(new IdentityHashMap<>());
+    // Keyed by Method value, not identity; see MethodDefinition.CACHE.
+    private static final Map<CacheKey, List<ParameterDefinition>> CACHE = new ConcurrentHashMap<>();
+
+    /** Cache key: the method plus the flag, since the flag changes the resulting definitions. */
+    private record CacheKey(Method method, boolean containsGenericInfo) {}
 
     private final int index;
     private String name;
@@ -114,7 +119,8 @@ public final class ParameterDefinition implements Definition {
 
     public static List<ParameterDefinition> load(Method method, boolean containsGenericInfo, SourceDefinition sourceDefinition) {
         Assert.notNull(method, "method cannot be null.");
-        return CACHE.computeIfAbsent(method, m -> loadInternal(m, containsGenericInfo, sourceDefinition));
+        return CACHE.computeIfAbsent(new CacheKey(method, containsGenericInfo),
+                k -> loadInternal(k.method(), k.containsGenericInfo(), sourceDefinition));
     }
 
     /**

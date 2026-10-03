@@ -199,13 +199,10 @@ public class FunctionBuilderTest {
     }
 
     /**
-     * MethodDefinition/ParameterDefinition.load(Method,...) cache their result in a static
-     * IdentityHashMap keyed by the reflective Method - but java.lang.Class#getMethod() returns a
-     * fresh Method object on every call, so two independent lookups never actually collide on
-     * the same cache entry. The cache only produces a real hit when the exact same Method
-     * reference is deliberately reused (e.g. iterating one Method[] array, or the candidates[0]
-     * bug fixed elsewhere in this review) - so this test captures a Method reference once and
-     * reuses it, exactly like those real call sites do.
+     * MethodDefinition/ParameterDefinition.load(Method,...) cache their result keyed by Method
+     * value, so two independent lookups of the same method share one cached, mutable-looking
+     * instance. This test guards the contract that customizing a copy() never leaks into that
+     * shared original.
      */
     @Test
     public void testMethodDefinitionCopy_mutatingCopyDoesNotAffectCachedOriginal() throws NoSuchMethodException {

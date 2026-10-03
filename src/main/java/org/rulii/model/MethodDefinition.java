@@ -26,6 +26,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -40,7 +41,12 @@ import java.util.stream.IntStream;
  */
 public final class MethodDefinition implements Definition {
 
-    private static final Map<Method, MethodDefinition> CACHE = Collections.synchronizedMap(new IdentityHashMap<>());
+    // Keyed by Method VALUE, not identity: Class#getDeclaredMethods() returns a fresh Method copy on
+    // every call, so an identity-keyed cache grew by one entry per lambda build and never shrank.
+    private static final Map<CacheKey, MethodDefinition> CACHE = new ConcurrentHashMap<>();
+
+    /** Cache key: the method plus the flag, since the flag changes the resulting definition. */
+    private record CacheKey(Method method, boolean containsGenericInfo) {}
 
     private final Method method;
     // Determines whether this method parameters contain generic info
@@ -110,7 +116,8 @@ public final class MethodDefinition implements Definition {
 
     public static MethodDefinition load(Method method, boolean containsGenericInfo, SourceDefinition sourceDefinition) {
         Assert.notNull(method, "method cannot be null.");
-        return CACHE.computeIfAbsent(method, m -> loadInternal(m, containsGenericInfo, sourceDefinition));
+        return CACHE.computeIfAbsent(new CacheKey(method, containsGenericInfo),
+                k -> loadInternal(k.method(), k.containsGenericInfo(), sourceDefinition));
     }
 
     private static MethodDefinition loadInternal(Method method, boolean containsGenericInfo, SourceDefinition sourceDefinition) {
