@@ -50,6 +50,8 @@ public class RuleSetBuilder {
 
     private String name;
     private String description = null;
+    private String category = null;
+    private final List<String> tags = new ArrayList<>();
     private final Set<InputParameter<?>> inputParameters = new LinkedHashSet<>();
     private Condition preCondition = null;
     private Condition stopCondition = null;
@@ -135,6 +137,54 @@ public class RuleSetBuilder {
     public RuleSetBuilder description(String description) {
         this.description = description;
         return this;
+    }
+
+    /**
+     * The business category the rule set belongs to, such as {@code "Pricing"} or
+     * {@code "Pricing/Discounts"} ({@code /} separates the levels). At most one; blank means none.
+     *
+     * @param category the category.
+     * @return this RuleSetBuilder instance for method chaining
+     * @since 2.1
+     */
+    public RuleSetBuilder category(String category) {
+        this.category = category;
+        return this;
+    }
+
+    /**
+     * Tags saying what the rule set is about, added to any given before. Blanks are dropped and
+     * duplicates kept once.
+     *
+     * @param tags the tags.
+     * @return this RuleSetBuilder instance for method chaining
+     * @since 2.1
+     */
+    public RuleSetBuilder tags(String... tags) {
+        if (tags != null) this.tags.addAll(Arrays.asList(tags));
+        return this;
+    }
+
+    /**
+     * Tags saying what the rule set is about, added to any given before.
+     *
+     * @param tags the tags; may be null.
+     * @return this RuleSetBuilder instance for method chaining
+     * @since 2.1
+     */
+    public RuleSetBuilder tags(Collection<String> tags) {
+        if (tags != null) this.tags.addAll(tags);
+        return this;
+    }
+
+    /** @since 2.1 */
+    public String getCategory() {
+        return category;
+    }
+
+    /** @since 2.1 */
+    public List<String> getTags() {
+        return Collections.unmodifiableList(tags);
     }
 
     /**
@@ -482,7 +532,7 @@ public class RuleSetBuilder {
             definitions.add(r.getDefinition());
         });
 
-        return new RuleSetDefinition(getName(), getDescription(), source != null ? source : SourceDefinition.build(),
+        return new RuleSetDefinition(getName(), getDescription(), category, tags, source != null ? source : SourceDefinition.build(),
                 getInputParameters(),
                 getInitializer() != null ? getInitializer().getDefinition() : null,
                 getPreCondition() != null ? getPreCondition().getDefinition() : null,

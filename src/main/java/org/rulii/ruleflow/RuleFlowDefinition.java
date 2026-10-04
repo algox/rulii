@@ -18,11 +18,13 @@
 package org.rulii.ruleflow;
 
 import org.rulii.lib.spring.util.Assert;
+import org.rulii.model.Categorized;
 import org.rulii.model.Definition;
 import org.rulii.model.ExpressionInfo;
 import org.rulii.model.InputParameter;
 import org.rulii.model.SourceDefinition;
 import org.rulii.ruleflow.info.CommandInfo;
+import org.rulii.util.RuleUtils;
 
 import java.lang.reflect.Type;
 import java.util.Collections;
@@ -36,10 +38,12 @@ import java.util.List;
  * @author Max Arulananthan
  * @since 2.0
  */
-public final class RuleFlowDefinition implements Definition {
+public final class RuleFlowDefinition implements Definition, Categorized {
 
     private final String name;
     private final String description;
+    private final String category;
+    private final List<String> tags;
     private final SourceDefinition sourceDefinition;
     private final Type resultType;
     private final List<InputParameter<?>> inputParameters;
@@ -67,6 +71,20 @@ public final class RuleFlowDefinition implements Definition {
                               List<InputParameter<?>> inputParameters, List<CommandInfo> commands,
                               CommandInfo.Handler globalHandler, ExpressionInfo finalizer, ExpressionInfo returning,
                               String contextLabel) {
+        this(name, description, null, null, sourceDefinition, resultType, inputParameters, commands, globalHandler,
+                finalizer, returning, contextLabel);
+    }
+
+    /**
+     * @param category the business category, normalised with {@link RuleUtils#normalizeCategory(String)}; may be null.
+     * @param tags     the tags, normalised with {@link RuleUtils#normalizeTags(java.util.Collection)}; may be null.
+     * @since 2.1
+     */
+    public RuleFlowDefinition(String name, String description, String category, List<String> tags,
+                              SourceDefinition sourceDefinition, Type resultType,
+                              List<InputParameter<?>> inputParameters, List<CommandInfo> commands,
+                              CommandInfo.Handler globalHandler, ExpressionInfo finalizer, ExpressionInfo returning,
+                              String contextLabel) {
         super();
         Assert.hasText(name, "name cannot be empty/null.");
         Assert.notNull(sourceDefinition, "sourceDefinition cannot be null.");
@@ -74,6 +92,8 @@ public final class RuleFlowDefinition implements Definition {
         Assert.notNull(commands, "commands cannot be null.");
         this.name = name;
         this.description = description;
+        this.category = RuleUtils.normalizeCategory(category);
+        this.tags = RuleUtils.normalizeTags(tags);
         this.sourceDefinition = sourceDefinition;
         this.resultType = resultType;
         this.inputParameters = Collections.unmodifiableList(inputParameters);
@@ -91,6 +111,16 @@ public final class RuleFlowDefinition implements Definition {
 
     public String getDescription() {
         return description;
+    }
+
+    @Override
+    public String getCategory() {
+        return category;
+    }
+
+    @Override
+    public List<String> getTags() {
+        return tags;
     }
 
     @Override

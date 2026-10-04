@@ -100,6 +100,30 @@ public final class ScriptProcessorManager {
     }
 
     /**
+     * Removes a previously registered {@link ScriptProcessorFactory}: every name (language and
+     * aliases) that currently maps to this exact instance is dropped. Lets an integration that
+     * registered a factory tied to its own lifecycle (e.g. a Spring bean) take it back out when
+     * that lifecycle ends, so the factory and whatever it references do not outlive it in this
+     * process-wide registry. A name taken over by a different factory since is left alone.
+     *
+     * <p>Names this factory had displaced are refilled from service-loader discovery (once
+     * discovery has run), so unregistering an override restores the stock factory for that
+     * language rather than leaving it without one.
+     *
+     * @param factory the factory to remove, matched by identity; must not be null.
+     * @return true if at least one name mapped to this factory; false if it was not registered.
+     */
+    public boolean unregister(ScriptProcessorFactory factory) {
+        Assert.notNull(factory, "factory cannot be null.");
+
+        synchronized (LOCK) {
+            boolean removed = factories.entrySet().removeIf(entry -> entry.getValue() == factory);
+            if (removed && initialized) discover(false);
+            return removed;
+        }
+    }
+
+    /**
      * Registers {@code factory} under each of its {@link ScriptProcessorFactory#getAliases() aliases}
      * that is not already taken.
      */
@@ -229,32 +253,52 @@ public final class ScriptProcessorManager {
 
         synchronized (LOCK) {
             if (initialized) return;
-
-            try {
-                Iterator<ScriptProcessorFactory> iterator = ServiceLoader.load(ScriptProcessorFactory.class).iterator();
-
-                while (true) {
-                    ScriptProcessorFactory factory;
-
-                    try {
-                        if (!iterator.hasNext()) break;
-                        factory = iterator.next();
-                    } catch (Throwable e) {
-                        LOGGER.warn("Error loading a ScriptProcessorFactory provider; skipping it", e);
-                        continue;
-                    }
-
-                    try {
-                        if (factory.isAvailable()) register(factory);
-                    } catch (Throwable e) {
-                        LOGGER.warn("Error registering ScriptProcessorFactory [" + factory + "]", e);
-                    }
-                }
-            } catch (Throwable e) {
-                LOGGER.warn("Error loading ScriptProcessorFactory providers", e);
-            }
-
+            discover(true);
             initialized = true;
         }
+    }
+
+    /**
+     * Runs service-loader discovery. With {@code replace} the discovered factories take over
+     * their names (initial load); without it they only fill names nobody holds (refilling
+     * after {@link #unregister}). Callers hold {@link #LOCK}.
+     *
+     * @param replace whether discovered factories replace existing registrations.
+     */
+    private void discover(boolean replace) {
+        try {
+            Iterator<ScriptProcessorFactory> iterator = ServiceLoader.load(ScriptProcessorFactory.class).iterator();
+
+            while (true) {
+                ScriptProcessorFactory factory;
+
+                try {
+                    if (!iterator.hasNext()) break;
+                    factory = iterator.next();
+                } catch (Throwable e) {
+                    LOGGER.warn("Error loading a ScriptProcessorFactory provider; skipping it", e);
+                    continue;
+                }
+
+                try {
+                    if (!factory.isAvailable()) continue;
+                    if (replace) register(factory);
+                    else registerIfAbsent(factory);
+                } catch (Throwable e) {
+                    LOGGER.warn("Error registering ScriptProcessorFactory [" + factory + "]", e);
+                }
+            }
+        } catch (Throwable e) {
+            LOGGER.warn("Error loading ScriptProcessorFactory providers", e);
+        }
+    }
+
+    /**
+     * Registers {@code factory} for its language and aliases, but only under names that no
+     * factory currently holds.
+     */
+    private static void registerIfAbsent(ScriptProcessorFactory factory) {
+        factories.putIfAbsent(factory.getLanguageName(), factory);
+        registerAliases(factory);
     }
 }

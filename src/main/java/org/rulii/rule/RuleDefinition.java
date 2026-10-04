@@ -18,6 +18,7 @@
 package org.rulii.rule;
 
 import org.rulii.lib.spring.util.Assert;
+import org.rulii.model.Categorized;
 import org.rulii.model.Definition;
 import org.rulii.model.MethodDefinition;
 import org.rulii.model.SourceDefinition;
@@ -37,12 +38,15 @@ import java.util.Objects;
  * @author Max Arulananthan
  * @since 1.0
  */
-public final class RuleDefinition implements Definition {
+public final class RuleDefinition implements Definition, Categorized {
 
     // Name of the Rule
     private String name;
     // Description of the Rule
     private String description;
+    // Business category (at most one; "/" separates levels) and tags, both optional
+    private final String category;
+    private final List<String> tags;
     private final boolean inline;
     private final SourceDefinition sourceDefinition;
 
@@ -76,11 +80,29 @@ public final class RuleDefinition implements Definition {
                           MethodDefinition conditionDefinition,
                           List<MethodDefinition> thenActionDefinitions,
                           MethodDefinition otherwiseActionDefinition) {
+        this(ruleClass, inline, name, description, null, null, sourceDefinition,
+                preConditionDefinition, conditionDefinition, thenActionDefinitions, otherwiseActionDefinition);
+    }
+
+    /**
+     * @param category the business category, normalised with {@link RuleUtils#normalizeCategory(String)}; may be null.
+     * @param tags     the tags, normalised with {@link RuleUtils#normalizeTags(java.util.Collection)}; may be null.
+     * @since 2.1
+     */
+    public RuleDefinition(Class<?> ruleClass, boolean inline, String name, String description,
+                          String category, List<String> tags,
+                          SourceDefinition sourceDefinition,
+                          MethodDefinition preConditionDefinition,
+                          MethodDefinition conditionDefinition,
+                          List<MethodDefinition> thenActionDefinitions,
+                          MethodDefinition otherwiseActionDefinition) {
         super();
         setName(name);
         this.ruleClass = ruleClass;
         this.inline = inline;
         this.description = description;
+        this.category = RuleUtils.normalizeCategory(category);
+        this.tags = RuleUtils.normalizeTags(tags);
         this.sourceDefinition = sourceDefinition;
         this.preConditionDefinition = preConditionDefinition;
         this.conditionDefinition = conditionDefinition;
@@ -119,6 +141,16 @@ public final class RuleDefinition implements Definition {
     @Override
     public String getDescription() {
         return description;
+    }
+
+    @Override
+    public String getCategory() {
+        return category;
+    }
+
+    @Override
+    public List<String> getTags() {
+        return tags;
     }
 
     void setName(String name) {

@@ -28,6 +28,8 @@ import org.rulii.model.condition.Conditions;
 import org.rulii.util.RuleUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -47,6 +49,8 @@ public abstract class AbstractRuleBuilder<T> {
     private Class<T> ruleClass;
     private String name;
     private String description;
+    private String category;
+    private final List<String> tags = new ArrayList<>();
     private Condition preCondition = null;
     private Condition condition;
     private Action otherwiseAction;
@@ -97,6 +101,46 @@ public abstract class AbstractRuleBuilder<T> {
      */
     public AbstractRuleBuilder<T> description(String description) {
         this.description = description;
+        return this;
+    }
+
+    /**
+     * The business category the rule belongs to, such as {@code "Pricing"} or
+     * {@code "Pricing/Discounts"} ({@code /} separates the levels). At most one; blank means none.
+     *
+     * @param category the category.
+     * @return this for fluency.
+     * @since 2.1
+     * @see org.rulii.annotation.Category
+     */
+    public AbstractRuleBuilder<T> category(String category) {
+        this.category = category;
+        return this;
+    }
+
+    /**
+     * Tags saying what the rule is about, added to any given before. Blanks are dropped and
+     * duplicates kept once.
+     *
+     * @param tags the tags.
+     * @return this for fluency.
+     * @since 2.1
+     * @see org.rulii.annotation.Tags
+     */
+    public AbstractRuleBuilder<T> tags(String... tags) {
+        if (tags != null) this.tags.addAll(Arrays.asList(tags));
+        return this;
+    }
+
+    /**
+     * Tags saying what the rule is about, added to any given before.
+     *
+     * @param tags the tags; may be null.
+     * @return this for fluency.
+     * @since 2.1
+     */
+    public AbstractRuleBuilder<T> tags(Collection<String> tags) {
+        if (tags != null) this.tags.addAll(tags);
         return this;
     }
 
@@ -198,6 +242,14 @@ public abstract class AbstractRuleBuilder<T> {
         return description;
     }
 
+    protected String getCategory() {
+        return category;
+    }
+
+    protected List<String> getTags() {
+        return tags;
+    }
+
     protected Condition getPreCondition() {
         return preCondition;
     }
@@ -234,7 +286,7 @@ public abstract class AbstractRuleBuilder<T> {
             thenActionDefinitions.add(thenAction.getDefinition());
         }
 
-        return new RuleDefinition(getRuleClass(), inline, getName(), getDescription(),
+        return new RuleDefinition(getRuleClass(), inline, getName(), getDescription(), getCategory(), getTags(),
                 source != null ? source : defaultSource(),
                 getConditionDefinition(getPreCondition()),
                 getConditionDefinition(getCondition()),

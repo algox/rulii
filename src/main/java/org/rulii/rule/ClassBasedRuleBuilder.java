@@ -112,6 +112,32 @@ public class ClassBasedRuleBuilder<T> extends AbstractRuleBuilder<T> {
     }
 
     /**
+     * The category from the {@link Category} annotation on the rule class.
+     *
+     * @param <T>       the type of the ruleClass
+     * @param ruleClass the rule class
+     * @return the category as written, or null without the annotation
+     * @since 2.1
+     */
+    public static <T> String getRuleCategory(Class<T> ruleClass) {
+        Category category = AnnotationUtils.getAnnotation(ruleClass, Category.class);
+        return category != null ? category.value() : null;
+    }
+
+    /**
+     * The tags from the {@link Tags} annotation on the rule class.
+     *
+     * @param <T>       the type of the ruleClass
+     * @param ruleClass the rule class
+     * @return the tags as written; empty without the annotation
+     * @since 2.1
+     */
+    public static <T> String[] getRuleTags(Class<T> ruleClass) {
+        Tags tags = AnnotationUtils.getAnnotation(ruleClass, Tags.class);
+        return tags != null ? tags.value() : new String[0];
+    }
+
+    /**
      * Loads the given Rule class. The Rule class must be annotated with @Rule and must define a single "given" method
      * which returns a boolean. The when method can take a arbitrary number of arguments.
      *
@@ -125,6 +151,8 @@ public class ClassBasedRuleBuilder<T> extends AbstractRuleBuilder<T> {
         target(target);
         name(getRuleName(ruleClass));
         description(getRuleDescription(ruleClass));
+        category(getRuleCategory(ruleClass));
+        tags(getRuleTags(ruleClass));
         loadPreCondition(ruleClass, target);
         loadCondition(ruleClass, target);
         loadThenActions(target);

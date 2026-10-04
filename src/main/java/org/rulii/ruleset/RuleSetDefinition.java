@@ -18,6 +18,7 @@
 package org.rulii.ruleset;
 
 import org.rulii.lib.spring.util.Assert;
+import org.rulii.model.Categorized;
 import org.rulii.model.Definition;
 import org.rulii.model.InputParameter;
 import org.rulii.model.MethodDefinition;
@@ -37,12 +38,14 @@ import java.util.List;
  * @author Max Arulananthan
  * @since 1.0
  */
-public final class RuleSetDefinition implements Definition {
+public final class RuleSetDefinition implements Definition, Categorized {
 
     // Name of the RuleSet
     private String name;
     // Description of the RuleSet
     private final String description;
+    private final String category;
+    private final List<String> tags;
     private final SourceDefinition sourceDefinition;
     private final List<InputParameter<?>> inputParameters;
     private final MethodDefinition initActionDefinition;
@@ -84,12 +87,34 @@ public final class RuleSetDefinition implements Definition {
                              MethodDefinition errorHandlerDefinition,
                              List<RuleDefinition> definitions,
                              boolean validating) {
+        this(name, description, null, null, sourceDefinition, inputParameters, initActionDefinition, preConditionDefinition,
+                stopConditionDefinition, finallyActionDefinition, resultActionDefinition, errorHandlerDefinition, definitions, validating);
+    }
+
+    /**
+     * @param category the business category, normalised with {@link RuleUtils#normalizeCategory(String)}; may be null.
+     * @param tags     the tags, normalised with {@link RuleUtils#normalizeTags(java.util.Collection)}; may be null.
+     * @since 2.1
+     */
+    public RuleSetDefinition(String name, String description, String category, List<String> tags,
+                             SourceDefinition sourceDefinition,
+                             List<InputParameter<?>> inputParameters,
+                             MethodDefinition initActionDefinition,
+                             MethodDefinition preConditionDefinition,
+                             MethodDefinition stopConditionDefinition,
+                             MethodDefinition finallyActionDefinition,
+                             MethodDefinition resultActionDefinition,
+                             MethodDefinition errorHandlerDefinition,
+                             List<RuleDefinition> definitions,
+                             boolean validating) {
         super();
         this.validating = validating;
         setName(name);
         Assert.notNull(inputParameters, "inputParameters cannot be null.");
         Assert.notNull(definitions, "definitions cannot be null.");
         this.description = description;
+        this.category = RuleUtils.normalizeCategory(category);
+        this.tags = RuleUtils.normalizeTags(tags);
         this.sourceDefinition = sourceDefinition;
         this.inputParameters = Collections.unmodifiableList(inputParameters);
         this.initActionDefinition = initActionDefinition;
@@ -109,6 +134,16 @@ public final class RuleSetDefinition implements Definition {
     @Override
     public String getDescription() {
         return description;
+    }
+
+    @Override
+    public String getCategory() {
+        return category;
+    }
+
+    @Override
+    public List<String> getTags() {
+        return tags;
     }
 
     public Type getResultType() {

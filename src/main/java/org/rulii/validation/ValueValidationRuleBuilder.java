@@ -23,6 +23,10 @@ import org.rulii.model.function.Function;
 import org.rulii.rule.ClassBasedRuleBuilder;
 import org.rulii.rule.Rule;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Abstract base builder for {@link ValueValidationRule} subclasses. Provides fluent configuration
  * of the error code, severity, error message, and value name, and delegates rule creation to the
@@ -40,6 +44,8 @@ public abstract class ValueValidationRuleBuilder<T extends ValueValidationRuleBu
 
     private String name;
     private String description;
+    private String category;
+    private final List<String> tags = new ArrayList<>();
     private final Function<?> valueFunction;
     private String errorCode;
     private Severity severity = Severity.ERROR;
@@ -71,6 +77,32 @@ public abstract class ValueValidationRuleBuilder<T extends ValueValidationRuleBu
     @SuppressWarnings("unchecked")
     public T description(String description) {
         this.description = description;
+        return (T) this;
+    }
+
+    /**
+     * The business category the rule belongs to ({@code /} separates the levels). At most one; blank means none.
+     *
+     * @param category the category.
+     * @return this builder.
+     * @since 2.1
+     */
+    @SuppressWarnings("unchecked")
+    public T category(String category) {
+        this.category = category;
+        return (T) this;
+    }
+
+    /**
+     * Tags saying what the rule is about, added to any given before.
+     *
+     * @param tags the tags.
+     * @return this builder.
+     * @since 2.1
+     */
+    @SuppressWarnings("unchecked")
+    public T tags(String... tags) {
+        if (tags != null) this.tags.addAll(Arrays.asList(tags));
         return (T) this;
     }
 
@@ -198,6 +230,8 @@ public abstract class ValueValidationRuleBuilder<T extends ValueValidationRuleBu
         ClassBasedRuleBuilder<?> builder = Rule.builder().with(target);
         if (name != null) builder.name(name);
         builder.description(description);
+        builder.category(category);
+        builder.tags(tags);
         // The rule class is one of rulii's validators, which says nothing about where the
         // rule was declared: record the caller unless a source was given.
         builder.source(source != null ? source : SourceDefinition.build());

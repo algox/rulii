@@ -105,6 +105,66 @@ public class ScriptProcessorManagerTest {
     }
 
     @Test
+    public void testUnregister_removesLanguageAndAliasesByIdentity() {
+        String language = "unregister-test-lang-" + UUID.randomUUID();
+        String alias = language + "-alias";
+        ScriptProcessorFactory factory = namedFactory(language);
+        ScriptProcessorManager manager = ScriptProcessorManager.getInstance();
+
+        manager.register(factory);
+        manager.alias(language, alias);
+        Assertions.assertSame(factory, manager.getScriptProcessorFactory(alias));
+
+        Assertions.assertTrue(manager.unregister(factory));
+        Assertions.assertNull(manager.getScriptProcessorFactory(language), "the language name must be released");
+        Assertions.assertNull(manager.getScriptProcessorFactory(alias), "every alias of the factory must be released");
+        Assertions.assertFalse(manager.unregister(factory), "a second unregister must report nothing removed");
+    }
+
+    @Test
+    public void testUnregister_leavesNameTakenOverByAnotherFactoryAlone() {
+        String language = "unregister-takeover-lang-" + UUID.randomUUID();
+        ScriptProcessorFactory first = namedFactory(language);
+        ScriptProcessorFactory second = namedFactory(language);
+        ScriptProcessorManager manager = ScriptProcessorManager.getInstance();
+
+        manager.register(first);
+        manager.register(second);
+
+        try {
+            Assertions.assertFalse(manager.unregister(first), "first no longer holds any name");
+            Assertions.assertSame(second, manager.getScriptProcessorFactory(language),
+                    "unregistering a displaced factory must not clobber its successor");
+        } finally {
+            manager.unregister(second);
+        }
+    }
+
+    @Test
+    public void testUnregister_restoresServiceLoaderDefaultForDisplacedLanguage() {
+        ScriptProcessorManager manager = ScriptProcessorManager.getInstance();
+        // "js" ships via META-INF/services in rulii core; find out what the stock factory is.
+        ScriptProcessorFactory stock = manager.getScriptProcessorFactory("js");
+        Assertions.assertNotNull(stock, "test needs a service-loaded language to displace");
+
+        ScriptProcessorFactory override = namedFactory("js");
+        manager.register(override);
+        Assertions.assertSame(override, manager.getScriptProcessorFactory("js"));
+
+        Assertions.assertTrue(manager.unregister(override));
+        ScriptProcessorFactory restored = manager.getScriptProcessorFactory("js");
+        Assertions.assertNotNull(restored, "the stock factory must come back after the override is removed");
+        Assertions.assertNotSame(override, restored);
+        Assertions.assertEquals(stock.getClass(), restored.getClass());
+    }
+
+    @Test
+    public void testUnregister_nullRejected() {
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> ScriptProcessorManager.getInstance().unregister(null));
+    }
+
+    @Test
     public void testScriptTextResolver_defaultIsIdentity() {
         Assertions.assertEquals("${unresolved}",
                 ScriptProcessorManager.getInstance().resolveScriptText("${unresolved}"));

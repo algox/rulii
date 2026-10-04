@@ -113,6 +113,8 @@ public abstract class RuleFlowBuilderTemplate<SELF extends RuleFlowBuilderTempla
 
     private String name;
     private String description;
+    private String category;
+    private final List<String> tags = new ArrayList<>();
     private final Set<InputParameter<?>> inputParameters = new LinkedHashSet<>();
     private Action finalizer;
     private Function<?> resultExtractor;
@@ -220,6 +222,44 @@ public abstract class RuleFlowBuilderTemplate<SELF extends RuleFlowBuilderTempla
      */
     public SELF description(String description) {
         this.description = description;
+        return self();
+    }
+
+    /**
+     * The business category the flow belongs to, such as {@code "Fulfilment"} or
+     * {@code "Pricing/Discounts"} ({@code /} separates the levels). At most one; blank means none.
+     *
+     * @param category the category.
+     * @return this builder.
+     * @since 2.1
+     */
+    public SELF category(String category) {
+        this.category = category;
+        return self();
+    }
+
+    /**
+     * Tags saying what the flow is about, added to any given before. Blanks are dropped and
+     * duplicates kept once.
+     *
+     * @param tags the tags.
+     * @return this builder.
+     * @since 2.1
+     */
+    public SELF tags(String... tags) {
+        if (tags != null) this.tags.addAll(Arrays.asList(tags));
+        return self();
+    }
+
+    /**
+     * Tags saying what the flow is about, added to any given before.
+     *
+     * @param tags the tags; may be null.
+     * @return this builder.
+     * @since 2.1
+     */
+    public SELF tags(Collection<String> tags) {
+        if (tags != null) this.tags.addAll(tags);
         return self();
     }
 
@@ -1314,7 +1354,7 @@ public abstract class RuleFlowBuilderTemplate<SELF extends RuleFlowBuilderTempla
         List<InputParameter<?>> params = new ArrayList<>(inputParameters);
         Function<T> extractor = (Function<T>) resultExtractor;
 
-        RuleFlowDefinition def = new RuleFlowDefinition(name, description, source != null ? source : SourceDefinition.build(),
+        RuleFlowDefinition def = new RuleFlowDefinition(name, description, category, tags, source != null ? source : SourceDefinition.build(),
                 resolveResultType(extractor), params, CommandInfo.of(rootCommands),
                 globalHandler != null ? globalHandler.getInfo() : null,
                 finalizer != null ? finalizer.getExpression() : null,

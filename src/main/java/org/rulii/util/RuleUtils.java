@@ -76,6 +76,44 @@ public final class RuleUtils {
     }
 
     /**
+     * Normalises a category: each {@code /} level is trimmed and empty levels are dropped, so
+     * {@code " Pricing / Discounts "} becomes {@code "Pricing/Discounts"}. Null when nothing is left.
+     *
+     * @param category the category as written; may be null.
+     * @return the normalised category, or null.
+     * @since 2.1
+     */
+    public static String normalizeCategory(String category) {
+        if (category == null) return null;
+        StringBuilder result = new StringBuilder();
+        for (String level : category.split("/")) {
+            String trimmed = level.trim();
+            if (trimmed.isEmpty()) continue;
+            if (result.length() > 0) result.append('/');
+            result.append(trimmed);
+        }
+        return result.length() == 0 ? null : result.toString();
+    }
+
+    /**
+     * Normalises tags: trimmed, blanks dropped, each kept once in the order first given.
+     *
+     * @param tags the tags as written; may be null.
+     * @return an unmodifiable list; empty when none, never null.
+     * @since 2.1
+     */
+    public static List<String> normalizeTags(Collection<String> tags) {
+        if (tags == null || tags.isEmpty()) return Collections.emptyList();
+        LinkedHashSet<String> result = new LinkedHashSet<>();
+        for (String tag : tags) {
+            if (tag == null) continue;
+            String trimmed = tag.trim();
+            if (!trimmed.isEmpty()) result.add(trimmed);
+        }
+        return result.isEmpty() ? Collections.emptyList() : Collections.unmodifiableList(new ArrayList<>(result));
+    }
+
+    /**
      * Merges the first rule with the rest of the Rules.
      *
      * @param rule new rule.
