@@ -25,6 +25,7 @@
 
 - [What is it?](#what-is-it)
 - [Why rulii?](#why-rulii)
+- [What's New in 2.1.0](#whats-new-in-210)
 - [What's New in 2.0.0](#whats-new-in-200)
 - [Getting Started](#getting-started)
 - [Writing Rules](#writing-rules)
@@ -70,6 +71,41 @@ Rules are plain Java — no proprietary DSL, no XML, no extra runtime.
 
 ---
 
+## What's New in 2.1.0
+
+- **Category and tags** — a rule, rule set or rule flow can say where it belongs and what it is about:
+  `@Category("Pricing/Discounts")` and `@Tags({"vip", "discount"})` on `@Rule` classes, `category(...)` and
+  `tags(...)` on every builder. One hierarchical category (`/` separates the levels), any number of tags.
+  Purely descriptive: rulii never reads them when it runs; tools such as rulii-explorer group and filter by them.
+  ```java
+  @Rule @Category("Orders/Validation") @Tags({"orders", "dates"})
+  public class ConsistentDateRule { … }
+
+  Rule.builder().name("fraudScoreRule").category("Risk").tags("risk", "fraud")…
+  ```
+- **Introspection** — everything a rule, rule set or rule flow is made of can be read off the built object:
+  `Condition` / `Action` / `Function` expose an `ExpressionInfo` (`getExpression()`: script language and
+  text, compiled method, or composite operator and operands), `RuleFlowCommand.getInfo()` describes each flow
+  step (`Run`, `When`, `ForEach`, `Scope`, `AsyncRun`, `Await`, …), `RuleFlowDefinition` carries the command
+  tree, `RuleSetDefinition` its input parameters and error handler, and `SourceDefinition` records where an
+  artifact was declared (the XML file and line with rulii-spring, the rule class, or the builder call site).
+  `Script.getSourceText()` returns the script as written, before `${...}` placeholder resolution. This is the
+  foundation for [rulii-explorer](https://github.com/algox/rulii-explorer), which browses, searches and
+  visualises the rules of a running application.
+- **Scripting (GraalJS)** — Java bean properties can be read directly in JavaScript (`ctx.person.name` instead
+  of `ctx.person.getName()`; assignment calls the setter); a polyglot context leak under sustained evaluation
+  is fixed, with JavaScript arrays and objects now crossing into Java as detached `List`s and `Map`s; every
+  name GraalJS registers (`js`, `JavaScript`, `ECMAScript`, …) resolves to the configured factory; and
+  `ScriptProcessorManager.unregister(factory)` removes a factory again.
+- **Memory** — the definition caches behind lambda-built conditions, actions, functions and rules no longer
+  grow without bound.
+- **Breaking** — custom `RuleRegistry` implementations must implement `getNames()`;
+  `RuleSetDefinition.getStopActionDefinition()` is deprecated for `getStopConditionDefinition()`.
+
+Full details in the [changelog](change-log.md).
+
+---
+
 ## What's New in 2.0.0
 
 - **RuleFlow** (`org.rulii.ruleflow`) — a new fluent orchestration API that composes Rules, RuleSets, and other
@@ -94,13 +130,13 @@ Full details in the [changelog](change-log.md).
 <dependency>
     <groupId>org.rulii</groupId>
     <artifactId>rulii</artifactId>
-    <version>2.0.0</version>
+    <version>2.1.0</version>
 </dependency>
 ```
 
 **Gradle**
 ```groovy
-implementation 'org.rulii:rulii:2.0.0'
+implementation 'org.rulii:rulii:2.1.0'
 ```
 
 ---
@@ -358,6 +394,12 @@ boolean result = condition.isTrue(age -> 21);  // true
 ```
 
 Scripts have full access to all named bindings and integrate seamlessly with Rules and RuleSets.
+The bindings are exposed to the script as `ctx` (configurable through `ScriptOptions`).
+
+With GraalJS, Java bean properties read as plain properties since **2.1.0**: `ctx.person.name` instead of
+`ctx.person.getName()`, `ctx.person.active` for `isActive()`, and assignment calls the setter.
+`Script.getSourceText()` returns the text as written, before any `${...}` placeholders were resolved;
+`getScript()` is the text the compiler saw.
 
 ---
 
@@ -370,19 +412,24 @@ Scripts have full access to all named bindings and integrate seamlessly with Rul
 - Spring-managed beans injected directly into rules
 - Externalize rule messages via `application.yaml` / `application.properties`
 - Default parameter values using Spring's conversion system
+- Rules, RuleSets and RuleFlows declared in XML, with SpEL, JavaScript or Java expressions, `${property:default}`
+  placeholders, and `category` / `tags` attributes
+
+[rulii-explorer](https://github.com/algox/rulii-explorer) adds a read-only Actuator endpoint and a browser UI that
+browses, searches and visualises the rules, rule sets and rule flows of a running Spring Boot application.
 
 **Maven**
 ```xml
 <dependency>
     <groupId>org.rulii</groupId>
     <artifactId>rulii-spring</artifactId>
-    <version>1.2.0</version>
+    <version>2.1.0</version>
 </dependency>
 ```
 
 **Gradle**
 ```groovy
-implementation 'org.rulii:rulii-spring:1.2.0'
+implementation 'org.rulii:rulii-spring:2.1.0'
 ```
 
 ```java
