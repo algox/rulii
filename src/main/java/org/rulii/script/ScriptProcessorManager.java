@@ -298,7 +298,32 @@ public final class ScriptProcessorManager {
      * factory currently holds.
      */
     private static void registerIfAbsent(ScriptProcessorFactory factory) {
-        factories.putIfAbsent(factory.getLanguageName(), factory);
-        registerAliases(factory);
+        ScriptProcessorFactory canonical = factories.get(factory.getLanguageName());
+
+        if (canonical == null) {
+            Collection<String> aliases = factory.getAliases();
+
+            if (aliases != null) {
+                for (String alias : aliases) {
+                    if (!StringUtils.hasText(alias)) continue;
+                    ScriptProcessorFactory existing = factories.get(alias);
+                    if (existing == null) continue;
+                    if (!factory.getLanguageName().equals(existing.getLanguageName())) continue;
+                    canonical = existing;
+                    break;
+                }
+            }
+        }
+
+        if (canonical == null) canonical = factory;
+
+        factories.putIfAbsent(factory.getLanguageName(), canonical);
+
+        Collection<String> aliases = factory.getAliases();
+        if (aliases == null) return;
+
+        for (String alias : aliases) {
+            if (StringUtils.hasText(alias)) factories.putIfAbsent(alias, canonical);
+        }
     }
 }
