@@ -1,6 +1,6 @@
 # Changelog
 
-## [2.1.0] (unreleased)
+## [2.1.0]
 
 ### Introspection: rules, rule sets and rule flows describe themselves
 
