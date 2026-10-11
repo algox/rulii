@@ -131,4 +131,46 @@ public class SourceDefinitionTest {
         Assertions.assertThrows(IllegalArgumentException.class, () -> SourceDefinition.forFile(" ", 1));
         Assertions.assertThrows(IllegalArgumentException.class, () -> SourceDefinition.forClass(null));
     }
+
+    @Test
+    public void fieldSourceRecordsClassAndField() throws Exception {
+        SourceDefinition source = SourceDefinition.forField(Bean.class.getDeclaredField("name"));
+
+        Assertions.assertEquals(Bean.class.getName(), source.getClassName());
+        Assertions.assertEquals("name", source.getFieldName());
+        Assertions.assertNull(source.getMethodName());
+        Assertions.assertNull(source.getFileName());
+        Assertions.assertNull(source.getLineNumber());
+        Assertions.assertTrue(source.toString().contains("fieldName='name'"));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> SourceDefinition.forField(null));
+    }
+
+    @Test
+    public void methodSourceRecordsClassAndMethod() throws Exception {
+        SourceDefinition source = SourceDefinition.forMethod(Bean.class.getDeclaredMethod("getName"));
+
+        Assertions.assertEquals(Bean.class.getName(), source.getClassName());
+        Assertions.assertEquals("getName", source.getMethodName());
+        Assertions.assertNull(source.getFieldName());
+        Assertions.assertNull(source.getFileName());
+        Assertions.assertNull(source.getLineNumber());
+        Assertions.assertThrows(IllegalArgumentException.class, () -> SourceDefinition.forMethod(null));
+    }
+
+    @Test
+    public void existingSourcesHaveNoField() {
+        Assertions.assertNull(SourceDefinition.build().getFieldName());
+        Assertions.assertNull(SourceDefinition.forClass(Bean.class).getFieldName());
+        Assertions.assertNull(SourceDefinition.forFile("rules.xml", 1).getFieldName());
+        Assertions.assertNull(new SourceDefinition("a", "b", "c", 1).getFieldName());
+    }
+
+    @SuppressWarnings("unused")
+    private static class Bean {
+        private String name;
+
+        public String getName() {
+            return name;
+        }
+    }
 }

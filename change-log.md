@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.2.0]
+
+#### Definitions
+- `SourceDefinition` can name a field. `forField(Field)` records the declaring class and the field name, `forMethod(Method)` the declaring class and the method name, and `getFieldName()` reads the field back (null for every other kind of source). A five-argument constructor carries both names; the four-argument one is unchanged and leaves the field null. Needed by rulii-bean-validation, where a constraint's source is the bean field it is declared on.
+
 ## [2.1.0]
 
 ### Introspection: rules, rule sets and rule flows describe themselves

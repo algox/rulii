@@ -17,6 +17,8 @@
  */
 package org.rulii.model;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
@@ -32,6 +34,7 @@ public class SourceDefinition {
 
     private final String className;
     private final String methodName;
+    private final String fieldName;
     private final String fileName;
     private final Integer lineNumber;
 
@@ -39,14 +42,30 @@ public class SourceDefinition {
         super();
         this.className = "n/a";
         this.methodName = "n/a";
+        this.fieldName = null;
         this.fileName = "n/a";
         this.lineNumber = null;
     }
 
     public SourceDefinition(String className, String methodName, String fileName, Integer lineNumber) {
+        this(className, methodName, null, fileName, lineNumber);
+    }
+
+    /**
+     * Full constructor. A source names at most one member: a method or a field.
+     *
+     * @param className  declaring class; null for a non-Java source.
+     * @param methodName declaring method; null when the source is not a method.
+     * @param fieldName  declaring field; null when the source is not a field.
+     * @param fileName   source file; null when unknown.
+     * @param lineNumber 1-based line; null when unknown.
+     * @since 2.2
+     */
+    public SourceDefinition(String className, String methodName, String fieldName, String fileName, Integer lineNumber) {
         super();
         this.className = className;
         this.methodName = methodName;
+        this.fieldName = fieldName;
         this.fileName = fileName;
         this.lineNumber = lineNumber;
     }
@@ -74,6 +93,30 @@ public class SourceDefinition {
     public static SourceDefinition forClass(Class<?> type) {
         if (type == null) throw new IllegalArgumentException("type cannot be null.");
         return new SourceDefinition(type.getName(), null, null, null);
+    }
+
+    /**
+     * A source that is a field: a constraint declared on a bean field, for example.
+     *
+     * @param field the field; must not be null.
+     * @return source definition with the declaring class name and the field name.
+     * @since 2.2
+     */
+    public static SourceDefinition forField(Field field) {
+        if (field == null) throw new IllegalArgumentException("field cannot be null.");
+        return new SourceDefinition(field.getDeclaringClass().getName(), null, field.getName(), null, null);
+    }
+
+    /**
+     * A source that is a method: a constraint declared on a getter, for example.
+     *
+     * @param method the method; must not be null.
+     * @return source definition with the declaring class name and the method name.
+     * @since 2.2
+     */
+    public static SourceDefinition forMethod(Method method) {
+        if (method == null) throw new IllegalArgumentException("method cannot be null.");
+        return new SourceDefinition(method.getDeclaringClass().getName(), method.getName(), null, null, null);
     }
 
     private static final StackWalker WALKER = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
@@ -118,6 +161,16 @@ public class SourceDefinition {
         return methodName;
     }
 
+    /**
+     * Name of the declaring field, when the source is a field.
+     *
+     * @return field name; null when the source is not a field.
+     * @since 2.2
+     */
+    public String getFieldName() {
+        return fieldName;
+    }
+
     public String getFileName() {
         return fileName;
     }
@@ -131,6 +184,7 @@ public class SourceDefinition {
         return "SourceDefinition{" +
                 "className='" + className + '\'' +
                 ", methodName='" + methodName + '\'' +
+                ", fieldName='" + fieldName + '\'' +
                 ", fileName='" + fileName + '\'' +
                 ", lineNumber=" + lineNumber +
                 '}';
