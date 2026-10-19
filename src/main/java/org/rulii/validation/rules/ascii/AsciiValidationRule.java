@@ -39,7 +39,7 @@ import java.util.List;
 @Description("Value can only contains contains ASCII printable characters.")
 public class AsciiValidationRule extends ValueValidationRule {
 
-    private static final List<Class<?>> SUPPORTED_TYPES = List.of(CharSequence.class);
+    public static final List<Class<?>> SUPPORTED_TYPES = List.of(CharSequence.class);
 
     public static final String ERROR_CODE       = "asciiValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE  = "Value {0} must only contain ASCII printable characters.";

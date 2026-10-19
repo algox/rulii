@@ -42,7 +42,7 @@ import java.util.List;
 @Description("Value must be within range of the maximum integral digits and maximum fraction digits.")
 public class DigitsValidationRule extends ValueValidationRule {
 
-    private static final List<Class<?>> SUPPORTED_TYPES = List.of(Number.class, CharSequence.class);
+    public static final List<Class<?>> SUPPORTED_TYPES = List.of(Number.class, CharSequence.class);
 
     public static final String ERROR_CODE       = "digitsValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE  = "Invalid Number {0}. Value must have at most {1} integral digits and {2} fraction digits.";

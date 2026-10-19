@@ -39,7 +39,7 @@ import java.util.List;
 @Description("Value is greater than 0.")
 public class PositiveValidationRule extends ValueValidationRule {
 
-    public static List<Class<?>> SUPPORTED_TYPES    = List.of(Number.class, CharSequence.class);
+    public static final List<Class<?>> SUPPORTED_TYPES = List.of(Number.class, CharSequence.class);
 
     public static final String ERROR_CODE      = "positiveValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE = "Value {0} must be greater than 0.";

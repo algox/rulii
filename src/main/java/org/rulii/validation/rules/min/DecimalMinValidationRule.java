@@ -42,7 +42,7 @@ import java.util.List;
 @Description("Value is greater than the desired Min.")
 public class DecimalMinValidationRule extends ValueValidationRule {
 
-    public static List<Class<?>> SUPPORTED_TYPES    = List.of(Number.class, CharSequence.class);
+    public static final List<Class<?>> SUPPORTED_TYPES = List.of(Number.class, CharSequence.class);
 
     public static final String ERROR_CODE       = "decimalMinValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE  = "Value {0} must be greater than or equal to {1}.";

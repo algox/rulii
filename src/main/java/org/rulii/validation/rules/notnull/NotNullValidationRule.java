@@ -37,7 +37,7 @@ import java.util.List;
 @Description("Value cannot be null.")
 public class NotNullValidationRule extends ValueValidationRule {
 
-    public static List<Class<?>> SUPPORTED_TYPES    = List.of(Object.class);
+    public static final List<Class<?>> SUPPORTED_TYPES = List.of(Object.class);
 
     public static final String ERROR_CODE       = "notNullValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE  = "Value must not be null.";

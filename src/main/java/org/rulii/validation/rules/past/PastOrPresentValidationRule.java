@@ -43,7 +43,7 @@ import java.util.List;
 @Description("Value must be in the present or in the past.")
 public class PastOrPresentValidationRule extends ValueValidationRule {
 
-    public static List<Class<?>> SUPPORTED_TYPES    = List.of(Calendar.class, Date.class, java.sql.Date.class, Instant.class,
+    public static final List<Class<?>> SUPPORTED_TYPES = List.of(Calendar.class, Date.class, java.sql.Date.class, Instant.class,
             LocalDate.class, LocalDateTime.class, LocalTime.class, MonthDay.class, OffsetDateTime.class,
             OffsetTime.class, Year.class, YearMonth.class, ZonedDateTime.class);
 

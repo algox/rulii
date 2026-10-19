@@ -43,7 +43,7 @@ import java.util.Map;
 @Description("Size is between the given min and max values.")
 public class SizeValidationRule extends ValueValidationRule {
 
-    public static List<Class<?>> SUPPORTED_TYPES    = List.of(boolean[].class, byte[].class, char[].class, double[].class, float[].class,
+    public static final List<Class<?>> SUPPORTED_TYPES = List.of(boolean[].class, byte[].class, char[].class, double[].class, float[].class,
             int[].class, long[].class, short[].class, Object[].class, Collection.class, Map.class, CharSequence.class);
 
     public static final String ERROR_CODE       = "sizeValidationRule.errorCode";

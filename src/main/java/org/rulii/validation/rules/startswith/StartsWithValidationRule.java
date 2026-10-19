@@ -41,7 +41,7 @@ import java.util.List;
 @Description("Value must start with one of the given prefixes.")
 public class StartsWithValidationRule extends ValueValidationRule {
 
-    public static List<Class<?>> SUPPORTED_TYPES    = List.of(CharSequence.class);
+    public static final List<Class<?>> SUPPORTED_TYPES = List.of(CharSequence.class);
 
     public static final String ERROR_CODE       = "startsWithValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE  = "Value {0} must start with one of the given prefixes {1}.";

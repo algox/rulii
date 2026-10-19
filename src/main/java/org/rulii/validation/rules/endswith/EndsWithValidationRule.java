@@ -41,7 +41,7 @@ import java.util.List;
 @Description("Value must end with one of the given suffixes.")
 public class EndsWithValidationRule extends ValueValidationRule {
 
-    public static List<Class<?>> SUPPORTED_TYPES    = List.of(CharSequence.class);
+    public static final List<Class<?>> SUPPORTED_TYPES = List.of(CharSequence.class);
 
     public static final String ERROR_CODE       = "endsWithValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE  = "Value {0} must end with one of the given suffixes {1}.";

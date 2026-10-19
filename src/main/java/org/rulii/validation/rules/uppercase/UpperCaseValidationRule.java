@@ -39,7 +39,7 @@ import java.util.List;
 @Description("Value must be all in uppercase.")
 public class UpperCaseValidationRule extends ValueValidationRule {
 
-    public static List<Class<?>> SUPPORTED_TYPES    = List.of(CharSequence.class);
+    public static final List<Class<?>> SUPPORTED_TYPES = List.of(CharSequence.class);
 
     public static final String ERROR_CODE       = "upperCaseValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE  = "Value {0} must be in uppercase.";

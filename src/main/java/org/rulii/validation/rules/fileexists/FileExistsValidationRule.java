@@ -41,7 +41,7 @@ import java.util.List;
 @Description("File must exist.")
 public class FileExistsValidationRule extends ValueValidationRule {
 
-    public static List<Class<?>> SUPPORTED_TYPES    = List.of(CharSequence.class);
+    public static final List<Class<?>> SUPPORTED_TYPES = List.of(CharSequence.class);
 
     public static final String ERROR_CODE       = "fileExistsValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE  = "File {0} does not exist.";

@@ -40,7 +40,7 @@ import java.util.List;
 @Description("Value must be in the given collection.")
 public class InValidationRule extends ValueValidationRule {
 
-    public static List<Class<?>> SUPPORTED_TYPES    = List.of(Object.class);
+    public static final List<Class<?>> SUPPORTED_TYPES = List.of(Object.class);
 
     public static final String ERROR_CODE       = "inValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE  = "Value {0} not found in one of the given values {1}.";

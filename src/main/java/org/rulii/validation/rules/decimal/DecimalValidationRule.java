@@ -39,7 +39,7 @@ import java.util.List;
 @Description("Value must be a valid decimal.")
 public class DecimalValidationRule extends ValueValidationRule {
 
-    private static final List<Class<?>> SUPPORTED_TYPES = List.of(CharSequence.class);
+    public static final List<Class<?>> SUPPORTED_TYPES = List.of(CharSequence.class);
 
     public static final String ERROR_CODE       = "decimalValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE  = "Invalid decimal {0}.";

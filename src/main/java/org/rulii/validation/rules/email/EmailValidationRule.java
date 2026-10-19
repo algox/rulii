@@ -39,7 +39,7 @@ import java.util.List;
 @Description("Value must match an email regex pattern.")
 public class EmailValidationRule extends ValueValidationRule {
 
-    private static final List<Class<?>> SUPPORTED_TYPES = List.of(CharSequence.class);
+    public static final List<Class<?>> SUPPORTED_TYPES = List.of(CharSequence.class);
 
     public static final String ERROR_CODE       = "emailValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE  = "Invalid email address {0}.";

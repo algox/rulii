@@ -39,7 +39,7 @@ import java.util.List;
 @Description("Value must match a Url regex pattern.")
 public class UrlValidationRule extends ValueValidationRule {
 
-    public static List<Class<?>> SUPPORTED_TYPES    = List.of(CharSequence.class);
+    public static final List<Class<?>> SUPPORTED_TYPES = List.of(CharSequence.class);
 
     public static final String ERROR_CODE       = "urlValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE  = "Value {0} is not a valid Url";

@@ -41,7 +41,7 @@ import java.util.regex.Pattern;
 @Description("Value must match the given regex pattern.")
 public class PatternValidationRule extends ValueValidationRule {
 
-    public static List<Class<?>> SUPPORTED_TYPES    = List.of(CharSequence.class);
+    public static final List<Class<?>> SUPPORTED_TYPES = List.of(CharSequence.class);
 
     public static final String ERROR_CODE       = "patternValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE  = "Value {0} must match the required regex pattern {1}.";

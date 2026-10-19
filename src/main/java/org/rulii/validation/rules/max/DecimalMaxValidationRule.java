@@ -42,7 +42,7 @@ import java.util.List;
 @Description("Value is less than the desired Max.")
 public class DecimalMaxValidationRule extends ValueValidationRule {
 
-    public static List<Class<?>> SUPPORTED_TYPES    = List.of(Number.class, CharSequence.class);
+    public static final List<Class<?>> SUPPORTED_TYPES = List.of(Number.class, CharSequence.class);
 
     public static final String ERROR_CODE       = "decimalMaxValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE  = "Value {0} must not be less than or equal to {1}.";

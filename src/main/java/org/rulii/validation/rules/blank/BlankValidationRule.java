@@ -39,7 +39,7 @@ import java.util.List;
 @Description("Value must be blank.")
 public class BlankValidationRule extends ValueValidationRule {
 
-    private static final List<Class<?>> SUPPORTED_TYPES = List.of(CharSequence.class);
+    public static final List<Class<?>> SUPPORTED_TYPES = List.of(CharSequence.class);
 
     public static final String ERROR_CODE       = "blankValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE  = "Value {0} must be blank.";

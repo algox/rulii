@@ -26,7 +26,6 @@ import org.rulii.validation.ValidationRuleException;
 import org.rulii.validation.ValueValidationRule;
 
 import java.lang.reflect.Array;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +41,7 @@ import java.util.Map;
 @Description("Value must not be empty.")
 public class NotEmptyValidationRule extends ValueValidationRule {
 
-    public static List<Class<?>> SUPPORTED_TYPES    = Arrays.asList(boolean[].class, byte[].class, char[].class,
+    public static final List<Class<?>> SUPPORTED_TYPES = List.of(boolean[].class, byte[].class, char[].class,
             double[].class, float[].class, int[].class, long[].class, short[].class, Object[].class,
             Collection.class, Map.class, CharSequence.class);
 

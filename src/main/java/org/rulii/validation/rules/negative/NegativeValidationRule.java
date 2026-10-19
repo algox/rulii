@@ -26,7 +26,6 @@ import org.rulii.validation.Severity;
 import org.rulii.validation.ValidationRuleException;
 import org.rulii.validation.ValueValidationRule;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -40,7 +39,7 @@ import java.util.List;
 @Description("Value must be less than 0.")
 public class NegativeValidationRule extends ValueValidationRule {
 
-    public static List<Class<?>> SUPPORTED_TYPES    = Arrays.asList(Number.class, CharSequence.class);
+    public static final List<Class<?>> SUPPORTED_TYPES = List.of(Number.class, CharSequence.class);
 
     public static final String ERROR_CODE       = "negativeValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE  = "Value {0} must be less than 0.";

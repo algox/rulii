@@ -29,7 +29,6 @@ import org.rulii.validation.ValueValidationRule;
 
 import java.sql.Date;
 import java.time.*;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 
@@ -44,7 +43,7 @@ import java.util.List;
 @Description("Value must be in the future.")
 public class FutureValidationRule extends ValueValidationRule {
 
-    public static List<Class<?>> SUPPORTED_TYPES    = Arrays.asList(Calendar.class, Date.class, java.util.Date.class, Instant.class,
+    public static final List<Class<?>> SUPPORTED_TYPES = List.of(Calendar.class, Date.class, java.util.Date.class, Instant.class,
             LocalDate.class, LocalDateTime.class, LocalTime.class, MonthDay.class, OffsetDateTime.class,
             OffsetTime.class, Year.class, YearMonth.class, ZonedDateTime.class);
 

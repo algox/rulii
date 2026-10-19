@@ -38,7 +38,7 @@ import java.util.List;
 @Description("Value must be false.")
 public class AssertFalseValidationRule extends ValueValidationRule {
 
-    private static final List<Class<?>> SUPPORTED_TYPES = List.of(boolean.class, Boolean.class);
+    public static final List<Class<?>> SUPPORTED_TYPES = List.of(boolean.class, Boolean.class);
 
     public static final String ERROR_CODE       = "assertFalseValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE  = "Value must be false.";

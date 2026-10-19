@@ -39,7 +39,7 @@ import java.util.List;
 @Description("Value must be all in lowercase.")
 public class LowerCaseValidationRule extends ValueValidationRule {
 
-    public static final List<Class<?>> SUPPORTED_TYPES    = List.of(CharSequence.class);
+    public static final List<Class<?>> SUPPORTED_TYPES = List.of(CharSequence.class);
 
     public static final String ERROR_CODE       = "lowerCaseValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE  = "Value {0} must be in lowercase.";

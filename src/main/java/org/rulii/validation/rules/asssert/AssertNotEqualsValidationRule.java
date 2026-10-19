@@ -39,7 +39,7 @@ import java.util.Objects;
 @Description("Value must not match desired value.")
 public class AssertNotEqualsValidationRule extends ValueValidationRule {
 
-    private static final List<Class<?>> SUPPORTED_TYPES = List.of(Object.class);
+    public static final List<Class<?>> SUPPORTED_TYPES = List.of(Object.class);
 
     public static final String ERROR_CODE       = "assertNotEqualsValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE  = "Value [{0}] must not equal [{1}].";
