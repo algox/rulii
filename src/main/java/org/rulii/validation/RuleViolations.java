@@ -48,24 +48,28 @@ public class RuleViolations implements Iterable<RuleViolation> {
     }
 
     /**
-     * Adds multiple RuleViolation objects to the container.
+     * Adds multiple RuleViolation objects to the container. Each one goes through {@link #add(RuleViolation)},
+     * so a subclass overriding that method sees every violation.
      *
      * @param errors the RuleViolation objects to be added to the container
      */
     public void addAll(RuleViolation...errors) {
         Assert.notNull(errors, "error cannot be null.");
-        this.errors.addAll(Arrays.asList(errors));
+        addAll(Arrays.asList(errors));
     }
 
     /**
-     * Adds all the RuleViolation objects from the specified collection to this container.
+     * Adds all the RuleViolation objects from the specified collection to this container. Each one goes
+     * through {@link #add(RuleViolation)}, so a subclass overriding that method sees every violation.
      *
      * @param errors the collection of RuleViolation objects to be added
      * @throws IllegalArgumentException if the collection is null
      */
     public void addAll(Collection<RuleViolation> errors) {
         Assert.notNull(errors, "error cannot be null.");
-        this.errors.addAll(errors);
+        for (RuleViolation error : errors) {
+            add(error);
+        }
     }
 
     /**
@@ -90,7 +94,7 @@ public class RuleViolations implements Iterable<RuleViolation> {
      */
     public RuleViolation add(String ruleName, String errorCode, Severity severity, String errorMessage) {
         RuleViolation result = new RuleViolation(ruleName, errorCode, severity, errorMessage, null);
-        errors.add(result);
+        add(result);
         return result;
     }
 

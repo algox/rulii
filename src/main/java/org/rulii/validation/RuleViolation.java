@@ -20,7 +20,7 @@ package org.rulii.validation;
 import org.rulii.lib.spring.util.Assert;
 
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -38,18 +38,21 @@ public class RuleViolation {
     private final String errorCode;
     private final Severity severity;
     private final String errorMessage;
+    private final Map<String, Object> paramValues;
     private final Map<String, String> params;
 
     /**
      * Creates a new RuleViolation with the given rule name, error code, severity, and error message.
+     * Parameter values are kept as given; {@link #getParameters()} exposes their string form and
+     * {@link #getParameterValues()} the values themselves.
      *
      * @param ruleName the name of the rule
      * @param errorCode the error code associated with the rule
      * @param severity the severity of the error (null defaults to Severity.ERROR)
      * @param errorMessage the error message (can be null)
-     * @param params violation parameters.
+     * @param params violation parameters (values of any type; null values allowed).
      */
-    public RuleViolation(String ruleName, String errorCode, Severity severity, String errorMessage, Map<String, String> params) {
+    public RuleViolation(String ruleName, String errorCode, Severity severity, String errorMessage, Map<String, ?> params) {
         super();
         Assert.notNull(ruleName, "ruleName cannot be null.");
         Assert.hasText(errorCode, "errorCode cannot be null/empty.");
@@ -57,7 +60,16 @@ public class RuleViolation {
         this.errorCode = errorCode;
         this.severity = severity == null ? Severity.ERROR : severity;
         this.errorMessage = errorMessage;
-        this.params = Collections.unmodifiableMap(params != null ? params : new HashMap<>());
+        Map<String, Object> values = new LinkedHashMap<>();
+        Map<String, String> strings = new LinkedHashMap<>();
+        if (params != null) {
+            for (Map.Entry<String, ?> entry : params.entrySet()) {
+                values.put(entry.getKey(), entry.getValue());
+                strings.put(entry.getKey(), entry.getValue() != null ? entry.getValue().toString() : null);
+            }
+        }
+        this.paramValues = Collections.unmodifiableMap(values);
+        this.params = Collections.unmodifiableMap(strings);
     }
 
     /**
@@ -106,12 +118,22 @@ public class RuleViolation {
     }
 
     /**
-     * Associated rule parameters.
+     * Associated rule parameters, each value in its string form.
      *
      * @return rule parameters.
      */
     public Map<String, String> getParameters() {
         return params;
+    }
+
+    /**
+     * Associated rule parameters with their values as they were given to the violation
+     * (for example the validated value itself rather than its string form).
+     *
+     * @return rule parameter values.
+     */
+    public Map<String, Object> getParameterValues() {
+        return paramValues;
     }
 
     @Override

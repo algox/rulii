@@ -152,13 +152,13 @@ public class RuleViolationBuilder {
     }
 
     /**
-     * Generates the rule parameters to a given RuleViolation object.
+     * Generates the rule parameters for a RuleViolation object, keeping each value as given.
      *
      * @param parameters The list of ParameterInfo objects containing the parameter name and value.
      */
-    private Map<String, String> getRuleParameters(List<ParameterInfo> parameters) {
-        Map<String, String> result = new LinkedHashMap<>();
-        parameters.forEach(param -> result.put(param.getName(), param.getValue() != null ? param.getValue().toString() : null));
+    private Map<String, Object> getRuleParameters(List<ParameterInfo> parameters) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        parameters.forEach(param -> result.put(param.getName(), param.getValue()));
         return result;
     }
 }

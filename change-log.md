@@ -5,6 +5,10 @@
 #### Definitions
 - `SourceDefinition` can name a field. `forField(Field)` records the declaring class and the field name, `forMethod(Method)` the declaring class and the method name, and `getFieldName()` reads the field back (null for every other kind of source). A five-argument constructor carries both names; the four-argument one is unchanged and leaves the field null. Needed by rulii-bean-validation, where a constraint's source is the bean field it is declared on.
 
+#### Violations
+- `RuleViolation` keeps its parameter values as given. The constructor accepts `Map<String, ?>` (so existing `Map<String, String>` callers are unchanged), `getParameters()` still returns the string form of each value, and the new `getParameterValues()` returns the values themselves — for example the validated value as an object rather than its `toString()`. `RuleViolationBuilder` passes the raw values through. Needed by rulii-bean-validation, whose violations expose the invalid value the way `ConstraintViolation.getInvalidValue()` does.
+- `RuleViolations.addAll(RuleViolation...)`, `addAll(Collection)`, `add(ruleName, errorCode)` and `add(ruleName, errorCode, severity, errorMessage)` now all go through `add(RuleViolation)`. Previously they wrote to the backing list directly, so a subclass overriding `add(RuleViolation)` (the documented extension point) missed violations added through the other methods. Behaviour of a plain `RuleViolations` is unchanged.
+
 #### Validation rules
 - Every validation rule now exposes its supported value types as `public static final List<Class<?>> SUPPORTED_TYPES` (immutable `List.of`). Previously four rules kept the list private (`AssertTrue`, `AssertFalse`, `Digits`, `Email`), and the public ones were mutable, non-final statics built with `Arrays.asList`. Lets rulii-bean-validation check a constraint against the declared property type when the bean class is read, before any rule instance exists; `getSupportedTypes()` and `isSupported(Class)` on the rules are unchanged.
 
