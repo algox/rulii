@@ -30,6 +30,12 @@ import org.rulii.validation.ValueValidationRuleBuilder;
 public class UrlValidationRuleBuilder
         extends ValueValidationRuleBuilder<UrlValidationRuleBuilder, UrlValidationRule> {
 
+    private String protocol;
+    private String host;
+    private int port = UrlValidationRule.ANY_PORT;
+    private String regexp;
+    private int flags = 0;
+
     /**
      * Creates a new builder for {@link UrlValidationRule}.
      *
@@ -42,12 +48,68 @@ public class UrlValidationRuleBuilder
     }
 
     /**
+     * The protocol the URL must have; not checked by default.
+     *
+     * @param protocol the protocol, such as {@code https}; null or empty for any
+     * @return this builder
+     */
+    public UrlValidationRuleBuilder protocol(String protocol) {
+        this.protocol = protocol;
+        return this;
+    }
+
+    /**
+     * The host the URL must have; not checked by default.
+     *
+     * @param host the host; null or empty for any
+     * @return this builder
+     */
+    public UrlValidationRuleBuilder host(String host) {
+        this.host = host;
+        return this;
+    }
+
+    /**
+     * The port the URL must have; not checked by default.
+     *
+     * @param port the port; {@link UrlValidationRule#ANY_PORT} for any
+     * @return this builder
+     */
+    public UrlValidationRuleBuilder port(int port) {
+        this.port = port;
+        return this;
+    }
+
+    /**
+     * A regular expression the whole URL must match as well; not checked by default.
+     *
+     * @param regexp the expression; null or empty for none
+     * @return this builder
+     */
+    public UrlValidationRuleBuilder regexp(String regexp) {
+        this.regexp = regexp;
+        return this;
+    }
+
+    /**
+     * The {@link java.util.regex.Pattern} flags of the regular expression; none by default.
+     *
+     * @param flags the flags
+     * @return this builder
+     */
+    public UrlValidationRuleBuilder flags(int flags) {
+        this.flags = flags;
+        return this;
+    }
+
+    /**
      * Creates a new {@link UrlValidationRule} configured with this builder's settings.
      *
      * @return a new {@link UrlValidationRule}
      */
     @Override
     protected UrlValidationRule createValueValidationRule() {
-        return new UrlValidationRule(getValueFunction(), getErrorCode(), getSeverity(), getErrorMessage(), getValueName());
+        return new UrlValidationRule(getValueFunction(), getErrorCode(), getSeverity(), getErrorMessage(), getValueName(),
+                protocol, host, port, regexp, flags);
     }
 }

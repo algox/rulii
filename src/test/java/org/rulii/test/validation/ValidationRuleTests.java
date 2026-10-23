@@ -1451,7 +1451,7 @@ public class ValidationRuleTests {
         RuleViolation violation = errors.getViolations().get(0);
         assertEquals(DecimalMaxValidationRule.ERROR_CODE, violation.getErrorCode());
         assertEquals(Severity.ERROR, violation.getSeverity());
-        assertEquals("Value 1000.001 must not be less than or equal to 1,000.", violation.getErrorMessage());
+        assertEquals("Value 1000.001 must not be greater than 1,000.", violation.getErrorMessage());
     }
 
     @Test

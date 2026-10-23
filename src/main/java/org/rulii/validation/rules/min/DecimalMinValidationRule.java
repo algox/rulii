@@ -87,7 +87,7 @@ public class DecimalMinValidationRule extends ValueValidationRule {
 
     @Override
     protected void customizeViolation(RuleContext ruleContext, RuleViolationBuilder builder) {
-        builder.param("min", min);
+        builder.param("min", min).param("inclusive", inclusive);
     }
 
     public BigDecimal getMin() {

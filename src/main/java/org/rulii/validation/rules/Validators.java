@@ -87,8 +87,31 @@ import org.rulii.validation.rules.uppercase.UpperCaseValidationRule;
 import org.rulii.validation.rules.uppercase.UpperCaseValidationRuleBuilder;
 import org.rulii.validation.rules.url.UrlValidationRule;
 import org.rulii.validation.rules.url.UrlValidationRuleBuilder;
+import org.rulii.validation.rules.codepointlength.CodePointLengthValidationRule;
+import org.rulii.validation.rules.codepointlength.CodePointLengthValidationRuleBuilder;
+import org.rulii.validation.rules.normalized.NormalizedValidationRule;
+import org.rulii.validation.rules.normalized.NormalizedValidationRuleBuilder;
+import org.rulii.validation.rules.unique.UniqueElementsValidationRule;
+import org.rulii.validation.rules.unique.UniqueElementsValidationRuleBuilder;
+import org.rulii.validation.rules.uuid.UuidValidationRule;
+import org.rulii.validation.rules.uuid.UuidValidationRuleBuilder;
+import org.rulii.validation.rules.duration.DurationMaxValidationRule;
+import org.rulii.validation.rules.duration.DurationMaxValidationRuleBuilder;
+import org.rulii.validation.rules.duration.DurationMinValidationRule;
+import org.rulii.validation.rules.duration.DurationMinValidationRuleBuilder;
+import org.rulii.validation.rules.ean.EanValidationRule;
+import org.rulii.validation.rules.ean.EanValidationRuleBuilder;
+import org.rulii.validation.rules.isbn.IsbnValidationRule;
+import org.rulii.validation.rules.isbn.IsbnValidationRuleBuilder;
+import org.rulii.validation.rules.modcheck.LuhnCheckValidationRule;
+import org.rulii.validation.rules.modcheck.LuhnCheckValidationRuleBuilder;
+import org.rulii.validation.rules.modcheck.Mod10CheckValidationRule;
+import org.rulii.validation.rules.modcheck.Mod10CheckValidationRuleBuilder;
+import org.rulii.validation.rules.modcheck.Mod11CheckValidationRule;
+import org.rulii.validation.rules.modcheck.Mod11CheckValidationRuleBuilder;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.util.Collection;
 
 import static org.rulii.model.function.Functions.function;
@@ -520,5 +543,119 @@ public final class Validators {
      */
     public static Function<?> value(Object value) {
         return function((RuleContext ruleContext) -> value);
+    }
+
+    /**
+     * Creates a builder for {@link org.rulii.validation.rules.unique.UniqueElementsValidationRule}.
+     *
+     * @param function the function that supplies the collection to validate
+     * @return a new {@link UniqueElementsValidationRuleBuilder}
+     */
+    public static UniqueElementsValidationRuleBuilder uniqueElements(Function<?> function) {
+        return UniqueElementsValidationRule.builder(function);
+    }
+
+    /**
+     * Creates a builder for {@link org.rulii.validation.rules.normalized.NormalizedValidationRule}.
+     *
+     * @param function the function that supplies the value to validate
+     * @return a new {@link NormalizedValidationRuleBuilder}
+     */
+    public static NormalizedValidationRuleBuilder normalized(Function<?> function) {
+        return NormalizedValidationRule.builder(function);
+    }
+
+    /**
+     * Creates a builder for {@link org.rulii.validation.rules.codepointlength.CodePointLengthValidationRule}.
+     *
+     * @param function the function that supplies the value to validate
+     * @param min the minimum number of code points (inclusive)
+     * @param max the maximum number of code points (inclusive)
+     * @return a new {@link CodePointLengthValidationRuleBuilder}
+     */
+    public static CodePointLengthValidationRuleBuilder codePointLength(Function<?> function, int min, int max) {
+        return CodePointLengthValidationRule.builder(function, min, max);
+    }
+
+    /**
+     * Creates a builder for {@link org.rulii.validation.rules.uuid.UuidValidationRule}.
+     *
+     * @param function the function that supplies the value to validate
+     * @return a new {@link UuidValidationRuleBuilder}
+     */
+    public static UuidValidationRuleBuilder uuid(Function<?> function) {
+        return UuidValidationRule.builder(function);
+    }
+
+    /**
+     * Creates a builder for {@link org.rulii.validation.rules.duration.DurationMinValidationRule}.
+     *
+     * @param function the function that supplies the duration to validate
+     * @param min the minimum duration
+     * @return a new {@link DurationMinValidationRuleBuilder}
+     */
+    public static DurationMinValidationRuleBuilder durationMin(Function<?> function, Duration min) {
+        return DurationMinValidationRule.builder(function, min);
+    }
+
+    /**
+     * Creates a builder for {@link org.rulii.validation.rules.duration.DurationMaxValidationRule}.
+     *
+     * @param function the function that supplies the duration to validate
+     * @param max the maximum duration
+     * @return a new {@link DurationMaxValidationRuleBuilder}
+     */
+    public static DurationMaxValidationRuleBuilder durationMax(Function<?> function, Duration max) {
+        return DurationMaxValidationRule.builder(function, max);
+    }
+
+    /**
+     * Creates a builder for {@link org.rulii.validation.rules.modcheck.LuhnCheckValidationRule}.
+     *
+     * @param function the function that supplies the value to validate
+     * @return a new {@link LuhnCheckValidationRuleBuilder}
+     */
+    public static LuhnCheckValidationRuleBuilder luhnCheck(Function<?> function) {
+        return LuhnCheckValidationRule.builder(function);
+    }
+
+    /**
+     * Creates a builder for {@link org.rulii.validation.rules.modcheck.Mod10CheckValidationRule}.
+     *
+     * @param function the function that supplies the value to validate
+     * @return a new {@link Mod10CheckValidationRuleBuilder}
+     */
+    public static Mod10CheckValidationRuleBuilder mod10Check(Function<?> function) {
+        return Mod10CheckValidationRule.builder(function);
+    }
+
+    /**
+     * Creates a builder for {@link org.rulii.validation.rules.modcheck.Mod11CheckValidationRule}.
+     *
+     * @param function the function that supplies the value to validate
+     * @return a new {@link Mod11CheckValidationRuleBuilder}
+     */
+    public static Mod11CheckValidationRuleBuilder mod11Check(Function<?> function) {
+        return Mod11CheckValidationRule.builder(function);
+    }
+
+    /**
+     * Creates a builder for {@link org.rulii.validation.rules.ean.EanValidationRule}.
+     *
+     * @param function the function that supplies the value to validate
+     * @return a new {@link EanValidationRuleBuilder}
+     */
+    public static EanValidationRuleBuilder ean(Function<?> function) {
+        return EanValidationRule.builder(function);
+    }
+
+    /**
+     * Creates a builder for {@link org.rulii.validation.rules.isbn.IsbnValidationRule}.
+     *
+     * @param function the function that supplies the value to validate
+     * @return a new {@link IsbnValidationRuleBuilder}
+     */
+    public static IsbnValidationRuleBuilder isbn(Function<?> function) {
+        return IsbnValidationRule.builder(function);
     }
 }

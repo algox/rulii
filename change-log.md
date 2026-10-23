@@ -10,6 +10,18 @@
 - `RuleViolations.addAll(RuleViolation...)`, `addAll(Collection)`, `add(ruleName, errorCode)` and `add(ruleName, errorCode, severity, errorMessage)` now all go through `add(RuleViolation)`. Previously they wrote to the backing list directly, so a subclass overriding `add(RuleViolation)` (the documented extension point) missed violations added through the other methods. Behaviour of a plain `RuleViolations` is unchanged.
 
 #### Validation rules
+- Eleven new validation rules, each with a builder and a `Validators` entry, covering constraints Bean Validation users know from other providers (needed by rulii-bean-validation's own constraint annotations):
+  - `UuidValidationRule` (`Validators.uuid`): the canonical 36-character form, with options for the empty string, the nil UUID, the accepted versions and variants, and the letter case of the hex digits.
+  - `UniqueElementsValidationRule` (`uniqueElements`): a collection holds no element twice.
+  - `NormalizedValidationRule` (`normalized`): a character sequence is in a Unicode normalization form (NFC by default).
+  - `CodePointLengthValidationRule` (`codePointLength`): the number of code points is within bounds, optionally after normalization; supplementary characters count once.
+  - `DurationMinValidationRule` and `DurationMaxValidationRule` (`durationMin`, `durationMax`): a `Duration` against a bound, inclusive or exclusive.
+  - `LuhnCheckValidationRule`, `Mod10CheckValidationRule` and `Mod11CheckValidationRule` (`luhnCheck`, `mod10Check`, `mod11Check`): check-digit tests over a run of digits located by start index, end index and check digit index, non-digit characters dropped or rejected; the arithmetic is public in `ModCheck`.
+  - `EanValidationRule` (`ean`): EAN-13 or EAN-8 barcode numbers.
+  - `IsbnValidationRule` (`isbn`): ISBN-10, ISBN-13 or either by length, separators ignored.
+- `UrlValidationRule` gains options: `protocol`, `host`, `port` and a `regexp` (with `flags`) the URL must also match; the parts are read with `java.net.URI`. Without options it validates as before.
+- `DecimalMinValidationRule` and `DecimalMaxValidationRule` report `inclusive` as a violation parameter beside `min`/`max`, so a message can tell an inclusive bound from an exclusive one.
+- `DecimalMaxValidationRule.DEFAULT_MESSAGE` read "must not be less than or equal to", the inverse of the check; it now reads "must not be greater than".
 - Every validation rule now exposes its supported value types as `public static final List<Class<?>> SUPPORTED_TYPES` (immutable `List.of`). Previously four rules kept the list private (`AssertTrue`, `AssertFalse`, `Digits`, `Email`), and the public ones were mutable, non-final statics built with `Arrays.asList`. Lets rulii-bean-validation check a constraint against the declared property type when the bean class is read, before any rule instance exists; `getSupportedTypes()` and `isSupported(Class)` on the rules are unchanged.
 
 ## [2.1.0]

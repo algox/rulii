@@ -45,7 +45,7 @@ public class DecimalMaxValidationRule extends ValueValidationRule {
     public static final List<Class<?>> SUPPORTED_TYPES = List.of(Number.class, CharSequence.class);
 
     public static final String ERROR_CODE       = "decimalMaxValidationRule.errorCode";
-    public static final String DEFAULT_MESSAGE  = "Value {0} must not be less than or equal to {1}.";
+    public static final String DEFAULT_MESSAGE  = "Value {0} must not be greater than {1}.";
 
     private final BigDecimal max;
     private final boolean inclusive;
@@ -87,7 +87,7 @@ public class DecimalMaxValidationRule extends ValueValidationRule {
 
     @Override
     protected void customizeViolation(RuleContext ruleContext, RuleViolationBuilder builder) {
-        builder.param("max", max);
+        builder.param("max", max).param("inclusive", inclusive);
     }
 
     public BigDecimal getMax() {
