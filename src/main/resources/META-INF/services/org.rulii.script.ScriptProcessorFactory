@@ -1,2 +1,3 @@
 org.rulii.script.graaljs.GraalJsScriptProcessorFactory
 org.rulii.script.janino.JaninoScriptProcessorFactory
+org.rulii.script.el.ElScriptProcessorFactory

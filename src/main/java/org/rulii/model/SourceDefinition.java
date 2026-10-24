@@ -17,6 +17,7 @@
  */
 package org.rulii.model;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -117,6 +118,20 @@ public class SourceDefinition {
     public static SourceDefinition forMethod(Method method) {
         if (method == null) throw new IllegalArgumentException("method cannot be null.");
         return new SourceDefinition(method.getDeclaringClass().getName(), method.getName(), null, null, null);
+    }
+
+    /**
+     * A source that is a constructor: a constraint declared on a constructor or one of its parameters,
+     * for example. The method name recorded is the constructor's simple class name, as the
+     * specification names constructor nodes.
+     *
+     * @param constructor the constructor; must not be null.
+     * @return source definition with the declaring class name and the class's simple name as the method name.
+     * @since 2.2
+     */
+    public static SourceDefinition forConstructor(Constructor<?> constructor) {
+        if (constructor == null) throw new IllegalArgumentException("constructor cannot be null.");
+        return new SourceDefinition(constructor.getDeclaringClass().getName(), constructor.getDeclaringClass().getSimpleName(), null, null, null);
     }
 
     private static final StackWalker WALKER = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);

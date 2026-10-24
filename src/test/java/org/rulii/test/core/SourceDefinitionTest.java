@@ -158,6 +158,18 @@ public class SourceDefinitionTest {
     }
 
     @Test
+    public void constructorSourceRecordsClassAndSimpleName() throws Exception {
+        SourceDefinition source = SourceDefinition.forConstructor(Bean.class.getDeclaredConstructor());
+
+        Assertions.assertEquals(Bean.class.getName(), source.getClassName());
+        Assertions.assertEquals("Bean", source.getMethodName());
+        Assertions.assertNull(source.getFieldName());
+        Assertions.assertNull(source.getFileName());
+        Assertions.assertNull(source.getLineNumber());
+        Assertions.assertThrows(IllegalArgumentException.class, () -> SourceDefinition.forConstructor(null));
+    }
+
+    @Test
     public void existingSourcesHaveNoField() {
         Assertions.assertNull(SourceDefinition.build().getFieldName());
         Assertions.assertNull(SourceDefinition.forClass(Bean.class).getFieldName());
