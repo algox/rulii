@@ -17,6 +17,9 @@
  */
 package org.rulii.context;
 
+import org.rulii.bind.Bindings;
+import org.rulii.bind.LocalBindings;
+import org.rulii.bind.RuleRunBindings;
 import org.rulii.bind.ScopedBindings;
 import org.rulii.bind.match.BindingMatchingStrategy;
 import org.rulii.bind.match.ParameterResolver;
@@ -326,6 +329,23 @@ public class RuleContext implements Immutator<RuleContext> {
                 messageFormatter, objectFactory, tracer, converterRegistry, clock, executorService, ruleRegistry);
         RuleContextBuilder.bindReserved(forked.getCurrentScope().getBindings(), forked, result);
         return result;
+    }
+
+    /**
+     * Creates the context for one run of a rule that declared a {@link LocalBindings} parameter: this context's id
+     * and services, over a {@link RuleRunBindings} view of these very bindings that adds the run's fresh
+     * {@code localBindings} and nothing else. Binds, scopes, listeners and forks through the view go to these
+     * bindings, so the caller sees everything the rule's actions bind, and nothing of the local bindings. The
+     * reserved {@code ruleContext} and {@code bindings} still resolve to this context and these bindings.
+     *
+     * <p>Called by the rule execution strategy; the local bindings live as long as the returned context is used.
+     *
+     * @return a per-run {@code RuleContext} with local bindings; never null.
+     */
+    public RuleContext withLocalBindings() {
+        return new RuleContext(id, creationTime, new RuleRunBindings(bindings, Bindings.builder().local()), locale,
+                matchingStrategy, parameterResolver, messageResolver, messageFormatter, objectFactory, tracer,
+                converterRegistry, clock, executorService, ruleRegistry);
     }
 
     @Override

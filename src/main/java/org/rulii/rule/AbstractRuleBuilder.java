@@ -19,9 +19,12 @@ package org.rulii.rule;
 
 import org.rulii.lib.apache.commons.logging.Log;
 import org.rulii.lib.apache.commons.logging.LogFactory;
+import org.rulii.bind.LocalBindings;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.MethodDefinition;
+import org.rulii.model.ParameterDefinition;
 import org.rulii.model.SourceDefinition;
+import org.rulii.model.UnrulyException;
 import org.rulii.model.action.Action;
 import org.rulii.model.condition.Condition;
 import org.rulii.model.condition.Conditions;
@@ -286,12 +289,59 @@ public abstract class AbstractRuleBuilder<T> {
             thenActionDefinitions.add(thenAction.getDefinition());
         }
 
+        MethodDefinition preConditionDefinition = getConditionDefinition(getPreCondition());
+        MethodDefinition conditionDefinition = getConditionDefinition(getCondition());
+        MethodDefinition otherwiseDefinition = getOtherwiseAction() != null ? getOtherwiseAction().getDefinition() : null;
+
+        List<MethodDefinition> all = new ArrayList<>(thenActionDefinitions);
+        all.add(preConditionDefinition);
+        all.add(conditionDefinition);
+        all.add(otherwiseDefinition);
+        boolean usesLocalBindings = declaresLocalBindings(all);
+
+        if (usesLocalBindings && !supportsLocalBindings()) {
+            throw new UnrulyException("Rule [" + getName() + "] declares a " + LocalBindings.class.getSimpleName()
+                    + " parameter. Local bindings are available to class-based rules (a class annotated with @Rule) only.");
+        }
+
         return new RuleDefinition(getRuleClass(), inline, getName(), getDescription(), getCategory(), getTags(),
                 source != null ? source : defaultSource(),
-                getConditionDefinition(getPreCondition()),
-                getConditionDefinition(getCondition()),
+                preConditionDefinition,
+                conditionDefinition,
                 thenActionDefinitions,
-                getOtherwiseAction() != null ? getOtherwiseAction().getDefinition() : null);
+                otherwiseDefinition,
+                usesLocalBindings);
+    }
+
+    /**
+     * Whether this builder's rules may declare {@link LocalBindings}. Only a class-based rule can: the
+     * declaration is read off the rule class at build time. The default is false.
+     *
+     * @return true if local bindings are supported.
+     */
+    protected boolean supportsLocalBindings() {
+        return false;
+    }
+
+    /**
+     * Whether any of the given method definitions (nulls allowed) declares a parameter of the exact type
+     * {@link LocalBindings}.
+     *
+     * @param definitions the definitions to look at.
+     * @return true if one does.
+     */
+    protected static boolean declaresLocalBindings(Collection<MethodDefinition> definitions) {
+        for (MethodDefinition definition : definitions) {
+            if (definition == null) continue;
+
+            for (ParameterDefinition parameter : definition.getParameterDefinitions()) {
+                if (LocalBindings.class.equals(parameter.getUnderlyingType())) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**

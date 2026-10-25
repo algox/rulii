@@ -60,6 +60,8 @@ public final class RuleDefinition implements Definition, Categorized {
     private final List<MethodDefinition> thenActionDefinitions;
     // Otherwise action
     private final MethodDefinition otherwiseActionDefinition;
+    // Whether a rule method declares a LocalBindings parameter (class-based rules only)
+    private final boolean usesLocalBindings;
 
     /**
      * Creates a RuleDefinition taking in all the required parameters.
@@ -96,8 +98,26 @@ public final class RuleDefinition implements Definition, Categorized {
                           MethodDefinition conditionDefinition,
                           List<MethodDefinition> thenActionDefinitions,
                           MethodDefinition otherwiseActionDefinition) {
+        this(ruleClass, inline, name, description, category, tags, sourceDefinition, preConditionDefinition,
+                conditionDefinition, thenActionDefinitions, otherwiseActionDefinition, false);
+    }
+
+    /**
+     * @param usesLocalBindings whether a rule method declares a {@link org.rulii.bind.LocalBindings} parameter,
+     *                          so each run is given local bindings of its own; the builders determine this.
+     * @since 2.2
+     */
+    public RuleDefinition(Class<?> ruleClass, boolean inline, String name, String description,
+                          String category, List<String> tags,
+                          SourceDefinition sourceDefinition,
+                          MethodDefinition preConditionDefinition,
+                          MethodDefinition conditionDefinition,
+                          List<MethodDefinition> thenActionDefinitions,
+                          MethodDefinition otherwiseActionDefinition,
+                          boolean usesLocalBindings) {
         super();
         setName(name);
+        this.usesLocalBindings = usesLocalBindings;
         this.ruleClass = ruleClass;
         this.inline = inline;
         this.description = description;
@@ -208,6 +228,17 @@ public final class RuleDefinition implements Definition, Categorized {
         return conditionDefinition != null && conditionDefinition.isStatic();
     }
 
+    /**
+     * Whether a rule method declares a {@link org.rulii.bind.LocalBindings} parameter. When true the engine
+     * runs the rule with local bindings of its own for each run (see {@code RuleContext.withLocalBindings()}).
+     *
+     * @return true if the rule asked for local bindings.
+     * @since 2.2
+     */
+    public boolean usesLocalBindings() {
+        return usesLocalBindings;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -233,6 +264,7 @@ public final class RuleDefinition implements Definition, Categorized {
                 ", conditionDefinition=" + conditionDefinition +
                 ", thenActionDefinitions=" + thenActionDefinitions +
                 ", otherwiseActionDefinition=" + otherwiseActionDefinition +
+                ", usesLocalBindings=" + usesLocalBindings +
                 '}';
     }
 }

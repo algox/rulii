@@ -61,9 +61,11 @@ public class DefaultRuleExecutionStrategy extends RuleExecutionStrategyTemplate 
         ruleContext.getTracer().fireOnRuleStart(rule);
         if (logger.isDebugEnabled()) logger.debug("Rule [" + rule.getName() + "]  Class [" + rule.getDefinition().getRuleClass() + "] Execution.");
         RuleResult result = null;
+        // The rule's methods run with the caller's context, or with per-run local bindings over it when the rule asked.
+        RuleContext effective = contextFor(rule, ruleContext);
 
         try {
-            boolean preConditionCheck = checkPreCondition(rule, ruleContext);
+            boolean preConditionCheck = checkPreCondition(rule, effective);
 
             // We did not pass the Pre-Condition
             if (!preConditionCheck) {
@@ -73,15 +75,15 @@ public class DefaultRuleExecutionStrategy extends RuleExecutionStrategyTemplate 
             }
 
             // Check the given condition
-            boolean conditionCheck = checkCondition(rule, ruleContext);
+            boolean conditionCheck = checkCondition(rule, effective);
 
             // The Condition passed
             if (conditionCheck) {
                 if (logger.isDebugEnabled()) logger.debug("Rule [" + rule.getName() + "] given condition passed. Actions to be executed.");
-                runActions(rule, ruleContext);
+                runActions(rule, effective);
             } else {
                 if (logger.isDebugEnabled()) logger.debug("Rule [" + rule.getName() + "] given condition has failed.");
-                runOtherwiseAction(rule, ruleContext);
+                runOtherwiseAction(rule, effective);
             }
 
             result = new RuleResult(rule, conditionCheck ? RuleExecutionStatus.PASS : RuleExecutionStatus.FAIL);

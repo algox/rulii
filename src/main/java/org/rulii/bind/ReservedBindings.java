@@ -33,6 +33,7 @@ public enum ReservedBindings {
 
     RULE_CONTEXT("ruleContext"),
     BINDINGS("bindings"),
+    LOCAL_BINDINGS("localBindings"),
     RULE("rule"),
     BINDING_NAME("bindingName"),
     PARENT_BINDING_NAME("parentBindingName"),

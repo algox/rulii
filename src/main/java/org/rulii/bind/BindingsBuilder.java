@@ -59,6 +59,16 @@ public final class BindingsBuilder {
     }
 
     /**
+     * Create Local Bindings: the bindings of one run of one rule (see {@link LocalBindings}). Created by the
+     * engine for a rule that declares the parameter; exposed for tests and custom execution strategies.
+     *
+     * @return Local Bindings.
+     */
+    public LocalBindings local() {
+        return new LocalBindings();
+    }
+
+    /**
      * Create Scoped Bindings.
      *
      * @return Scoped Bindings.

@@ -71,6 +71,17 @@ public class ClassBasedRuleBuilder<T> extends AbstractRuleBuilder<T> {
     }
 
     /**
+     * A class-based rule may declare {@link org.rulii.bind.LocalBindings} on its methods: the declaration is
+     * read off the class at build time.
+     *
+     * @return true.
+     */
+    @Override
+    protected boolean supportsLocalBindings() {
+        return true;
+    }
+
+    /**
      * Creates a ClassBasedRuleBuilder instance with the specified ruleClass and target object.
      *
      * @param <T> the type of the ruleClass and target object

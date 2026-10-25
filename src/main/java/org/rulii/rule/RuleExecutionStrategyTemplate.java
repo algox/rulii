@@ -100,8 +100,23 @@ public abstract class RuleExecutionStrategyTemplate implements RuleExecutionStra
      */
     @Override
     public boolean isTrue(Rule rule, RuleContext ruleContext) {
-        if (!checkPreCondition(rule, ruleContext)) return false;
-        return checkCondition(rule, ruleContext);
+        RuleContext effective = contextFor(rule, ruleContext);
+        if (!checkPreCondition(rule, effective)) return false;
+        return checkCondition(rule, effective);
+    }
+
+    /**
+     * The context the rule's methods run with: the given one, or, when the rule declares a
+     * {@link org.rulii.bind.LocalBindings} parameter, a per-run context with local bindings over it
+     * ({@link RuleContext#withLocalBindings()}). The tracer is notified with the given context either way.
+     *
+     * @param rule the rule.
+     * @param ruleContext the caller's context.
+     * @return the context to run the rule's methods with.
+     */
+    protected RuleContext contextFor(Rule rule, RuleContext ruleContext) {
+        RuleDefinition definition = rule.getDefinition();
+        return definition != null && definition.usesLocalBindings() ? ruleContext.withLocalBindings() : ruleContext;
     }
 
     /**
