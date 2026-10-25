@@ -265,4 +265,20 @@ public interface ScopedBindings extends Bindings {
     default ImmutableScopedBindings asImmutable() {
         return this instanceof ImmutableScopedBindings ? (ImmutableScopedBindings) this : new ImmutableScopedBindings(this);
     }
+
+    /**
+     * Creates a fork of these Bindings for work that proceeds independently of this stack, typically on another
+     * thread. The fork starts with every scope currently on this stack, by reference, and a fresh scope of its own
+     * on top. The inherited scopes are shared: a value set through either stack is seen by both, and a Binding added
+     * by this stack into an inherited scope is visible to the fork. Everything structural is private: the fork
+     * cannot see scopes added here after the fork, keeps seeing inherited scopes removed here after the fork, and
+     * its own Bindings and scopes are never visible here. The fork cannot pop below its first own scope.
+     *
+     * <p>The reserved {@code ruleContext} and {@code bindings} are not inherited: they describe the stack they were
+     * bound in, so a fork rebinds its own (see {@code RuleContext.fork()}). An inherited scope holding them is seen by
+     * the fork as a scope of the same name over the same Binding objects minus those two.
+     *
+     * @return a new, independent scoped Bindings sharing the scopes present at the time of the call.
+     */
+    ScopedBindings fork();
 }

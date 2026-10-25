@@ -654,6 +654,30 @@ public class RuleSetTest {
     }
 
     @Test
+    public void runAsyncRunsOnAForkOfTheCallerContext() throws ExecutionException, InterruptedException {
+        List<RuleContext> seen = new ArrayList<>();
+        RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("forkedSet")
+                .rule(Rule.builder().name("r1")
+                        .then(action((RuleContext ruleContext, Bindings bindings) -> {
+                            seen.add(ruleContext);
+                            bindings.setValue("a", "changed");
+                        }))
+                        .build())
+                .build();
+        RuleContext caller = RuleContext.builder().build(a -> "abc");
+
+        ruleSet.runAsync(caller).get();
+
+        // The rule set ran on a fork: a different context sharing the caller's bindings by reference.
+        Assertions.assertEquals(1, seen.size());
+        Assertions.assertNotSame(caller, seen.get(0));
+        Assertions.assertNotSame(caller.getBindings(), seen.get(0).getBindings());
+        Assertions.assertSame(caller.getExecutorService(), seen.get(0).getExecutorService());
+        Assertions.assertEquals("changed", caller.getBindings().getValue("a"));
+        Assertions.assertSame(caller, caller.getBindings().getValue("ruleContext"));
+    }
+
+    @Test
     public void test30() {
         RuleSet<RuleSetExecutionStatus> ruleSet = RuleSet.builder().with("TestRuleSet")
                 .rule(NotNullValidationRule.builder(binding("a")).build())

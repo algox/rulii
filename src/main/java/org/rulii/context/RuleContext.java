@@ -307,6 +307,27 @@ public class RuleContext implements Immutator<RuleContext> {
                 messageResolver, messageFormatter, objectFactory, tracer, converterRegistry, clock, executorService, ruleRegistry);
     }
 
+    /**
+     * Creates a fork of this context for work that proceeds independently of the caller, typically on another
+     * thread. The fork is a new context (new id) with the same services and a {@link ScopedBindings#fork() fork} of
+     * the bindings: it shares every scope present at the time of the call, by reference, and owns a fresh scope on
+     * top. Values set through either context are seen by both; Bindings and scopes added by the fork are never seen
+     * here, and scopes added here after the call are never seen by the fork. The reserved {@code ruleContext} and
+     * {@code bindings} resolve to the fork inside the fork.
+     *
+     * <p>Take the fork on the calling thread at the moment of the hand-off, so that it captures the caller's scopes
+     * as they stand then.
+     *
+     * @return a new {@code RuleContext} over forked bindings; never null.
+     */
+    public RuleContext fork() {
+        ScopedBindings forked = bindings.fork();
+        RuleContext result = new RuleContext(forked, locale, matchingStrategy, parameterResolver, messageResolver,
+                messageFormatter, objectFactory, tracer, converterRegistry, clock, executorService, ruleRegistry);
+        RuleContextBuilder.bindReserved(forked.getCurrentScope().getBindings(), forked, result);
+        return result;
+    }
+
     @Override
     public String toString() {
         return "RuleContext{" +

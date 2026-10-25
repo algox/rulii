@@ -30,9 +30,10 @@ import java.util.function.Consumer;
  *   <li>{@link #as(String)} — bind the resulting {@link java.util.concurrent.CompletableFuture}
  *       into the current scope under the given name.</li>
  *   <li>{@link #withImmutableBindings()} — launch the async step in a new context backed by
- *       an immutable snapshot of the caller's bindings ({@link AsyncContextMode#IMMUTABLE}).</li>
+ *       an immutable snapshot of the caller's bindings ({@link AsyncContextMode#IMMUTABLE}),
+ *       instead of the default fork of the caller's context ({@link AsyncContextMode#INHERITED}).</li>
  *   <li>{@link #withContext(RuleContext)} — launch the async step using a completely separate,
- *       user-supplied context ({@link AsyncContextMode#CUSTOM}).</li>
+ *       user-supplied context ({@link AsyncContextMode#CUSTOM}), instead of the default fork.</li>
  *   <li>{@link #thenRun(String, Consumer)} — chain a follow-up command body that runs on the
  *       async completion thread once the step finishes, without blocking the flow.</li>
  *   <li>{@link #onException(Class, Consumer)} - recover from a failure of the task or, if
@@ -79,8 +80,10 @@ public class AsyncRunSpec<SELF extends RuleFlowBuilderTemplate<SELF>> {
 
     /**
      * Launches the async step in a new {@link RuleContext} backed by an immutable snapshot of
-     * the caller's current bindings. The async task can read all values visible at the time
-     * {@code asyncRun} executes, but cannot mutate the caller's bindings.
+     * the caller's current bindings, instead of the default {@link RuleContext#fork() fork}. The
+     * async task can read all values visible at the time {@code asyncRun} executes, but cannot
+     * mutate the caller's bindings, nor push scopes of its own (so a rule set or nested flow
+     * cannot run in this mode).
      *
      * @return this spec.
      */
@@ -90,8 +93,9 @@ public class AsyncRunSpec<SELF extends RuleFlowBuilderTemplate<SELF>> {
     }
 
     /**
-     * Launches the async step using the supplied {@link RuleContext}. The async task operates
-     * on a completely independent context with its own bindings and services.
+     * Launches the async step using the supplied {@link RuleContext}, instead of the default
+     * {@link RuleContext#fork() fork} of the caller's context. The async task operates on a
+     * completely independent context with its own bindings and services.
      *
      * @param context the context for the async step; must not be null.
      * @return this spec.
@@ -109,8 +113,9 @@ public class AsyncRunSpec<SELF extends RuleFlowBuilderTemplate<SELF>> {
      *
      * <p>The body runs on the same thread that completes the async task (via the calling
      * {@link RuleContext}'s executor service), against the async step's resolved context —
-     * the caller's shared context under {@link AsyncContextMode#SHARED}, or the isolated
-     * context under {@link AsyncContextMode#IMMUTABLE}/{@link AsyncContextMode#CUSTOM}. The
+     * the fork of the caller's context under {@link AsyncContextMode#INHERITED} (so the body sees
+     * what the task bound), or the isolated context under {@link AsyncContextMode#IMMUTABLE}/
+     * {@link AsyncContextMode#CUSTOM}. The
      * resolved value is bound under {@code resultBindingName} for the duration of the body,
      * in a scope that is removed once the body completes.
      *

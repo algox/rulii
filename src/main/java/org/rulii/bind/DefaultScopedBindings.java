@@ -41,6 +41,9 @@ public class DefaultScopedBindings implements ScopedBindings, Map<String, Object
 
     private final Stack<NamedScope> scopes = new Stack<>();
     private final List<BindingListener> listeners = new LinkedList<>();
+    // Number of scopes inherited from a parent by fork(); zero for a stack of our own. Scopes below
+    // the floor are shared with the parent and never popped, listened to or searched for removal here.
+    private final int floor;
 
     DefaultScopedBindings(String name) {
         this(name, builder().standard());
@@ -50,7 +53,72 @@ public class DefaultScopedBindings implements ScopedBindings, Map<String, Object
         super();
         Assert.hasText(name, "name cannot be null/empty.");
         Assert.notNull(bindings, "bindings cannot be null.");
+        this.floor = 0;
         this.scopes.push(new NamedScope(name, bindings));
+    }
+
+    /**
+     * Creates a fork: the inherited scopes (by reference, shared with the parent) at the bottom, the parent's
+     * listeners copied, and a fresh scope of the given name on top as the first scope this stack owns.
+     *
+     * <p>The reserved {@code ruleContext} and {@code bindings} are not inherited: they describe the stack they were
+     * bound in (the parent's {@code bindings} is the parent's stack), so a fork rebinds its own. An inherited scope
+     * holding them is replaced by a scope of the same name over the same Binding objects minus those two; every other
+     * scope is inherited as is.
+     *
+     * @param inherited the parent's scopes at the time of the fork; must not be empty.
+     * @param forkScopeName name of the first owned scope.
+     * @param listeners the parent's listeners.
+     */
+    DefaultScopedBindings(List<NamedScope> inherited, String forkScopeName, List<BindingListener> listeners) {
+        super();
+        Assert.notNull(inherited, "inherited cannot be null.");
+        Assert.isTrue(!inherited.isEmpty(), "inherited cannot be empty.");
+        Assert.hasText(forkScopeName, "forkScopeName cannot be null/empty.");
+        Assert.notNull(listeners, "listeners cannot be null.");
+        this.floor = inherited.size();
+
+        for (NamedScope scope : inherited) {
+            this.scopes.push(withoutReservedPair(scope));
+        }
+
+        this.listeners.addAll(listeners);
+        this.scopes.push(new NamedScope(forkScopeName, createBindings()));
+    }
+
+    @Override
+    public ScopedBindings fork() {
+        return new DefaultScopedBindings(scopes, "fork-scope-" + UUID.randomUUID(), listeners);
+    }
+
+    /**
+     * The scope itself if it holds neither reserved {@code ruleContext} nor {@code bindings}; otherwise a scope of the
+     * same name over the same Binding objects (values stay shared) minus those two.
+     */
+    private static NamedScope withoutReservedPair(NamedScope scope) {
+        Bindings source = scope.getBindings();
+        String ruleContext = ReservedBindings.RULE_CONTEXT.getName();
+        String bindings = ReservedBindings.BINDINGS.getName();
+
+        if (!source.contains(ruleContext) && !source.contains(bindings)) {
+            return scope;
+        }
+
+        Bindings result = builder().standard();
+
+        for (Binding<?> binding : source) {
+            if (ruleContext.equals(binding.getName()) || bindings.equals(binding.getName())) {
+                continue;
+            }
+
+            if (result instanceof PromiscuousBinder promiscuous) {
+                promiscuous.promiscuousBind(binding);
+            } else {
+                result.bind(binding);
+            }
+        }
+
+        return new NamedScope(scope.getName(), result);
     }
 
     @Override
@@ -131,8 +199,8 @@ public class DefaultScopedBindings implements ScopedBindings, Map<String, Object
 
     @Override
     public NamedScope removeScope() {
-        // Check to make sure we are not removing the root scope
-        if (scopes.size() == 1) {
+        // Check to make sure we are not removing the root scope (the fork scope, in a fork)
+        if (scopes.size() == floor + 1) {
             throw new CannotRemoveRootScopeException();
         }
 
@@ -165,13 +233,13 @@ public class DefaultScopedBindings implements ScopedBindings, Map<String, Object
     public NamedScope removeScope(Bindings target) {
         Assert.notNull(target, "target cannot be null.");
 
-        // Check to make sure we are not removing the root scope
-        if (scopes.size() == 1) {
+        // Check to make sure we are not removing the root scope (the fork scope, in a fork)
+        if (scopes.size() == floor + 1) {
             throw new CannotRemoveRootScopeException();
         }
 
         boolean found = false;
-        for (NamedScope scope : scopes) {
+        for (NamedScope scope : getOwnedScopes()) {
             // Compare the reference to make sure we match.
             if (scope.getBindings() == target) {
                 found = true;
@@ -179,7 +247,7 @@ public class DefaultScopedBindings implements ScopedBindings, Map<String, Object
             }
         }
 
-        // Could not find the requested Bindings
+        // Could not find the requested Bindings (an inherited scope is not ours to remove)
         if (!found) {
             throw new NoSuchBindingsException(target);
         }
@@ -200,7 +268,7 @@ public class DefaultScopedBindings implements ScopedBindings, Map<String, Object
         Assert.notNull(target, "target cannot be null.");
 
         boolean found = false;
-        for (NamedScope scope : scopes) {
+        for (NamedScope scope : getOwnedScopes()) {
             // Compare the reference to make sure we match.
             if (scope == target) {
                 found = true;
@@ -208,7 +276,7 @@ public class DefaultScopedBindings implements ScopedBindings, Map<String, Object
             }
         }
 
-        // Could not find the requested Bindings
+        // Could not find the requested Scope (an inherited scope is not ours to remove)
         if (!found) {
             throw new NoSuchScopeException(target);
         }
@@ -382,8 +450,8 @@ public class DefaultScopedBindings implements ScopedBindings, Map<String, Object
     public void addBindingListener(BindingListener listener) {
         Assert.notNull(listener, "listener cannot be null.");
         this.listeners.add(listener);
-        // Add listener to all scopes
-        scopes.forEach((NamedScope scope) -> scope.getBindings().addBindingListener(listener));
+        // Add listener to all the scopes we own (inherited scopes belong to the parent)
+        getOwnedScopes().forEach((NamedScope scope) -> scope.getBindings().addBindingListener(listener));
     }
 
     @Override
@@ -391,7 +459,7 @@ public class DefaultScopedBindings implements ScopedBindings, Map<String, Object
         Assert.notNull(listener, "listener cannot be null.");
         AtomicBoolean result = new AtomicBoolean(false);
 
-        scopes.forEach((NamedScope scope) -> {
+        getOwnedScopes().forEach((NamedScope scope) -> {
             if (scope.getBindings().removeBindingListener(listener)) {
                 result.set(true);
             }
@@ -417,6 +485,15 @@ public class DefaultScopedBindings implements ScopedBindings, Map<String, Object
 
     private List<NamedScope> getScopes() {
         return scopes;
+    }
+
+    /**
+     * The scopes this stack owns: everything above the inherited floor (all of them for a stack of our own).
+     *
+     * @return owned scopes, bottom first.
+     */
+    private List<NamedScope> getOwnedScopes() {
+        return floor == 0 ? scopes : scopes.subList(floor, scopes.size());
     }
 
     @Override

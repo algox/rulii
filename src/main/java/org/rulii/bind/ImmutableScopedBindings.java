@@ -215,6 +215,11 @@ public class ImmutableScopedBindings implements ScopedBindings, Map<String, Obje
     }
 
     @Override
+    public ScopedBindings fork() {
+        throw new UnsupportedOperationException("Bindings are immutable.");
+    }
+
+    @Override
     public Map<String, Object> asMap() {
         return this;
     }

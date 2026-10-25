@@ -24,7 +24,9 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * Async {@link RuleFlowExecutionStrategy} — wraps the sequential strategy in a
- * {@link CompletableFuture#supplyAsync} using the context's executor service.
+ * {@link CompletableFuture#supplyAsync} using the context's executor service. The flow runs on a
+ * {@link RuleContext#fork() fork} of the given context, taken on the calling thread before the
+ * hand-off, so the caller's scope stack is never touched from the executor thread.
  *
  * @param <T> the flow result type (not the future wrapper type).
  *
@@ -40,11 +42,14 @@ class AsyncRuleFlowExecutionStrategy<T> extends RuleFlowExecutionStrategyTemplat
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<T> run(RuleFlow<?> ruleFlow, RuleContext ruleContext) throws UnrulyException {
+        // Fork here, on the calling thread, so the fork captures the caller's scopes as they stand now.
+        RuleContext forked = ruleContext.fork();
+
         return CompletableFuture.supplyAsync(() -> {
             RuleFlowExecutionStrategy<T> strategy = RuleFlowExecutionStrategy.build();
 
             try {
-                return strategy.run(ruleFlow, ruleContext);
+                return strategy.run(ruleFlow, forked);
             } catch (RuleFlowReturn r) {
                 return (T) r.getResult();
             }

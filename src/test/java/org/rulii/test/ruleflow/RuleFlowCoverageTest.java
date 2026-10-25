@@ -195,10 +195,8 @@ public class RuleFlowCoverageTest {
         RuleFlow<?> nested = RuleFlow.builder().name("asyncNested")
                 .execute(action(() -> { counter.incrementAndGet(); })).build();
 
-        // withImmutableBindings() isolates each task in its own context: in the default SHARED
-        // mode all tasks push/pop scopes on the caller's own scope stack, racing with the main
-        // thread's as() bindings (an f-binding can land in a task's transient scope and vanish
-        // with it - observed as intermittent NoSuchBindingException on awaitAll).
+        // withImmutableBindings() runs each task over an immutable snapshot of the caller's
+        // bindings instead of the default fork; the overloads are what is under test here.
         RuleFlow<RuleContext> flow = RuleFlow.builder()
                 .name("asyncOverloadFlow")
                 .asyncRun(ruleSet, spec -> spec.as("f1").withImmutableBindings())
@@ -225,10 +223,8 @@ public class RuleFlowCoverageTest {
         RuleFlow<?> nested = RuleFlow.builder().name("fafNested")
                 .execute(action(() -> {})).build();
 
-        // No as() binding - fire-and-forget; the flow itself must still complete cleanly.
-        // SHARED-mode tasks race on the caller's scope stack (see testAsyncRunOverloads), so a
-        // task may fail in the background - but with nothing awaiting the futures, the flow's
-        // own completion must be unaffected either way.
+        // No as() binding - fire-and-forget; the flow itself must still complete cleanly. Each
+        // task runs on its own fork of the flow's context, so nothing it does can disturb the flow.
         RuleFlow<RuleContext> flow = RuleFlow.builder()
                 .name("fireAndForgetFlow")
                 .asyncRun(ruleSet)
@@ -482,13 +478,13 @@ public class RuleFlowCoverageTest {
     public void testAsyncRunCommand_getters() {
         Rule rule = Rule.builder().name("asyncGetterRule").given(condition(() -> true)).build();
         AsyncRunCommand command = new AsyncRunCommand(rule, null, null, "future",
-                AsyncContextMode.SHARED, null, null, null, null);
+                AsyncContextMode.INHERITED, null, null, null, null);
 
         Assertions.assertSame(rule, command.getRunnable());
         Assertions.assertNull(command.getNameInRegistry());
         Assertions.assertNull(command.getClassInRegistry());
         Assertions.assertEquals("future", command.getBindingName());
-        Assertions.assertEquals(AsyncContextMode.SHARED, command.getContextMode());
+        Assertions.assertEquals(AsyncContextMode.INHERITED, command.getContextMode());
         Assertions.assertNull(command.getCustomContext());
         Assertions.assertNull(command.getContinuationResultBindingName());
         Assertions.assertTrue(command.getContinuation().isEmpty());

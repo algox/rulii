@@ -400,8 +400,7 @@ public class RuleContextBuilder {
                 messageResolver, messageFormatter, objectFactory, tracer,
                 converterRegistry, clock, executorService, ruleRegistry);
 
-        bindReserved(scopedBindings, ReservedBindings.BINDINGS.getName(), Bindings.class, scopedBindings);
-        bindReserved(scopedBindings, ReservedBindings.RULE_CONTEXT.getName(), RuleContext.class, result);
+        bindReserved(scopedBindings.getRootScope().getBindings(), scopedBindings, result);
 
         scopedBindings.addScope(ScopedBindings.GLOBAL_SCOPE, bindings != null ? bindings : Bindings.builder().standard());
 
@@ -409,11 +408,21 @@ public class RuleContextBuilder {
     }
 
     /**
-     * Injects a reserved, final binding into the given scoped bindings' root scope, bypassing the
-     * normal reserved-name check via {@link PromiscuousBinder}.
+     * Injects the reserved pair, {@code bindings} and {@code ruleContext}, as final bindings into the given scope,
+     * bypassing the normal reserved-name check via {@link PromiscuousBinder}. Used for the root scope of a new
+     * context and for the first own scope of a fork (see {@link RuleContext#fork()}).
+     *
+     * @param scope the scope bindings to inject into; must be a {@link PromiscuousBinder}.
+     * @param bindings the value of the {@code bindings} binding.
+     * @param ruleContext the value of the {@code ruleContext} binding.
      */
-    private static void bindReserved(ScopedBindings scopedBindings, String name, Type type, Object value) {
-        ((PromiscuousBinder) (scopedBindings.getRootScope().getBindings())).promiscuousBind(Binding.builder()
+    static void bindReserved(Bindings scope, ScopedBindings bindings, RuleContext ruleContext) {
+        bindReserved(scope, ReservedBindings.BINDINGS.getName(), Bindings.class, bindings);
+        bindReserved(scope, ReservedBindings.RULE_CONTEXT.getName(), RuleContext.class, ruleContext);
+    }
+
+    private static void bindReserved(Bindings scope, String name, Type type, Object value) {
+        ((PromiscuousBinder) scope).promiscuousBind(Binding.builder()
                 .with(name)
                     .type(type)
                     .isFinal(true)

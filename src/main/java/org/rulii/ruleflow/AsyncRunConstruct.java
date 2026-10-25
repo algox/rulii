@@ -42,7 +42,7 @@ class AsyncRunConstruct extends CommandConstruct {
     private final Class<?> classInRegistry;
 
     private String bindingName = null;
-    private AsyncContextMode contextMode = AsyncContextMode.SHARED;
+    private AsyncContextMode contextMode = AsyncContextMode.INHERITED;
     private RuleContext customContext = null;
     private String continuationResultBindingName = null;
     private List<RuleFlowCommand> continuation = Collections.emptyList();

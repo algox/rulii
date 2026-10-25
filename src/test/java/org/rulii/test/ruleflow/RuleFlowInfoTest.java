@@ -260,7 +260,7 @@ public class RuleFlowInfoTest {
 
         CommandInfo.AsyncRun byName = info(flow, 1, CommandInfo.AsyncRun.class);
         Assertions.assertEquals("byName", ((Target.ByName) byName.target()).name());
-        Assertions.assertEquals(AsyncContextMode.SHARED, byName.mode());
+        Assertions.assertEquals(AsyncContextMode.INHERITED, byName.mode());
         Assertions.assertNull(byName.then());
 
         CommandInfo.Await one = info(flow, 2, CommandInfo.Await.class);

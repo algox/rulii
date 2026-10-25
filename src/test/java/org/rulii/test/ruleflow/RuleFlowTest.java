@@ -29,6 +29,7 @@ import org.rulii.registry.RuleRegistry;
 import org.rulii.rule.Rule;
 import org.rulii.ruleflow.DefaultRuleFlowBuilder;
 import org.rulii.ruleflow.RuleFlow;
+import org.rulii.ruleset.RuleSet;
 import org.rulii.trace.Tracer;
 
 import java.util.ArrayList;
@@ -36,6 +37,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -1906,6 +1908,164 @@ public class RuleFlowTest {
 
         flow.run();
         assertEquals(List.of("first"), log);
+    }
+
+    // =========================================================================
+    // asyncRun / INHERITED (the default): each task runs on a fork of the flow's context
+    // =========================================================================
+
+    @Test
+    public void testAsyncRun_inherited_ruleSetsUnderAwaitAll_everyTime() {
+        // Rule sets push scopes of their own. On a fork of the flow's context that is safe, also while
+        // the flow itself pushes and pops a rule set scope. Repeated to shake out any timing dependence.
+        for (int i = 0; i < 25; i++) {
+            List<String> log = Collections.synchronizedList(new ArrayList<>());
+            RuleSet<?> rs1 = RuleSet.builder().with("rs1").rule(Rule.builder().name("r1").then(action(() -> log.add("r1"))).build()).build();
+            RuleSet<?> rs2 = RuleSet.builder().with("rs2").rule(Rule.builder().name("r2").then(action(() -> log.add("r2"))).build()).build();
+            RuleSet<?> rs3 = RuleSet.builder().with("rs3").rule(Rule.builder().name("r3").then(action(() -> log.add("r3"))).build()).build();
+
+            RuleFlow<RuleContext> flow = RuleFlow.builder()
+                    .name("forkedRuleSets")
+                    .asyncRun(rs1, spec -> spec.as("f1"))
+                    .asyncRun(rs2, spec -> spec.as("f2"))
+                    .run(rs3)
+                    .awaitAll("f1", "f2")
+                    .build();
+
+            flow.run();
+            assertEquals(3, log.size(), "iteration " + i);
+            assertTrue(log.containsAll(List.of("r1", "r2", "r3")));
+        }
+    }
+
+    @Test
+    public void testAsyncRun_inherited_taskSetsAParentBinding_visibleAfterAwait() {
+        Rule writer = Rule.builder().name("writer")
+                .then(action((Bindings bindings) -> bindings.setValue("total", 42)))
+                .build();
+        List<Integer> seen = new ArrayList<>();
+
+        RuleFlow<RuleContext> flow = RuleFlow.builder()
+                .name("sharedValueFlow")
+                .bind("total", 0)
+                .asyncRun(writer, spec -> spec.as("fut"))
+                .await("fut")
+                .execute(action((Integer total) -> seen.add(total)))
+                .build();
+
+        flow.run();
+        assertEquals(List.of(42), seen);
+    }
+
+    @Test
+    public void testAsyncRun_inherited_taskBindingsArePrivate_thenRunSeesThem() {
+        Rule binder = Rule.builder().name("binder")
+                .then(action((Bindings bindings) -> bindings.bind("taskOnly", "secret")))
+                .build();
+        List<Object> continuationSaw = Collections.synchronizedList(new ArrayList<>());
+        List<Boolean> flowSaw = new ArrayList<>();
+        RuleContext ctx = RuleContext.builder().build();
+
+        RuleFlow<RuleContext> flow = RuleFlow.builder()
+                .name("privateBindingsFlow")
+                .asyncRun(binder, spec -> spec.as("fut")
+                        .thenRun("value", b -> b.execute(action((String taskOnly) -> continuationSaw.add(taskOnly)))))
+                .await("fut")
+                .execute(action((Bindings bindings) -> flowSaw.add(bindings.contains("taskOnly"))))
+                .build();
+
+        flow.run(ctx);
+        assertEquals(List.of("secret"), continuationSaw);
+        assertEquals(List.of(false), flowSaw);
+        assertFalse(ctx.getBindings().contains("taskOnly"));
+    }
+
+    @Test
+    public void testAsyncRun_inherited_ruleContextParamIsTheFork() {
+        List<RuleContext> captured = Collections.synchronizedList(new ArrayList<>());
+        Rule reader = Rule.builder().name("forkReader")
+                .then(action((RuleContext ruleContext) -> captured.add(ruleContext)))
+                .build();
+        RuleContext ctx = RuleContext.builder().build();
+
+        RuleFlow<RuleContext> flow = RuleFlow.builder()
+                .name("forkContextFlow")
+                .asyncRun(reader, spec -> spec.as("fut"))
+                .await("fut")
+                .build();
+
+        flow.run(ctx);
+        assertEquals(1, captured.size());
+        assertNotSame(ctx, captured.get(0));
+        assertNotEquals(ctx.getId(), captured.get(0).getId());
+        assertSame(ctx.getExecutorService(), captured.get(0).getExecutorService());
+        assertSame(captured.get(0), captured.get(0).getBindings().getValue("ruleContext"));
+    }
+
+    @Test
+    public void testAsyncRun_inherited_taskOutlivingTheFlowKeepsItsScopes() throws Exception {
+        CountDownLatch flowDone = new CountDownLatch(1);
+        CompletableFuture<Object> seen = new CompletableFuture<>();
+        Rule late = Rule.builder().name("late")
+                .then(action((Bindings bindings) -> {
+                    try {
+                        flowDone.await(5, TimeUnit.SECONDS);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                    seen.complete(bindings.getValue("flowLocal"));
+                }))
+                .build();
+
+        RuleFlow<RuleContext> flow = RuleFlow.builder()
+                .name("outlivedFlow")
+                .bind("flowLocal", "still here")
+                .asyncRun(late)
+                .build();
+
+        // The flow's own scope is popped here while the task is still waiting; the fork keeps it.
+        flow.run();
+        flowDone.countDown();
+        assertEquals("still here", seen.get(5, TimeUnit.SECONDS));
+    }
+
+    @Test
+    public void testAsyncRun_inherited_scopesPushedAfterSpawnAreInvisibleToTheTask() {
+        CountDownLatch insideInner = new CountDownLatch(1);
+        CompletableFuture<Boolean> sawLate = new CompletableFuture<>();
+        Rule probe = Rule.builder().name("probe")
+                .then(action((Bindings bindings) -> {
+                    try {
+                        insideInner.await(5, TimeUnit.SECONDS);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                    sawLate.complete(bindings.contains("late"));
+                }))
+                .build();
+        // A synchronous nested flow: its scope, holding "late", is live on the flow's stack while the probe looks.
+        RuleFlow<RuleContext> inner = RuleFlow.builder()
+                .name("innerSync")
+                .bind("late", 1)
+                .execute(action(() -> {
+                    insideInner.countDown();
+                    try {
+                        sawLate.get(5, TimeUnit.SECONDS);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                }))
+                .build();
+
+        RuleFlow<RuleContext> flow = RuleFlow.builder()
+                .name("laterScopesFlow")
+                .asyncRun(probe, spec -> spec.as("fut"))
+                .run(inner)
+                .await("fut")
+                .build();
+
+        flow.run();
+        assertEquals(Boolean.FALSE, sawLate.getNow(null));
     }
 
     // =========================================================================

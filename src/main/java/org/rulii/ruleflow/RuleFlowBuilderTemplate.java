@@ -86,6 +86,15 @@ import java.util.function.Supplier;
  * failure handler chained onto the future via {@code handleAsync} that fires as soon as the
  * task or {@code thenRun} continuation fails, whether or not anything ever calls {@code await()}.
  *
+ * <p>By default ({@link AsyncContextMode#INHERITED}) the task runs on a {@link org.rulii.context.RuleContext#fork() fork}
+ * of the flow's context, taken when the {@code asyncRun} step executes: it shares every scope the
+ * flow has at that moment, so values set on those bindings by either side are seen by both, while
+ * the bindings and scopes the task adds stay private to the task, and the scopes the flow pushes or
+ * pops afterwards do not affect it. The task's result reaches the flow through the future
+ * ({@code await()} then the bound {@code CompletableFuture}), or through a binding the flow declared
+ * before the step and the task sets with {@code setValue}. {@code withImmutableBindings()} and
+ * {@code withContext(...)} on the spec select the other two modes.
+ *
  * <h3>Extending the builder</h3>
  * <p>Two extension axes are available:
  * <ul>

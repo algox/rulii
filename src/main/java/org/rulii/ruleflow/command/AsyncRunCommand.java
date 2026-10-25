@@ -40,12 +40,18 @@ import java.util.concurrent.ExecutorService;
  * Pipeline command that launches a {@link Runnable} asynchronously and optionally binds
  * the resulting {@link CompletableFuture} into the current scope for later retrieval.
  *
+ * <p>The task runs on a context resolved from the step's {@link AsyncContextMode}: by default a
+ * {@link RuleContext#fork() fork} of the calling context, taken on the calling thread when this
+ * command executes, so the task shares the caller's bindings as they stand at that moment and
+ * owns every scope it pushes afterwards ({@code INHERITED}); or a new context over an immutable
+ * snapshot of the caller's bindings ({@code IMMUTABLE}); or a user-supplied context ({@code CUSTOM}).
+ * The {@code thenRun} continuation and the exception handler run on that same resolved context.
+ *
  * <p>If the target implements {@link AsyncRunnable}, its {@code runAsync()} method is used
  * directly. Otherwise the call to {@link Runnable#run(RuleContext)} is submitted to the
  * <em>resolved</em> context's executor service - the calling context's under
- * {@code AsyncContextMode#SHARED}/{@code IMMUTABLE}, or the supplied context's own under
- * {@code AsyncContextMode#CUSTOM} - so {@code withContext(...)}'s executor isolation actually
- * takes effect.
+ * {@code INHERITED}/{@code IMMUTABLE}, or the supplied context's own under {@code CUSTOM} - so
+ * {@code withContext(...)}'s executor isolation actually takes effect.
  *
  * <p>The future binding (if any) is always placed in the <em>calling</em> context so the
  * rest of the flow can access it via {@code await()}, {@code awaitAll()}, or {@code awaitAny()}.
@@ -100,10 +106,8 @@ public class AsyncRunCommand implements RuleFlowCommand {
         Runnable<?> target = resolveRunnable(ruleContext);
         ExecutorService executor = effectiveCtx.getExecutorService();
 
-        // Bind the caller-visible handle BEFORE launching the task: in SHARED mode the task
-        // pushes/pops its own scopes on these very bindings from the executor thread, so
-        // binding after launch could land the future inside a transient child scope - and
-        // vanish with it when that scope is removed.
+        // Bind the caller-visible handle before launching the task, so the caller can never observe
+        // a completed task whose handle is not yet bound.
         CompletableFuture<Object> handle = null;
 
         if (bindingName != null) {
@@ -179,7 +183,7 @@ public class AsyncRunCommand implements RuleFlowCommand {
 
     private RuleContext resolveContext(RuleContext ruleContext) {
         return switch (contextMode) {
-            case SHARED -> ruleContext;
+            case INHERITED -> ruleContext.fork();
             case IMMUTABLE -> {
                 RuleContextBuilder builder = RuleContext.builder().with(ruleContext);
                 yield builder.bindings(builder.getBindings().asImmutable()).build();

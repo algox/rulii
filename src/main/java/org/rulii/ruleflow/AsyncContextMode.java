@@ -27,11 +27,15 @@ package org.rulii.ruleflow;
 public enum AsyncContextMode {
 
     /**
-     * The calling flow's {@link org.rulii.context.RuleContext} is shared directly with the async
-     * step. Both the caller and the async task operate on the same bindings concurrently. This
-     * is the default mode and is appropriate for fire-and-forget tasks that do not write bindings.
+     * The async step runs on a {@link org.rulii.context.RuleContext#fork() fork} of the calling
+     * flow's context, taken when {@code asyncRun} executes. The fork shares every scope the caller
+     * had at that moment, by reference: values set on those bindings by either side are seen by
+     * both. Everything structural is private to the task: the bindings and scopes it adds are never
+     * seen by the caller, and the scopes the caller adds or removes afterwards do not affect the
+     * task. A rule set or nested flow, which pushes scopes of its own, is therefore safe to run
+     * here. This is the default mode.
      */
-    SHARED,
+    INHERITED,
 
     /**
      * A new {@link org.rulii.context.RuleContext} is created for the async step, backed by an
