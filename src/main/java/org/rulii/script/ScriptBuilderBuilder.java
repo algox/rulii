@@ -79,6 +79,41 @@ public final class ScriptBuilderBuilder {
     }
 
     /**
+     * Creates a {@link ScriptBuilder} for the given source text in the default scripting language
+     * ({@link ScriptProcessorManager#getDefaultLanguage()}).
+     *
+     * @param script the script source text; must not be null or empty.
+     * @return a new {@link ScriptBuilder} ready to accept parameter declarations; never null.
+     * @throws org.rulii.model.UnrulyException if no default scripting language is declared.
+     */
+    public ScriptBuilder with(String script) {
+        String language = scriptProcessorManager.getDefaultLanguage();
+
+        if (language == null) throw new UnrulyException("No default scripting language declared. Declare one with "
+                + "ScriptProcessorManager.getInstance().setDefaultLanguage(name) or the system property ["
+                + ScriptProcessorManager.DEFAULT_LANGUAGE_PROPERTY + "]. Available languages: "
+                + scriptProcessorManager.getAvailableLanguages());
+
+        return with(language, script);
+    }
+
+    /**
+     * Convenience method that compiles and returns the script in the default scripting language
+     * in a single step.
+     *
+     * <p>Equivalent to {@code with(script).build()}.
+     *
+     * @param <T>    the expected return type of the script.
+     * @param script the script source text; must not be null or empty.
+     * @return the compiled {@link Script}; never null.
+     * @throws org.rulii.model.UnrulyException if no default scripting language is declared.
+     * @throws BuildScriptException if the source cannot be compiled.
+     */
+    public <T> Script<T> build(String script) {
+        return with(script).build();
+    }
+
+    /**
      * Convenience method that compiles and returns the script in a single step.
      *
      * <p>Equivalent to {@code with(language, script).build()}.
