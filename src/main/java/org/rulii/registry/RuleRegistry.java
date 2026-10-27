@@ -19,14 +19,19 @@
 package org.rulii.registry;
 
 import org.rulii.lib.spring.util.Assert;
+import org.rulii.model.Categorized;
+import org.rulii.model.Definable;
 import org.rulii.model.Runnable;
 import org.rulii.model.UnrulyException;
 import org.rulii.rule.Rule;
 import org.rulii.ruleflow.RuleFlow;
 import org.rulii.ruleset.RuleSet;
+import org.rulii.util.RuleUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -243,5 +248,103 @@ public interface RuleRegistry {
             if (candidate instanceof RuleFlow<?> ruleFlow) result.add(ruleFlow);
         }
         return Collections.unmodifiableList(result);
+    }
+
+    /**
+     * The category and tags a registered runnable declares: the {@link Categorized} definition of a
+     * rule, rule set or rule flow. A function, or anything else without such a definition, has none.
+     *
+     * @param runnable the runnable; must not be null.
+     * @return its category and tags, or null when it declares none.
+     * @since 2.2
+     */
+    static Categorized categorized(Runnable<?> runnable) {
+        Assert.notNull(runnable, "runnable cannot be null.");
+        return runnable instanceof Definable<?> definable && definable.getDefinition() instanceof Categorized categorized
+                ? categorized : null;
+    }
+
+    /**
+     * The registered runnables in the given category or in one below it: {@code Pricing} lists what is
+     * in {@code Pricing} and in {@code Pricing/Discounts}. The category is normalised as a definition's
+     * is ({@link RuleUtils#normalizeCategory}). In registration order, as {@link #getNames()} gives it.
+     *
+     * @param category the category; must not be blank.
+     * @return unmodifiable list; never null.
+     * @since 2.2
+     */
+    default List<Runnable<?>> getByCategory(String category) {
+        String wanted = RuleUtils.normalizeCategory(category);
+        Assert.hasText(wanted, "category cannot be empty/null.");
+        List<Runnable<?>> result = new ArrayList<>();
+
+        for (String name : getNames()) {
+            Runnable<?> candidate = get(name);
+            Categorized categorized = candidate != null ? categorized(candidate) : null;
+            if (categorized == null || categorized.getCategory() == null) continue;
+            String actual = categorized.getCategory();
+            if (actual.equals(wanted) || actual.startsWith(wanted + "/")) result.add(candidate);
+        }
+
+        return Collections.unmodifiableList(result);
+    }
+
+    /**
+     * The registered runnables carrying every one of the given tags. Tags are normalised as a
+     * definition's are ({@link RuleUtils#normalizeTags}). In registration order.
+     *
+     * @param tags the tags; at least one, none blank.
+     * @return unmodifiable list; never null.
+     * @since 2.2
+     */
+    default List<Runnable<?>> getByTags(String... tags) {
+        Assert.notNull(tags, "tags cannot be null.");
+        List<String> wanted = RuleUtils.normalizeTags(Arrays.asList(tags));
+        Assert.notEmpty(wanted, "tags cannot be empty.");
+        List<Runnable<?>> result = new ArrayList<>();
+
+        for (String name : getNames()) {
+            Runnable<?> candidate = get(name);
+            Categorized categorized = candidate != null ? categorized(candidate) : null;
+            if (categorized != null && categorized.getTags().containsAll(wanted)) result.add(candidate);
+        }
+
+        return Collections.unmodifiableList(result);
+    }
+
+    /**
+     * Every category a registered runnable declares, each once, in registration order.
+     *
+     * @return unmodifiable set; never null.
+     * @since 2.2
+     */
+    default Set<String> getCategories() {
+        Set<String> result = new LinkedHashSet<>();
+
+        for (String name : getNames()) {
+            Runnable<?> candidate = get(name);
+            Categorized categorized = candidate != null ? categorized(candidate) : null;
+            if (categorized != null && categorized.getCategory() != null) result.add(categorized.getCategory());
+        }
+
+        return Collections.unmodifiableSet(result);
+    }
+
+    /**
+     * Every tag a registered runnable declares, each once, in registration order.
+     *
+     * @return unmodifiable set; never null.
+     * @since 2.2
+     */
+    default Set<String> getTags() {
+        Set<String> result = new LinkedHashSet<>();
+
+        for (String name : getNames()) {
+            Runnable<?> candidate = get(name);
+            Categorized categorized = candidate != null ? categorized(candidate) : null;
+            if (categorized != null) result.addAll(categorized.getTags());
+        }
+
+        return Collections.unmodifiableSet(result);
     }
 }
