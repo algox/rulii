@@ -28,8 +28,11 @@ import org.rulii.model.UnrulyException;
 import org.rulii.model.function.Function;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public abstract class ValueValidationRule extends ValidationRule {
@@ -38,6 +41,7 @@ public abstract class ValueValidationRule extends ValidationRule {
     private final String valueName;
     private final Set<Class<?>> supportedTypes;
     private boolean failOnNull = true;
+    private Map<String, Object> parameters = Map.of();
 
     public ValueValidationRule(Function<?> valueFunction, String errorCode, Severity severity, String errorMessage,
                                String defaultMessage, String valueName) {
@@ -89,7 +93,11 @@ public abstract class ValueValidationRule extends ValidationRule {
 
         Object value = getValue(ruleContext);
         RuleViolationBuilder builder = RuleViolation.builder().with(this);
+        // The validated value is always the first parameter; a configured parameter of the same name is dropped.
         builder.param(getValueName(), value);
+        for (Map.Entry<String, Object> parameter : parameters.entrySet()) {
+            if (!parameter.getKey().equals(getValueName())) builder.param(parameter.getKey(), parameter.getValue());
+        }
         customizeViolation(ruleContext, builder);
         ruleViolations.add(builder.build(ruleContext));
     }
@@ -158,6 +166,28 @@ public abstract class ValueValidationRule extends ValidationRule {
      */
     void setFailOnNull(boolean failOnNull) {
         this.failOnNull = failOnNull;
+    }
+
+    /**
+     * The parameters every violation of this rule reports beside the validated value and the rule's
+     * own parameters, as configured on the builder: what a message template may refer to, over and
+     * above what the rule itself knows.
+     *
+     * @return the parameters, in configuration order; empty by default.
+     * @since 2.2
+     */
+    public Map<String, Object> getParameters() {
+        return parameters;
+    }
+
+    /**
+     * Sets the configured violation parameters. Invoked by the builder during build.
+     *
+     * @param parameters the parameters; copied.
+     */
+    void setParameters(Map<String, Object> parameters) {
+        Assert.notNull(parameters, "parameters cannot be null.");
+        this.parameters = Collections.unmodifiableMap(new LinkedHashMap<>(parameters));
     }
 
     public Function<?> getValueFunction() {

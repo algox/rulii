@@ -28,6 +28,10 @@ import org.rulii.validation.ValidationRuleException;
 import org.rulii.validation.ValueValidationRule;
 
 import java.time.*;
+import java.time.chrono.HijrahDate;
+import java.time.chrono.JapaneseDate;
+import java.time.chrono.MinguoDate;
+import java.time.chrono.ThaiBuddhistDate;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -45,7 +49,8 @@ public class PastOrPresentValidationRule extends ValueValidationRule {
 
     public static final List<Class<?>> SUPPORTED_TYPES = List.of(Calendar.class, Date.class, java.sql.Date.class, Instant.class,
             LocalDate.class, LocalDateTime.class, LocalTime.class, MonthDay.class, OffsetDateTime.class,
-            OffsetTime.class, Year.class, YearMonth.class, ZonedDateTime.class);
+            OffsetTime.class, Year.class, YearMonth.class, ZonedDateTime.class, HijrahDate.class, JapaneseDate.class, MinguoDate.class,
+            ThaiBuddhistDate.class);
 
     public static final String ERROR_CODE       = "pastOrPresentValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE  = "Value {0} must be in the present or in the past. Current clock {1}.";

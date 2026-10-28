@@ -862,6 +862,37 @@ public class ValidationRuleTests {
     }
 
     @Test
+    public void extraViolationParametersTest() {
+        // Configured parameters are reported on every violation; the validated value wins on a shared name.
+        Rule rule = min(binding("value"), 5).param("hint", "at least five").param("value", "shadowed")
+                .message("${hint}: ${value}").build();
+        RuleViolations errors = new RuleViolations();
+        assertTrue(rule.run(ruleViolations -> errors, value -> 3).status().isFail());
+        RuleViolation violation = errors.getViolations().get(0);
+        assertEquals("at least five", violation.getParameterValues().get("hint"));
+        assertEquals(3, violation.getParameterValues().get("value"));
+        assertEquals("at least five: 3", violation.getErrorMessage());
+        assertTrue(rule.run(value -> 7).status().isPass());
+
+        assertThrows(IllegalArgumentException.class, () -> min(binding("value"), 5).param(" ", 1));
+    }
+
+    @Test
+    public void digitsWithNoIntegralDigitsTest() {
+        // Zero integral digits is a legal bound (Bean Validation @Digits(integer = 0)): fractions below one only.
+        Rule rule = digits(binding("value"), 0, 2).build();
+        assertTrue(rule.run(value -> new BigDecimal("0.12")).status().isPass());
+        assertTrue(rule.run(value -> "0.5").status().isPass());
+        RuleViolations errors = new RuleViolations();
+        assertTrue(rule.run(ruleViolations -> errors, value -> new BigDecimal("1.2")).status().isFail());
+        assertTrue(rule.run(ruleViolations -> errors, value -> new BigDecimal("0.123")).status().isFail());
+        // Zero itself has one integral digit (BigDecimal precision), as the reference implementation counts it.
+        assertTrue(rule.run(ruleViolations -> errors, value -> 0).status().isFail());
+        assertEquals(3, errors.getViolations().size());
+        assertThrows(IllegalArgumentException.class, () -> digits(binding("value"), -1, 2).build());
+    }
+
+    @Test
     public void digitsTest3() {
         Rule rule = digits(binding("value"), 2, 2).build();
         RuleResult result = rule.run(value -> "99.11");
@@ -970,6 +1001,50 @@ public class ValidationRuleTests {
         assertEquals("emailError1", violation.getErrorCode());
         assertEquals(Severity.FATAL, violation.getSeverity());
         assertEquals("Email Error Message", violation.getErrorMessage());
+    }
+
+    @Test
+    public void emailAnyDomainTest() {
+        Rule rule = email(binding("value")).anyDomain().build();
+        RuleViolations errors = new RuleViolations();
+
+        for (String valid : List.of("bob@example.com", "user@localhost", "bob@intranet", "bob@com", "bob@xn--bcher-kva.example",
+                "first.last+tag@sub.example.co.uk", "bob@[192.168.0.1]", "bob@münchen.de")) {
+            assertTrue(rule.run(ruleViolations -> errors, value -> valid).status().isPass(), valid);
+        }
+
+        for (String invalid : List.of("nope", "bob@", "@example.com", "bob@example.com.", "bob@exa_mple.com", "bob@a..b",
+                "bob@-example.com", "bob@[999.1.1.1]", "bob@" + "a".repeat(64) + ".com")) {
+            assertTrue(rule.run(ruleViolations -> errors, value -> invalid).status().isFail(), invalid);
+        }
+
+        // The default rule still consults the registry.
+        Rule standard = email(binding("value")).build();
+        assertTrue(standard.run(ruleViolations -> errors, value -> "user@localhost").status().isFail());
+        assertTrue(standard.run(ruleViolations -> errors, value -> "bob@xn--bcher-kva.example").status().isFail());
+    }
+
+    @Test
+    public void emailWithPatternTest() {
+        Rule rule = email(binding("value")).pattern("[a-z]+@acme\\.com").flags(java.util.regex.Pattern.CASE_INSENSITIVE).build();
+        assertTrue(rule.run(value -> "Bob@acme.com").status().isPass(), "well-formed and matching, case-insensitively");
+
+        // Well-formed but not matching: one violation, the pattern reported.
+        RuleViolations errors = new RuleViolations();
+        RuleResult result = rule.run(ruleViolations -> errors, value -> "bob@other.com");
+        assertTrue(result.status().isFail());
+        assertEquals(1, errors.getViolations().size());
+        assertEquals("[a-z]+@acme\\.com", errors.getViolations().get(0).getParameters().get("pattern"));
+
+        // Neither well-formed nor matching: still one violation.
+        RuleViolations both = new RuleViolations();
+        assertTrue(rule.run(ruleViolations -> both, value -> "nope").status().isFail());
+        assertEquals(1, both.getViolations().size());
+
+        // No pattern: nothing reported for it.
+        RuleViolations plain = new RuleViolations();
+        email(binding("value")).build().run(ruleViolations -> plain, value -> "nope");
+        assertTrue(plain.getViolations().get(0).getParameters().get("pattern") == null);
     }
 
     @Test

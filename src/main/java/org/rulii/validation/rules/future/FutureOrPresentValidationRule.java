@@ -29,6 +29,10 @@ import org.rulii.validation.ValueValidationRule;
 
 import java.sql.Date;
 import java.time.*;
+import java.time.chrono.HijrahDate;
+import java.time.chrono.JapaneseDate;
+import java.time.chrono.MinguoDate;
+import java.time.chrono.ThaiBuddhistDate;
 import java.util.Calendar;
 import java.util.List;
 
@@ -45,7 +49,8 @@ public class FutureOrPresentValidationRule extends ValueValidationRule {
 
     public static final List<Class<?>> SUPPORTED_TYPES = List.of(Calendar.class, Date.class, java.util.Date.class, Instant.class,
             LocalDate.class, LocalDateTime.class, LocalTime.class, MonthDay.class, OffsetDateTime.class,
-            OffsetTime.class, Year.class, YearMonth.class, ZonedDateTime.class);
+            OffsetTime.class, Year.class, YearMonth.class, ZonedDateTime.class, HijrahDate.class, JapaneseDate.class, MinguoDate.class,
+            ThaiBuddhistDate.class);
 
     public static final String ERROR_CODE       = "futureOrPresentValidationRule.errorCode";
     public static final String DEFAULT_MESSAGE  = "Value {0} must be in the present or in the future. Current clock {1}.";

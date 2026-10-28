@@ -61,4 +61,22 @@ public class TimeComparatorTest {
         Assertions.assertTrue(TimeComparator.compare(ZonedDateTime.now(fixedPastClock), clock) < 0);
         Assertions.assertTrue(TimeComparator.compare(ZonedDateTime.now(fixedFutureClock), clock) > 0);
     }
+
+    @Test
+    public void chronoDates() {
+        Clock clock = Clock.fixed(Instant.parse("2000-06-15T12:00:00.00Z"), ZoneId.of("UTC"));
+        LocalDate past = LocalDate.of(1980, 1, 1);
+        LocalDate future = LocalDate.of(2100, 1, 1);
+
+        Assertions.assertTrue(TimeComparator.compare(java.time.chrono.HijrahDate.from(past), clock) < 0);
+        Assertions.assertTrue(TimeComparator.compare(java.time.chrono.HijrahDate.from(future), clock) > 0);
+        Assertions.assertEquals(0, TimeComparator.compare((Object) java.time.chrono.HijrahDate.now(clock), clock));
+        Assertions.assertTrue(TimeComparator.compare(java.time.chrono.JapaneseDate.from(past), clock) < 0);
+        Assertions.assertTrue(TimeComparator.compare(java.time.chrono.JapaneseDate.from(future), clock) > 0);
+        Assertions.assertTrue(TimeComparator.compare(java.time.chrono.MinguoDate.from(past), clock) < 0);
+        Assertions.assertTrue(TimeComparator.compare(java.time.chrono.MinguoDate.from(future), clock) > 0);
+        Assertions.assertTrue(TimeComparator.compare(java.time.chrono.ThaiBuddhistDate.from(past), clock) < 0);
+        Assertions.assertTrue(TimeComparator.compare(java.time.chrono.ThaiBuddhistDate.from(future), clock) > 0);
+        Assertions.assertEquals(0, TimeComparator.compare((Object) java.time.chrono.ThaiBuddhistDate.now(clock), clock));
+    }
 }

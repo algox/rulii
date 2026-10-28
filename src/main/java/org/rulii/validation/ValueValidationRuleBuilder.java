@@ -25,7 +25,9 @@ import org.rulii.rule.Rule;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Abstract base builder for {@link ValueValidationRule} subclasses. Provides fluent configuration
@@ -53,6 +55,7 @@ public abstract class ValueValidationRuleBuilder<T extends ValueValidationRuleBu
     private String valueName;
     private boolean failOnNull = true;
     private SourceDefinition source;
+    private final Map<String, Object> parameters = new LinkedHashMap<>();
 
     /**
      * Creates a new builder configured with the given value function.
@@ -187,6 +190,38 @@ public abstract class ValueValidationRuleBuilder<T extends ValueValidationRuleBu
         return (T) this;
     }
 
+    /**
+     * A parameter every violation of the rule reports beside the validated value and the rule's own
+     * parameters, for the message template to refer to: the bound of a constraint under the name the
+     * constraint gives it, say. The validated value stays the first parameter and wins on a shared name;
+     * the rule's own parameters, reported after these, win too.
+     *
+     * @param name the parameter name; must not be empty
+     * @param value the parameter value; may be null
+     * @return this builder for fluent chaining
+     * @since 2.2
+     */
+    @SuppressWarnings("unchecked")
+    public T param(String name, Object value) {
+        Assert.hasText(name, "name cannot be null or empty.");
+        this.parameters.put(name, value);
+        return (T) this;
+    }
+
+    /**
+     * Parameters every violation of the rule reports, added to any given before; see {@link #param}.
+     *
+     * @param parameters the parameters by name; must not be null
+     * @return this builder for fluent chaining
+     * @since 2.2
+     */
+    @SuppressWarnings("unchecked")
+    public T params(Map<String, ?> parameters) {
+        Assert.notNull(parameters, "parameters cannot be null.");
+        this.parameters.putAll(parameters);
+        return (T) this;
+    }
+
     protected String getErrorCode() {
         return errorCode;
     }
@@ -227,6 +262,7 @@ public abstract class ValueValidationRuleBuilder<T extends ValueValidationRuleBu
     public Rule build() {
         V target = createValueValidationRule();
         target.setFailOnNull(failOnNull);
+        target.setParameters(parameters);
         ClassBasedRuleBuilder<?> builder = Rule.builder().with(target);
         if (name != null) builder.name(name);
         builder.description(description);

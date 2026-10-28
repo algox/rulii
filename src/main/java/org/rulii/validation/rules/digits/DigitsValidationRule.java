@@ -66,7 +66,7 @@ public class DigitsValidationRule extends ValueValidationRule {
                          String errorMessage, String valueName, int maxIntegerLength, int maxFractionLength) {
         super(valueFunction, errorCode, severity, errorMessage, DEFAULT_MESSAGE, valueName);
         Assert.isTrue(maxFractionLength >= 0, "maxFractionLength must be >= 0");
-        Assert.isTrue(maxIntegerLength > 0, "maxIntegerLength must be > 0");
+        Assert.isTrue(maxIntegerLength >= 0, "maxIntegerLength must be >= 0");
         this.maxIntegerLength = maxIntegerLength;
         this.maxFractionLength = maxFractionLength;
     }

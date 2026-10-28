@@ -18,6 +18,10 @@
 package org.rulii.util;
 
 import java.time.*;
+import java.time.chrono.HijrahDate;
+import java.time.chrono.JapaneseDate;
+import java.time.chrono.MinguoDate;
+import java.time.chrono.ThaiBuddhistDate;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -48,6 +52,10 @@ public final class TimeComparator {
         comparators.put(Year.class, (TemporalComparator<Year>) TimeComparator::compare);
         comparators.put(YearMonth.class, (TemporalComparator<YearMonth>) TimeComparator::compare);
         comparators.put(ZonedDateTime.class, (TemporalComparator<ZonedDateTime>) TimeComparator::compare);
+        comparators.put(HijrahDate.class, (TemporalComparator<HijrahDate>) TimeComparator::compare);
+        comparators.put(JapaneseDate.class, (TemporalComparator<JapaneseDate>) TimeComparator::compare);
+        comparators.put(MinguoDate.class, (TemporalComparator<MinguoDate>) TimeComparator::compare);
+        comparators.put(ThaiBuddhistDate.class, (TemporalComparator<ThaiBuddhistDate>) TimeComparator::compare);
     }
 
     private TimeComparator() {
@@ -146,6 +154,50 @@ public final class TimeComparator {
      */
     public static int compare(LocalDateTime value, Clock clock) {
         return value.compareTo(LocalDateTime.now(clock));
+    }
+
+    /**
+     * Compares the given Hijrah (Umm al-Qura) date with today's date on the given Clock.
+     *
+     * @param value the date to compare
+     * @param clock the Clock to use for comparison
+     * @return 0 if the value is today, a negative value if it is before today, a positive value if it is after today
+     */
+    public static int compare(HijrahDate value, Clock clock) {
+        return value.compareTo(HijrahDate.now(clock));
+    }
+
+    /**
+     * Compares the given Japanese imperial date with today's date on the given Clock.
+     *
+     * @param value the date to compare
+     * @param clock the Clock to use for comparison
+     * @return 0 if the value is today, a negative value if it is before today, a positive value if it is after today
+     */
+    public static int compare(JapaneseDate value, Clock clock) {
+        return value.compareTo(JapaneseDate.now(clock));
+    }
+
+    /**
+     * Compares the given Minguo (Republic of China) date with today's date on the given Clock.
+     *
+     * @param value the date to compare
+     * @param clock the Clock to use for comparison
+     * @return 0 if the value is today, a negative value if it is before today, a positive value if it is after today
+     */
+    public static int compare(MinguoDate value, Clock clock) {
+        return value.compareTo(MinguoDate.now(clock));
+    }
+
+    /**
+     * Compares the given Thai Buddhist date with today's date on the given Clock.
+     *
+     * @param value the date to compare
+     * @param clock the Clock to use for comparison
+     * @return 0 if the value is today, a negative value if it is before today, a positive value if it is after today
+     */
+    public static int compare(ThaiBuddhistDate value, Clock clock) {
+        return value.compareTo(ThaiBuddhistDate.now(clock));
     }
 
     /**
