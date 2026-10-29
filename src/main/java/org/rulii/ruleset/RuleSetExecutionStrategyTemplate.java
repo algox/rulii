@@ -28,7 +28,7 @@ import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.InputParameter;
 import org.rulii.model.UnrulyException;
 
-import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * An abstract class representing a template for executing a rule set.
@@ -40,6 +40,8 @@ import java.util.UUID;
  *
  */
 public abstract class RuleSetExecutionStrategyTemplate<T> implements RuleSetExecutionStrategy<T> {
+
+    private static final AtomicLong SCOPE_COUNTER = new AtomicLong();
 
     private static final Log logger = LogFactory.getLog(RuleSetExecutionStrategyTemplate.class);
 
@@ -130,7 +132,8 @@ public abstract class RuleSetExecutionStrategyTemplate<T> implements RuleSetExec
      */
     protected String getRuleSetScopeName(RuleSet<?> ruleSet) {
         Assert.notNull(ruleSet, "ruleSet cannot be null.");
-        return ruleSet.getName() + "-scope-" + UUID.randomUUID();
+        // A counter, not a UUID: unique within the JVM, which is all a scope name has to be, at a fraction of the cost.
+        return ruleSet.getName() + "-scope-" + SCOPE_COUNTER.incrementAndGet();
     }
 
     /**

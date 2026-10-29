@@ -25,6 +25,7 @@ import org.rulii.util.RuleUtils;
 import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.rulii.bind.Bindings.builder;
 
@@ -36,6 +37,8 @@ import static org.rulii.bind.Bindings.builder;
  *
  */
 public class DefaultScopedBindings implements ScopedBindings, Map<String, Object> {
+
+    private static final AtomicLong SCOPE_COUNTER = new AtomicLong();
 
     private static final Log logger = LogFactory.getLog(DefaultScopedBindings.class);
 
@@ -88,7 +91,7 @@ public class DefaultScopedBindings implements ScopedBindings, Map<String, Object
 
     @Override
     public ScopedBindings fork() {
-        return new DefaultScopedBindings(scopes, "fork-scope-" + UUID.randomUUID(), listeners);
+        return new DefaultScopedBindings(scopes, "fork-scope-" + SCOPE_COUNTER.incrementAndGet(), listeners);
     }
 
     /**
@@ -123,7 +126,7 @@ public class DefaultScopedBindings implements ScopedBindings, Map<String, Object
 
     @Override
     public NamedScope addScope() {
-        return addScope("anonymous-scope-" + UUID.randomUUID());
+        return addScope("anonymous-scope-" + SCOPE_COUNTER.incrementAndGet());
     }
 
     @Override

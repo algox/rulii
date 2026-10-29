@@ -68,7 +68,7 @@ public class RuleContext implements Immutator<RuleContext> {
         return RuleContextBuilderBuilder.getInstance();
     }
 
-    private final String id;
+    private volatile String id;
     private final Date creationTime;
     private final ScopedBindings bindings;
     private final Locale locale;
@@ -108,7 +108,8 @@ public class RuleContext implements Immutator<RuleContext> {
                 MessageFormatter messageFormatter, ObjectFactory objectFactory,
                 Tracer tracer, ConverterRegistry converterRegistry,
                 Clock clock, ExecutorService executorService, RuleRegistry ruleRegistry) {
-        this(UUID.randomUUID().toString(), new Date(), bindings, locale, matchingStrategy, parameterResolver,
+        // The id, a random UUID, is drawn on the first getId(): a context nobody identifies pays nothing for one.
+        this((String) null, new Date(), bindings, locale, matchingStrategy, parameterResolver,
                 messageResolver, messageFormatter, objectFactory, tracer, converterRegistry, clock,
                 executorService, ruleRegistry);
     }
@@ -124,7 +125,7 @@ public class RuleContext implements Immutator<RuleContext> {
                 Tracer tracer, ConverterRegistry converterRegistry, Clock clock,
                 ExecutorService executorService, RuleRegistry ruleRegistry) {
         super();
-        Assert.notNull(id, "id cannot be null.");
+        // A null id is drawn lazily by getId(); an explicit one (a fork's, say) is kept as given.
         Assert.notNull(creationTime, "creationTime cannot be null.");
         Assert.notNull(bindings, "bindings cannot be null.");
         Assert.notNull(locale, "locale cannot be null.");
@@ -244,12 +245,24 @@ public class RuleContext implements Immutator<RuleContext> {
     }
 
     /**
-     * Returns the unique identifier of this context (a random UUID assigned at creation time).
+     * Returns the unique identifier of this context: a random UUID, drawn on the first request.
      *
      * @return the context ID; never null.
      */
     public String getId() {
-        return id;
+        String result = id;
+
+        if (result == null) {
+            synchronized (this) {
+                result = id;
+                if (result == null) {
+                    result = UUID.randomUUID().toString();
+                    id = result;
+                }
+            }
+        }
+
+        return result;
     }
 
     /**
@@ -306,7 +319,7 @@ public class RuleContext implements Immutator<RuleContext> {
      */
     @Override
     public RuleContext asImmutable() {
-        return new RuleContext(id, creationTime, bindings.asImmutable(), locale, matchingStrategy, parameterResolver,
+        return new RuleContext(getId(), creationTime, bindings.asImmutable(), locale, matchingStrategy, parameterResolver,
                 messageResolver, messageFormatter, objectFactory, tracer, converterRegistry, clock, executorService, ruleRegistry);
     }
 
@@ -343,7 +356,7 @@ public class RuleContext implements Immutator<RuleContext> {
      * @return a per-run {@code RuleContext} with local bindings; never null.
      */
     public RuleContext withLocalBindings() {
-        return new RuleContext(id, creationTime, new RuleRunBindings(bindings, Bindings.builder().local()), locale,
+        return new RuleContext(getId(), creationTime, new RuleRunBindings(bindings, Bindings.builder().local()), locale,
                 matchingStrategy, parameterResolver, messageResolver, messageFormatter, objectFactory, tracer,
                 converterRegistry, clock, executorService, ruleRegistry);
     }

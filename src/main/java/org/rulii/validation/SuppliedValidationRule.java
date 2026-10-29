@@ -21,7 +21,7 @@ import org.rulii.annotation.Given;
 import org.rulii.annotation.Otherwise;
 import org.rulii.annotation.Param;
 import org.rulii.annotation.Rule;
-import org.rulii.bind.match.MatchByTypeMatchingStrategy;
+import org.rulii.bind.match.MatchByNameThenTypeMatchingStrategy;
 import org.rulii.bind.match.ParameterMatch;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.spring.util.Assert;
@@ -64,13 +64,13 @@ public class SuppliedValidationRule extends ValidationRule {
     }
 
     @Given
-    public boolean isValid(@Param(matchUsing = MatchByTypeMatchingStrategy.class) RuleContext ruleContext) {
+    public boolean isValid(@Param(matchUsing = MatchByNameThenTypeMatchingStrategy.class) RuleContext ruleContext) {
         return condition.isTrue(ruleContext);
     }
 
     @Otherwise
-    public void otherwise(@Param(matchUsing = MatchByTypeMatchingStrategy.class) RuleContext ruleContext,
-                          @Param(matchUsing = MatchByTypeMatchingStrategy.class) RuleViolations ruleViolations) {
+    public void otherwise(@Param(matchUsing = MatchByNameThenTypeMatchingStrategy.class) RuleContext ruleContext,
+                          @Param(matchUsing = MatchByNameThenTypeMatchingStrategy.class) RuleViolations ruleViolations) {
         if (ruleContext == null) throw new UnrulyException("RuleContext not defined.");
         if (ruleViolations == null) throw new UnrulyException("RuleViolations not defined. Please define org.rulii.validation.RuleViolations binding and try again.");
 

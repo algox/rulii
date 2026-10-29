@@ -21,7 +21,7 @@ import org.rulii.annotation.Given;
 import org.rulii.annotation.Otherwise;
 import org.rulii.annotation.Param;
 import org.rulii.annotation.PreCondition;
-import org.rulii.bind.match.MatchByTypeMatchingStrategy;
+import org.rulii.bind.match.MatchByNameThenTypeMatchingStrategy;
 import org.rulii.context.RuleContext;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.UnrulyException;
@@ -62,7 +62,7 @@ public abstract class ValueValidationRule extends ValidationRule {
      * @return true if the value passes the null handling and type check, false otherwise.
      */
     @PreCondition
-    public boolean checkType(@Param(matchUsing = MatchByTypeMatchingStrategy.class) RuleContext ruleContext) {
+    public boolean checkType(@Param(matchUsing = MatchByNameThenTypeMatchingStrategy.class) RuleContext ruleContext) {
         Object value = getValue(ruleContext);
         if (value == null) return failOnNull;
         return isSupported(value.getClass());
@@ -75,7 +75,7 @@ public abstract class ValueValidationRule extends ValidationRule {
      * @return True if the ruleContext is valid, false otherwise.
      */
     @Given
-    public boolean isValid(@Param(matchUsing = MatchByTypeMatchingStrategy.class) RuleContext ruleContext) {
+    public boolean isValid(@Param(matchUsing = MatchByNameThenTypeMatchingStrategy.class) RuleContext ruleContext) {
         return isValid(ruleContext, getValue(ruleContext));
     }
 
@@ -86,8 +86,8 @@ public abstract class ValueValidationRule extends ValidationRule {
      * @param ruleViolations  The RuleViolations object to add any potential violations to.
      */
     @Otherwise
-    public void otherwise(@Param(matchUsing = MatchByTypeMatchingStrategy.class) RuleContext ruleContext,
-                          @Param(matchUsing = MatchByTypeMatchingStrategy.class) RuleViolations ruleViolations) {
+    public void otherwise(@Param(matchUsing = MatchByNameThenTypeMatchingStrategy.class) RuleContext ruleContext,
+                          @Param(matchUsing = MatchByNameThenTypeMatchingStrategy.class) RuleViolations ruleViolations) {
         if (ruleContext == null) throw new UnrulyException("RuleContext not defined.");
         if (ruleViolations == null) throw new UnrulyException("RuleViolations not defined. Please define org.rulii.validation.RuleViolations binding and try again.");
 

@@ -39,7 +39,7 @@ public class DefaultBinding<T> implements Binding<T> {
 
     private static final Log logger = LogFactory.getLog(DefaultBinding.class);
 
-    private final String id;
+    private volatile String id;
     private final String name;
     private final Type type;
     private T value;
@@ -60,11 +60,9 @@ public class DefaultBinding<T> implements Binding<T> {
      */
     DefaultBinding(String name, Type type, boolean isFinal, boolean primary, String description) {
         super();
+        // The name was validated by the BindingBuilder, the only way to construct a binding; not again here.
         Assert.notNull(name, "name cannot be null");
         Assert.notNull(type, "type cannot be null");
-        Assert.isTrue(!name.trim().isEmpty(), "name length must be > 0");
-        Assert.isTrue(RuleUtils.isValidName(name), "Binding name [" + name + "] must match [" + RuleUtils.NAME_REGEX + "]");
-        this.id = UUID.randomUUID().toString();
         this.name = name;
         this.type = type;
         this.editable = true;
@@ -132,8 +130,24 @@ public class DefaultBinding<T> implements Binding<T> {
     }
 
     @Override
+    /**
+     * The unique id, a random UUID drawn on first request: a binding nobody asks the id of never pays
+     * for one, and most bindings are never asked.
+     */
     public String getId() {
-        return id;
+        String result = id;
+
+        if (result == null) {
+            synchronized (this) {
+                result = id;
+                if (result == null) {
+                    result = UUID.randomUUID().toString();
+                    id = result;
+                }
+            }
+        }
+
+        return result;
     }
 
     @Override

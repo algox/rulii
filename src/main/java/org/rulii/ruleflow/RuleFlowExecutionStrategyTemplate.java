@@ -28,7 +28,7 @@ import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.InputParameter;
 import org.rulii.model.UnrulyException;
 
-import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Abstract base for {@link RuleFlowExecutionStrategy} implementations.
@@ -42,6 +42,8 @@ import java.util.UUID;
  * @since 2.0
  */
 public abstract class RuleFlowExecutionStrategyTemplate<T> implements RuleFlowExecutionStrategy<T> {
+
+    private static final AtomicLong SCOPE_COUNTER = new AtomicLong();
 
     private static final Log LOGGER = LogFactory.getLog(RuleFlowExecutionStrategyTemplate.class);
 
@@ -146,7 +148,8 @@ public abstract class RuleFlowExecutionStrategyTemplate<T> implements RuleFlowEx
      * @return a scope name unique to this run; never null.
      */
     protected String getFlowScopeName(RuleFlow<?> ruleFlow) {
-        return ruleFlow.getName() + "-scope-" + UUID.randomUUID();
+        // A counter, not a UUID: unique within the JVM, which is all a scope name has to be, at a fraction of the cost.
+        return ruleFlow.getName() + "-scope-" + SCOPE_COUNTER.incrementAndGet();
     }
 
     /**

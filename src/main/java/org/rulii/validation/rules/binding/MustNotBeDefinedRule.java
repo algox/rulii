@@ -18,7 +18,7 @@
 package org.rulii.validation.rules.binding;
 
 import org.rulii.annotation.*;
-import org.rulii.bind.match.MatchByTypeMatchingStrategy;
+import org.rulii.bind.match.MatchByNameThenTypeMatchingStrategy;
 import org.rulii.context.RuleContext;
 import org.rulii.validation.*;
 
@@ -71,13 +71,13 @@ public class MustNotBeDefinedRule extends ValidationRule {
     }
 
     @Given
-    public boolean isValid(@Param(matchUsing = MatchByTypeMatchingStrategy.class) RuleContext ruleContext) {
+    public boolean isValid(@Param(matchUsing = MatchByNameThenTypeMatchingStrategy.class) RuleContext ruleContext) {
         return !ruleContext.getBindings().contains(bindingName);
     }
 
     @Otherwise
-    public void otherwise(@Param(matchUsing = MatchByTypeMatchingStrategy.class) RuleContext ruleContext,
-                          @Param(matchUsing = MatchByTypeMatchingStrategy.class) RuleViolations ruleViolations) {
+    public void otherwise(@Param(matchUsing = MatchByNameThenTypeMatchingStrategy.class) RuleContext ruleContext,
+                          @Param(matchUsing = MatchByNameThenTypeMatchingStrategy.class) RuleViolations ruleViolations) {
         RuleViolationBuilder builder = RuleViolation.builder()
                 .with(this)
                 .param("bindingName", bindingName);
