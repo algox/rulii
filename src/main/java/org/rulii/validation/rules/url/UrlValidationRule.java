@@ -162,6 +162,11 @@ public class UrlValidationRule extends ValueValidationRule {
     }
 
     @Override
+    public String describe() {
+        return getValueName() + " must be a valid URL";
+    }
+
+    @Override
     public String toString() {
         return "UrlValidationRule{protocol=" + protocol + ", host=" + host + ", port=" + port + ", regexp=" + regexp + '}';
     }

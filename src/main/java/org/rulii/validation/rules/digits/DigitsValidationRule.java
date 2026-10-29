@@ -121,6 +121,11 @@ public class DigitsValidationRule extends ValueValidationRule {
     }
 
     @Override
+    public String describe() {
+        return getValueName() + " must have at most " + maxIntegerLength + " integer digits and " + maxFractionLength + " fraction digits";
+    }
+
+    @Override
     public String toString() {
         return "DigitsValidationRule{" +
                 "maxIntegerLength=" + maxIntegerLength +

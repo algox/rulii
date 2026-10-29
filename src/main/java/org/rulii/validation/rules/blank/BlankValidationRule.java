@@ -76,6 +76,11 @@ public class BlankValidationRule extends ValueValidationRule {
     }
 
     @Override
+    public String describe() {
+        return getValueName() + " must be blank";
+    }
+
+    @Override
     public String toString() {
         return "BlankValidationRule";
     }

@@ -99,6 +99,11 @@ public class DurationMaxValidationRule extends ValueValidationRule {
     }
 
     @Override
+    public String describe() {
+        return getValueName() + " must be " + (inclusive ? "at most " : "shorter than ") + max;
+    }
+
+    @Override
     public String toString() {
         return "DurationMaxValidationRule{max=" + max + ", inclusive=" + inclusive + '}';
     }

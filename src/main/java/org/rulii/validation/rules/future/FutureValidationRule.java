@@ -94,6 +94,11 @@ public class FutureValidationRule extends ValueValidationRule {
     }
 
     @Override
+    public String describe() {
+        return getValueName() + " must be in the future";
+    }
+
+    @Override
     public String toString() {
         return "FutureValidationRule";
     }

@@ -110,6 +110,11 @@ public class NotEmptyValidationRule extends ValueValidationRule {
     }
 
     @Override
+    public String describe() {
+        return getValueName() + " must not be empty";
+    }
+
+    @Override
     public String toString() {
         return "NotEmptyValidationRule";
     }

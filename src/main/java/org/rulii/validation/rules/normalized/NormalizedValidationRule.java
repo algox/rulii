@@ -91,6 +91,11 @@ public class NormalizedValidationRule extends ValueValidationRule {
     }
 
     @Override
+    public String describe() {
+        return getValueName() + " must be in Unicode normalization form " + form;
+    }
+
+    @Override
     public String toString() {
         return "NormalizedValidationRule{form=" + form + '}';
     }

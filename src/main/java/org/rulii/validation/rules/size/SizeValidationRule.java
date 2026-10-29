@@ -136,6 +136,11 @@ public class SizeValidationRule extends ValueValidationRule {
     }
 
     @Override
+    public String describe() {
+        return getValueName() + " size must be between " + min + " and " + max;
+    }
+
+    @Override
     public String toString() {
         return "SizeValidationRule{" +
                 "min=" + min +

@@ -94,6 +94,11 @@ public class PastValidationRule extends ValueValidationRule {
     }
 
     @Override
+    public String describe() {
+        return getValueName() + " must be in the past";
+    }
+
+    @Override
     public String toString() {
         return "PastValidationRule";
     }

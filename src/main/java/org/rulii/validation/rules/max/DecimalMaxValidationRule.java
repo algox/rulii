@@ -104,6 +104,11 @@ public class DecimalMaxValidationRule extends ValueValidationRule {
     }
 
     @Override
+    public String describe() {
+        return getValueName() + " must be " + (inclusive ? "less than or equal to " : "less than ") + max;
+    }
+
+    @Override
     public String toString() {
         return "DecimalMaxValidationRule{" +
                 "max=" + max +

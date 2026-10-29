@@ -102,6 +102,11 @@ public class EndsWithValidationRule extends ValueValidationRule {
     }
 
     @Override
+    public String describe() {
+        return getValueName() + " must end with one of " + String.join(", ", suffixes);
+    }
+
+    @Override
     public String toString() {
         return "EndsWithValidationRule{"
                 + "suffixes=" + Arrays.toString(suffixes)

@@ -104,6 +104,11 @@ public class DecimalMinValidationRule extends ValueValidationRule {
     }
 
     @Override
+    public String describe() {
+        return getValueName() + " must be " + (inclusive ? "greater than or equal to " : "greater than ") + min;
+    }
+
+    @Override
     public String toString() {
         return "DecimalMinValidationRule{" +
                 "min=" + min +

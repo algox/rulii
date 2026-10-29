@@ -75,6 +75,11 @@ public class AssertFalseValidationRule extends ValueValidationRule {
     }
 
     @Override
+    public String describe() {
+        return getValueName() + " must be false";
+    }
+
+    @Override
     public String toString() {
         return "AssertFalseValidationRule";
     }

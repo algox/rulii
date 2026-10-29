@@ -255,6 +255,15 @@ public abstract class ValueValidationRuleBuilder<T extends ValueValidationRuleBu
     protected abstract V createValueValidationRule();
 
     /**
+     * The description the rule gets when none is set: what it checks, naming the value, as configured so far.
+     *
+     * @return the description; never null.
+     */
+    public String describe() {
+        return createValueValidationRule().describe();
+    }
+
+    /**
      * Builds and returns a {@link Rule} wrapping the configured {@link ValueValidationRule}.
      *
      * @return the fully configured {@link org.rulii.rule.Rule}
@@ -265,7 +274,8 @@ public abstract class ValueValidationRuleBuilder<T extends ValueValidationRuleBu
         target.setParameters(parameters);
         ClassBasedRuleBuilder<?> builder = Rule.builder().with(target);
         if (name != null) builder.name(name);
-        builder.description(description);
+        // No description given: the rule says what it checks, naming the value.
+        builder.description(description != null ? description : target.describe());
         builder.category(category);
         builder.tags(tags);
         // The rule class is one of rulii's validators, which says nothing about where the

@@ -26,6 +26,7 @@ import org.rulii.context.RuleContext;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.UnrulyException;
 import org.rulii.model.function.Function;
+import org.rulii.rule.ClassBasedRuleBuilder;
 
 import java.math.BigDecimal;
 import java.util.Collections;
@@ -100,6 +101,18 @@ public abstract class ValueValidationRule extends ValidationRule {
         }
         customizeViolation(ruleContext, builder);
         ruleViolations.add(builder.build(ruleContext));
+    }
+
+    /**
+     * Describes what this rule checks, naming the value: {@code code size must be between 3 and 20}. A rule built
+     * without a description gets this one. The built-in rules each say what they check with their own parameters;
+     * the default is the {@link org.rulii.annotation.Description} of the rule class, else its simple name.
+     *
+     * @return the description; never null.
+     */
+    public String describe() {
+        String result = ClassBasedRuleBuilder.getRuleDescription(getClass());
+        return result != null ? result : getClass().getSimpleName();
     }
 
     /**

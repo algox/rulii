@@ -95,6 +95,11 @@ public class MaxValidationRule extends ValueValidationRule {
     }
 
     @Override
+    public String describe() {
+        return getValueName() + " must be less than or equal to " + max;
+    }
+
+    @Override
     public String toString() {
         return "MaxValidationRule{" +
                 "max=" + max +

@@ -67,6 +67,11 @@ public class NullValidationRule extends ValueValidationRule {
     }
 
     @Override
+    public String describe() {
+        return getValueName() + " must be null";
+    }
+
+    @Override
     public String toString() {
         return "NullValidationRule";
     }

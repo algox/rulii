@@ -75,6 +75,11 @@ public class AsciiValidationRule extends ValueValidationRule {
     }
 
     @Override
+    public String describe() {
+        return getValueName() + " must only contain printable ASCII characters";
+    }
+
+    @Override
     public String toString() {
         return "AsciiValidationRule";
     }

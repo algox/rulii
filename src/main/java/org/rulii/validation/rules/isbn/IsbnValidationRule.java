@@ -162,6 +162,11 @@ public class IsbnValidationRule extends ValueValidationRule {
     }
 
     @Override
+    public String describe() {
+        return getValueName() + " must be a valid " + type + " number";
+    }
+
+    @Override
     public String toString() {
         return "IsbnValidationRule{type=" + type + '}';
     }

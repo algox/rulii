@@ -183,6 +183,11 @@ public class UuidValidationRule extends ValueValidationRule {
     }
 
     @Override
+    public String describe() {
+        return getValueName() + " must be a valid UUID";
+    }
+
+    @Override
     public String toString() {
         return "UuidValidationRule{allowEmpty=" + allowEmpty + ", allowNil=" + allowNil + ", versions=" + Arrays.toString(versions)
                 + ", variants=" + Arrays.toString(variants) + ", letterCase=" + letterCase + '}';

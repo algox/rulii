@@ -125,6 +125,11 @@ public class Mod10CheckValidationRule extends ValueValidationRule {
     }
 
     @Override
+    public String describe() {
+        return getValueName() + " must pass the modulo 10 check";
+    }
+
+    @Override
     public String toString() {
         return "Mod10CheckValidationRule{multiplier=" + multiplier + ", weight=" + weight + ", startIndex=" + startIndex
                 + ", endIndex=" + endIndex + ", checkDigitIndex=" + checkDigitIndex + ", ignoreNonDigitCharacters=" + ignoreNonDigitCharacters + '}';

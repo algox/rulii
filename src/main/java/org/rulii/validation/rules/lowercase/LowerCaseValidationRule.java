@@ -75,6 +75,11 @@ public class LowerCaseValidationRule extends ValueValidationRule {
     }
 
     @Override
+    public String describe() {
+        return getValueName() + " must be in lowercase";
+    }
+
+    @Override
     public String toString() {
         return "LowerCaseValidationRule";
     }

@@ -83,6 +83,11 @@ public class NumericValidationRule extends ValueValidationRule {
     }
 
     @Override
+    public String describe() {
+        return getValueName() + " must be numeric";
+    }
+
+    @Override
     public String toString() {
         return "NumericValidationRule{"
                 + "allowSpace=" + isAllowSpace()

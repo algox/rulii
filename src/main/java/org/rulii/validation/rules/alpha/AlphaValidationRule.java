@@ -112,6 +112,11 @@ public class AlphaValidationRule extends ValueValidationRule {
     }
 
     @Override
+    public String describe() {
+        return getValueName() + " must only contain letters" + (allowSpace ? " and spaces" : "");
+    }
+
+    @Override
     public String toString() {
         return "AlphaValidationRule{"
                 + "allowSpace=" + isAllowSpace()

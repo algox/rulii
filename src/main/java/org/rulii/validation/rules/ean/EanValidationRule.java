@@ -122,6 +122,11 @@ public class EanValidationRule extends ValueValidationRule {
     }
 
     @Override
+    public String describe() {
+        return getValueName() + " must be a valid " + type + " barcode";
+    }
+
+    @Override
     public String toString() {
         return "EanValidationRule{type=" + type + '}';
     }

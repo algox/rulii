@@ -90,6 +90,11 @@ public class DecimalValidationRule extends ValueValidationRule {
     }
 
     @Override
+    public String describe() {
+        return getValueName() + " must be a decimal number";
+    }
+
+    @Override
     public String toString() {
         return "DecimalValidationRule{" +
                 "allowSpace=" + allowSpace +

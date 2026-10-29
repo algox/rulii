@@ -94,6 +94,11 @@ public class FutureOrPresentValidationRule extends ValueValidationRule {
     }
 
     @Override
+    public String describe() {
+        return getValueName() + " must be in the present or in the future";
+    }
+
+    @Override
     public String toString() {
         return "FutureOrPresentValidationRule";
     }

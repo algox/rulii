@@ -75,6 +75,11 @@ public class UpperCaseValidationRule extends ValueValidationRule {
     }
 
     @Override
+    public String describe() {
+        return getValueName() + " must be in uppercase";
+    }
+
+    @Override
     public String toString() {
         return "UpperCaseValidationRule";
     }

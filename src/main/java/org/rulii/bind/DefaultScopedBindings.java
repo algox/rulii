@@ -42,7 +42,8 @@ public class DefaultScopedBindings implements ScopedBindings, Map<String, Object
 
     private static final Log logger = LogFactory.getLog(DefaultScopedBindings.class);
 
-    private final Stack<NamedScope> scopes = new Stack<>();
+    // An ArrayList, not a Stack: every lookup walks the scopes top down, and a Stack takes the Vector monitor on every get.
+    private final List<NamedScope> scopes = new ArrayList<>();
     private final List<BindingListener> listeners = new LinkedList<>();
     // Number of scopes inherited from a parent by fork(); zero for a stack of our own. Scopes below
     // the floor are shared with the parent and never popped, listened to or searched for removal here.
@@ -57,7 +58,7 @@ public class DefaultScopedBindings implements ScopedBindings, Map<String, Object
         Assert.hasText(name, "name cannot be null/empty.");
         Assert.notNull(bindings, "bindings cannot be null.");
         this.floor = 0;
-        this.scopes.push(new NamedScope(name, bindings));
+        this.scopes.add(new NamedScope(name, bindings));
     }
 
     /**
@@ -82,11 +83,11 @@ public class DefaultScopedBindings implements ScopedBindings, Map<String, Object
         this.floor = inherited.size();
 
         for (NamedScope scope : inherited) {
-            this.scopes.push(withoutReservedPair(scope));
+            this.scopes.add(withoutReservedPair(scope));
         }
 
         this.listeners.addAll(listeners);
-        this.scopes.push(new NamedScope(forkScopeName, createBindings()));
+        this.scopes.add(new NamedScope(forkScopeName, createBindings()));
     }
 
     @Override
@@ -146,7 +147,7 @@ public class DefaultScopedBindings implements ScopedBindings, Map<String, Object
         }
 
         NamedScope result = new NamedScope(name, bindings);
-        scopes.push(result);
+        scopes.add(result);
 
         if (logger.isDebugEnabled()) {
             logger.debug("New Scope added [" + name + "]");
@@ -208,10 +209,10 @@ public class DefaultScopedBindings implements ScopedBindings, Map<String, Object
         }
 
         if (logger.isDebugEnabled()) {
-            logger.debug("Scope removed [" + scopes.peek().getName() + "]");
+            logger.debug("Scope removed [" + scopes.get(scopes.size() - 1).getName() + "]");
         }
 
-        NamedScope result = scopes.pop();
+        NamedScope result = scopes.remove(scopes.size() - 1);
 
         // Fire the Scope listeners
         for (BindingListener listener : listeners) {
@@ -314,7 +315,7 @@ public class DefaultScopedBindings implements ScopedBindings, Map<String, Object
 
     @Override
     public NamedScope getCurrentScope() {
-        return scopes.peek();
+        return scopes.get(scopes.size() - 1);
     }
 
     @Override

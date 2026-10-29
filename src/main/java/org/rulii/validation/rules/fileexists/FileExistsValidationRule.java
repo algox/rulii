@@ -79,6 +79,11 @@ public class FileExistsValidationRule extends ValueValidationRule {
     }
 
     @Override
+    public String describe() {
+        return getValueName() + " must be an existing file";
+    }
+
+    @Override
     public String toString() {
         return "FileExistsValidationRule";
     }

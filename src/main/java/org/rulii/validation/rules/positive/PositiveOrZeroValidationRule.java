@@ -80,6 +80,11 @@ public class PositiveOrZeroValidationRule extends ValueValidationRule {
     }
 
     @Override
+    public String describe() {
+        return getValueName() + " must be greater than or equal to 0";
+    }
+
+    @Override
     public String toString() {
         return "PositiveOrZeroValidationRule";
     }

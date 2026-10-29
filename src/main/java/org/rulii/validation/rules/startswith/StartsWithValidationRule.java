@@ -102,6 +102,11 @@ public class StartsWithValidationRule extends ValueValidationRule {
     }
 
     @Override
+    public String describe() {
+        return getValueName() + " must start with one of " + String.join(", ", prefixes);
+    }
+
+    @Override
     public String toString() {
         return "EndsWithValidationRule{"
                 + "prefixes=" + Arrays.toString(prefixes)

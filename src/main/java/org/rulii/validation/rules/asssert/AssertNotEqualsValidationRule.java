@@ -79,6 +79,11 @@ public class AssertNotEqualsValidationRule extends ValueValidationRule {
     }
 
     @Override
+    public String describe() {
+        return getValueName() + " must not equal " + value;
+    }
+
+    @Override
     public String toString() {
         return "AssertNotEqualsValidationRule";
     }

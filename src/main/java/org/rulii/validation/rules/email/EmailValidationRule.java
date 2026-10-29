@@ -153,6 +153,11 @@ public class EmailValidationRule extends ValueValidationRule {
     }
 
     @Override
+    public String describe() {
+        return getValueName() + " must be a valid email address";
+    }
+
+    @Override
     public String toString() {
         return "EmailValidationRule{" +
                 "allowLocal=" + allowLocal +

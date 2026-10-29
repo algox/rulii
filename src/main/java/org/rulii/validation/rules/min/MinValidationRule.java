@@ -95,6 +95,11 @@ public class MinValidationRule extends ValueValidationRule {
     }
 
     @Override
+    public String describe() {
+        return getValueName() + " must be greater than or equal to " + min;
+    }
+
+    @Override
     public String toString() {
         return "MinValidationRule{" +
                 "min=" + min +

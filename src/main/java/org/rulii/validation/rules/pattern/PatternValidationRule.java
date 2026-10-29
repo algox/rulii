@@ -107,6 +107,11 @@ public class PatternValidationRule extends ValueValidationRule {
     }
 
     @Override
+    public String describe() {
+        return getValueName() + " must match " + pattern;
+    }
+
+    @Override
     public String toString() {
         return "PatternValidationRule{" +
                 "pattern=" + pattern +

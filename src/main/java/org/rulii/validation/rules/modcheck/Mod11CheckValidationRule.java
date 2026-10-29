@@ -166,6 +166,11 @@ public class Mod11CheckValidationRule extends ValueValidationRule {
     }
 
     @Override
+    public String describe() {
+        return getValueName() + " must pass the modulo 11 check";
+    }
+
+    @Override
     public String toString() {
         return "Mod11CheckValidationRule{threshold=" + threshold + ", startIndex=" + startIndex + ", endIndex=" + endIndex
                 + ", checkDigitIndex=" + checkDigitIndex + ", ignoreNonDigitCharacters=" + ignoreNonDigitCharacters

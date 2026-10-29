@@ -86,6 +86,11 @@ public class InValidationRule extends ValueValidationRule {
     }
 
     @Override
+    public String describe() {
+        return getValueName() + " must be one of " + values;
+    }
+
+    @Override
     public String toString() {
         return "InValidationRule{" +
                 "values=" + values +

@@ -80,6 +80,11 @@ public class NegativeValidationRule extends ValueValidationRule {
     }
 
     @Override
+    public String describe() {
+        return getValueName() + " must be less than 0";
+    }
+
+    @Override
     public String toString() {
         return "NegativeValidationRule";
     }

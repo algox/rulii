@@ -36,9 +36,11 @@ import org.rulii.text.MessageResolver;
 import org.rulii.trace.Tracer;
 import org.rulii.util.reflect.ObjectFactory;
 
+import java.security.SecureRandom;
 import java.time.Clock;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Carries all state and services needed during rule execution.
@@ -68,7 +70,11 @@ public class RuleContext implements Immutator<RuleContext> {
         return RuleContextBuilderBuilder.getInstance();
     }
 
-    private volatile String id;
+    // Drawn once per JVM, so a context id costs no SecureRandom: ids from two JVMs (or two restarts) differ in this tag.
+    private static final String JVM_TAG = Long.toString(new SecureRandom().nextInt() & 0xffffffffL, 36);
+    private static final AtomicLong SEQUENCE = new AtomicLong();
+
+    private final String id;
     private final Date creationTime;
     private final ScopedBindings bindings;
     private final Locale locale;
@@ -108,8 +114,7 @@ public class RuleContext implements Immutator<RuleContext> {
                 MessageFormatter messageFormatter, ObjectFactory objectFactory,
                 Tracer tracer, ConverterRegistry converterRegistry,
                 Clock clock, ExecutorService executorService, RuleRegistry ruleRegistry) {
-        // The id, a random UUID, is drawn on the first getId(): a context nobody identifies pays nothing for one.
-        this((String) null, new Date(), bindings, locale, matchingStrategy, parameterResolver,
+        this(nextId(), new Date(), bindings, locale, matchingStrategy, parameterResolver,
                 messageResolver, messageFormatter, objectFactory, tracer, converterRegistry, clock,
                 executorService, ruleRegistry);
     }
@@ -125,7 +130,7 @@ public class RuleContext implements Immutator<RuleContext> {
                 Tracer tracer, ConverterRegistry converterRegistry, Clock clock,
                 ExecutorService executorService, RuleRegistry ruleRegistry) {
         super();
-        // A null id is drawn lazily by getId(); an explicit one (a fork's, say) is kept as given.
+        Assert.notNull(id, "id cannot be null.");
         Assert.notNull(creationTime, "creationTime cannot be null.");
         Assert.notNull(bindings, "bindings cannot be null.");
         Assert.notNull(locale, "locale cannot be null.");
@@ -245,24 +250,23 @@ public class RuleContext implements Immutator<RuleContext> {
     }
 
     /**
-     * Returns the unique identifier of this context: a random UUID, drawn on the first request.
+     * Returns the unique identifier of this context, assigned at creation: {@code <jvm tag>-<creation millis>-<sequence>},
+     * each part in base 36. The sequence makes it unique within the JVM, the tag across JVMs, and the time keeps ids
+     * readable in creation order.
      *
      * @return the context ID; never null.
      */
     public String getId() {
-        String result = id;
+        return id;
+    }
 
-        if (result == null) {
-            synchronized (this) {
-                result = id;
-                if (result == null) {
-                    result = UUID.randomUUID().toString();
-                    id = result;
-                }
-            }
-        }
-
-        return result;
+    /**
+     * The next context id: the JVM tag, the current time in milliseconds and a JVM-wide sequence number.
+     *
+     * @return a new id; never null.
+     */
+    private static String nextId() {
+        return JVM_TAG + "-" + Long.toString(System.currentTimeMillis(), 36) + "-" + Long.toString(SEQUENCE.incrementAndGet(), 36);
     }
 
     /**
@@ -319,7 +323,7 @@ public class RuleContext implements Immutator<RuleContext> {
      */
     @Override
     public RuleContext asImmutable() {
-        return new RuleContext(getId(), creationTime, bindings.asImmutable(), locale, matchingStrategy, parameterResolver,
+        return new RuleContext(id, creationTime, bindings.asImmutable(), locale, matchingStrategy, parameterResolver,
                 messageResolver, messageFormatter, objectFactory, tracer, converterRegistry, clock, executorService, ruleRegistry);
     }
 
@@ -356,7 +360,7 @@ public class RuleContext implements Immutator<RuleContext> {
      * @return a per-run {@code RuleContext} with local bindings; never null.
      */
     public RuleContext withLocalBindings() {
-        return new RuleContext(getId(), creationTime, new RuleRunBindings(bindings, Bindings.builder().local()), locale,
+        return new RuleContext(id, creationTime, new RuleRunBindings(bindings, Bindings.builder().local()), locale,
                 matchingStrategy, parameterResolver, messageResolver, messageFormatter, objectFactory, tracer,
                 converterRegistry, clock, executorService, ruleRegistry);
     }

@@ -85,6 +85,11 @@ public class UniqueElementsValidationRule extends ValueValidationRule {
     }
 
     @Override
+    public String describe() {
+        return getValueName() + " must only contain unique elements";
+    }
+
+    @Override
     public String toString() {
         return "UniqueElementsValidationRule";
     }

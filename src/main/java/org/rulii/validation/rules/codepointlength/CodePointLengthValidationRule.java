@@ -115,6 +115,11 @@ public class CodePointLengthValidationRule extends ValueValidationRule {
     }
 
     @Override
+    public String describe() {
+        return getValueName() + " code point length must be between " + min + " and " + max;
+    }
+
+    @Override
     public String toString() {
         return "CodePointLengthValidationRule{min=" + min + ", max=" + max + ", normalization=" + normalization + '}';
     }

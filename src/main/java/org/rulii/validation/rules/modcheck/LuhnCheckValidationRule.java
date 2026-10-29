@@ -105,6 +105,11 @@ public class LuhnCheckValidationRule extends ValueValidationRule {
     }
 
     @Override
+    public String describe() {
+        return getValueName() + " must pass the Luhn check";
+    }
+
+    @Override
     public String toString() {
         return "LuhnCheckValidationRule{startIndex=" + startIndex + ", endIndex=" + endIndex + ", checkDigitIndex=" + checkDigitIndex
                 + ", ignoreNonDigitCharacters=" + ignoreNonDigitCharacters + '}';

@@ -99,6 +99,11 @@ public class DurationMinValidationRule extends ValueValidationRule {
     }
 
     @Override
+    public String describe() {
+        return getValueName() + " must be " + (inclusive ? "at least " : "longer than ") + min;
+    }
+
+    @Override
     public String toString() {
         return "DurationMinValidationRule{min=" + min + ", inclusive=" + inclusive + '}';
     }
