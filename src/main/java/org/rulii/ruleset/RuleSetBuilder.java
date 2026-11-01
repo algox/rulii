@@ -23,6 +23,7 @@ import org.rulii.context.RuleContext;
 import org.rulii.lib.spring.core.NestedExceptionUtils;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.InputParameter;
+import org.rulii.model.ResultType;
 import org.rulii.model.SourceDefinition;
 import org.rulii.model.UnrulyException;
 import org.rulii.model.action.Action;
@@ -36,6 +37,7 @@ import org.rulii.validation.RuleViolations;
 import org.rulii.validation.ValidationException;
 import org.rulii.validation.ValidationRule;
 
+import java.lang.reflect.Type;
 import java.util.*;
 
 /**
@@ -72,6 +74,12 @@ public class RuleSetBuilder {
     private final LinkedList<Rule> ruleSetItems = new LinkedList<>();
     private boolean validating = false;
     private SourceDefinition source;
+    // The result type the author stated; null until stated.
+    private Type resultType = null;
+    // True while the result extractor above is still the engine's own (returns the RuleSetExecutionStatus).
+    private boolean defaultExtractor = true;
+    // True while the error handler above is still the engine's own.
+    private boolean defaultErrorHandler = true;
 
     /**
      * Constructs a new RuleSetBuilder instance with the provided name.
@@ -111,8 +119,21 @@ public class RuleSetBuilder {
         if (rules.getInitializer() != null) initializer(rules.getInitializer());
         if (rules.getFinalizer() != null) finalizer(rules.getFinalizer());
         resultExtractor(rules.getResultExtractor());
+        copyResultType(rules.getDefinition().getResolvedResultType());
         if (rules.getErrorHandler() != null) errorHandler(rules.getErrorHandler());
         this.rules(rules.getRules());
+    }
+
+    /**
+     * Carries a declared or default result type over from a copied rule set, so that the copy resolves to the
+     * same type as the original. A derived or unknown type is left to derive again from the copied extractor.
+     */
+    private void copyResultType(ResultType original) {
+        if (original == null) return;
+
+        if (original.getOrigin() == ResultType.Origin.DECLARED || original.getOrigin() == ResultType.Origin.DEFAULT) {
+            resultType(original.getType());
+        }
     }
 
     /**
@@ -328,7 +349,9 @@ public class RuleSetBuilder {
     }
 
     /**
-     * Sets the result extractor function for the RuleSetBuilder.
+     * Sets the result extractor function for the RuleSetBuilder. The result type is derived from the
+     * extractor's declared return type (see {@link ResultType}); a type stated with {@link #resultType(Type)}
+     * or {@link #resultExtractor(Class, Function)} is kept.
      *
      * @param resultExtractor the function used to extract results
      * @return this RuleSetBuilder instance for method chaining
@@ -336,12 +359,46 @@ public class RuleSetBuilder {
     public RuleSetBuilder resultExtractor(Function<?> resultExtractor) {
         Assert.notNull(resultExtractor, "resultExtractor cannot be null.");
         this.resultExtractor = resultExtractor;
+        this.defaultExtractor = false;
+        return this;
+    }
+
+    /**
+     * Sets the result extractor and states the result type, for when the extractor's declared return type
+     * is not specific enough (a script, or a generic lambda).
+     *
+     * @param type            the result type recorded in the {@link RuleSetDefinition}; must not be null.
+     * @param resultExtractor the function used to extract results; must not be null.
+     * @param <T>             the result type.
+     * @return this RuleSetBuilder instance for method chaining
+     * @since 2.2
+     */
+    public <T> RuleSetBuilder resultExtractor(Class<T> type, Function<T> resultExtractor) {
+        resultType(type);
+        return resultExtractor(resultExtractor);
+    }
+
+    /**
+     * States the result type on its own: with the default result extractor (which returns the
+     * {@link RuleSetExecutionStatus}) or with an extractor given separately. The type is a declaration,
+     * recorded in the definition; the engine does not convert the result to it. At {@link #build()} an
+     * extractor or error handler whose declared return type contradicts it fails with an
+     * {@link UnrulyException}.
+     *
+     * @param type the result type; must not be null. A {@link Class}, or a parameterized type.
+     * @return this RuleSetBuilder instance for method chaining
+     * @since 2.2
+     */
+    public RuleSetBuilder resultType(Type type) {
+        Assert.notNull(type, "type cannot be null.");
+        this.resultType = type;
         return this;
     }
 
     public RuleSetBuilder errorHandler(Function<?> errorHandler) {
         Assert.notNull(errorHandler, "errorHandler cannot be null.");
         this.errorHandler = errorHandler;
+        this.defaultErrorHandler = false;
         return this;
     }
 
@@ -540,7 +597,38 @@ public class RuleSetBuilder {
                 getEffectiveFinalizer() != null ? getEffectiveFinalizer().getDefinition() : null,
                 getResultExtractor() != null ? getResultExtractor().getDefinition() : null,
                 getErrorHandler() != null ? getErrorHandler().getDefinition() : null,
-                definitions, validating);
+                definitions, validating, resolveResultType());
+    }
+
+    /**
+     * The result type recorded in the definition: the stated type, else the engine's own default extractor's
+     * {@link RuleSetExecutionStatus}, else what the extractor declares, else unknown. A stated type is checked
+     * against the extractor and a user-given error handler (both produce the result) when their declared
+     * return types are concrete.
+     *
+     * @return the resolved result type; never null.
+     * @throws UnrulyException when a stated type contradicts the extractor or the error handler.
+     */
+    protected ResultType resolveResultType() {
+        if (resultType == null) {
+            return defaultExtractor ? ResultType.byDefault(RuleSetExecutionStatus.class) : ResultType.resolve(null, resultExtractor);
+        }
+
+        ResultType declared = ResultType.declared(resultType);
+        checkProduces(declared, resultExtractor, "result extractor");
+        if (!defaultErrorHandler) checkProduces(declared, errorHandler, "error handler");
+
+        return declared;
+    }
+
+    private void checkProduces(ResultType declared, Function<?> producer, String role) {
+        Type actual = ResultType.concreteReturnType(producer);
+
+        if (actual != null && !declared.accepts(actual)) {
+            throw new UnrulyException("RuleSet [" + getName() + "] declares result type [" + ResultType.simpleName(resultType)
+                    + "] but its " + role + " returns [" + ResultType.simpleName(actual)
+                    + "]; declare the type the " + role + " returns, or change the " + role + ".");
+        }
     }
 
     /**
@@ -592,6 +680,16 @@ public class RuleSetBuilder {
         return errorHandler;
     }
 
+    /**
+     * The result type the author stated.
+     *
+     * @return the stated type, or null when none was stated (the definition then derives it).
+     * @since 2.2
+     */
+    public Type getResultType() {
+        return resultType;
+    }
+
     @Override
     public String toString() {
         return "RuleSetBuilder{" +
@@ -603,6 +701,7 @@ public class RuleSetBuilder {
                 ", initializer=" + initializer +
                 ", finalizer=" + finalizer +
                 ", resultExtractor=" + resultExtractor +
+                ", resultType=" + resultType +
                 ", ruleSetItems=" + ruleSetItems +
                 '}';
     }

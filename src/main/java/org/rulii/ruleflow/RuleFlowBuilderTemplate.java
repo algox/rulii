@@ -25,7 +25,7 @@ import org.rulii.bind.load.BindingLoader;
 import org.rulii.context.RuleContextBuilder;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.InputParameter;
-import org.rulii.model.MethodDefinition;
+import org.rulii.model.ResultType;
 import org.rulii.model.SourceDefinition;
 import org.rulii.model.UnrulyException;
 import org.rulii.model.action.Action;
@@ -38,7 +38,6 @@ import org.rulii.ruleset.RuleSet;
 import org.rulii.util.RuleUtils;
 
 import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -378,7 +377,9 @@ public abstract class RuleFlowBuilderTemplate<SELF extends RuleFlowBuilderTempla
     }
 
     /**
-     * Sets the typed result extractor evaluated when the flow completes naturally.
+     * Sets the typed result extractor evaluated when the flow completes naturally. The result type is
+     * derived from the extractor's declared return type (see {@link org.rulii.model.ResultType}); a type
+     * stated with {@link #resultType(Type)} or {@link #returning(Class, Function)} is kept.
      *
      * @param extractor function that extracts {@code T} from the bindings; must not be null.
      * @return this builder.
@@ -387,7 +388,24 @@ public abstract class RuleFlowBuilderTemplate<SELF extends RuleFlowBuilderTempla
         Assert.notNull(extractor, "extractor cannot be null.");
         sealLastConstruct();
         this.resultExtractor = extractor;
-        this.resultType = null;
+        return self();
+    }
+
+    /**
+     * States the result type on its own, for a flow whose extractor does not declare it (a script, a
+     * generic lambda) or whose result comes from {@code exit(...)} steps. The type is a declaration,
+     * recorded in the {@link RuleFlowDefinition}; the engine does not convert the result to it. At
+     * {@link #build()} a {@code returning} extractor or an {@code exit} extractor whose declared return
+     * type contradicts it fails with an {@link UnrulyException}, as does a flow that returns its
+     * {@link org.rulii.context.RuleContext} (no {@code returning(extractor)} in effect).
+     *
+     * @param type the result type; must not be null. A {@link Class}, or a parameterized type.
+     * @return this builder.
+     * @since 2.2
+     */
+    public SELF resultType(Type type) {
+        Assert.notNull(type, "type cannot be null.");
+        this.resultType = type;
         return self();
     }
 
@@ -1364,7 +1382,7 @@ public abstract class RuleFlowBuilderTemplate<SELF extends RuleFlowBuilderTempla
         Function<T> extractor = (Function<T>) resultExtractor;
 
         RuleFlowDefinition def = new RuleFlowDefinition(name, description, category, tags, source != null ? source : SourceDefinition.build(),
-                resolveResultType(extractor), params, CommandInfo.of(rootCommands),
+                resolveResultType(), params, CommandInfo.of(rootCommands),
                 globalHandler != null ? globalHandler.getInfo() : null,
                 finalizer != null ? finalizer.getExpression() : null,
                 extractor != null ? extractor.getExpression() : null,
@@ -1375,20 +1393,80 @@ public abstract class RuleFlowBuilderTemplate<SELF extends RuleFlowBuilderTempla
     }
 
     /**
-     * The result type: the explicit type from {@code returning(Class, Function)} when given,
-     * else the extractor's declared return type, else {@code Object}; null without an extractor.
+     * The result type recorded in the definition: none without an extractor (the flow returns its
+     * context), else the stated type, else what the extractor declares, else unknown. See
+     * {@link ResultType}.
+     *
+     * @return the resolved result type; never null.
      */
-    private Type resolveResultType(Function<?> extractor) {
-        if (extractor == null) return null;
-        if (resultType != null) return resultType;
-
-        MethodDefinition definition = extractor.getDefinition();
-        Type declared = definition != null ? definition.getReturnType() : null;
-        return declared == null || declared instanceof TypeVariable<?> ? Object.class : declared;
+    protected ResultType resolveResultType() {
+        if (resultExtractor == null) return ResultType.none();
+        return ResultType.resolve(resultType, resultExtractor);
     }
 
     private void validate() {
         validateReachability();
+        validateResultType();
+    }
+
+    /**
+     * A stated result type must agree with the flow: there must be a {@code returning} extractor
+     * (a flow returning its context has no user type), and neither that extractor nor any
+     * {@code exit} extractor may declare a concrete return type the stated type does not accept.
+     * Nothing is checked without a stated type (a derived type never rejects a flow).
+     */
+    private void validateResultType() {
+        if (resultType == null) return;
+
+        if (resultExtractor == null) {
+            throw new UnrulyException("RuleFlow [" + name + "] declares result type [" + ResultType.simpleName(resultType)
+                    + "] but returns its RuleContext; add returning(extractor) or remove the result type.");
+        }
+
+        ResultType declared = ResultType.declared(resultType);
+        checkProduces(declared, resultExtractor, "returning extractor");
+
+        for (ReturningCommand exit : exits(rootCommands, new ArrayList<>())) {
+            checkProduces(declared, exit.getResultExtractor(), "exit");
+        }
+
+        if (globalHandler != null) {
+            for (ReturningCommand exit : exits(globalHandler.getBody(), new ArrayList<>())) {
+                checkProduces(declared, exit.getResultExtractor(), "exit");
+            }
+        }
+    }
+
+    private void checkProduces(ResultType declared, Function<?> producer, String role) {
+        Type actual = ResultType.concreteReturnType(producer);
+
+        if (actual != null && !declared.accepts(actual)) {
+            throw new UnrulyException("RuleFlow [" + name + "] declares result type [" + ResultType.simpleName(resultType)
+                    + "] but its " + role + " returns [" + ResultType.simpleName(actual)
+                    + "]; declare the type the " + role + " returns, or change the " + role + ".");
+        }
+    }
+
+    /**
+     * Every exit reachable from the given commands: through container bodies, the otherwise branch
+     * of a when, the continuation of an async step, and step-level exception handlers.
+     */
+    private static List<ReturningCommand> exits(List<RuleFlowCommand> commands, List<ReturningCommand> result) {
+        for (RuleFlowCommand command : commands) {
+            if (command instanceof ReturningCommand exit) {
+                result.add(exit);
+            } else if (command instanceof ContainerCommand container) {
+                exits(container.getBody(), result);
+                if (container instanceof WhenCommand when) exits(when.getOtherwiseBody(), result);
+            } else if (command instanceof RunCommand run) {
+                if (run.getExceptionHandler() != null) exits(run.getExceptionHandler().getBody(), result);
+            } else if (command instanceof AsyncRunCommand async) {
+                exits(async.getContinuation(), result);
+                if (async.getExceptionHandler() != null) exits(async.getExceptionHandler().getBody(), result);
+            }
+        }
+
+        return result;
     }
 
     private void validateReachability() {

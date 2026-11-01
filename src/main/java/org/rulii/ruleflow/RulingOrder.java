@@ -175,6 +175,7 @@ final class RulingOrder<T> implements RuleFlow<T> {
                 "name='" + getName() + '\'' +
                 ", commands=" + commands.size() +
                 ", inputParameters=" + inputParameters +
+                ", resultType=" + getDefinition().getResolvedResultType().getDescription() +
                 '}';
     }
 }

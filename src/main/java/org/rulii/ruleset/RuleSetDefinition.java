@@ -22,6 +22,7 @@ import org.rulii.model.Categorized;
 import org.rulii.model.Definition;
 import org.rulii.model.InputParameter;
 import org.rulii.model.MethodDefinition;
+import org.rulii.model.ResultType;
 import org.rulii.model.SourceDefinition;
 import org.rulii.rule.RuleDefinition;
 import org.rulii.util.RuleUtils;
@@ -58,6 +59,7 @@ public final class RuleSetDefinition implements Definition, Categorized {
     private final MethodDefinition errorHandlerDefinition;
     private final List<RuleDefinition> definitions;
     private final boolean validating;
+    private final ResultType resultType;
 
     /**
      * Creates a definition.
@@ -107,7 +109,31 @@ public final class RuleSetDefinition implements Definition, Categorized {
                              MethodDefinition errorHandlerDefinition,
                              List<RuleDefinition> definitions,
                              boolean validating) {
+        this(name, description, category, tags, sourceDefinition, inputParameters, initActionDefinition, preConditionDefinition,
+                stopConditionDefinition, finallyActionDefinition, resultActionDefinition, errorHandlerDefinition, definitions, validating,
+                ResultType.derive(resultActionDefinition));
+    }
+
+    /**
+     * @param resultType the resolved result type (see {@link ResultType}); must not be null. The other
+     *                   constructors derive it from {@code resultActionDefinition}.
+     * @since 2.2
+     */
+    public RuleSetDefinition(String name, String description, String category, List<String> tags,
+                             SourceDefinition sourceDefinition,
+                             List<InputParameter<?>> inputParameters,
+                             MethodDefinition initActionDefinition,
+                             MethodDefinition preConditionDefinition,
+                             MethodDefinition stopConditionDefinition,
+                             MethodDefinition finallyActionDefinition,
+                             MethodDefinition resultActionDefinition,
+                             MethodDefinition errorHandlerDefinition,
+                             List<RuleDefinition> definitions,
+                             boolean validating,
+                             ResultType resultType) {
         super();
+        Assert.notNull(resultType, "resultType cannot be null.");
+        this.resultType = resultType;
         this.validating = validating;
         setName(name);
         Assert.notNull(inputParameters, "inputParameters cannot be null.");
@@ -146,8 +172,24 @@ public final class RuleSetDefinition implements Definition, Categorized {
         return tags;
     }
 
+    /**
+     * The result type, when known.
+     *
+     * @return the type; null when it cannot be told (see {@link #getResolvedResultType()}).
+     */
     public Type getResultType() {
-        return resultActionDefinition != null ? resultActionDefinition.getReturnType() : null;
+        return resultType.getType();
+    }
+
+    /**
+     * The result type together with where it came from: declared by the author, the engine's default
+     * ({@link RuleSetExecutionStatus}), derived from the result extractor, or unknown.
+     *
+     * @return the resolved result type; never null.
+     * @since 2.2
+     */
+    public ResultType getResolvedResultType() {
+        return resultType;
     }
 
     @Override
@@ -248,6 +290,7 @@ public final class RuleSetDefinition implements Definition, Categorized {
                 ", finallyActionDefinition=" + finallyActionDefinition +
                 ", resultActionDefinition=" + resultActionDefinition +
                 ", errorHandlerDefinition=" + errorHandlerDefinition +
+                ", resultType=" + resultType +
                 ", definitions=" + definitions +
                 '}';
     }

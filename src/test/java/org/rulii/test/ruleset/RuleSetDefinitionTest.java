@@ -20,10 +20,21 @@ package org.rulii.test.ruleset;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.rulii.model.InputParameter;
+import org.rulii.model.ResultType;
+import org.rulii.model.SourceDefinition;
+import org.rulii.model.UnrulyException;
 import org.rulii.model.condition.Condition;
+import org.rulii.model.function.Function;
 import org.rulii.rule.Rule;
 import org.rulii.ruleset.RuleSet;
 import org.rulii.ruleset.RuleSetDefinition;
+import org.rulii.ruleset.RuleSetExecutionStatus;
+import org.rulii.ruleset.RulingFamily;
+import org.rulii.script.Script;
+import org.rulii.script.janino.JaninoScriptProcessorFactory;
+import org.rulii.validation.RuleViolations;
+
+import java.util.List;
 
 import static org.rulii.model.condition.Conditions.condition;
 import static org.rulii.model.function.Functions.function;
@@ -92,5 +103,117 @@ public class RuleSetDefinitionTest {
         Assertions.assertEquals(old, described, "equality is by name only");
         Assertions.assertEquals(old.hashCode(), described.hashCode());
         Assertions.assertTrue(described.toString().contains("desc"));
+    }
+
+    @Test
+    public void resultTypeIsTheStatusByDefault() {
+        RuleSet<?> rules = RuleSet.builder().with("defaultResultSet").build();
+        RuleSetDefinition def = rules.getDefinition();
+
+        Assertions.assertEquals(RuleSetExecutionStatus.class, def.getResultType());
+        Assertions.assertEquals(ResultType.byDefault(RuleSetExecutionStatus.class), def.getResolvedResultType());
+        Assertions.assertInstanceOf(RuleSetExecutionStatus.class, rules.run());
+        Assertions.assertTrue(((RulingFamily<?>) rules).prettyPrint().contains("Result Type : RuleSetExecutionStatus (default)"));
+    }
+
+    @Test
+    public void resultTypeIsDerivedFromATypedExtractor() {
+        RuleSet<RuleViolations> rules = RuleSet.builder().with("derivedResultSet")
+                .resultExtractor(function((RuleViolations violations) -> violations))
+                .build();
+
+        Assertions.assertEquals(RuleViolations.class, rules.getDefinition().getResultType());
+        Assertions.assertEquals(ResultType.Origin.DERIVED, rules.getDefinition().getResolvedResultType().getOrigin());
+    }
+
+    @Test
+    public void resultTypeIsUnknownForAScriptUnlessDeclared() {
+        Function<Object> script = Function.builder().build(
+                Script.builder().build(JaninoScriptProcessorFactory.LANGUAGE_NAME, "7"));
+
+        RuleSet<?> unknown = RuleSet.builder().with("scriptResultSet").resultExtractor(script).build();
+        Assertions.assertNull(unknown.getDefinition().getResultType(), "no longer reported as Object");
+        Assertions.assertEquals(ResultType.unknown(), unknown.getDefinition().getResolvedResultType());
+        Assertions.assertFalse(((RulingFamily<?>) unknown).prettyPrint().contains("Result Type"));
+
+        RuleSet<?> declared = RuleSet.builder().with("declaredScriptResultSet")
+                .resultExtractor(script)
+                .resultType(Integer.class)
+                .build();
+        Assertions.assertEquals(ResultType.declared(Integer.class), declared.getDefinition().getResolvedResultType());
+
+        RuleSet<Integer> typed = RuleSet.builder().with("typedScriptResultSet")
+                .resultExtractor(Integer.class, Function.builder().build(
+                        Script.builder().build(JaninoScriptProcessorFactory.LANGUAGE_NAME, "7")))
+                .build();
+        Assertions.assertEquals(ResultType.declared(Integer.class), typed.getDefinition().getResolvedResultType());
+        Assertions.assertEquals(7, typed.run());
+    }
+
+    @Test
+    public void declaredTypeSurvivesALaterExtractorAndTheDefaultExtractor() {
+        RuleSet<?> kept = RuleSet.builder().with("keptResultSet")
+                .resultType(Number.class)
+                .resultExtractor(function(() -> 7))
+                .build();
+        Assertions.assertEquals(ResultType.declared(Number.class), kept.getDefinition().getResolvedResultType(), "last explicit wins");
+
+        RuleSet<?> onDefault = RuleSet.builder().with("declaredDefaultResultSet")
+                .resultType(Object.class)
+                .build();
+        Assertions.assertEquals(ResultType.declared(Object.class), onDefault.getDefinition().getResolvedResultType(),
+                "Object is kept when the author says so");
+    }
+
+    @Test
+    public void copyKeepsADeclaredOrDefaultType() {
+        RuleSet<?> original = RuleSet.builder().with("originalSet").build();
+        RuleSet<?> copy = RuleSet.builder().with(original).build();
+        Assertions.assertEquals(ResultType.declared(RuleSetExecutionStatus.class), copy.getDefinition().getResolvedResultType(),
+                "the copied extractor is no longer the default, so the type is carried over");
+
+        RuleSet<?> declared = RuleSet.builder().with("declaredSet").resultType(Number.class).resultExtractor(function(() -> 7)).build();
+        Assertions.assertEquals(ResultType.declared(Number.class), RuleSet.builder().with(declared).build().getDefinition().getResolvedResultType());
+
+        RuleSet<?> derived = RuleSet.builder().with("derivedSet").resultExtractor(function(() -> 7)).build();
+        Assertions.assertEquals(ResultType.derived(Integer.class), RuleSet.builder().with(derived).build().getDefinition().getResolvedResultType());
+    }
+
+    @Test
+    public void legacyConstructorDerivesTheType() {
+        Function<Integer> extractor = function(() -> 7);
+        RuleSetDefinition def = new RuleSetDefinition("legacySet", null, SourceDefinition.build(), List.of(),
+                null, null, null, null, extractor.getDefinition(), null, List.of(), false);
+        Assertions.assertEquals(ResultType.derived(Integer.class), def.getResolvedResultType());
+
+        RuleSetDefinition bare = new RuleSetDefinition("bareLegacySet", null, SourceDefinition.build(), List.of(),
+                null, null, null, null, null, null, List.of(), false);
+        Assertions.assertEquals(ResultType.unknown(), bare.getResolvedResultType());
+        Assertions.assertNull(bare.getResultType());
+    }
+
+    @Test
+    public void declaredTypeMustAgreeWithTheExtractorAndTheErrorHandler() {
+        // The typed overload cannot even express a mismatch; a type stated separately can.
+        UnrulyException extractor = Assertions.assertThrows(UnrulyException.class, () -> RuleSet.builder().with("badExtractorSet")
+                .resultType(String.class)
+                .resultExtractor(function(() -> 7))
+                .build());
+        Assertions.assertEquals("RuleSet [badExtractorSet] declares result type [String] but its result extractor returns [Integer]; "
+                + "declare the type the result extractor returns, or change the result extractor.", extractor.getMessage());
+
+        UnrulyException handler = Assertions.assertThrows(UnrulyException.class, () -> RuleSet.builder().with("badHandlerSet")
+                .resultType(String.class)
+                .errorHandler(function(() -> 7))
+                .build());
+        Assertions.assertTrue(handler.getMessage().contains("error handler returns [Integer]"), handler.getMessage());
+
+        // Compatible: a subtype, and an extractor the engine cannot read.
+        RuleSet<?> compatible = RuleSet.builder().with("compatibleSet")
+                .resultType(Number.class)
+                .resultExtractor(function(() -> 7))
+                .errorHandler(function(() -> 7L))
+                .build();
+        Assertions.assertEquals(ResultType.declared(Number.class), compatible.getDefinition().getResolvedResultType());
     }
 }

@@ -22,6 +22,7 @@ import org.rulii.model.Categorized;
 import org.rulii.model.Definition;
 import org.rulii.model.ExpressionInfo;
 import org.rulii.model.InputParameter;
+import org.rulii.model.ResultType;
 import org.rulii.model.SourceDefinition;
 import org.rulii.ruleflow.info.CommandInfo;
 import org.rulii.util.RuleUtils;
@@ -45,7 +46,7 @@ public final class RuleFlowDefinition implements Definition, Categorized {
     private final String category;
     private final List<String> tags;
     private final SourceDefinition sourceDefinition;
-    private final Type resultType;
+    private final ResultType resultType;
     private final List<InputParameter<?>> inputParameters;
     private final List<CommandInfo> commands;
     private final CommandInfo.Handler globalHandler;
@@ -85,9 +86,25 @@ public final class RuleFlowDefinition implements Definition, Categorized {
                               List<InputParameter<?>> inputParameters, List<CommandInfo> commands,
                               CommandInfo.Handler globalHandler, ExpressionInfo finalizer, ExpressionInfo returning,
                               String contextLabel) {
+        this(name, description, category, tags, sourceDefinition,
+                resultType != null ? ResultType.derived(resultType) : ResultType.none(),
+                inputParameters, commands, globalHandler, finalizer, returning, contextLabel);
+    }
+
+    /**
+     * @param resultType the resolved result type (see {@link ResultType}); must not be null. The other
+     *                   constructors take a plain {@link Type}: derived when given, none when null.
+     * @since 2.2
+     */
+    public RuleFlowDefinition(String name, String description, String category, List<String> tags,
+                              SourceDefinition sourceDefinition, ResultType resultType,
+                              List<InputParameter<?>> inputParameters, List<CommandInfo> commands,
+                              CommandInfo.Handler globalHandler, ExpressionInfo finalizer, ExpressionInfo returning,
+                              String contextLabel) {
         super();
         Assert.hasText(name, "name cannot be empty/null.");
         Assert.notNull(sourceDefinition, "sourceDefinition cannot be null.");
+        Assert.notNull(resultType, "resultType cannot be null.");
         Assert.notNull(inputParameters, "inputParameters cannot be null.");
         Assert.notNull(commands, "commands cannot be null.");
         this.name = name;
@@ -134,7 +151,24 @@ public final class RuleFlowDefinition implements Definition, Categorized {
      * @return the type given to {@code returning(Class, Function)}, else the extractor's declared
      * return type, else null when the flow returns its rule context.
      */
+    /**
+     * The result type, when known.
+     *
+     * @return the type; null when the flow returns its rule context, or when the type cannot be told
+     * (see {@link #getResolvedResultType()}).
+     */
     public Type getResultType() {
+        return resultType.getType();
+    }
+
+    /**
+     * The result type together with where it came from: declared by the author, derived from the
+     * result extractor, unknown, or none for a flow that returns its rule context.
+     *
+     * @return the resolved result type; never null.
+     * @since 2.2
+     */
+    public ResultType getResolvedResultType() {
         return resultType;
     }
 

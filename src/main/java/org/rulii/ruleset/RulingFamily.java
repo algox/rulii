@@ -209,6 +209,11 @@ public class RulingFamily<T> implements RuleSet<T> {
         result.append(System.lineSeparator());
         result.append("Input Parameters : ").append(getInputParameters());
 
+        if (getDefinition().getResolvedResultType().isKnown()) {
+            result.append(System.lineSeparator());
+            result.append("Result Type : ").append(getDefinition().getResolvedResultType().getDescription());
+        }
+
         if (getInitializer() != null) {
             result.append(System.lineSeparator());
             result.append(RuleUtils.TAB);

@@ -222,7 +222,7 @@ RuleSet<RuleViolations> ruleSet = RuleSet.builder()
         .rule(email(binding("email")).build())
         .rule(min(binding("age"), 18L).message("Must be 18 or older").build())
         .rule(Rule.builder().build(ConsistentDateRule.class))
-        .resultExtractor(function((RuleViolations violations) -> violations))
+        .resultExtractor(RuleViolations.class, function((RuleViolations violations) -> violations))
         .build();
 
 Bindings bindings = Bindings.builder().standard();
@@ -239,6 +239,12 @@ if (violations.hasErrors()) {
     throw new ValidationException(violations);
 }
 ```
+
+The result type is part of the rule set's definition (`getDefinition().getResultType()`), next to its input
+parameters. State it with `resultExtractor(Class, Function)` or `resultType(Type)`; when you don't, it is derived
+from the extractor's declared return type, a rule set without an extractor returns its `RuleSetExecutionStatus`,
+and a script or generic lambda leaves it unknown. The type is a declaration, not a cast: nothing is converted at
+run time, but a stated type that contradicts the extractor fails at `build()`.
 
 ---
 
@@ -258,11 +264,16 @@ RuleFlow<BigDecimal> flow = RuleFlow.builder()
                 .run(itemDiscountRule))
         .onException(UnrulyException.class, handler -> handler
                 .bind(price -> BigDecimal.ZERO))
-        .<BigDecimal>returning(function((BigDecimal price) -> price))
+        .returning(BigDecimal.class, function((BigDecimal price) -> price))
         .build();
 
 BigDecimal price = flow.run(bindings);
 ```
+
+As for a rule set, the result type is part of the flow's definition: `returning(Class, Function)` states it,
+`resultType(Type)` states it on its own (for a script extractor, or a flow whose result comes from `exit` steps),
+and `returning(Function)` derives it from the extractor. A flow without `returning` returns its `RuleContext` and
+has no result type. A stated type that contradicts the extractor or an `exit` extractor fails at `build()`.
 
 Steps can be configured individually — bind the result to a name (`as`), pass step-scoped parameters (`with`),
 or attach a step-level exception handler (`onException`):
