@@ -25,6 +25,7 @@
 
 - [What is it?](#what-is-it)
 - [Why rulii?](#why-rulii)
+- [What's New in 2.2.0](#whats-new-in-220)
 - [What's New in 2.1.0](#whats-new-in-210)
 - [What's New in 2.0.0](#whats-new-in-200)
 - [Getting Started](#getting-started)
@@ -60,7 +61,7 @@ pricing logic, and any scenario where decisions are driven by a configurable set
 | Lambda / functional API | ✅ | ❌ | Partial |
 | Declarative annotation API | ✅ | ✅ | ✅ |
 | Flow orchestration (RuleFlow) | ✅ | Separate (jBPM) | ❌ |
-| 34 built-in validators | ✅ | ❌ | ❌ |
+| 46 built-in validators | ✅ | ❌ | ❌ |
 | Scripting (JSR-223) | ✅ | ✅ | ❌ |
 | Spring integration | ✅ | ✅ | ✅ |
 | Java 17+ | ✅ | ✅ | ✅ |
@@ -68,6 +69,38 @@ pricing logic, and any scenario where decisions are driven by a configurable set
 
 rulii is designed for teams that want the power of a rule engine without the weight of a full platform.
 Rules are plain Java — no proprietary DSL, no XML, no extra runtime.
+
+---
+
+## What's New in 2.2.0
+
+- **Result type** — a rule set's and a rule flow's definition carry a formal result type, resolved at `build()`:
+  state it with `resultExtractor(Price.class, fn)` / `returning(Price.class, fn)` or `resultType(Type)`, or let
+  rulii derive it from a typed lambda. A rule set without an extractor reports `RuleSetExecutionStatus`; a
+  script or generic lambda reports unknown rather than `Object`. `getResolvedResultType()` says where the type
+  came from (`DECLARED`, `DERIVED`, `DEFAULT`, `UNKNOWN`, `NONE`). A stated type that the extractor cannot
+  produce fails the build. See [Writing RuleSets](#writing-rulesets) and [Writing RuleFlows](#writing-ruleflows).
+- **Local bindings** — a `@Rule` class method that declares a `LocalBindings` parameter gets a fresh instance per
+  run, shared by the pre-condition, condition and actions of that run and invisible to the caller.
+- **Forked contexts** — `RuleContext.fork()` and `ScopedBindings.fork()` give concurrent work a context that
+  shares the caller's scopes as they stand but keeps everything it adds private. Async flow steps and `runAsync`
+  use it; `AsyncContextMode.INHERITED` is the new default and the racy `SHARED` mode is gone.
+- **Jakarta Expression Language** — a scripting language registered as `jakarta-el` (`${ctx.age >= 18}`), and a
+  process-wide default scripting language (`ScriptProcessorManager.setDefaultLanguage` or the
+  `rulii.script.defaultLanguage` system property) for scripts that name none. See
+  [Scripting Support](#scripting-support).
+- **Eleven more validators** — `uuid`, `isbn`, `ean`, `luhnCheck`, `mod10Check`, `mod11Check`, `uniqueElements`,
+  `normalized`, `codePointLength`, `durationMin`, `durationMax`; `url` and `email` gain pattern and part options,
+  the temporal rules accept the `java.time.chrono` calendars, and every value rule can `describe()` itself
+  (`code size must be between 3 and 20`). See [Built-in Validators](#built-in-validators).
+- **Registry by category and tags** — `RuleRegistry.getByCategory("Pricing")` (the category and everything
+  below it), `getByTags("vip")`, `getCategories()` and `getTags()`.
+- **Performance** — cheaper bindings and contexts: ids and scope names no longer draw a random UUID each, the
+  binding name is validated once, and the validation rules find their context by name before type.
+- **For rulii-bean-validation** — `SourceDefinition` can name a field, `RuleViolation.getParameterValues()`
+  keeps the raw values, and validation rule builders take extra violation parameters.
+
+Full details in the [changelog](change-log.md).
 
 ---
 
@@ -302,7 +335,7 @@ See the [changelog](change-log.md) for the full RuleFlow feature list.
 
 ## Built-in Validators
 
-rulii ships with **34 built-in validation rules** accessible via the `Validators` static factory.
+rulii ships with **46 built-in validation rules** accessible via the `Validators` static factory.
 Use `Validators.binding("name")` to reference a named binding, or `Validators.value(obj)` for a constant.
 
 ```java
@@ -350,21 +383,30 @@ Full validator reference:
 | `assertEquals(fn, expected)` | Must equal expected value |
 | `assertNotEquals(fn, unexpected)` | Must not equal value |
 | `blank(fn)` | Must be blank (null or whitespace) |
+| `codePointLength(fn, min, max)` | Number of Unicode code points within [min, max] (2.2) |
 | `decimal(fn)` | Must be a valid decimal number |
 | `digits(fn, maxInt, maxFrac)` | Max integer and fractional digit counts |
+| `durationMin(fn, min)` | `Duration` must be ≥ min (2.2) |
+| `durationMax(fn, max)` | `Duration` must be ≤ max (2.2) |
+| `ean(fn)` | Must be an EAN-13 or EAN-8 barcode number (2.2) |
 | `email(fn)` | Must be a valid email address |
 | `endsWith(fn, suffixes...)` | Must end with one of the given suffixes |
 | `fileExists(fn)` | Must be a path to an existing file |
 | `future(fn)` | Date/time must be in the future |
 | `futureOrPresent(fn)` | Date/time must be in the future or present |
 | `in(fn, collection)` | Must be contained in the collection |
+| `isbn(fn)` | Must be an ISBN-10 or ISBN-13 (2.2) |
 | `lowerCase(fn)` | Must be all lower-case |
+| `luhnCheck(fn)` | Digits must pass the Luhn check (2.2) |
 | `max(fn, max)` | Numeric value must be ≤ max |
 | `decimalMax(fn, max)` | Decimal value must be ≤ max |
 | `min(fn, min)` | Numeric value must be ≥ min |
 | `decimalMin(fn, min)` | Decimal value must be ≥ min |
+| `mod10Check(fn)` | Digits must pass a modulo 10 check (2.2) |
+| `mod11Check(fn)` | Digits must pass a modulo 11 check (2.2) |
 | `negative(fn)` | Must be strictly negative |
 | `negativeOrZero(fn)` | Must be negative or zero |
+| `normalized(fn)` | Must be in a Unicode normalization form, NFC by default (2.2) |
 | `notBlank(fn)` | Must not be blank |
 | `notEmpty(fn)` | Collection/String/Array must not be empty |
 | `notNull(fn)` | Must not be null |
@@ -377,8 +419,13 @@ Full validator reference:
 | `positiveOrZero(fn)` | Must be positive or zero |
 | `size(fn, min, max)` | Size must be within [min, max] |
 | `startsWith(fn, prefixes...)` | Must start with one of the given prefixes |
+| `uniqueElements(fn)` | Collection must hold no element twice (2.2) |
 | `upperCase(fn)` | Must be all upper-case |
-| `url(fn)` | Must be a valid URL |
+| `url(fn)` | Must be a valid URL; `protocol`, `host`, `port` and `regexp` options since 2.2 |
+| `uuid(fn)` | Must be a UUID in its canonical form (2.2) |
+
+Every value rule can say what it checks: `Validators.size(binding("code"), 3, 20).describe()` returns
+`code size must be between 3 and 20`, and a rule built without a description uses that text.
 
 ---
 
@@ -411,6 +458,22 @@ With GraalJS, Java bean properties read as plain properties since **2.1.0**: `ct
 `ctx.person.getName()`, `ctx.person.active` for `isActive()`, and assignment calls the setter.
 `Script.getSourceText()` returns the text as written, before any `${...}` placeholders were resolved;
 `getScript()` is the text the compiler saw.
+
+**Jakarta Expression Language** is a scripting language since **2.2.0**, registered as `jakarta-el` (alias
+`jel`) when the EL API and an implementation such as Expressly or Tomcat's `tomcat-embed-el` are on the
+classpath. Scripts use EL's own delimiters, and bindings are reachable through `ctx` or as bare identifiers:
+
+```java
+Script<Boolean> script = Script.builder().with("jakarta-el", "${ctx.age >= 18}").build();
+```
+
+The plain `el` name stays what rulii-spring registers under it, Spring Expression Language, so XML rules
+declared with `language="el"` keep their meaning.
+
+**Default language.** A script that names no language is compiled in the process-wide default, declared with
+`ScriptProcessorManager.setDefaultLanguage("js")` or the system property `rulii.script.defaultLanguage`; with
+neither set, `Script.builder().build("age >= 18")` fails naming both. `ScriptProcessorManager.getAvailableLanguages()`
+lists what can be compiled right now.
 
 ---
 
