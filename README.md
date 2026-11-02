@@ -163,13 +163,13 @@ Full details in the [changelog](change-log.md).
 <dependency>
     <groupId>org.rulii</groupId>
     <artifactId>rulii</artifactId>
-    <version>2.1.0</version>
+    <version>2.2.0</version>
 </dependency>
 ```
 
 **Gradle**
 ```groovy
-implementation 'org.rulii:rulii:2.1.0'
+implementation 'org.rulii:rulii:2.2.0'
 ```
 
 ---
@@ -497,13 +497,13 @@ browses, searches and visualises the rules, rule sets and rule flows of a runnin
 <dependency>
     <groupId>org.rulii</groupId>
     <artifactId>rulii-spring</artifactId>
-    <version>2.1.0</version>
+    <version>2.2.0</version>
 </dependency>
 ```
 
 **Gradle**
 ```groovy
-implementation 'org.rulii:rulii-spring:2.1.0'
+implementation 'org.rulii:rulii-spring:2.2.0'
 ```
 
 ```java
