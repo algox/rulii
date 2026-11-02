@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.3.0] (unreleased)
+
+#### Build
+- The jar manifest now carries the default implementation and specification entries (`Implementation-Title`, `Implementation-Version`, `Implementation-Vendor`), so `Rule.class.getPackage().getImplementationVersion()` reports the rulii version at runtime. rulii-explorer shows it as the application's rulii version; it read `unknown` from the 2.2.0 jar.
+
 ## [2.2.0]
 
 #### Definitions
