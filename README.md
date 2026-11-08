@@ -172,6 +172,23 @@ Full details in the [changelog](change-log.md).
 implementation 'org.rulii:rulii:2.2.0'
 ```
 
+**Using more than one rulii library?** Import the [rulii-bom](https://github.com/algox/rulii-bom) once and
+drop the versions. It pins a matching set of rulii, rulii-spring, rulii-bean-validation and rulii-explorer:
+
+```xml
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>org.rulii</groupId>
+            <artifactId>rulii-bom</artifactId>
+            <version>2.2.0</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+```
+
 ---
 
 ## Writing Rules
