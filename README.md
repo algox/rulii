@@ -55,20 +55,22 @@ pricing logic, and any scenario where decisions are driven by a configurable set
 
 ## Why rulii?
 
-| | rulii | Drools | Easy Rules |
-|---|---|---|---|
-| Zero dependencies | ✅ | ❌ | ✅ |
-| Lambda / functional API | ✅ | ❌ | Partial |
-| Declarative annotation API | ✅ | ✅ | ✅ |
-| Flow orchestration (RuleFlow) | ✅ | Separate (jBPM) | ❌ |
-| 46 built-in validators | ✅ | ❌ | ❌ |
-| Scripting (JSR-223) | ✅ | ✅ | ❌ |
-| Spring integration | ✅ | ✅ | ✅ |
-| Java 17+ | ✅ | ✅ | ✅ |
-| Learning curve | Low | High | Low |
+Business rules are the code that changes most, and they usually end up buried in the business tier, where a small
+change has a large blast radius. rulii gives them a place of their own.
 
-rulii is designed for teams that want the power of a rule engine without the weight of a full platform.
-Rules are plain Java — no proprietary DSL, no XML, no extra runtime.
+- **Rules are first-class citizens.** Each rule is isolated, so it can be found, changed and tested on its own.
+- **Plain Java.** A rule is a class or a few lambdas. The compiler checks it, the debugger steps through it and
+  JUnit tests it. There is no rule language to learn and no server to run.
+- **Predictable.** Rules run in the order you give them. No inference engine decides what fires next.
+- **One engine for rules, flows and validation.** Rule sets, rule flows and Bean Validation constraints all run on
+  the same engine.
+- **Visible.** [rulii-explorer](https://github.com/algox/rulii-explorer) shows every rule, rule set and flow of a
+  running application in plain English, with its flowchart.
+
+rulii does not do inference and has no decision tables. If you need those, Drools is the right tool.
+
+The full story, and how rulii compares with plain Java, Drools, Easy Rules and Hibernate Validator, is on the
+[Why rulii](https://rulii.org/why/) page.
 
 ---
 
@@ -352,7 +354,7 @@ See the [changelog](change-log.md) for the full RuleFlow feature list.
 
 ## Built-in Validators
 
-rulii ships with **46 built-in validation rules** accessible via the `Validators` static factory.
+rulii ships with **48 built-in validation rules** accessible via the `Validators` static factory.
 Use `Validators.binding("name")` to reference a named binding, or `Validators.value(obj)` for a constant.
 
 ```java
