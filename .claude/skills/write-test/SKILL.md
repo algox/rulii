@@ -46,7 +46,7 @@ public class MyFeatureTests {
         var result = rule.run(ctx);
 
         // assert
-        Assertions.assertEquals(org.rulii.rule.RuleExecutionStatus.PASS, result.getStatus());
+        Assertions.assertEquals(org.rulii.rule.RuleExecutionStatus.PASS, result.status());
     }
 }
 ```
@@ -111,7 +111,7 @@ RuleContext ctx = RuleContext.builder().build(bindings);
 Rule rule = NotNullValidationRule.builder(binding("value")).build();
 var result = rule.run(ctx);
 
-Assertions.assertEquals(RuleExecutionStatus.PASS, result.getStatus());
+Assertions.assertEquals(RuleExecutionStatus.PASS, result.status());
 Assertions.assertTrue(bindings.getValue("ruleViolations", RuleViolations.class).isEmpty());
 ```
 
@@ -141,7 +141,7 @@ RuleContext ctx = RuleContext.builder().build(bindings);
 Rule rule = NotEmptyValidationRule.builder(binding("value")).build();
 var result = rule.run(ctx);
 
-Assertions.assertEquals(RuleExecutionStatus.SKIP, result.getStatus());
+Assertions.assertEquals(RuleExecutionStatus.SKIPPED, result.status());
 Assertions.assertTrue(bindings.getValue("ruleViolations", RuleViolations.class).isEmpty());
 ```
 

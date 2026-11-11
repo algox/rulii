@@ -16,7 +16,7 @@ Every `rule.run(ctx)` returns a `RuleResult`. Check it first:
 
 ```java
 RuleResult result = rule.run(ctx);
-System.out.println(result.getStatus()); // PASS, FAIL, or SKIP
+System.out.println(result.status()); // PASS, FAIL, SKIPPED or ERROR
 ```
 
 | Status | What happened |
@@ -29,7 +29,7 @@ System.out.println(result.getStatus()); // PASS, FAIL, or SKIP
 
 ## Step 2 — Diagnose SKIP
 
-SKIP means the **preCondition** returned false. For `ValidationRule` subclasses (all 34 built-ins) the preCondition is `checkType()`.
+SKIP means the **preCondition** returned false. For `ValidationRule` subclasses (all 48 built-ins) the preCondition is `checkType()`.
 
 **Common cause: type mismatch.**
 ```java
@@ -137,7 +137,7 @@ RuleContext ctx = RuleContext.builder()
                     }
                     @Override
                     public void onRuleEnd(Rule rule, RuleResult result) {
-                        System.out.printf("[%s] result = %s%n", rule.getName(), result.getStatus());
+                        System.out.printf("[%s] result = %s%n", rule.getName(), result.status());
                     }
                     @Override
                     public void onRuleError(Rule rule, Exception e) {

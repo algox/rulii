@@ -153,7 +153,7 @@ bindings.bind(age -> 25);
 RuleContext ctx = RuleContext.builder().build(bindings);
 
 RuleResult result = rule.run(ctx);
-// result.getStatus() → PASS, FAIL, or SKIP
+// result.status() → PASS, FAIL, SKIPPED or ERROR
 ```
 
 **Manually testing the condition (no actions fired):**
