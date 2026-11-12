@@ -15,7 +15,7 @@
 
 ---
 
-**📖 Official documentation at [rulii.com](https://rulii.com) or the mirror [here](https://rulii.netlify.app/)**
+**📖 Official documentation at [rulii.org](https://rulii.org) or the mirror [here](https://rulii.netlify.app/)**
 
 **🧪 Sample projects at [rulii-samples](https://github.com/algox/rulii-samples)**
 
@@ -586,24 +586,21 @@ npm install -g @anthropic-ai/claude-code
 
 ## Documentation
 
-**[Full documentation at rulii.com](https://rulii.com)**
+**[Full documentation at rulii.org](https://rulii.org)**
 
-- [Getting Started](https://rulii.com/introduction)
-- [What's New](https://rulii.com/whats-new)
-- [Spring integration docs](https://rulii.com/spring/introduction)
+- [Getting Started](https://rulii.org/getting-started/introduction/)
+- [What's New](https://rulii.org/getting-started/whats-new/)
+- [Spring integration docs](https://rulii.org/spring/introduction/)
 - [Javadoc](https://javadoc.io/doc/org.rulii/rulii/latest)
 - [Sample projects](https://github.com/algox/rulii-samples)
 
 | Section | Pages |
 |---|---|
-| **Getting Started** | [Introduction](https://rulii.com/introduction) · [Installation](https://rulii.com/installation) · [Core Concepts](https://rulii.com/core-concepts) · [What's New](https://rulii.com/whats-new) |
-| **Core** | [Bindings](https://rulii.com/bindings) · [Rules (Functional)](https://rulii.com/lambda-rules) · [Rules (Declarative)](https://rulii.com/annotation-rules) · [RuleSets](https://rulii.com/rulesets) |
-| **Validation** | [Built-in Validators](https://rulii.com/validation-rules) · [RuleViolations](https://rulii.com/rule-violations) · [Custom Validation](https://rulii.com/custom-validation) |
-| **Advanced** | [Condition Composition](https://rulii.com/condition-composition) · [Scripting](https://rulii.com/scripting) · [Async Execution](https://rulii.com/async-execution) · [Rule Tracing](https://rulii.com/rule-tracing) |
-| **Spring** | [Spring Introduction](https://rulii.com/spring/introduction) · [Auto-Configuration](https://rulii.com/spring/auto-configuration) · [Rule Scanning](https://rulii.com/spring/rule-scanning) |
-
-The Markdown sources for all documentation pages are in the [`docs/`](docs/) folder — see the
-[documentation index](docs/README.md) for the full page list.
+| **Getting Started** | [Introduction](https://rulii.org/getting-started/introduction/) · [Installation](https://rulii.org/getting-started/installation/) · [Core Concepts](https://rulii.org/getting-started/core-concepts/) · [What's New](https://rulii.org/getting-started/whats-new/) |
+| **Core** | [Bindings](https://rulii.org/core/bindings/) · [Rules (Functional)](https://rulii.org/core/lambda-rules/) · [Rules (Declarative)](https://rulii.org/core/annotation-rules/) · [RuleSets](https://rulii.org/core/rulesets/) |
+| **Validation** | [Built-in Validators](https://rulii.org/validation/validation-rules/) · [RuleViolations](https://rulii.org/validation/rule-violations/) · [Custom Validation](https://rulii.org/validation/custom-validation/) |
+| **Advanced** | [Condition Composition](https://rulii.org/advanced/condition-composition/) · [Scripting](https://rulii.org/advanced/scripting/) · [Async Execution](https://rulii.org/advanced/async-execution/) · [Rule Tracing](https://rulii.org/advanced/rule-tracing/) |
+| **Spring** | [Spring Introduction](https://rulii.org/spring/introduction/) · [Auto-Configuration](https://rulii.org/spring/auto-configuration/) · [Rule Scanning](https://rulii.org/spring/rule-scanning/) |
 
 ---
 
