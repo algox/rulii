@@ -3,7 +3,7 @@
 
 # _rulii_
 **A lightweight, lambda-based business rule engine for Java 17+** <br/>
-<sub> _100% Java_ &middot; _Zero dependencies_ &middot; _Declarative & Functional_ &middot; _RuleFlow orchestration_ &middot; _34 built-in validators_ &middot; _Scripting support_ &middot; _Spring support_ </sub>
+<sub> _100% Java_ &middot; _Zero dependencies_ &middot; _Declarative & Functional_ &middot; _RuleFlow orchestration_ &middot; _48 built-in validators_ &middot; _Scripting support_ &middot; _Spring support_ </sub>
 
 ---
 
@@ -19,15 +19,49 @@
 
 **🧪 Sample projects at [rulii-samples](https://github.com/algox/rulii-samples)**
 
+**🔎 See every rule of a running application in the [explorer demo](https://rulii.org/demo/index.html)**
+
+---
+
+## Quick Start
+
+Add `org.rulii:rulii:2.2.0` to your build ([Maven and Gradle](#getting-started)), then write a rule and run it:
+
+```java
+import org.rulii.rule.Rule;
+import org.rulii.rule.RuleResult;
+
+import static org.rulii.model.action.Actions.action;
+import static org.rulii.model.condition.Conditions.condition;
+
+public class Quickstart {
+
+    public static void main(String[] args) {
+        Rule freeShipping = Rule.builder()
+                .name("FreeShippingRule")
+                .description("Orders of 100 or more ship free.")
+                .given(condition((Double total) -> total >= 100))
+                .then(action((Double total) -> System.out.println("Free shipping on " + total)))
+                .otherwise(action(() -> System.out.println("Standard shipping")))
+                .build();
+
+        RuleResult result = freeShipping.run(total -> 120.0);
+
+        System.out.println(result.status());   // PASS
+    }
+}
+```
+
+It prints `Free shipping on 120.0` and `PASS`. The rule finds its `total` by parameter name, and the only jar on
+the classpath is rulii.
+
 ---
 
 ## Table of Contents
 
+- [Quick Start](#quick-start)
 - [What is it?](#what-is-it)
 - [Why rulii?](#why-rulii)
-- [What's New in 2.2.0](#whats-new-in-220)
-- [What's New in 2.1.0](#whats-new-in-210)
-- [What's New in 2.0.0](#whats-new-in-200)
 - [Getting Started](#getting-started)
 - [Writing Rules](#writing-rules)
 - [Writing RuleSets](#writing-rulesets)
@@ -71,90 +105,6 @@ rulii does not do inference and has no decision tables. If you need those, Drool
 
 The full story, and how rulii compares with plain Java, Drools, Easy Rules and Hibernate Validator, is on the
 [Why rulii](https://rulii.org/why/) page.
-
----
-
-## What's New in 2.2.0
-
-- **Result type** — a rule set's and a rule flow's definition carry a formal result type, resolved at `build()`:
-  state it with `resultExtractor(Price.class, fn)` / `returning(Price.class, fn)` or `resultType(Type)`, or let
-  rulii derive it from a typed lambda. A rule set without an extractor reports `RuleSetExecutionStatus`; a
-  script or generic lambda reports unknown rather than `Object`. `getResolvedResultType()` says where the type
-  came from (`DECLARED`, `DERIVED`, `DEFAULT`, `UNKNOWN`, `NONE`). A stated type that the extractor cannot
-  produce fails the build. See [Writing RuleSets](#writing-rulesets) and [Writing RuleFlows](#writing-ruleflows).
-- **Local bindings** — a `@Rule` class method that declares a `LocalBindings` parameter gets a fresh instance per
-  run, shared by the pre-condition, condition and actions of that run and invisible to the caller.
-- **Forked contexts** — `RuleContext.fork()` and `ScopedBindings.fork()` give concurrent work a context that
-  shares the caller's scopes as they stand but keeps everything it adds private. Async flow steps and `runAsync`
-  use it; `AsyncContextMode.INHERITED` is the new default and the racy `SHARED` mode is gone.
-- **Jakarta Expression Language** — a scripting language registered as `jakarta-el` (`${ctx.age >= 18}`), and a
-  process-wide default scripting language (`ScriptProcessorManager.setDefaultLanguage` or the
-  `rulii.script.defaultLanguage` system property) for scripts that name none. See
-  [Scripting Support](#scripting-support).
-- **Eleven more validators** — `uuid`, `isbn`, `ean`, `luhnCheck`, `mod10Check`, `mod11Check`, `uniqueElements`,
-  `normalized`, `codePointLength`, `durationMin`, `durationMax`; `url` and `email` gain pattern and part options,
-  the temporal rules accept the `java.time.chrono` calendars, and every value rule can `describe()` itself
-  (`code size must be between 3 and 20`). See [Built-in Validators](#built-in-validators).
-- **Registry by category and tags** — `RuleRegistry.getByCategory("Pricing")` (the category and everything
-  below it), `getByTags("vip")`, `getCategories()` and `getTags()`.
-- **Performance** — cheaper bindings and contexts: ids and scope names no longer draw a random UUID each, the
-  binding name is validated once, and the validation rules find their context by name before type.
-- **For rulii-bean-validation** — `SourceDefinition` can name a field, `RuleViolation.getParameterValues()`
-  keeps the raw values, and validation rule builders take extra violation parameters.
-
-Full details in the [changelog](change-log.md).
-
----
-
-## What's New in 2.1.0
-
-- **Category and tags** — a rule, rule set or rule flow can say where it belongs and what it is about:
-  `@Category("Pricing/Discounts")` and `@Tags({"vip", "discount"})` on `@Rule` classes, `category(...)` and
-  `tags(...)` on every builder. One hierarchical category (`/` separates the levels), any number of tags.
-  Purely descriptive: rulii never reads them when it runs; tools such as rulii-explorer group and filter by them.
-  ```java
-  @Rule @Category("Orders/Validation") @Tags({"orders", "dates"})
-  public class ConsistentDateRule { … }
-
-  Rule.builder().name("fraudScoreRule").category("Risk").tags("risk", "fraud")…
-  ```
-- **Introspection** — everything a rule, rule set or rule flow is made of can be read off the built object:
-  `Condition` / `Action` / `Function` expose an `ExpressionInfo` (`getExpression()`: script language and
-  text, compiled method, or composite operator and operands), `RuleFlowCommand.getInfo()` describes each flow
-  step (`Run`, `When`, `ForEach`, `Scope`, `AsyncRun`, `Await`, …), `RuleFlowDefinition` carries the command
-  tree, `RuleSetDefinition` its input parameters and error handler, and `SourceDefinition` records where an
-  artifact was declared (the XML file and line with rulii-spring, the rule class, or the builder call site).
-  `Script.getSourceText()` returns the script as written, before `${...}` placeholder resolution. This is the
-  foundation for [rulii-explorer](https://github.com/algox/rulii-explorer), which browses, searches and
-  visualises the rules of a running application.
-- **Scripting (GraalJS)** — Java bean properties can be read directly in JavaScript (`ctx.person.name` instead
-  of `ctx.person.getName()`; assignment calls the setter); a polyglot context leak under sustained evaluation
-  is fixed, with JavaScript arrays and objects now crossing into Java as detached `List`s and `Map`s; every
-  name GraalJS registers (`js`, `JavaScript`, `ECMAScript`, …) resolves to the configured factory; and
-  `ScriptProcessorManager.unregister(factory)` removes a factory again.
-- **Memory** — the definition caches behind lambda-built conditions, actions, functions and rules no longer
-  grow without bound.
-- **Breaking** — custom `RuleRegistry` implementations must implement `getNames()`;
-  `RuleSetDefinition.getStopActionDefinition()` is deprecated for `getStopConditionDefinition()`.
-
-Full details in the [changelog](change-log.md).
-
----
-
-## What's New in 2.0.0
-
-- **RuleFlow** (`org.rulii.ruleflow`) — a new fluent orchestration API that composes Rules, RuleSets, and other
-  RuleFlows into a single executable pipeline, with conditional branches (`when`), loops (`forEach`), scoped
-  bindings (`scope`), step-level and global exception handlers (`onException`), and async steps
-  (`asyncRun` / `await` / `awaitAll` / `awaitAny`). See [Writing RuleFlows](#writing-ruleflows).
-- **`RuleExecutionStatus.ERROR`** — rule results now distinguish execution errors from PASS/FAIL/SKIPPED.
-- **Correctness & hardening pass** — a systematic review of every package fixed thread-safety issues on the
-  rule-build hot path, immutability leaks in `Bindings`/`RuleContext`, numeric coercion in validation rules
-  (decimal strings no longer falsely fail `min`/`max`), inverted `RuleSetExecutionStatus.isAnyPass()`/`isAnySkip()`/`isAnyFail()`,
-  text-converter parsing bugs (leading zeros parsed as octal), and tracer listener isolation — a throwing
-  listener can no longer alter a rule's outcome.
-
-Full details in the [changelog](change-log.md).
 
 ---
 
@@ -589,7 +539,7 @@ npm install -g @anthropic-ai/claude-code
 **[Full documentation at rulii.org](https://rulii.org)**
 
 - [Getting Started](https://rulii.org/getting-started/introduction/)
-- [What's New](https://rulii.org/getting-started/whats-new/)
+- [What's New](https://rulii.org/getting-started/whats-new/) · [Release history](https://rulii.org/getting-started/release-history/) · [Changelog](change-log.md)
 - [Spring integration docs](https://rulii.org/spring/introduction/)
 - [Javadoc](https://javadoc.io/doc/org.rulii/rulii/latest)
 - [Sample projects](https://github.com/algox/rulii-samples)
@@ -614,6 +564,10 @@ Contributions are welcome! Please open an issue first to discuss what you'd like
 4. Push and open a pull request against `develop`
 
 All PRs must pass the full test suite (`mvn test`) before review.
+
+The details are in [CONTRIBUTING.md](CONTRIBUTING.md). Questions go in
+[Discussions](https://github.com/algox/rulii/discussions); security problems are reported privately, see
+[SECURITY.md](SECURITY.md).
 
 ---
 
