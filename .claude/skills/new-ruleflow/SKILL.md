@@ -159,8 +159,15 @@ no `endWhen()`/`endForEach()` exists:
 
 ## 6. Exception handling
 
-Three levels, all with **catch-and-continue** semantics (the handler body runs, then the flow
-moves to the next step). Inside every handler body the caught exception is bound as `"ex"`:
+Three levels: on a step, on an async step, and on the flow. Inside every handler body the caught
+exception is bound as `"ex"`. What happens after the body has run depends on the level:
+
+- A **step-level** handler is catch-and-continue: the flow moves to the next step.
+- A **flow-level** handler ends the flow: the remaining steps are skipped, the `finalizer` still
+  runs, and the flow returns its `returning` result from the bindings as they stand. To carry on
+  after a failure, put the handler on the step.
+- A failed **async** step that a handler catches, its own or the flow-level one, completes its
+  future with `null`, and the flow carries on.
 
 ```java
 // Step-level — checked first
@@ -198,8 +205,13 @@ so don't look for `getSuppressed()`.
 ```
 
 Key semantics:
-- **Context modes**: default SHARED (same context — beware concurrent mutation),
+- **Context modes**: default INHERITED (since 2.2.0; SHARED is gone) — the task runs on a fork of
+  the flow's context: it shares the scopes the flow has when the step runs (a value set on those
+  bindings is seen by both sides), while bindings and scopes the task adds stay private to it.
   `withImmutableBindings()` = IMMUTABLE snapshot, `withContext(ctx)` = CUSTOM.
+- To get a result out of an INHERITED task, read the future after `await`, or declare the output
+  binding before the step and have the task `setValue` it. A binding the task creates is never
+  seen by the flow.
 - **`await`/`awaitAll`/`awaitAny` do NOT unwrap** — the binding stays a `CompletableFuture<T>`;
   read it with `getNow(null)` / `join()` in a later step.
 - Timeout → `TimeoutException` wrapped in `UnrulyException`; the future is **not** cancelled.
@@ -270,8 +282,10 @@ See `src/test/java/org/rulii/test/ruleflow/CustomRuleFlowTest.java` for a workin
 | Looking for `endWhen()`/`endScope()` | Containers use `Consumer<builder>` bodies — the lambda IS the scope |
 | Calling `as()`/`with()` on the builder itself | Step config only exists inside the `spec ->` consumer |
 | `returning(...)` without the type witness | Use `.<String>returning(function((String s) -> s))` so `build()` infers `RuleFlow<String>` |
-| Expecting a handled exception to abort the flow | Handlers are catch-and-continue — execution resumes at the next step; rethrow inside the handler body to abort |
-| Async step mutating shared bindings unexpectedly | Default mode is SHARED; use `withImmutableBindings()` or `withContext(ctx)` for isolation |
+| Expecting a step-level handler to abort the flow | A step-level handler is catch-and-continue — execution resumes at the next step; rethrow inside its body to abort |
+| Expecting the steps after a failure to run once the flow-level handler has caught it | A flow-level handler ends the flow — put the handler on the step (`spec.onException(...)`) to carry on |
+| Async step's new bindings not visible to the flow | Default mode is INHERITED — the task's own bindings are private. Declare the output binding before the step and have the task `setValue` it, or read the future after `await` |
+| Async step changing a binding the flow already had | INHERITED shares the flow's existing bindings; use `withImmutableBindings()` or `withContext(ctx)` for isolation |
 
 ## Reference tests
 

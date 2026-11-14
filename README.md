@@ -433,7 +433,7 @@ With GraalJS, Java bean properties read as plain properties since **2.1.0**: `ct
 classpath. Scripts use EL's own delimiters, and bindings are reachable through `ctx` or as bare identifiers:
 
 ```java
-Script<Boolean> script = Script.builder().with("jakarta-el", "${ctx.age >= 18}").build();
+Script<Boolean> script = Script.builder().with("jakarta-el", "#{ctx.age >= 18}").build();
 ```
 
 The plain `el` name stays what rulii-spring registers under it, Spring Expression Language, so XML rules
