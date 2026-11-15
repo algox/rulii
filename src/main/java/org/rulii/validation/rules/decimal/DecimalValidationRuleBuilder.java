@@ -30,7 +30,7 @@ import org.rulii.validation.ValueValidationRuleBuilder;
 public class DecimalValidationRuleBuilder
         extends ValueValidationRuleBuilder<DecimalValidationRuleBuilder, DecimalValidationRule> {
 
-    private boolean allowSpace = true;
+    private boolean allowSpace = false;
 
     /**
      * Creates a new builder for {@link DecimalValidationRule}.
@@ -44,7 +44,8 @@ public class DecimalValidationRuleBuilder
     }
 
     /**
-     * Configures the rule to allow leading or trailing spaces in the validated value.
+     * Configures the rule to allow leading or trailing spaces in the validated value;
+     * not allowed by default.
      *
      * @return this builder for fluent chaining
      */

@@ -764,6 +764,19 @@ public class ValidationRuleTests {
     }
 
     @Test
+    public void decimalRejectsSurroundingSpacesUnlessAllowed() {
+        Rule strict = decimal(binding("value")).build();
+        assertTrue(strict.run(value -> "100.00").status().isPass());
+        assertTrue(strict.run(value -> "    100.00  ", ruleViolations -> new RuleViolations()).status().isFail(),
+                "spaces are not allowed by default");
+
+        Rule lenient = decimal(binding("value")).allowSpace().build();
+        assertTrue(lenient.run(value -> "    100.00  ").status().isPass());
+        assertTrue(lenient.run(value -> "100 .00", ruleViolations -> new RuleViolations()).status().isFail(),
+                "only leading and trailing spaces are allowed");
+    }
+
+    @Test
     public void decimalTest2() {
         Rule rule = decimal(binding("value")).errorCode("error.1").severity(Severity.ERROR).message("Decimal Error Message").allowSpace().build();
 
