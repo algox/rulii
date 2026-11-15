@@ -671,7 +671,7 @@ public class RuleFlowTest {
     // =========================================================================
 
     @Test
-    public void testGlobalHandler_catchesAndStops() {
+    public void testGlobalHandler_catchesAndContinues() {
         List<String> log = new ArrayList<>();
         Rule badRule = Rule.builder().name("bad")
                 .then(action(() -> { throw new UnrulyException("global boom"); })).build();
@@ -687,8 +687,135 @@ public class RuleFlowTest {
                 .build();
 
         flow.run();
-        // Global handler fires when exception escapes the command loop — subsequent steps do not run.
-        assertEquals(List.of("handled"), log);
+        // The global handler recovers the failed step and the flow carries on with the next one.
+        assertEquals(List.of("handled", "after"), log);
+    }
+
+    @Test
+    public void testGlobalHandler_handlesEveryFailingStepAndTheFlowReturnsItsResult() {
+        List<String> log = new ArrayList<>();
+        Rule badRule = Rule.builder().name("bad")
+                .then(action(() -> { throw new UnrulyException("global boom"); })).build();
+
+        RuleFlow<String> flow = RuleFlow.builder()
+                .name("globalHandlerTwiceFlow")
+                .run(badRule)
+                .execute(action(() -> log.add("after")))
+                .run(badRule)
+                .execute(action(() -> log.add("last")))
+                .<String>returning(function(() -> "result"))
+                .finalizer(action(() -> log.add("finalizer")))
+                .onException(UnrulyException.class, b -> b.execute(action(() -> log.add("handled"))))
+                .build();
+
+        assertEquals("result", flow.run());
+        assertEquals(List.of("handled", "after", "handled", "last", "finalizer"), log);
+    }
+
+    @Test
+    public void testGlobalHandler_exitInTheHandlerStopsTheFlow() {
+        List<String> log = new ArrayList<>();
+        Rule badRule = Rule.builder().name("bad")
+                .then(action(() -> { throw new UnrulyException("global boom"); })).build();
+
+        RuleFlow<String> flow = RuleFlow.builder()
+                .name("globalHandlerExitFlow")
+                .run(badRule)
+                .execute(action(() -> log.add("after")))
+                .<String>returning(function(() -> "result"))
+                .finalizer(action(() -> log.add("finalizer")))
+                .onException(UnrulyException.class, b -> b
+                        .execute(action(() -> log.add("handled")))
+                        .exit(function(() -> "stopped")))
+                .build();
+
+        assertEquals("stopped", flow.run());
+        assertEquals(List.of("handled", "finalizer"), log);
+    }
+
+    @Test
+    public void testGlobalHandler_failureInsideAContainerResumesAfterTheContainer() {
+        List<String> log = new ArrayList<>();
+        Rule badRule = Rule.builder().name("bad")
+                .then(action(() -> { throw new UnrulyException("global boom"); })).build();
+        Function<List<String>> items = function(() -> List.of("a", "b", "c"));
+
+        RuleFlow<?> flow = RuleFlow.builder()
+                .name("globalHandlerContainerFlow")
+                .forEach(items, "item", b -> b
+                        .execute(action((String item) -> {
+                            if ("b".equals(item)) throw new UnrulyException("boom " + item);
+                            log.add(item);
+                        }))
+                        .execute(action((String item) -> log.add(item + "-second"))))
+                .when(condition(() -> true), b -> b.run(badRule).execute(action(() -> log.add("rest of when"))))
+                .scope(b -> b.run(badRule).execute(action(() -> log.add("rest of scope"))))
+                .execute(action(() -> log.add("after")))
+                .onException(UnrulyException.class, b -> b.execute(action(() -> log.add("handled"))))
+                .build();
+
+        RuleContext ctx = RuleContext.builder().standard().build();
+        flow.run(ctx);
+
+        // The failing container is abandoned (elements "b" and "c", the rest of when and scope), the flow goes on.
+        assertEquals(List.of("a", "a-second", "handled", "handled", "handled", "after"), log);
+        // Every scope a container or the handler pushed is gone again.
+        assertFalse(ctx.getBindings().contains("item"));
+    }
+
+    @Test
+    public void testGlobalHandler_typeMismatchPropagates() {
+        List<String> log = new ArrayList<>();
+        Rule badRule = Rule.builder().name("bad")
+                .then(action(() -> { throw new UnrulyException("global boom"); })).build();
+
+        RuleFlow<?> flow = RuleFlow.builder()
+                .name("globalHandlerMismatchFlow")
+                .run(badRule)
+                .execute(action(() -> log.add("after")))
+                .finalizer(action(() -> log.add("finalizer")))
+                .onException(IllegalStateException.class, b -> b.execute(action(() -> log.add("handled"))))
+                .build();
+
+        assertThrows(UnrulyException.class, () -> { flow.run(); });
+        assertEquals(List.of("finalizer"), log);
+    }
+
+    @Test
+    public void testGlobalHandler_failingHandlerBodyPropagates() {
+        List<String> log = new ArrayList<>();
+        Rule badRule = Rule.builder().name("bad")
+                .then(action(() -> { throw new UnrulyException("global boom"); })).build();
+
+        RuleFlow<?> flow = RuleFlow.builder()
+                .name("globalHandlerFailingFlow")
+                .run(badRule)
+                .execute(action(() -> log.add("after")))
+                .finalizer(action(() -> log.add("finalizer")))
+                .onException(UnrulyException.class, b -> b.execute(action(() -> { throw new UnrulyException("handler boom"); })))
+                .build();
+
+        assertThrows(UnrulyException.class, () -> { flow.run(); });
+        // The handler is not asked to handle its own failure, and nothing after the failed step runs.
+        assertEquals(List.of("finalizer"), log);
+    }
+
+    @Test
+    public void testGlobalHandler_isTheFallbackForAStepHandlerThatDoesNotMatch() {
+        List<String> log = new ArrayList<>();
+        Rule badRule = Rule.builder().name("bad")
+                .then(action(() -> { throw new UnrulyException("global boom"); })).build();
+
+        RuleFlow<?> flow = RuleFlow.builder()
+                .name("globalHandlerFallbackFlow")
+                .run(badRule, spec -> spec
+                    .onException(IllegalStateException.class, b -> b.execute(action(() -> log.add("step")))))
+                .execute(action(() -> log.add("after")))
+                .onException(UnrulyException.class, b -> b.execute(action(() -> log.add("global"))))
+                .build();
+
+        flow.run();
+        assertEquals(List.of("global", "after"), log);
     }
 
     @Test

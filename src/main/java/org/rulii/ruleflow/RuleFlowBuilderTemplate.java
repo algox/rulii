@@ -1117,7 +1117,19 @@ public abstract class RuleFlowBuilderTemplate<SELF extends RuleFlowBuilderTempla
      *
      * <p>The global handler is invoked when an exception escapes a step that has no matching
      * step-level handler. After the handler body completes, execution continues with the next
-     * command in the flow.
+     * top-level command in the flow. A failure inside a {@code when}, {@code forEach} or
+     * {@code scope} leaves that container first: the rest of the container is abandoned and the
+     * flow resumes with the command after it. To carry on inside a container, attach a handler to
+     * the step itself.
+     *
+     * <p>To stop the flow after handling, end the handler body with {@code exit()}:
+     * <pre>{@code
+     * .onException(Exception.class, b -> b.execute(logFailure).exit())
+     * }</pre>
+     *
+     * <p>A failure the handler's type does not match, and a failure of the handler body itself,
+     * propagate to the caller. The handler covers the flow's commands only, not its
+     * {@code returning} extractor or its finalizer.
      *
      * <p>To attach a handler to a specific step, use the step's spec consumer:
      * <pre>{@code

@@ -163,9 +163,11 @@ Three levels: on a step, on an async step, and on the flow. Inside every handler
 exception is bound as `"ex"`. What happens after the body has run depends on the level:
 
 - A **step-level** handler is catch-and-continue: the flow moves to the next step.
-- A **flow-level** handler ends the flow: the remaining steps are skipped, the `finalizer` still
-  runs, and the flow returns its `returning` result from the bindings as they stand. To carry on
-  after a failure, put the handler on the step.
+- A **flow-level** handler is catch-and-continue too (since 2.3.0; up to 2.2.0 it ended the flow):
+  the flow moves to the next top-level step. A failure inside a `when`, `forEach` or `scope`
+  abandons the rest of that container and the flow resumes after it; to carry on inside the
+  container, put the handler on the step. To stop the flow after handling, end the handler body
+  with `exit()`.
 - A failed **async** step that a handler catches, its own or the flow-level one, completes its
   future with `null`, and the flow carries on.
 
@@ -283,7 +285,8 @@ See `src/test/java/org/rulii/test/ruleflow/CustomRuleFlowTest.java` for a workin
 | Calling `as()`/`with()` on the builder itself | Step config only exists inside the `spec ->` consumer |
 | `returning(...)` without the type witness | Use `.<String>returning(function((String s) -> s))` so `build()` infers `RuleFlow<String>` |
 | Expecting a step-level handler to abort the flow | A step-level handler is catch-and-continue — execution resumes at the next step; rethrow inside its body to abort |
-| Expecting the steps after a failure to run once the flow-level handler has caught it | A flow-level handler ends the flow — put the handler on the step (`spec.onException(...)`) to carry on |
+| Expecting a flow-level handler to stop the flow | It recovers the step and the flow carries on (since 2.3.0) — end the handler body with `exit()` to stop |
+| Expecting the rest of a `forEach` to run after the flow-level handler caught a failure inside it | The container is abandoned and the flow resumes after it — put the handler on the step (`spec.onException(...)`) to carry on inside |
 | Async step's new bindings not visible to the flow | Default mode is INHERITED — the task's own bindings are private. Declare the output binding before the step and have the task `setValue` it, or read the future after `await` |
 | Async step changing a binding the flow already had | INHERITED shares the flow's existing bindings; use `withImmutableBindings()` or `withContext(ctx)` for isolation |
 

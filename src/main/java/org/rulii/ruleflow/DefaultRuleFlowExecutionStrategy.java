@@ -33,7 +33,9 @@ import org.rulii.ruleflow.command.RuleFlowCommand;
  *   <li>Flow scope is pushed.</li>
  *   <li>{@code fireOnRuleFlowStart} — listeners are notified.</li>
  *   <li>Commands are iterated; {@code fireOnRuleFlowCommandExecuted} fires after each one
- *       that completes normally.</li>
+ *       that completes normally. A command whose failure the flow-level handler matches fires
+ *       {@code fireOnRuleFlowExceptionHandled} instead once the handler body completes, and the
+ *       iteration continues with the next top-level command.</li>
  *   <li>Result is extracted; {@code fireOnRuleFlowResult} fires if an extractor was set.</li>
  *   <li>{@code runFinalizer()} fires {@code fireOnRuleFlowFinalizer} — always runs when
  *       command iteration started.</li>
@@ -88,14 +90,37 @@ class DefaultRuleFlowExecutionStrategy<T> extends RuleFlowExecutionStrategyTempl
         }
     }
 
+    /**
+     * Runs one top-level command. A failure that nothing inside the command handled goes to the
+     * flow-level handler; once the handler body completes the flow carries on with the next
+     * top-level command. An early exit, a failure the handler does not match and a failure of the
+     * handler body itself all propagate.
+     */
+    private void runCommand(RuleFlowCommand cmd, RulingOrder<T> order, RuleFlowExecutionContext ctx) {
+        try {
+            cmd.execute(ctx);
+        } catch (RuleFlowReturn r) {
+            // An early exit is an UnrulyException too; it is never a failure to handle.
+            throw r;
+        } catch (UnrulyException e) {
+            RuleFlowExceptionHandler globalHandler = order.getGlobalHandler();
+            if (globalHandler == null || !globalHandler.canHandle(e)) throw e;
+
+            globalHandler.handleException(e, ctx);
+            ctx.getRuleContext().getTracer().fireOnRuleFlowExceptionHandled(order, e, false);
+            return;
+        }
+
+        ctx.getRuleContext().getTracer().fireOnRuleFlowCommandExecuted(order, cmd);
+    }
+
     private T runCommands(RulingOrder<T> order, RuleContext ruleContext) {
         RuleFlowExecutionContext ctx = new RuleFlowExecutionContext(ruleContext, order);
         Throwable pending = null;
 
         try {
             for (RuleFlowCommand cmd : order.getCommands()) {
-                cmd.execute(ctx);
-                ruleContext.getTracer().fireOnRuleFlowCommandExecuted(order, cmd);
+                runCommand(cmd, order, ctx);
             }
 
             T result = order.extractResult(ruleContext);
@@ -105,12 +130,6 @@ class DefaultRuleFlowExecutionStrategy<T> extends RuleFlowExecutionStrategyTempl
             pending = r;
             throw r;
         } catch (UnrulyException e) {
-            RuleFlowExceptionHandler globalHandler = order.getGlobalHandler();
-            if (globalHandler != null && globalHandler.canHandle(e)) {
-                globalHandler.handleException(e, ctx);
-                ruleContext.getTracer().fireOnRuleFlowExceptionHandled(order, e, false);
-                return order.extractResult(ruleContext);
-            }
             pending = e;
             throw e;
         } finally {

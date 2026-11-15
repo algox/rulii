@@ -430,6 +430,47 @@ public class RuleFlowTracerTest {
         assertFalse(capturedStepLevel.get());
     }
 
+    @Test
+    public void testExceptionHandled_globalHandler_flowCarriesOn() {
+        List<String> events = new ArrayList<>();
+
+        Rule badRule = Rule.builder().name("bad")
+                .then(action(() -> { throw new UnrulyException("global boom"); })).build();
+
+        RuleFlow<String> flow = RuleFlow.builder()
+                .name("globalHandlerEventsFlow")
+                .run(badRule)
+                .execute(action(() -> {}))
+                .<String>returning(function(() -> "result"))
+                .onException(UnrulyException.class, b -> b.execute(action(() -> {})))
+                .build();
+
+        flow.run(contextWithListener(new RuleFlowListener() {
+            @Override
+            public void onRuleFlowCommandExecuted(RuleFlow<?> ruleFlow, RuleFlowCommand command) {
+                events.add("executed");
+            }
+
+            @Override
+            public void onRuleFlowExceptionHandled(RuleFlow<?> ruleFlow, Exception e, boolean stepLevel) {
+                events.add("handled:" + stepLevel);
+            }
+
+            @Override
+            public void onRuleFlowResult(RuleFlow<?> ruleFlow, Function<?> resultExtractor) {
+                events.add("result");
+            }
+
+            @Override
+            public void onRuleFlowError(RuleFlow<?> ruleFlow, Exception e) {
+                events.add("error");
+            }
+        }));
+
+        // The recovered step reports "handled" rather than "executed"; the flow then ends normally.
+        assertEquals(List.of("handled:false", "executed", "result"), events);
+    }
+
     // =========================================================================
     // onRuleFlowError
     // =========================================================================
