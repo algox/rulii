@@ -82,6 +82,20 @@ public interface ScriptProcessorFactory {
     String getBindingsName();
 
     /**
+     * Whether the script-text resolver ({@link ScriptProcessorManager#setScriptTextResolver}) is
+     * applied to this language's source text before it is compiled.
+     *
+     * <p>The default is {@code true}. A language whose own syntax uses the delimiters a resolver
+     * treats as placeholders returns {@code false}, and its text reaches the compiler as written.
+     *
+     * @return {@code true} if the resolver applies; {@code false} to compile the text as written.
+     * @since 2.3
+     */
+    default boolean resolvesScriptText() {
+        return true;
+    }
+
+    /**
      * Creates and returns a new {@link ScriptProcessor} for this language.
      *
      * @return a new processor instance; never null.

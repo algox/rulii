@@ -79,6 +79,27 @@ public class ElScriptTest {
     }
 
     @Test
+    public void scriptTextResolverIsNotAppliedToElText() {
+        Assertions.assertFalse(ScriptProcessorManager.getInstance().getScriptProcessorFactory(LANG).resolvesScriptText());
+
+        // What a placeholder resolver does with a ${...} it cannot resolve.
+        java.util.function.UnaryOperator<String> resolver = text -> {
+            if (text.contains("${")) throw new IllegalArgumentException("Could not resolve placeholder in [" + text + "]");
+            return text;
+        };
+
+        try {
+            ScriptProcessorManager.getInstance().setScriptTextResolver(resolver);
+            Condition condition = Condition.builder().build(Script.builder().build(LANG, "${ctx.age >= 18}"));
+
+            Assertions.assertTrue(condition.isTrue(context()));
+            Assertions.assertEquals("Ada", Function.builder().build(Script.builder().build(LANG, "#{person.name}")).apply(context()));
+        } finally {
+            ScriptProcessorManager.getInstance().clearScriptTextResolver(resolver);
+        }
+    }
+
+    @Test
     public void standardResolversApply() {
         Assertions.assertEquals("Ada", Function.builder().build(Script.builder().build(LANG, "${person.name}")).apply(context()));
         Assertions.assertEquals("b", Function.builder().build(Script.builder().build(LANG, "${tags[1]}")).apply(context()));

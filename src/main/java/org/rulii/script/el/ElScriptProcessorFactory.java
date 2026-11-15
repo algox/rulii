@@ -43,9 +43,9 @@ import java.util.List;
  *
  * <p>Expressions are compiled once ({@link ElScriptCompiler}) and evaluated against an EL context built
  * per evaluation ({@link ElScriptProcessor}), so a compiled script is safe to share between threads.
- * Note that EL's delimiters are the same {@code ${...}} a script-text resolver may treat as
- * placeholders ({@code ScriptProcessorManager.setScriptTextResolver}); an application installing such a
- * resolver must make it leave EL text alone.</p>
+ * EL's delimiters are the same {@code ${...}} a script-text resolver may treat as placeholders
+ * ({@code ScriptProcessorManager.setScriptTextResolver}), so the resolver is not applied to EL text
+ * ({@link #resolvesScriptText()}): {@code ${...}} in an EL script is always an EL expression.</p>
  *
  * @author Max Arulananthan
  * @since 2.2
@@ -93,6 +93,14 @@ public class ElScriptProcessorFactory implements ScriptProcessorFactory {
     @Override
     public String getBindingsName() {
         return bindingsName;
+    }
+
+    /**
+     * Always {@code false}: {@code ${...}} is an EL expression, never a placeholder.
+     */
+    @Override
+    public boolean resolvesScriptText() {
+        return false;
     }
 
     @Override

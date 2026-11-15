@@ -160,6 +160,8 @@ public final class ScriptProcessorManager {
      * compiled (see {@code ScriptBuilderBuilder#with}). Integrations use this to
      * pre-process script text — e.g. the Spring integration resolves
      * {@code ${property:default}} placeholders against the application environment.
+     * A language can opt out ({@link ScriptProcessorFactory#resolvesScriptText()}); Jakarta
+     * Expression Language does, since {@code ${...}} is its own syntax.
      *
      * <p>The default is the identity function (no pre-processing). Like the factory
      * registrations, the resolver is process-wide state.

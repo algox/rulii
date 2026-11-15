@@ -215,6 +215,47 @@ public class ScriptProcessorManagerTest {
     }
 
     @Test
+    public void testScriptTextResolver_skippedWhenFactoryOptsOut() {
+        String language = "resolver-opt-out-lang-" + UUID.randomUUID();
+        StringBuilder seen = new StringBuilder();
+        ScriptProcessorFactory factory = new ScriptProcessorFactory() {
+            @Override
+            public String getLanguageName() { return language; }
+            @Override
+            public String getBindingsName() { return "ctx"; }
+            @Override
+            public boolean resolvesScriptText() { return false; }
+            @Override
+            public ScriptProcessor getScriptProcessor() { return namedFactory(language).getScriptProcessor(); }
+            @Override
+            public ScriptCompiler getScriptCompiler() {
+                return new ScriptCompiler() {
+                    @Override
+                    public String getLanguageName() { return language; }
+                    @Override
+                    public <T> Script<T> compile(String script, Class<?> returnType) {
+                        seen.setLength(0);
+                        seen.append(script);
+                        return null;
+                    }
+                };
+            }
+        };
+        ScriptProcessorManager.getInstance().register(factory);
+
+        try {
+            ScriptProcessorManager.getInstance().setScriptTextResolver(text -> text.replace("${answer}", "42"));
+            Script.builder().build(language, "value == ${answer}");
+            Assertions.assertEquals("value == ${answer}", seen.toString(),
+                    "a language that opts out must receive its text as written");
+            Assertions.assertTrue(namedFactory(language).resolvesScriptText(), "the resolver applies by default");
+        } finally {
+            ScriptProcessorManager.getInstance().setScriptTextResolver(java.util.function.UnaryOperator.identity());
+            ScriptProcessorManager.getInstance().unregister(factory);
+        }
+    }
+
+    @Test
     public void testScriptTextResolver_nullResolverRejected() {
         Assertions.assertThrows(IllegalArgumentException.class,
                 () -> ScriptProcessorManager.getInstance().setScriptTextResolver(null));
