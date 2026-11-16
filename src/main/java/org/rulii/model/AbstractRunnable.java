@@ -22,7 +22,7 @@ import org.rulii.lib.spring.util.Assert;
 import org.rulii.util.reflect.MethodExecutor;
 
 import java.util.Collections;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -92,7 +92,17 @@ public abstract class AbstractRunnable implements Identifiable, Definable<Method
     protected List<Object> immutable(List<Object> args) {
         if (args == null || args.isEmpty()) return args;
 
-        List<Object> result = new LinkedList<>();
+        // Plain values (the common case) need no copy: the resolver already hands us a read-only list.
+        boolean needsCopy = false;
+        for (Object value : args) {
+            if (value instanceof Immutator || value instanceof Optional<?>) {
+                needsCopy = true;
+                break;
+            }
+        }
+        if (!needsCopy) return args;
+
+        List<Object> result = new ArrayList<>(args.size());
 
         for (Object value : args) {
 

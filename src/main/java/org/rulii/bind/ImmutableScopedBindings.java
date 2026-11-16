@@ -18,6 +18,7 @@
 package org.rulii.bind;
 
 import org.rulii.lib.spring.util.Assert;
+import org.rulii.model.Immutator;
 
 import java.lang.reflect.Type;
 import java.util.*;
@@ -56,6 +57,30 @@ public class ImmutableScopedBindings implements ScopedBindings, Map<String, Obje
     public <T> Binding<T> getBinding(String name, Type type) {
         Binding<T> result = getTarget().getBinding(name, type);
         return result != null ? result.asImmutable() : null;
+    }
+
+    /**
+     * Reads the value straight from the target. Going through {@link #getBinding(String)}, as the inherited
+     * method does, builds an immutable copy of the whole Binding on every read only to return its value: a
+     * script reads each of its variables this way.
+     */
+    @Override
+    public <T> T getValue(String name) {
+        return immutableValue(getTarget().getValue(name));
+    }
+
+    @Override
+    public <T> T getValue(String name, Class<T> type) {
+        return immutableValue(getTarget().getValue(name, type));
+    }
+
+    /**
+     * A value that can itself be changed through (a RuleContext, Bindings) is handed out immutable, as
+     * {@link Binding#asImmutable()} hands it out.
+     */
+    @SuppressWarnings("unchecked")
+    private static <T> T immutableValue(T value) {
+        return value instanceof Immutator ? (T) ((Immutator<?>) value).asImmutable() : value;
     }
 
     @Override
@@ -243,8 +268,8 @@ public class ImmutableScopedBindings implements ScopedBindings, Map<String, Obje
     @Override
     public Object get(Object key) {
         Assert.notNull(key, "key cannot be null.");
-        Binding<Object> result = getBinding(key.toString());
-        return result != null ? result.getValue() : null;
+        Binding<Object> result = getTarget().getBinding(key.toString());
+        return result != null ? immutableValue(result.getValue()) : null;
     }
 
     @Override

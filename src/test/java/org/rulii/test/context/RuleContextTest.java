@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.rulii.bind.BindingAlreadyExistsException;
 import org.rulii.bind.Bindings;
+import org.rulii.bind.NoSuchBindingException;
 import org.rulii.bind.ReservedBindings;
 import org.rulii.bind.ScopedBindings;
 import org.rulii.bind.match.BindingMatchingStrategy;
@@ -182,6 +183,48 @@ public class RuleContextTest {
                 "asImmutable() must preserve the source context's identity.");
         Assertions.assertEquals(context.getCreationTime(), immutable.getCreationTime(),
                 "asImmutable() must preserve the source context's creation time.");
+    }
+
+    @Test
+    public void testDerivedContexts_shareScriptProcessors() {
+        RuleContext context = RuleContext.builder().build(Bindings.builder().standard());
+
+        // The view asks first: a condition or function runs on the immutable view, never on the context itself.
+        ScriptProcessor viaImmutable = context.asImmutable().getScriptProcessor("java");
+
+        Assertions.assertSame(viaImmutable, context.asImmutable().getScriptProcessor("java"),
+                "Every immutable view of a context must reuse the script processor created through an earlier view.");
+        Assertions.assertSame(viaImmutable, context.getScriptProcessor("java"),
+                "A context and its immutable views must share one script processor per language.");
+        Assertions.assertSame(viaImmutable, context.withLocalBindings().getScriptProcessor("java"),
+                "A context with local bindings must share its source's script processors.");
+    }
+
+    @Test
+    public void testImmutableBindings_valueReads_stayReadOnly() {
+        Bindings bindings = Bindings.builder().standard();
+        bindings.bind("x", String.class, "original");
+        RuleContext context = RuleContext.builder().build(bindings);
+        ScopedBindings view = context.getBindings().asImmutable();
+        String ruleContextName = ReservedBindings.RULE_CONTEXT.getName();
+        int scopes = context.getBindings().getScopeSize();
+
+        // A plain value is read as it is, whichever way it is asked for.
+        Assertions.assertEquals("original", view.getValue("x"));
+        Assertions.assertEquals("original", view.getValue("x", String.class));
+        Assertions.assertEquals("original", view.asMap().get("x"));
+        Assertions.assertNull(view.asMap().get("missing"));
+        Assertions.assertThrows(NoSuchBindingException.class, () -> view.getValue("missing"));
+
+        // A value that could itself be written through is handed out immutable.
+        RuleContext byName = view.getValue(ruleContextName);
+        RuleContext byType = view.getValue(ruleContextName, RuleContext.class);
+        RuleContext byKey = (RuleContext) view.asMap().get(ruleContextName);
+
+        Assertions.assertThrows(UnsupportedOperationException.class, () -> byName.getBindings().addScope());
+        Assertions.assertThrows(UnsupportedOperationException.class, () -> byType.getBindings().addScope());
+        Assertions.assertThrows(UnsupportedOperationException.class, () -> byKey.getBindings().addScope());
+        Assertions.assertEquals(scopes, context.getBindings().getScopeSize(), "No scope may have been added.");
     }
 
     @Test

@@ -91,7 +91,9 @@ public class RuleContext implements Immutator<RuleContext> {
 
     private final ScriptProcessorManager scriptProcessorManager = ScriptProcessorManager.getInstance();
 
-    private final Map<String, ScriptProcessor> scriptProcessors = Collections.synchronizedMap(new HashMap<>());
+    // Shared with the contexts derived from this one (asImmutable, withLocalBindings): a condition or function
+    // runs on an immutable view, and a view with a cache of its own would create a processor on every evaluation.
+    private final Map<String, ScriptProcessor> scriptProcessors;
 
     /**
      * Package-private constructor — use {@link RuleContext#builder()} to obtain instances.
@@ -116,19 +118,21 @@ public class RuleContext implements Immutator<RuleContext> {
                 Clock clock, ExecutorService executorService, RuleRegistry ruleRegistry) {
         this(nextId(), new Date(), bindings, locale, matchingStrategy, parameterResolver,
                 messageResolver, messageFormatter, objectFactory, tracer, converterRegistry, clock,
-                executorService, ruleRegistry);
+                executorService, ruleRegistry, Collections.synchronizedMap(new HashMap<>()));
     }
 
     /**
-     * Full constructor allowing the id/creationTime to be carried over from another context —
-     * used by {@link #asImmutable()} so the immutable snapshot keeps the same identity as its
-     * source instead of minting a new one.
+     * Full constructor allowing the id/creationTime and the script processor cache to be carried over
+     * from another context — used by {@link #asImmutable()} and {@link #withLocalBindings()} so the
+     * derived context keeps the same identity as its source instead of minting a new one, and reuses
+     * the script processors its source already created.
      */
     private RuleContext(String id, Date creationTime, ScopedBindings bindings, Locale locale,
                 BindingMatchingStrategy matchingStrategy, ParameterResolver parameterResolver,
                 MessageResolver messageResolver, MessageFormatter messageFormatter, ObjectFactory objectFactory,
                 Tracer tracer, ConverterRegistry converterRegistry, Clock clock,
-                ExecutorService executorService, RuleRegistry ruleRegistry) {
+                ExecutorService executorService, RuleRegistry ruleRegistry,
+                Map<String, ScriptProcessor> scriptProcessors) {
         super();
         Assert.notNull(id, "id cannot be null.");
         Assert.notNull(creationTime, "creationTime cannot be null.");
@@ -157,6 +161,7 @@ public class RuleContext implements Immutator<RuleContext> {
         this.clock = clock;
         this.executorService = executorService;
         this.ruleRegistry = ruleRegistry;
+        this.scriptProcessors = scriptProcessors;
     }
 
     /**
@@ -324,7 +329,8 @@ public class RuleContext implements Immutator<RuleContext> {
     @Override
     public RuleContext asImmutable() {
         return new RuleContext(id, creationTime, bindings.asImmutable(), locale, matchingStrategy, parameterResolver,
-                messageResolver, messageFormatter, objectFactory, tracer, converterRegistry, clock, executorService, ruleRegistry);
+                messageResolver, messageFormatter, objectFactory, tracer, converterRegistry, clock, executorService, ruleRegistry,
+                scriptProcessors);
     }
 
     /**
@@ -362,7 +368,7 @@ public class RuleContext implements Immutator<RuleContext> {
     public RuleContext withLocalBindings() {
         return new RuleContext(id, creationTime, new RuleRunBindings(bindings, Bindings.builder().local()), locale,
                 matchingStrategy, parameterResolver, messageResolver, messageFormatter, objectFactory, tracer,
-                converterRegistry, clock, executorService, ruleRegistry);
+                converterRegistry, clock, executorService, ruleRegistry, scriptProcessors);
     }
 
     @Override
