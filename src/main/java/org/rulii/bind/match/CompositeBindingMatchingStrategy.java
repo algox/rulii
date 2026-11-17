@@ -24,7 +24,7 @@ import org.rulii.lib.spring.util.Assert;
 
 import java.lang.reflect.Type;
 import java.util.Collections;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -62,16 +62,22 @@ public class CompositeBindingMatchingStrategy implements BindingMatchingStrategy
         Assert.hasText(name, "name cannot be null/empty.");
         Assert.notNull(type, "type cannot be null/empty.");
 
-        List<BindingMatch<T>> result = new LinkedList<>();
+        List<BindingMatch<T>> result = null;
 
         for (BindingMatchingStrategy strategy : strategies) {
-            // Add all the matches
-            result.addAll(strategy.match(bindings, name, type, containsGenericInfo));
-            // Check to see if we should stop
-            if (stopWhenMatched && !result.isEmpty()) break;
+            List<BindingMatch<T>> matches = strategy.match(bindings, name, type, containsGenericInfo);
+            if (matches.isEmpty()) continue;
+            // Stopping on the first hit: hand that strategy's own (already read-only) result straight back.
+            if (stopWhenMatched) return matches;
+            // Collecting across strategies: allocate only once something is found.
+            if (result == null) {
+                result = new ArrayList<>(matches);
+            } else {
+                result.addAll(matches);
+            }
         }
 
-        return Collections.unmodifiableList(result);
+        return result != null ? Collections.unmodifiableList(result) : Collections.emptyList();
     }
 
     @Override

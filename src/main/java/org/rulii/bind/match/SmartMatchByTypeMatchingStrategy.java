@@ -24,7 +24,7 @@ import org.rulii.lib.spring.util.Assert;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -52,7 +52,7 @@ public class SmartMatchByTypeMatchingStrategy implements BindingMatchingStrategy
         Assert.notNull(type, "type cannot be bull");
 
         // We don't have any generic info and are trying to match a parameterized type
-        if (!containsGenericInfo && (type instanceof  ParameterizedType || Object.class.equals(type))) return new ArrayList<>();
+        if (!containsGenericInfo && (type instanceof  ParameterizedType || Object.class.equals(type))) return Collections.emptyList();
 
         List<BindingMatch<T>> result = typeMatchingStrategy.match(bindings, name, type, containsGenericInfo);
 

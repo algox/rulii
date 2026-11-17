@@ -25,7 +25,6 @@ import org.rulii.lib.spring.util.Assert;
 
 import java.lang.reflect.Type;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -50,17 +49,18 @@ public class MatchByNameAndTypeMatchingStrategy implements BindingMatchingStrate
         Assert.hasText(name, "name cannot be bull");
         Assert.notNull(type, "type cannot be bull");
 
-        List<BindingMatch<T>> result = new LinkedList<>();
         // Look for the Binding by name & type
         Binding<T> binding = bindings.getBinding(name, type);
-        // Add the Binding (if we found one)
-        if (binding != null) result.add(new BindingMatch<T>(binding, getClass()));
+        // At most one match by name: both lists are immutable and allocate nothing beyond the match itself.
+        List<BindingMatch<T>> result = binding != null
+                ? Collections.singletonList(new BindingMatch<>(binding, getClass()))
+                : Collections.emptyList();
 
         if (logger.isDebugEnabled()) {
             logger.debug("Name [" + name + "] Type [" + type + "] Matches [" + result + "]");
         }
 
-        return Collections.unmodifiableList(result);
+        return result;
     }
 
     @Override

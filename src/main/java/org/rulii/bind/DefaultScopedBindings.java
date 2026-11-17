@@ -297,11 +297,12 @@ public class DefaultScopedBindings implements ScopedBindings, Map<String, Object
     @Override
     public <T> void bind(Binding<T> binding) {
         Assert.notNull(binding, "binding cannot be null.");
-        List<Binding<T>> bindings = getAllBindings(binding.getName());
 
-        for (Binding<T> b : bindings) {
-            if (b.isFinal()) {
-                throw new BindingAlreadyExistsException(b, binding, true);
+        // A final Binding of the same name anywhere on the stack must not be shadowed.
+        for (NamedScope scope : scopes) {
+            Binding<T> existing = scope.getBindings().getBinding(binding.getName());
+            if (existing != null && existing.isFinal()) {
+                throw new BindingAlreadyExistsException(existing, binding, true);
             }
         }
 
@@ -367,45 +368,48 @@ public class DefaultScopedBindings implements ScopedBindings, Map<String, Object
 
     @Override
     public <T> List<Binding<T>> getBindings(Type type) {
-        List<Binding<T>> result = new LinkedList<>();
         List<NamedScope> scopes = getScopes();
 
         int size = scopes.size();
-        // Must start at end and come up
+        // Must start at end and come up; the first scope with a match wins.
         for (int i = size - 1; i >=0; i--) {
-            result.addAll(scopes.get(i).getBindings().getBindings(type));
-            // Found something in this scope stop.
-            if (!result.isEmpty()) break;
+            List<Binding<T>> matches = scopes.get(i).getBindings().getBindings(type);
+            if (!matches.isEmpty()) return new ArrayList<>(matches);
         }
 
-        return result;
+        return new ArrayList<>(0);
     }
 
     @Override
     public <T> List<Binding<T>> getAllBindings(Type type) {
-        List<Binding<T>> result = new LinkedList<>();
+        List<Binding<T>> result = null;
         List<NamedScope> scopes = getScopes();
 
-        // Must start at root and keep adding
+        // Must start at root and keep adding; allocate only once something is found.
         for (NamedScope scope : scopes) {
-            result.addAll(scope.getBindings().getBindings(type));
+            List<Binding<T>> matches = scope.getBindings().getBindings(type);
+            if (matches.isEmpty()) continue;
+            if (result == null) result = new ArrayList<>(matches);
+            else result.addAll(matches);
         }
 
-        return result;
+        return result != null ? result : new ArrayList<>(0);
     }
 
     @Override
     public <T> List<Binding<T>> getAllBindings(String name) {
-        List<Binding<T>> result = new LinkedList<>();
+        List<Binding<T>> result = null;
         List<NamedScope> scopes = getScopes();
 
-        // Must start at root and keep adding
+        // Must start at root and keep adding; allocate only once something is found.
         for (NamedScope scope : scopes) {
             Binding<T> match = scope.getBindings().getBinding(name);
-            if (match != null) result.add(match);
+            if (match == null) continue;
+            if (result == null) result = new ArrayList<>(scopes.size());
+            result.add(match);
         }
 
-        return result;
+        return result != null ? result : new ArrayList<>(0);
     }
 
     @Override

@@ -83,6 +83,56 @@ public class ParameterResolverTest {
     }
 
     @Test
+    public void matchDescriptionsTest() {
+        ParameterResolver resolver = ParameterResolver.builder().build();
+        List<MethodDefinition> definitions = MethodDefinition.load(TestClass.class, method -> method.getName().equals("testMethod2"), SourceDefinition.build());
+        BindingMatchingStrategy strategy = BindingMatchingStrategy.builder().matchByNameThenByType();
+
+        // "a" is matched by name; nothing matches "values".
+        Bindings bindings = Bindings.builder().standard();
+        bindings.bind("a", int.class, 10);
+
+        List<ParameterMatch> matches = resolver.match(definitions.get(0), bindings, strategy, ObjectFactory.builder().build());
+
+        Assertions.assertEquals(2, matches.size());
+        // A single match names the strategy the resolver was given.
+        Assertions.assertEquals("Matched using [CompositeBindingMatchingStrategy(MatchByNameMatchingStrategy,SmartMatchByTypeMatchingStrategy)]",
+                matches.get(0).getDescription());
+        Assertions.assertTrue(matches.get(0).toString().contains("description='Matched using [CompositeBindingMatchingStrategy("));
+        // No match, no description.
+        Assertions.assertNull(matches.get(1).getDescription());
+        Assertions.assertTrue(matches.get(1).toString().contains("description='null'"));
+        // A description set later (default value, auto-convert) replaces it.
+        matches.get(0).setDescription("Using auto-convert from int");
+        Assertions.assertEquals("Using auto-convert from int", matches.get(0).getDescription());
+        // And one that is cleared stays cleared.
+        matches.get(0).setDescription(null);
+        Assertions.assertNull(matches.get(0).getDescription());
+        Assertions.assertTrue(matches.get(0).toString().contains("description='null'"));
+        // Also when it is cleared before anyone has read it.
+        ParameterMatch unread = resolver.match(definitions.get(0), bindings, strategy, ObjectFactory.builder().build()).get(0);
+        unread.setDescription(null);
+        Assertions.assertNull(unread.getDescription());
+    }
+
+    @Test
+    public void matchDescriptionOfPrimaryBindingTest() {
+        ParameterResolver resolver = ParameterResolver.builder().build();
+        List<MethodDefinition> definitions = MethodDefinition.load(TestClass.class, method -> method.getName().equals("testMethod2"), SourceDefinition.build());
+
+        // Two candidates for "a" by type; the primary one is picked and described by the strategy that found it.
+        Bindings bindings = Bindings.builder().standard();
+        bindings.bind("x", int.class, 10);
+        bindings.bind(Binding.builder().with("y").type(int.class).value(20).primary(true).build());
+
+        List<ParameterMatch> matches = resolver.match(definitions.get(0), bindings,
+                BindingMatchingStrategy.builder().matchByType(), ObjectFactory.builder().build());
+
+        Assertions.assertEquals("y", matches.get(0).getBinding().getName());
+        Assertions.assertEquals("using MatchByTypeMatchingStrategy", matches.get(0).getDescription());
+    }
+
+    @Test
     public void matchByNameTest2() {
         ParameterResolver resolver = ParameterResolver.builder().build();
         List<MethodDefinition> definitions = MethodDefinition.load(TestClass.class, method -> method.getName().equals("testMethod2"), SourceDefinition.build());

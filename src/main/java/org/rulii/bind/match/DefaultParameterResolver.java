@@ -93,9 +93,7 @@ public class DefaultParameterResolver implements ParameterResolver {
             if (matchesCount == 0) {
                 result[index] = new ParameterMatch(parameterDefinition, null);
             } else if (matchesCount == 1) {
-                ParameterMatch match = new ParameterMatch(parameterDefinition, matches.get(0));
-                match.setDescription("Matched using [" + matcher.getDescription() + "]");
-                result[index] = match;
+                result[index] = new ParameterMatch(parameterDefinition, matches.get(0), matcher);
             } else {
                 // More than one match found; let's see if there is a primary candidate
                 BindingMatch<Object> primaryBinding = null;

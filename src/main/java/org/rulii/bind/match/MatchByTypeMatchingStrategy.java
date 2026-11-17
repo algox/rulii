@@ -26,7 +26,7 @@ import org.rulii.lib.spring.util.Assert;
 
 import java.lang.reflect.Type;
 import java.util.Collections;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -53,15 +53,21 @@ public class MatchByTypeMatchingStrategy implements BindingMatchingStrategy {
         List<Binding<T>> matches = bindings instanceof ScopedBindings
                 ? ((ScopedBindings) bindings).getAllBindings(type)
                 : bindings.getBindings(type);
-        List<BindingMatch<T>> result = new LinkedList<>();
+        List<BindingMatch<T>> result;
 
-        matches.forEach(i -> result.add(new BindingMatch<>(i, getClass())));
+        if (matches.isEmpty()) {
+            result = Collections.emptyList();
+        } else {
+            List<BindingMatch<T>> found = new ArrayList<>(matches.size());
+            for (Binding<T> match : matches) found.add(new BindingMatch<>(match, getClass()));
+            result = Collections.unmodifiableList(found);
+        }
 
         if (logger.isDebugEnabled()) {
             logger.debug("Name [" + name + "] Type [" + type + "] Matches [" + result + "]");
         }
 
-        return Collections.unmodifiableList(result);
+        return result;
     }
 
     @Override

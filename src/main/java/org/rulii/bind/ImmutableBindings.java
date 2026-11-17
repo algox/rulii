@@ -94,7 +94,8 @@ public class ImmutableBindings implements Bindings, Map<String, Object> {
 
     private <T> List<Binding<T>> convertToImmutableList(List<Binding<T>> original) {
         if (original == null) return null;
-        List<Binding<T>> result = new LinkedList<>();
+        if (original.isEmpty()) return Collections.emptyList();
+        List<Binding<T>> result = new ArrayList<>(original.size());
 
         for (Binding<T> entry : original) {
             result.add(entry.asImmutable());

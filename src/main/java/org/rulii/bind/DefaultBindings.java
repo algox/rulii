@@ -124,15 +124,17 @@ public class DefaultBindings implements Bindings, PromiscuousBinder, Map<String,
     @Override
     @SuppressWarnings("unchecked")
     public <T> List<Binding<T>> getBindings(Type typeRef) {
-        List<Binding<T>> result = new LinkedList<>();
+        // Most type lookups find nothing in a given scope: allocate the list only on the first hit.
+        List<Binding<T>> result = null;
 
         for (Binding<?> binding : bindings.values()) {
             if (binding.isAssignable(typeRef)) {
+                if (result == null) result = new ArrayList<>();
                 result.add((Binding<T>) binding);
             }
         }
 
-        return Collections.unmodifiableList(result);
+        return result != null ? Collections.unmodifiableList(result) : Collections.emptyList();
     }
 
     @Override
