@@ -25,6 +25,7 @@ import org.rulii.lib.apache.commons.logging.Log;
 import org.rulii.lib.apache.commons.logging.LogFactory;
 import org.rulii.lib.apache.reflect.TypeUtils;
 import org.rulii.lib.spring.util.Assert;
+import org.rulii.model.ArgumentList;
 import org.rulii.model.MethodDefinition;
 import org.rulii.model.ParameterDefinition;
 import org.rulii.model.UnrulyException;
@@ -146,8 +147,9 @@ public class DefaultParameterResolver implements ParameterResolver {
             logger.debug("Parameter Resolved Values for method [" + definition.getSignature()  + "] with values [" + Arrays.toString(result) + "]");
         }
 
-        // Do not use List.of() as values can be null
-        return Collections.unmodifiableList(Arrays.asList(result));
+        // Do not use List.of() as values can be null. The list keeps this very array, which the engine then
+        // passes to the method without copying it again.
+        return ArgumentList.wrap(result);
     }
 
     /**

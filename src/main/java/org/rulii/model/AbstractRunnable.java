@@ -21,8 +21,6 @@ import org.rulii.bind.match.ParameterMatch;
 import org.rulii.lib.spring.util.Assert;
 import org.rulii.util.reflect.MethodExecutor;
 
-import java.util.Collections;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -66,7 +64,12 @@ public abstract class AbstractRunnable implements Identifiable, Definable<Method
     protected Object run(List<ParameterMatch> matches, List<Object> args) {
         // Execute the target method
         try {
-            return methodExecutor.execute(target, !couldChangeState() ? immutable(args) : args);
+            List<Object> arguments = !couldChangeState() ? immutable(args) : args;
+            // The resolver's own list gives up its array as it is; any other list is copied out as before.
+            Object[] values = arguments instanceof ArgumentList
+                    ? ((ArgumentList) arguments).values()
+                    : (arguments != null ? arguments.toArray() : null);
+            return methodExecutor.execute(target, values);
         } catch (ClassCastException e) {
             throw new ParameterMismatchException(getDefinition().getMethod(), matches, args, e);
         } catch (UnrulyException e) {
@@ -102,24 +105,24 @@ public abstract class AbstractRunnable implements Identifiable, Definable<Method
         }
         if (!needsCopy) return args;
 
-        List<Object> result = new ArrayList<>(args.size());
+        // One copy, converted in place; the caller's list is left as it was.
+        Object[] result = args.toArray();
 
-        for (Object value : args) {
+        for (int i = 0; i < result.length; i++) {
+            Object value = result[i];
 
             // Check if the argument could be converted to an Immutable version.
             if (value instanceof Immutator) {
-                value = ((Immutator<?>) value).asImmutable();
+                result[i] = ((Immutator<?>) value).asImmutable();
             } else if (value instanceof Optional<?> optional) {
                 // Looks like an Optional value; convert the value if needed.
                 if (optional.isPresent() && optional.get() instanceof Immutator) {
-                    value = Optional.of(((Immutator<?>) optional.get()).asImmutable());
+                    result[i] = Optional.of(((Immutator<?>) optional.get()).asImmutable());
                 }
             }
-
-            result.add(value);
         }
 
-        return Collections.unmodifiableList(result);
+        return ArgumentList.wrap(result);
     }
 
     public MethodDefinition getDefinition() {
