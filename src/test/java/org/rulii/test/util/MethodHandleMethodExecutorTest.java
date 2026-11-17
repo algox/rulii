@@ -230,6 +230,103 @@ public class MethodHandleMethodExecutorTest {
         Assertions.assertThrows(NullPointerException.class, () -> six.execute(null, "a", null, 2L, true, 'x', 1.5d));
     }
 
+    /** One instance and one static method for every argument count from 0 to 12; each reports its arguments in order. */
+    public static class Arity {
+
+        private final String name;
+
+        public Arity(String name) {
+            super();
+            this.name = name;
+        }
+
+        private static String join(String... values) {
+            return String.join(",", values);
+        }
+
+        public String i0() { return name + ":" + join(); }
+        public String i1(String a) { return name + ":" + join(a); }
+        public String i2(String a, String b) { return name + ":" + join(a, b); }
+        public String i3(String a, String b, String c) { return name + ":" + join(a, b, c); }
+        public String i4(String a, String b, String c, String d) { return name + ":" + join(a, b, c, d); }
+        public String i5(String a, String b, String c, String d, String e) { return name + ":" + join(a, b, c, d, e); }
+        public String i6(String a, String b, String c, String d, String e, String f) { return name + ":" + join(a, b, c, d, e, f); }
+        public String i7(String a, String b, String c, String d, String e, String f, String g) { return name + ":" + join(a, b, c, d, e, f, g); }
+        public String i8(String a, String b, String c, String d, String e, String f, String g, String h) { return name + ":" + join(a, b, c, d, e, f, g, h); }
+        public String i9(String a, String b, String c, String d, String e, String f, String g, String h, String i) { return name + ":" + join(a, b, c, d, e, f, g, h, i); }
+        public String i10(String a, String b, String c, String d, String e, String f, String g, String h, String i, String j) { return name + ":" + join(a, b, c, d, e, f, g, h, i, j); }
+        public String i11(String a, String b, String c, String d, String e, String f, String g, String h, String i, String j, String k) { return name + ":" + join(a, b, c, d, e, f, g, h, i, j, k); }
+        public String i12(String a, String b, String c, String d, String e, String f, String g, String h, String i, String j, String k, String l) { return name + ":" + join(a, b, c, d, e, f, g, h, i, j, k, l); }
+
+        public static String s0() { return "static:" + join(); }
+        public static String s1(String a) { return "static:" + join(a); }
+        public static String s2(String a, String b) { return "static:" + join(a, b); }
+        public static String s3(String a, String b, String c) { return "static:" + join(a, b, c); }
+        public static String s4(String a, String b, String c, String d) { return "static:" + join(a, b, c, d); }
+        public static String s5(String a, String b, String c, String d, String e) { return "static:" + join(a, b, c, d, e); }
+        public static String s6(String a, String b, String c, String d, String e, String f) { return "static:" + join(a, b, c, d, e, f); }
+        public static String s7(String a, String b, String c, String d, String e, String f, String g) { return "static:" + join(a, b, c, d, e, f, g); }
+        public static String s8(String a, String b, String c, String d, String e, String f, String g, String h) { return "static:" + join(a, b, c, d, e, f, g, h); }
+        public static String s9(String a, String b, String c, String d, String e, String f, String g, String h, String i) { return "static:" + join(a, b, c, d, e, f, g, h, i); }
+        public static String s10(String a, String b, String c, String d, String e, String f, String g, String h, String i, String j) { return "static:" + join(a, b, c, d, e, f, g, h, i, j); }
+        public static String s11(String a, String b, String c, String d, String e, String f, String g, String h, String i, String j, String k) { return "static:" + join(a, b, c, d, e, f, g, h, i, j, k); }
+        public static String s12(String a, String b, String c, String d, String e, String f, String g, String h, String i, String j, String k, String l) { return "static:" + join(a, b, c, d, e, f, g, h, i, j, k, l); }
+    }
+
+    @Test
+    public void testEveryArgumentCount_argumentsArriveInOrder() throws Throwable {
+        Arity target = new Arity("instance");
+
+        for (int count = 0; count <= 12; count++) {
+            Class<?>[] types = new Class<?>[count];
+            Object[] args = new Object[count];
+            StringBuilder expected = new StringBuilder();
+
+            for (int i = 0; i < count; i++) {
+                types[i] = String.class;
+                args[i] = "a" + i;
+                if (i > 0) expected.append(",");
+                expected.append("a").append(i);
+            }
+
+            MethodExecutor instanceExecutor = new MethodHandleMethodExecutor(Arity.class.getMethod("i" + count, types));
+            MethodExecutor staticExecutor = new MethodHandleMethodExecutor(Arity.class.getMethod("s" + count, types));
+            Object instanceResult = instanceExecutor.execute(target, args);
+            Object staticResult = staticExecutor.execute(null, args);
+
+            Assertions.assertEquals("instance:" + expected, instanceResult, "instance method with " + count + " arguments");
+            Assertions.assertEquals("static:" + expected, staticResult, "static method with " + count + " arguments");
+        }
+    }
+
+    @Test
+    public void testEveryArgumentCount_wrongTypeInAnyPositionIsRefused() throws Throwable {
+        Arity target = new Arity("instance");
+
+        for (int count = 1; count <= 12; count++) {
+            Class<?>[] types = new Class<?>[count];
+            java.util.Arrays.fill(types, String.class);
+            MethodExecutor instanceExecutor = new MethodHandleMethodExecutor(Arity.class.getMethod("i" + count, types));
+            MethodExecutor staticExecutor = new MethodHandleMethodExecutor(Arity.class.getMethod("s" + count, types));
+
+            for (int position = 0; position < count; position++) {
+                Object[] args = new Object[count];
+                java.util.Arrays.fill(args, "ok");
+                args[position] = 42;
+                String where = count + " arguments, position " + position;
+
+                Assertions.assertThrows(ClassCastException.class, () -> instanceExecutor.execute(target, args), where);
+                Assertions.assertThrows(ClassCastException.class, () -> staticExecutor.execute(null, args), where);
+            }
+
+            // One argument short, and one too many.
+            Object[] fewer = new Object[count - 1];
+            Object[] more = new Object[count + 1];
+            Assertions.assertThrows(UnrulyException.class, () -> instanceExecutor.execute(target, fewer));
+            Assertions.assertThrows(UnrulyException.class, () -> staticExecutor.execute(null, more));
+        }
+    }
+
     @Test
     public void testWrongArgumentType_throwsClassCastException() throws Throwable {
         // AbstractRunnable relies on this to report a ParameterMismatchException.
