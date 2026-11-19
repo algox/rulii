@@ -54,7 +54,7 @@ public class BindingLookupFunction extends BindingFunction<Object> {
 
         private static final String NAME            = "binding";
         private static final Method RUN             = runMethod();
-        private static final String BOUND_BINDINGS  = ReservedBindings.BI   NDINGS.getName();
+        private static final String BOUND_BINDINGS  = ReservedBindings.BINDINGS.getName();
 
         private final String bindingName;
         // Rebuilt by readResolve: a MethodDefinition holds a Method and cannot be written.
