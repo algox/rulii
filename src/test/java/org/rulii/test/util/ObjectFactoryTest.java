@@ -26,8 +26,13 @@ import org.rulii.annotation.Then;
 import org.rulii.bind.match.BindingMatchingStrategy;
 import org.rulii.bind.match.MatchByNameAndTypeMatchingStrategy;
 import org.rulii.bind.match.MatchByNameMatchingStrategy;
+import org.rulii.bind.match.MatchByNameThenTypeMatchingStrategy;
 import org.rulii.bind.match.MatchByTypeMatchingStrategy;
+import org.rulii.bind.match.SmartMatchByTypeMatchingStrategy;
+import org.rulii.util.reflect.DefaultObjectFactory;
 import org.rulii.util.reflect.ObjectFactory;
+
+import java.util.List;
 
 /**
  * Binding ParameterDefinition tests.
@@ -114,5 +119,67 @@ public class ObjectFactoryTest {
         PackagePrivateCtor() {
             super();
         }
+    }
+
+    /** A strategy from outside the engine. */
+    public static class OwnStrategy extends MatchByNameMatchingStrategy {
+
+        public OwnStrategy() {
+            super();
+        }
+    }
+
+    /** A factory of one's own: counts what it is asked to create. */
+    private static class CountingObjectFactory extends DefaultObjectFactory {
+
+        private int created;
+
+        CountingObjectFactory() {
+            super();
+        }
+
+        @Override
+        public <T> T create(Class<T> type, boolean isUseCache) {
+            created++;
+            return super.create(type, isUseCache);
+        }
+    }
+
+    @Test
+    public void strategyIsCreatedOncePerFactory() {
+        ObjectFactory factory = ObjectFactory.builder().build();
+        ObjectFactory another = ObjectFactory.builder().build();
+
+        for (Class<? extends BindingMatchingStrategy> type : List.of(MatchByNameMatchingStrategy.class,
+                MatchByNameAndTypeMatchingStrategy.class, MatchByTypeMatchingStrategy.class,
+                SmartMatchByTypeMatchingStrategy.class, MatchByNameThenTypeMatchingStrategy.class,
+                OwnStrategy.class)) {
+            BindingMatchingStrategy strategy = factory.createBindingMatchingStrategy(type);
+            // Exactly the class asked for; the same instance from this factory, never another factory's.
+            Assertions.assertEquals(type, strategy.getClass());
+            Assertions.assertSame(strategy, factory.createBindingMatchingStrategy(type));
+            Assertions.assertNotSame(strategy, another.createBindingMatchingStrategy(type));
+        }
+    }
+
+    @Test
+    public void onlyStrategiesAreCachedWhenTheCacheIsOff() {
+        ObjectFactory factory = ObjectFactory.builder().build();
+
+        Assertions.assertNotSame(factory.createAction(CacheableThing.class), factory.createAction(CacheableThing.class));
+    }
+
+    @Test
+    public void factoryOfOnesOwnIsAskedForEveryStrategy() {
+        // A subclass creates its objects its own way (rulii-spring asks the container): it sees every request.
+        CountingObjectFactory factory = new CountingObjectFactory();
+        BindingMatchingStrategy first = factory.createBindingMatchingStrategy(MatchByNameThenTypeMatchingStrategy.class);
+        BindingMatchingStrategy second = factory.createBindingMatchingStrategy(MatchByNameThenTypeMatchingStrategy.class);
+
+        Assertions.assertEquals(2, factory.created);
+        Assertions.assertSame(first, second);
+        Assertions.assertThrows(IllegalArgumentException.class, () -> factory.createBindingMatchingStrategy(null));
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> ObjectFactory.builder().build().createBindingMatchingStrategy(null));
     }
 }

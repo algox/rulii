@@ -59,6 +59,9 @@ public class DefaultObjectFactory implements ObjectFactory {
 
     /**
      * Creates a binding matching strategy of the specified type.
+     * A matching strategy keeps no state, so this factory creates one of each type the usual way and serves it
+     * from its cache from then on, whether or not caching is on for its other objects
+     * (a parameter pinned with {@code @Param(matchUsing = ...)} asks for its strategy on every call).
      *
      * @param type The class of the binding matching strategy.
      * @return An instance of the specified binding matching strategy.
@@ -66,7 +69,7 @@ public class DefaultObjectFactory implements ObjectFactory {
      */
     @Override
     public <T extends BindingMatchingStrategy> T createBindingMatchingStrategy(Class<T> type) throws UnrulyException {
-        return create(type, isUseCache());
+        return create(type, true);
     }
 
     /**

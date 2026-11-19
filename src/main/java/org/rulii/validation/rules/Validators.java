@@ -17,9 +17,9 @@
  */
 package org.rulii.validation.rules;
 
-import org.rulii.context.RuleContext;
 import org.rulii.model.function.Function;
-import org.rulii.validation.BindingFunction;
+import org.rulii.validation.BindingLookupFunction;
+import org.rulii.validation.ConstantFunction;
 import org.rulii.validation.rules.alpha.AlphaValidationRule;
 import org.rulii.validation.rules.alpha.AlphaValidationRuleBuilder;
 import org.rulii.validation.rules.alphnumeric.AlphaNumericValidationRule;
@@ -113,8 +113,6 @@ import org.rulii.validation.rules.modcheck.Mod11CheckValidationRuleBuilder;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.Collection;
-
-import static org.rulii.model.function.Functions.function;
 
 /**
  * Static factory class for all built-in validation rule builders. Each method returns a pre-configured
@@ -523,7 +521,7 @@ public final class Validators {
     }
 
     /**
-     * Creates a {@link org.rulii.validation.BindingFunction} that fetches the named binding from the
+     * Creates a {@link org.rulii.validation.BindingLookupFunction} that fetches the named binding from the
      * {@link org.rulii.context.RuleContext} at rule execution time. The binding name is also used as
      * the parameter key in rule violations.
      *
@@ -531,18 +529,18 @@ public final class Validators {
      * @return a {@link Function} that retrieves the binding value by name
      */
     public static Function<?> binding(String bindingName) {
-        return new BindingFunction<>(bindingName, function((RuleContext ruleContext) -> ruleContext.getBindings().getValue(bindingName)));
+        return new BindingLookupFunction(bindingName);
     }
 
     /**
-     * Creates a constant {@link Function} that always returns the given value, regardless of the rule
+     * Creates a {@link org.rulii.validation.ConstantFunction} that always returns the given value, regardless of the rule
      * context. Uses {@code "value"} as the default parameter key name in rule violations.
      *
      * @param value the constant value to return
      * @return a {@link Function} that always returns {@code value}
      */
     public static Function<?> value(Object value) {
-        return function((RuleContext ruleContext) -> value);
+        return new ConstantFunction(value);
     }
 
     /**

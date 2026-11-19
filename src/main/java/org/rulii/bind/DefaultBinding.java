@@ -20,7 +20,9 @@ package org.rulii.bind;
 import org.rulii.lib.apache.commons.logging.Log;
 import org.rulii.lib.apache.commons.logging.LogFactory;
 import org.rulii.lib.spring.util.Assert;
+import org.rulii.model.Immutator;
 import org.rulii.util.RuleUtils;
+import org.rulii.util.reflect.ReflectionUtils;
 
 import java.lang.reflect.Type;
 import java.util.*;
@@ -206,6 +208,38 @@ public class DefaultBinding<T> implements Binding<T> {
         for (BindingValueListener listener : listeners) {
             listener.onChange(this, oldValue, newValue);
         }
+    }
+
+    /**
+     * A read-only snapshot of this Binding: the same result as the default in {@link Binding}, built directly
+     * instead of through the {@link BindingBuilder}. The name and the type were validated when this Binding was
+     * created, and a value this Binding already holds needs no second type check.
+     *
+     * @return an immutable copy holding the current value.
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    public Binding<T> asImmutable() {
+        T current = getValue();
+        Object snapshot = current;
+
+        if (snapshot instanceof Immutator) {
+            snapshot = ((Immutator<?>) snapshot).asImmutable();
+        } else if (snapshot == null) {
+            snapshot = ReflectionUtils.getDefaultValue(type);
+        }
+
+        DefaultBinding<T> copy = new DefaultBinding<>(name, type, false, primary, description);
+
+        if (snapshot == current) {
+            copy.value = current;
+        } else {
+            // A converted or defaulted value is checked against the type, as the builder checks it.
+            copy.setValueInternal((T) snapshot, false);
+        }
+
+        if (!listeners.isEmpty()) copy.listeners.addAll(listeners);
+        return new ImmutableBinding<>(copy);
     }
 
     @Override

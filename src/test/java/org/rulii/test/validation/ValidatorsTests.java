@@ -18,20 +18,38 @@
 package org.rulii.test.validation;
 
 import org.junit.jupiter.api.Test;
+import org.rulii.bind.Binding;
+import org.rulii.bind.Bindings;
+import org.rulii.bind.NoSuchBindingException;
+import org.rulii.context.RuleContext;
+import org.rulii.model.Definable;
+import org.rulii.model.Immutator;
+import org.rulii.model.MethodDefinition;
+import org.rulii.model.ParameterDefinitionEditor;
 import org.rulii.model.UnrulyException;
 import org.rulii.model.function.Function;
 import org.rulii.rule.Rule;
 import org.rulii.rule.RuleResult;
 import org.rulii.validation.BindingFunction;
+import org.rulii.validation.BindingLookupFunction;
+import org.rulii.validation.ConstantFunction;
 import org.rulii.validation.RuleViolation;
 import org.rulii.validation.RuleViolations;
 import org.rulii.validation.Severity;
+import org.rulii.validation.ValueValidationRule;
 import org.rulii.validation.rules.Validators;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.rulii.model.function.Functions.function;
@@ -60,6 +78,245 @@ public class ValidatorsTests {
         Function<?> fn = binding("age");
         assertInstanceOf(BindingFunction.class, fn);
         assertEquals("age", ((BindingFunction<?>) fn).getBindingName());
+    }
+
+    @Test
+    public void bindingIsALookupFunction() {
+        // binding(name) is the dedicated lookup; a BindingFunction of one's own is not.
+        assertInstanceOf(BindingLookupFunction.class, binding("age"));
+        Function<?> own = new BindingFunction<>("age", function((RuleContext ruleContext) -> 21));
+        assertFalse(own instanceof BindingLookupFunction);
+    }
+
+    @Test
+    public void bindingLookupDescribesItself() {
+        Function<?> target = ((BindingFunction<?>) binding("age")).getTargetFunction();
+
+        assertInstanceOf(Definable.class, target);
+        assertEquals("binding", target.getName());
+        assertEquals("binding(age)", target.getDescription());
+
+        MethodDefinition definition = target.getDefinition();
+        assertNotNull(definition);
+        assertEquals("binding", definition.getName());
+        assertEquals("binding(age)", definition.getDescription());
+        assertEquals(Object.class, definition.getReturnType());
+        assertEquals(1, definition.getParameterDefinitions().size());
+        assertEquals("ruleContext", definition.getParameterDefinition(0).getName());
+        assertEquals(RuleContext.class, definition.getParameterDefinition(0).getType());
+        // Declared here, and every lookup has a definition of its own.
+        assertEquals(ValidatorsTests.class.getName(), definition.getSource().getClassName());
+        assertNotSame(definition, ((BindingFunction<?>) binding("age")).getTargetFunction().getDefinition());
+        assertSame(definition, target.getExpression().method());
+    }
+
+    @Test
+    public void bindingLookupIsTheValueFunctionOfTheRule() {
+        // The builder keeps the target of a BindingFunction: for binding(name) that is the lookup itself.
+        Rule rule = min(binding("age"), 18L).build();
+        ValueValidationRule target = rule.getTarget();
+        assertEquals("binding", target.getValueFunction().getName());
+        assertEquals("age", target.getValueName());
+        assertTrue(rule.run(age -> 21).status().isPass());
+    }
+
+    @Test
+    public void bindingLookupNeedsAContext() {
+        assertThrows(IllegalArgumentException.class, () -> binding("age").run((RuleContext) null));
+    }
+
+    @Test
+    public void bindingAndValueFunctionsCanBeWrittenAndReadBack() throws Exception {
+        RuleContext ruleContext = RuleContext.builder().build(Bindings.builder().standard(age -> 21));
+
+        Function<?> lookup = writeAndRead(binding("age"));
+        assertInstanceOf(BindingLookupFunction.class, lookup);
+        assertEquals("age", ((BindingFunction<?>) lookup).getBindingName());
+        assertEquals(Integer.valueOf(21), lookup.run(ruleContext));
+        Function<?> target = ((BindingFunction<?>) lookup).getTargetFunction();
+        assertEquals("binding(age)", target.getDescription());
+        assertNotNull(target.getDefinition());
+
+        Function<?> constant = writeAndRead(value("hello"));
+        assertInstanceOf(ConstantFunction.class, constant);
+        assertEquals("hello", constant.run(ruleContext));
+        assertEquals("value", constant.getName());
+        assertNotNull(constant.getDefinition());
+    }
+
+    @Test
+    public void bindingAndValueFunctionsPrintTheirDescription() {
+        assertEquals("binding(age)", ((BindingFunction<?>) binding("age")).getTargetFunction().toString());
+        assertEquals("constant value", value("s3cret").toString());
+    }
+
+    /** A value of one's own that can be written through: every read-only version is one step further away. */
+    private static final class Depth implements Immutator<Depth> {
+
+        private final int level;
+
+        private Depth(int level) {
+            super();
+            this.level = level;
+        }
+
+        @Override
+        public Depth asImmutable() {
+            return new Depth(level + 1);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            return o instanceof Depth && ((Depth) o).level == level;
+        }
+
+        @Override
+        public int hashCode() {
+            return level;
+        }
+
+        @Override
+        public String toString() {
+            return "Depth(" + level + ")";
+        }
+    }
+
+    @Test
+    public void bindingLookupMakesAValueReadOnlyExactlyOnce() {
+        Bindings bindings = Bindings.builder().standard();
+        bindings.bind("x", Depth.class, new Depth(0));
+        RuleContext ruleContext = RuleContext.builder().build(bindings);
+
+        // Once, whether the context it is handed is the live one or a read-only one.
+        assertEquals(1, ((Depth) binding("x").run(ruleContext)).level);
+        assertEquals(1, ((Depth) binding("x").run(ruleContext.asImmutable())).level);
+
+        // So the pre-condition, the condition and the otherwise action of a rule all see the same value.
+        assertTrue(in(binding("x"), List.of(new Depth(1))).build().run(ruleContext).status().isPass());
+        RuleViolations errors = new RuleViolations();
+        bindings.bind("ruleViolations", RuleViolations.class, errors);
+        assertTrue(in(binding("x"), List.of(new Depth(2))).build().run(ruleContext).status().isFail());
+        assertEquals("Depth(1)", String.valueOf(errors.getViolations().get(0).getParameters().get("x")));
+    }
+
+    @Test
+    public void bindingLookupReportsAFailingReadTheWayAFunctionDoes() {
+        AtomicBoolean failing = new AtomicBoolean();
+        Supplier<String> supplier = () -> {
+            if (failing.get()) throw new IllegalStateException("no value today");
+            return "fine";
+        };
+        Bindings bindings = Bindings.builder().standard();
+        bindings.bind(Binding.builder().with("x").type(String.class).value(supplier).build());
+        RuleContext ruleContext = RuleContext.builder().build(bindings);
+        assertEquals("fine", binding("x").run(ruleContext));
+
+        failing.set(true);
+        UnrulyException e = assertThrows(UnrulyException.class, () -> binding("x").run(ruleContext));
+        assertInstanceOf(IllegalStateException.class, e.getCause());
+        assertTrue(e.getMessage().startsWith("Error trying to execute ["));
+        // A binding that is not there is still reported as that.
+        assertThrows(NoSuchBindingException.class, () -> binding("nope").run(ruleContext));
+    }
+
+    @Test
+    public void valueFunctionsHaveParameterDefinitionsOfTheirOwn() {
+        // Editing the definition of one function leaves every other alone.
+        MethodDefinition first = ((BindingFunction<?>) binding("a")).getTargetFunction().getDefinition();
+        MethodDefinition second = ((BindingFunction<?>) binding("b")).getTargetFunction().getDefinition();
+        assertNotSame(first.getParameterDefinition(0), second.getParameterDefinition(0));
+        ParameterDefinitionEditor.with(first.getParameterDefinition(0), first).description("edited");
+        assertNull(second.getParameterDefinition(0).getDescription());
+        assertNull(((BindingFunction<?>) binding("c")).getTargetFunction().getDefinition().getParameterDefinition(0).getDescription());
+
+        assertNotSame(value(1).getDefinition().getParameterDefinition(0), value(2).getDefinition().getParameterDefinition(0));
+    }
+
+    @Test
+    public void bindingLookupReadsTheContextBoundAsRuleContext() {
+        // A function taking (RuleContext ruleContext) reads the context bound under that name, which is not always
+        // the one it is handed: a context built over the bindings of another finds the other one first.
+        RuleContext inner = RuleContext.builder().build(Bindings.builder().standard(x -> "inner-x"));
+        RuleContext outer = RuleContext.builder().build(inner.getBindings());
+        outer.getBindings().addScope("outer-scope");
+        outer.getBindings().bind("x", String.class, "outer-x");
+        outer.getBindings().bind("y", String.class, "outer-y");
+
+        assertEquals("inner-x", binding("x").run(outer));
+        assertThrows(NoSuchBindingException.class, () -> binding("y").run(outer));
+        // The context handed to a rule's own methods is that bound context already.
+        assertTrue(Validators.assertEquals(binding("x"), "inner-x").build().run(outer).status().isPass());
+    }
+
+    @Test
+    public void bindingLookupDoesNotSeeTheLocalBindingsOfARun() {
+        Bindings bindings = Bindings.builder().standard();
+        bindings.bind("x", Depth.class, new Depth(0));
+        RuleContext ruleContext = RuleContext.builder().build(bindings);
+
+        assertThrows(NoSuchBindingException.class, () -> binding("localBindings").run(ruleContext.withLocalBindings()));
+        // Read-only once, also through the per-run view of a read-only context.
+        assertEquals(1, ((Depth) binding("x").run(ruleContext.withLocalBindings())).level);
+        assertEquals(1, ((Depth) binding("x").run(ruleContext.asImmutable().withLocalBindings())).level);
+        assertEquals(1, ((Depth) binding("x").run(ruleContext.withLocalBindings().asImmutable())).level);
+    }
+
+    private static Function<?> writeAndRead(Function<?> function) throws Exception {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        try (ObjectOutputStream out = new ObjectOutputStream(bytes)) {
+            out.writeObject(function);
+        }
+        try (ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(bytes.toByteArray()))) {
+            return (Function<?>) in.readObject();
+        }
+    }
+
+    @Test
+    public void bindingFunctionReadsTheBinding() {
+        Function<?> fn = binding("age");
+        RuleContext ruleContext = RuleContext.builder().build(Bindings.builder().standard(age -> 21));
+
+        Object value = fn.run(ruleContext);
+        assertEquals(Integer.valueOf(21), value);
+        // The same on the read-only context a condition runs with.
+        Object readOnlyValue = fn.run(ruleContext.asImmutable());
+        assertEquals(Integer.valueOf(21), readOnlyValue);
+        // No such binding.
+        assertThrows(NoSuchBindingException.class, () -> binding("nope").run(ruleContext));
+    }
+
+    @Test
+    public void bindingFunctionHandsOutBindingsReadOnly() {
+        // A function only ever sees a read-only context: a value that could be written through comes back read-only.
+        Bindings inner = Bindings.builder().standard(x -> 1);
+        Bindings outer = Bindings.builder().standard();
+        outer.bind("nested", Bindings.class, inner);
+        RuleContext ruleContext = RuleContext.builder().build(outer);
+
+        Object value = binding("nested").run(ruleContext);
+        assertInstanceOf(Bindings.class, value);
+        assertThrows(RuntimeException.class, () -> ((Bindings) value).bind("y", 2));
+        assertFalse(inner.contains("y"));
+    }
+
+    @Test
+    public void bindingFunctionOfOnesOwnIsStillRun() {
+        AtomicInteger calls = new AtomicInteger();
+        Function<Integer> counting = function((RuleContext ruleContext) -> {
+            calls.incrementAndGet();
+            return 10;
+        });
+
+        Rule rule = min(new BindingFunction<>("amount", counting), 5L).build();
+        assertTrue(rule.run().status().isPass());
+        // Once for the type check, once for the condition.
+        assertEquals(2, calls.get());
+
+        // And a violation is still keyed by the binding name.
+        RuleViolations errors = new RuleViolations();
+        Rule failing = min(new BindingFunction<>("amount", counting), 50L).build();
+        assertTrue(failing.run(ruleViolations -> errors).status().isFail());
+        assertTrue(errors.getViolations().get(0).getParameters().containsKey("amount"));
     }
 
     @Test
@@ -373,6 +630,60 @@ public class ValidatorsTests {
         Function<?> fn = value("hello");
         assertFalse(fn instanceof BindingFunction,
                 "value() should not produce a BindingFunction");
+    }
+
+    @Test
+    public void valueIsAConstantFunction() {
+        assertInstanceOf(ConstantFunction.class, value("hello"));
+
+        RuleContext ruleContext = RuleContext.builder().build(Bindings.builder().standard());
+        assertEquals("hello", value("hello").run(ruleContext));
+        // The same on the read-only context a condition runs with.
+        assertEquals("hello", value("hello").run(ruleContext.asImmutable()));
+        assertNull(value(null).run(ruleContext));
+        assertThrows(IllegalArgumentException.class, () -> value("hello").run((RuleContext) null));
+    }
+
+    @Test
+    public void valueHandsOutTheConstantItself() {
+        // The constant is returned as it is, also one that could be written through.
+        Bindings constant = Bindings.builder().standard(x -> 1);
+        RuleContext ruleContext = RuleContext.builder().build(Bindings.builder().standard());
+
+        assertSame(constant, value(constant).run(ruleContext));
+        assertSame(constant, value(constant).run(ruleContext.asImmutable()));
+    }
+
+    @Test
+    public void valueDescribesItselfWithoutTheValue() {
+        Function<?> fn = value("s3cret");
+
+        assertInstanceOf(Definable.class, fn);
+        assertEquals("value", fn.getName());
+        assertEquals("constant value", fn.getDescription());
+
+        MethodDefinition definition = fn.getDefinition();
+        assertNotNull(definition);
+        assertEquals("value", definition.getName());
+        assertEquals("constant value", definition.getDescription());
+        assertEquals(Object.class, definition.getReturnType());
+        assertEquals(1, definition.getParameterDefinitions().size());
+        assertEquals("ruleContext", definition.getParameterDefinition(0).getName());
+        assertEquals(RuleContext.class, definition.getParameterDefinition(0).getType());
+        assertEquals(ValidatorsTests.class.getName(), definition.getSource().getClassName());
+        assertNotSame(definition, value("s3cret").getDefinition());
+        assertSame(definition, fn.getExpression().method());
+        // The value is often the data under validation: it stays out of what the function says about itself.
+        assertFalse(definition.toString().contains("s3cret"));
+    }
+
+    @Test
+    public void valueIsTheValueFunctionOfTheRule() {
+        Function<?> fn = value(25L);
+        Rule rule = min(fn, 18L).build();
+        ValueValidationRule target = rule.getTarget();
+        assertSame(fn, target.getValueFunction());
+        assertEquals("value", target.getValueName());
     }
 
     @Test
