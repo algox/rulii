@@ -33,6 +33,16 @@ import java.util.List;
  */
 public class DefaultConverterRegistry implements ConverterRegistry {
 
+    // The built-in converters hold no state: one set serves every registry. A registry (one per RuleContext by
+    // default) still has its own list, so what is registered on it stays its own.
+    private static final List<Converter<?, ?>> DEFAULTS = List.of(
+            new TextToIntegerConverter(), new TextToLongConverter(), new TextToEnumConverter(),
+            new TextToDoubleConverter(), new TextToFloatConverter(), new TextToLocalDateConverter(),
+            new TextToLocalDateTimeConverter(), new TextToDateConverter(), new TextToUrlConverter(),
+            new TextToBigDecimalConverter(), new TextToBooleanConverter(), new TextToCurrencyConverter(),
+            new TextToUUIDConverter(), new TextToByteConverter(), new TextToShortConverter(),
+            new TextToCharsetConverter(), new TextToBigIntegerConverter(), new TextToStringConverter());
+
     private final List<Converter<?, ?>> converters = Collections.synchronizedList(new ArrayList<>());
 
     /**
@@ -95,26 +105,20 @@ public class DefaultConverterRegistry implements ConverterRegistry {
      *
      * <p>Invoked automatically by {@link #DefaultConverterRegistry(boolean)} when
      * {@code registerDefaults} is {@code true}.
+     *
+     * <p>The built-in converters hold no state and are created once: every registry registers the same
+     * instances. The registry itself stays its own, so a converter registered on it is seen by no other.
      */
     public void registerDefaults() {
-        register(new TextToIntegerConverter());
-        register(new TextToLongConverter());
-        register(new TextToEnumConverter());
-        register(new TextToDoubleConverter());
-        register(new TextToFloatConverter());
-        register(new TextToLocalDateConverter());
-        register(new TextToLocalDateTimeConverter());
-        register(new TextToDateConverter());
-        register(new TextToUrlConverter());
-        register(new TextToBigDecimalConverter());
-        register(new TextToBooleanConverter());
-        register(new TextToCurrencyConverter());
-        register(new TextToUUIDConverter());
-        register(new TextToByteConverter());
-        register(new TextToShortConverter());
-        register(new TextToCharsetConverter());
-        register(new TextToBigIntegerConverter());
-        register(new TextToStringConverter());
+        // Nothing registered yet, so there is no converter of the same types to replace.
+        if (converters.isEmpty()) {
+            converters.addAll(DEFAULTS);
+            return;
+        }
+
+        for (Converter<?, ?> converter : DEFAULTS) {
+            register(converter);
+        }
     }
 
     @Override
