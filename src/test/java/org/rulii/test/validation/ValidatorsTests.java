@@ -233,19 +233,22 @@ public class ValidatorsTests {
     }
 
     @Test
-    public void bindingLookupReadsTheContextBoundAsRuleContext() {
-        // A function taking (RuleContext ruleContext) reads the context bound under that name, which is not always
-        // the one it is handed: a context built over the bindings of another finds the other one first.
+    public void bindingLookupReadsTheContextItIsRunOnWhenBuiltOverAnother() {
+        // A context built over the bindings of another carries that context's reserved pair in its global scope;
+        // the pair is hidden there, so the lookup reads the stack of the context it is run on.
         RuleContext inner = RuleContext.builder().build(Bindings.builder().standard(x -> "inner-x"));
         RuleContext outer = RuleContext.builder().build(inner.getBindings());
         outer.getBindings().addScope("outer-scope");
         outer.getBindings().bind("x", String.class, "outer-x");
         outer.getBindings().bind("y", String.class, "outer-y");
 
-        assertEquals("inner-x", binding("x").run(outer));
-        assertThrows(NoSuchBindingException.class, () -> binding("y").run(outer));
-        // The context handed to a rule's own methods is that bound context already.
-        assertTrue(Validators.assertEquals(binding("x"), "inner-x").build().run(outer).status().isPass());
+        assertEquals("outer-x", binding("x").run(outer));
+        assertEquals("outer-y", binding("y").run(outer));
+        // A rule's own methods are handed the same context.
+        assertTrue(Validators.assertEquals(binding("x"), "outer-x").build().run(outer).status().isPass());
+        // The first context is untouched.
+        assertEquals("inner-x", binding("x").run(inner));
+        assertThrows(NoSuchBindingException.class, () -> binding("y").run(inner));
     }
 
     @Test

@@ -83,7 +83,7 @@ public class DefaultScopedBindings implements ScopedBindings, Map<String, Object
         this.floor = inherited.size();
 
         for (NamedScope scope : inherited) {
-            this.scopes.add(withoutReservedPair(scope));
+            this.scopes.add(inheritedScope(scope));
         }
 
         this.listeners.addAll(listeners);
@@ -96,25 +96,37 @@ public class DefaultScopedBindings implements ScopedBindings, Map<String, Object
     }
 
     /**
-     * The scope itself if it holds neither reserved {@code ruleContext} nor {@code bindings}; otherwise a scope of the
-     * same name over the same Binding objects (values stay shared) minus those two.
+     * The scope a fork inherits in place of the given one: the scope itself if it holds neither reserved
+     * {@code ruleContext} nor {@code bindings}; otherwise a scope of the same name over the same Binding objects
+     * (values stay shared) minus those two.
+     *
+     * <p>A scope that is a {@link ContextHider} (the bindings of another context) is replaced the same way: it is
+     * that context's whole stack, which its owner keeps pushing to and popping from on its own thread. The fork gets
+     * what is visible in it at the time of the fork, a name shadowed in it resolved to the innermost Binding.
      */
-    private static NamedScope withoutReservedPair(NamedScope scope) {
+    private static NamedScope inheritedScope(NamedScope scope) {
         Bindings source = scope.getBindings();
         String ruleContext = ReservedBindings.RULE_CONTEXT.getName();
         String bindings = ReservedBindings.BINDINGS.getName();
 
-        if (!source.contains(ruleContext) && !source.contains(bindings)) {
+        if (!(source instanceof ContextHider) && !source.contains(ruleContext) && !source.contains(bindings)) {
             return scope;
         }
 
-        Bindings result = builder().standard();
+        // By name, the last one winning: a stack iterates root to current, so the innermost Binding of a name stays.
+        Map<String, Binding<?>> visible = new LinkedHashMap<>();
 
         for (Binding<?> binding : source) {
             if (ruleContext.equals(binding.getName()) || bindings.equals(binding.getName())) {
                 continue;
             }
 
+            visible.put(binding.getName(), binding);
+        }
+
+        Bindings result = builder().standard();
+
+        for (Binding<?> binding : visible.values()) {
             if (result instanceof PromiscuousBinder promiscuous) {
                 promiscuous.promiscuousBind(binding);
             } else {

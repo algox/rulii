@@ -391,6 +391,11 @@ public class RuleContextBuilder {
      * If no bindings were set, an empty standard {@link org.rulii.bind.Bindings} is used as the
      * global scope.
      *
+     * <p>Bindings that belong to another context (its {@code getBindings()}, or the {@code bindings} an action was
+     * handed) carry that context's own reserved pair. They become the global scope without those two
+     * (see {@link HiddenContextBindings}), so {@code ruleContext} and {@code bindings} resolve to the context built
+     * here; everything else, binds included, still goes to the given bindings.
+     *
      * @return a fully initialised {@link RuleContext}; never null.
      */
     public RuleContext build() {
@@ -402,7 +407,8 @@ public class RuleContextBuilder {
 
         bindReserved(scopedBindings.getRootScope().getBindings(), scopedBindings, result);
 
-        scopedBindings.addScope(ScopedBindings.GLOBAL_SCOPE, bindings != null ? bindings : Bindings.builder().standard());
+        // Bindings of another context carry that context's reserved pair, which would be found before ours in the root.
+        scopedBindings.addScope(ScopedBindings.GLOBAL_SCOPE, bindings != null ? HiddenContextBindings.of(bindings) : Bindings.builder().standard());
 
         return result;
     }
