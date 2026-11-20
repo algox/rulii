@@ -31,7 +31,6 @@ import org.rulii.script.ScriptProcessorFactory;
 import org.rulii.script.jsr223.JSR223ScriptCompiler;
 import org.rulii.script.jsr223.JSR223ScriptProcessor;
 
-import javax.script.ScriptEngine;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -78,7 +77,7 @@ import java.util.List;
  * @see JSR223ScriptProcessor
  * @see JSR223ScriptCompiler
  */
-public class GraalJsScriptProcessorFactory implements ScriptProcessorFactory {
+public class    GraalJsScriptProcessorFactory implements ScriptProcessorFactory, AutoCloseable {
 
     /** Default language name used to register and look up this factory: {@value}. */
     public static final String LANGUAGE_NAME = "js";
@@ -86,30 +85,164 @@ public class GraalJsScriptProcessorFactory implements ScriptProcessorFactory {
     private static final boolean available = ClassUtils.isPresent(
             "com.oracle.truffle.js.scriptengine.GraalJSScriptEngine", GraalJsScriptProcessorFactory.class.getClassLoader());
 
+    /**
+     * System property that turns context reuse on for every factory that is not handed pool options in its
+     * constructor: {@value}. The pool options then come from
+     * {@link GraalJsPoolOptions#fromSystemProperties()}. See {@link #isReuseContexts()}.
+     *
+     * @since 2.3
+     */
+    public static final String REUSE_CONTEXTS_PROPERTY = "rulii.script.graaljs.reuseContexts";
+
     private final String languageName;
     private final String bindingsName;
+    // Null unless this factory reuses contexts.
+    private final GraalJsPoolOptions poolOptions;
+    // Created when the first processor is asked for, so that a factory that is never used creates no context.
+    private volatile GraalJsContextPool pool;
+    // The engine object of every processor of a factory that reuses contexts. Those processors evaluate in the
+    // pool's contexts and never through their engine, so one serves them all; a new one for each (about 2 µs and
+    // 58 KB) would be paid by every rule context that runs a script. Set before the pool is.
+    private volatile GraalJSScriptEngine pooledEngine;
 
     /**
      * Creates a factory with default language name ({@value #LANGUAGE_NAME}) and the default
-     * bindings variable name from {@link ScriptOptions#DEFAULT}.
+     * bindings variable name from {@link ScriptOptions#DEFAULT}. Contexts are reused when
+     * {@value #REUSE_CONTEXTS_PROPERTY} is {@code true}.
      */
     public GraalJsScriptProcessorFactory() {
         this(LANGUAGE_NAME, ScriptOptions.DEFAULT.bindingsName());
     }
 
     /**
-     * Creates a factory with explicit language name and bindings variable name.
+     * Creates a factory with explicit language name and bindings variable name. Contexts are reused when
+     * {@value #REUSE_CONTEXTS_PROPERTY} is {@code true}.
      *
      * @param languageName the language name to register under; must not be null or empty.
      * @param bindingsName the variable name under which bindings are exposed in scripts;
      *                     must not be null or empty.
      */
     public GraalJsScriptProcessorFactory(String languageName, String bindingsName) {
+        this(languageName, bindingsName,
+                Boolean.getBoolean(REUSE_CONTEXTS_PROPERTY) ? GraalJsPoolOptions.fromSystemProperties() : null, false);
+    }
+
+    /**
+     * Creates a factory that reuses JavaScript contexts, kept as the given options say. See
+     * {@link #isReuseContexts()} for what reuse changes for scripts.
+     *
+     * @param languageName the language name to register under; must not be null or empty.
+     * @param bindingsName the variable name under which bindings are exposed in scripts;
+     *                     must not be null or empty.
+     * @param poolOptions how the contexts are kept; must not be null ({@link GraalJsPoolOptions#DEFAULT} for
+     *                    the defaults).
+     * @since 2.3
+     */
+    public GraalJsScriptProcessorFactory(String languageName, String bindingsName, GraalJsPoolOptions poolOptions) {
+        this(languageName, bindingsName, poolOptions, true);
+    }
+
+    private GraalJsScriptProcessorFactory(String languageName, String bindingsName, GraalJsPoolOptions poolOptions,
+                                          boolean required) {
         super();
         Assert.hasText(languageName, "languageName cannot be empty.");
         Assert.hasText(bindingsName, "bindingsName cannot be empty.");
+        if (required) Assert.notNull(poolOptions, "poolOptions cannot be null.");
         this.languageName = languageName;
         this.bindingsName = bindingsName;
+        this.poolOptions = poolOptions;
+    }
+
+    /**
+     * Whether evaluations run in reused JavaScript contexts instead of a new context each.
+     *
+     * <p>Off by default: every evaluation gets a context of its own, created for it and released after it, so
+     * nothing a script does can be seen by another; creating the context is nearly all of what an evaluation
+     * costs. Turned on (pool options handed to the constructor, or {@value #REUSE_CONTEXTS_PROPERTY}), an
+     * evaluation borrows a context from this factory's pool and gives it back, and costs a few microseconds
+     * instead of more than a hundred.
+     *
+     * <p>What changes for scripts when it is on: nothing for a script that leaves the built-ins alone. What a
+     * script declares ({@code var}, {@code let}, {@code const}, functions) ends with it, and a global it leaves
+     * behind (a variable assigned without being declared, {@code total = 5}) is removed before the context is used
+     * again. What it changes inside a built-in ({@code String.prototype.isBlank = ...},
+     * {@code Math.round = ...}) is not undone: whichever script next runs in the same context sees it, until the
+     * context is retired by its age, its number of uses or {@link #discardContexts()}. Which context a script
+     * runs in is not predictable.
+     *
+     * @return {@code true} if this factory reuses contexts.
+     * @since 2.3
+     * @see GraalJsPoolOptions
+     */
+    public boolean isReuseContexts() {
+        return poolOptions != null;
+    }
+
+    /**
+     * How this factory keeps its contexts.
+     *
+     * @return the pool options, or null unless it {@link #isReuseContexts() reuses contexts}.
+     * @since 2.3
+     */
+    public GraalJsPoolOptions getPoolOptions() {
+        return poolOptions;
+    }
+
+    /**
+     * What this factory's pool has done so far.
+     *
+     * @return the counts, or null unless it {@link #isReuseContexts() reuses contexts}.
+     * @since 2.3
+     */
+    public GraalJsPoolStatistics getPoolStatistics() {
+        if (poolOptions == null) return null;
+
+        GraalJsContextPool current = pool;
+        return current != null ? current.getStatistics() : new GraalJsPoolStatistics(0, 0, 0, 0, 0, 0, 0, 0);
+    }
+
+    /**
+     * Retires every JavaScript context this factory has created so far: for when a script is known to have left
+     * them in a state later scripts should not see. Idle contexts are closed now; a context in the middle of an
+     * evaluation finishes it and is closed instead of being kept. The factory stays usable: the next evaluation
+     * creates a context. Nothing to do unless it {@link #isReuseContexts() reuses contexts}.
+     *
+     * @since 2.3
+     */
+    public void discardContexts() {
+        GraalJsContextPool current = pool;
+        if (current != null) current.discardAll();
+    }
+
+    /**
+     * Releases the contexts this factory keeps: the same as {@link #discardContexts()}. Called by a container
+     * that manages the factory when it shuts down.
+     *
+     * @since 2.3
+     */
+    @Override
+    public void close() {
+        discardContexts();
+    }
+
+    private GraalJsContextPool pool() {
+        if (poolOptions == null) return null;
+
+        GraalJsContextPool result = pool;
+
+        if (result == null) {
+            synchronized (this) {
+                result = pool;
+
+                if (result == null) {
+                    pooledEngine = createEngine();
+                    result = new GraalJsContextPool(GraalJsScriptProcessorFactory::createContext, bindingsName, poolOptions);
+                    pool = result;
+                }
+            }
+        }
+
+        return result;
     }
 
     @Override
@@ -146,9 +279,18 @@ public class GraalJsScriptProcessorFactory implements ScriptProcessorFactory {
         return bindingsName;
     }
 
+    /**
+     * A new processor. Without reuse it has a {@link GraalJSScriptEngine} of its own, which it evaluates through.
+     * The processors of a factory that {@link #isReuseContexts() reuses contexts} evaluate in the pool's contexts
+     * instead, so they share one engine object, the one {@link JSR223ScriptProcessor#getScriptEngine()} answers
+     * with; it takes no part in their evaluations.
+     */
     @Override
     public ScriptProcessor getScriptProcessor() {
-        return new GraalJsScriptProcessor(createEngine(), languageName, bindingsName);
+        GraalJsContextPool contexts = pool();
+
+        // Without reuse a processor evaluates through its engine and needs one of its own.
+        return new GraalJsScriptProcessor(contexts != null ? pooledEngine : createEngine(), languageName, bindingsName, contexts);
     }
 
     @Override
@@ -176,11 +318,24 @@ public class GraalJsScriptProcessorFactory implements ScriptProcessorFactory {
      * @return a freshly created engine instance; never null.
      */
     static GraalJSScriptEngine createEngine() {
-        return GraalJSScriptEngine.create(getSharedEngine(),
-                Context.newBuilder("js")
-                        .allowHostAccess(GraalJsHostAccess.DETACHING)
-                        .allowHostClassLookup(s -> true)
-                        .option("js.ecmascript-version", "2022"));
+        return GraalJSScriptEngine.create(getSharedEngine(), contextBuilder());
+    }
+
+    /**
+     * Creates a JavaScript context of its own on the shared {@link Engine}, with the settings the contexts behind
+     * {@link #createEngine()} have. For a factory that reuses contexts; the caller closes it.
+     *
+     * @return a new context; never null.
+     */
+    static Context createContext() {
+        return contextBuilder().engine(getSharedEngine()).build();
+    }
+
+    private static Context.Builder contextBuilder() {
+        return Context.newBuilder("js")
+                .allowHostAccess(GraalJsHostAccess.DETACHING)
+                .allowHostClassLookup(s -> true)
+                .option("js.ecmascript-version", "2022");
     }
 
     /**

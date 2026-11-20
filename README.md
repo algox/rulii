@@ -444,6 +444,46 @@ declared with `language="el"` keep their meaning.
 neither set, `Script.builder().build("age >= 18")` fails naming both. `ScriptProcessorManager.getAvailableLanguages()`
 lists what can be compiled right now.
 
+**GraalJS context reuse** (since **2.3.0**, opt-in). Every JavaScript evaluation runs in a JavaScript context of
+its own, created for it and closed after it; creating the context is nearly all of what the evaluation costs
+(about 127 µs against a few microseconds for the script). A `GraalJsScriptProcessorFactory` given
+`GraalJsPoolOptions`, or any GraalJS factory when `-Drulii.script.graaljs.reuseContexts=true`, keeps a pool of
+contexts instead and an evaluation costs about 6 µs:
+
+```java
+ScriptProcessorManager.getInstance().register(
+        new GraalJsScriptProcessorFactory("js", "ctx", GraalJsPoolOptions.DEFAULT));
+```
+
+Scripts give what they give without reuse: what a script declares ends with it, and a global it leaves behind
+is removed before the context is used again. The one thing not undone is a change made inside a built-in
+(`String.prototype.shout = ...`), which later scripts in that context see until it is retired; that is why
+reuse is not the default. `GraalJsPoolOptions` sets how many contexts are kept and when one is retired (idle
+time, age, number of uses), `discardContexts()` on the factory retires them all at once, and
+`getPoolStatistics()` reports what the pool has done.
+
+**Optimising another script engine.** Any JSR-223 engine works through `JSR223ScriptProcessor`, which asks the
+engine for new bindings (`ScriptEngine.createBindings()`) for every evaluation, so that no script sees what
+another left behind. For an engine whose bindings are a plain map that costs nothing. For an engine whose
+bindings carry a whole language environment it is most of the bill: on Nashorn 15.4 an evaluation costs about
+33 µs, about 30 µs of it the new bindings, while the compiled script alone runs in well under a microsecond when
+the bindings are kept. Keeping bindings between evaluations is therefore where the speed is, and the pool that
+does it for GraalJS (`GraalJsContextPool`) is ordinary bookkeeping that would suit any engine. What does not
+carry over, and has to be answered per engine before bindings are kept:
+
+- **What a script leaves behind.** In both Nashorn and GraalJS a top-level `var` or function of a compiled script
+  stays in kept bindings and cannot be removed through the JSR-223 API, and in GraalJS a top-level `let` or
+  `const` makes the script fail the second time. GraalJS reuse runs the script through `eval` inside a function
+  to keep declarations local; on an engine that compiles to bytecode that gives the compiled script away.
+- **Threads.** JSR-223 leaves thread safety to the engine. GraalJS allows one thread at a time in a context;
+  Nashorn ran several threads on one engine with bindings each.
+- **Results that belong to the bindings.** A script can hand back an object of its language (a function, say)
+  that stops working when its bindings are closed or reused; see `JSR223ScriptProcessor.isContextReleasable`.
+
+To do it for an engine, subclass `JSR223ScriptProcessor` (`buildContext`, `releaseContext`,
+`isContextReleasable`) and register a `ScriptProcessorFactory` that hands it out; `GraalJsScriptProcessor` is
+the worked example.
+
 ---
 
 ## Spring Integration

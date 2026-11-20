@@ -19,10 +19,19 @@ package org.rulii.script.graaljs;
 
 import com.oracle.truffle.js.scriptengine.GraalJSScriptEngine;
 import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.PolyglotException;
+import org.graalvm.polyglot.Source;
+import org.graalvm.polyglot.SourceSection;
 import org.graalvm.polyglot.Value;
+import org.rulii.context.RuleContext;
+import org.rulii.lib.spring.util.Assert;
+import org.rulii.model.UnrulyException;
+import org.rulii.script.EvaluationException;
+import org.rulii.script.Script;
 import org.rulii.script.jsr223.JSR223ScriptProcessor;
 
 import javax.script.ScriptContext;
+import javax.script.ScriptException;
 
 /**
  * {@link JSR223ScriptProcessor} specialised for GraalJS.
@@ -45,6 +54,9 @@ import javax.script.ScriptContext;
  */
 public class GraalJsScriptProcessor extends JSR223ScriptProcessor {
 
+    // Null unless the factory reuses contexts.
+    private final GraalJsContextPool pool;
+
     /**
      * Creates a processor over the given GraalJS engine.
      *
@@ -54,7 +66,65 @@ public class GraalJsScriptProcessor extends JSR223ScriptProcessor {
      *                     {@link org.rulii.script.ScriptOptions#DEFAULT}.
      */
     public GraalJsScriptProcessor(GraalJSScriptEngine scriptEngine, String languageName, String bindingsName) {
+        this(scriptEngine, languageName, bindingsName, null);
+    }
+
+    /**
+     * Creates a processor that evaluates in the contexts of the given pool instead of a new context per
+     * evaluation; see {@link GraalJsScriptProcessorFactory#isReuseContexts()}.
+     *
+     * @param scriptEngine the GraalJS engine; must not be null.
+     * @param languageName override for the language name, or {@code null} to use the engine's default.
+     * @param bindingsName override for the bindings variable name, or {@code null} to use the default.
+     * @param pool the contexts to evaluate in, or {@code null} for a new context per evaluation.
+     */
+    GraalJsScriptProcessor(GraalJSScriptEngine scriptEngine, String languageName, String bindingsName, GraalJsContextPool pool) {
         super(scriptEngine, languageName, bindingsName);
+        this.pool = pool;
+    }
+
+    /**
+     * Evaluates in a new context, released afterwards (the default), or in a borrowed one when the factory reuses
+     * contexts. A borrowed context goes back for the next evaluation unless the script failed (it is closed: a
+     * failure may have ended it) or its result is still a JavaScript object (it stays alive for that result, with
+     * the rule bindings in it, and is not used again), which is what happens to a context of its own in those two
+     * cases.
+     */
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> T evaluate(Script<T> script, RuleContext context) {
+        if (pool == null) return super.evaluate(script, context);
+
+        Assert.notNull(script, "script cannot be null.");
+        Assert.notNull(context, "context cannot be null.");
+
+        GraalJsContextPool.Entry entry = pool.borrow();
+        boolean succeeded = false;
+        boolean independent = false;
+
+        try {
+            Object result;
+
+            try {
+                result = entry.run(getBindingsName(), context.getBindings().asMap(), script.getScript());
+            } catch (UnrulyException e) {
+                throw e;
+            } catch (PolyglotException e) {
+                // Reported as the JSR-223 engine reports it, so a failure reads the same with and without reuse.
+                ScriptException reported = toScriptException(e);
+                throw new EvaluationException(script.getScript(), reported.getMessage(), reported);
+            } catch (Exception e) {
+                throw new EvaluationException(script.getScript(), e.getMessage(), e);
+            }
+
+            succeeded = true;
+            independent = isIndependent(entry.getContext(), result);
+            return (T) result;
+        } finally {
+            if (!succeeded) pool.fail(entry);
+            else if (independent) pool.giveBack(entry);
+            else pool.detach(entry);
+        }
     }
 
     /**
@@ -69,7 +139,44 @@ public class GraalJsScriptProcessor extends JSR223ScriptProcessor {
         if (result == null) return true;
 
         try {
-            Context polyglotContext = ((GraalJSScriptEngine) getScriptEngine()).getPolyglotContext(scriptContext);
+            return isIndependent(((GraalJSScriptEngine) getScriptEngine()).getPolyglotContext(scriptContext), result);
+        } catch (RuntimeException e) {
+            return false;
+        }
+    }
+
+    /**
+     * The failure as {@code GraalJSScriptEngine} reports one: a host exception as the cause, a JavaScript error with
+     * the place it happened in the script.
+     */
+    private static ScriptException toScriptException(PolyglotException e) {
+        if (e.isHostException()) {
+            Throwable host = e.asHostException();
+            ScriptException result = new ScriptException(host instanceof Exception ? (Exception) host : new Exception(host));
+            result.setStackTrace(e.getStackTrace());
+            return result;
+        }
+
+        SourceSection location = e.getSourceLocation();
+
+        if (location != null && location.isAvailable()) {
+            Source source = location.getSource();
+            ScriptException result = new ScriptException(e.getMessage(), source.getPath() != null ? source.getPath() : source.getName(),
+                    location.getStartLine(), location.getStartColumn());
+            result.initCause(e);
+            return result;
+        }
+
+        return new ScriptException(e);
+    }
+
+    /**
+     * Whether the result can outlive the context it was produced in: anything but a guest (JavaScript) value.
+     */
+    private static boolean isIndependent(Context polyglotContext, Object result) {
+        if (result == null) return true;
+
+        try {
             Value value = polyglotContext.asValue(result);
             return value.isNull()
                     || value.isHostObject()

@@ -43,6 +43,27 @@ import javax.script.SimpleScriptContext;
  * per-evaluation context is released again whenever the result allows it; see
  * {@link #isContextReleasable} and {@link #releaseContext}.
  *
+ * <p><b>Where the time goes, for whoever wants an engine to run faster.</b> Every evaluation asks the engine for
+ * new bindings ({@link ScriptEngine#createBindings()}, in {@link #buildContext}), so that no script sees what
+ * another left behind. For an engine whose bindings are a plain map that costs nothing. For an engine whose
+ * bindings carry a whole language environment it is most of the bill: on Nashorn 15.4 an evaluation costs about
+ * 33 µs, about 30 µs of it the new bindings, and the compiled script alone runs in well under a microsecond when
+ * the bindings are kept; on GraalJS a context of its own is about 120 µs of a 127 µs evaluation. Keeping bindings
+ * between evaluations is where the speed is, and what
+ * {@link org.rulii.script.graaljs.GraalJsScriptProcessorFactory#isReuseContexts() GraalJS reuse} does. The pool
+ * behind it is ordinary bookkeeping; three things are the engine's own and have to be answered first:
+ * <ul>
+ *   <li>what a script leaves in kept bindings (in both engines a top-level {@code var} or function of a compiled
+ *       script stays and cannot be removed through this API; in GraalJS a top-level {@code let} or {@code const}
+ *       makes the script fail the second time);</li>
+ *   <li>threads (JSR-223 leaves thread safety to the engine: GraalJS allows one thread at a time in a context);</li>
+ *   <li>results that belong to the bindings and stop working when these are closed or reused
+ *       ({@link #isContextReleasable}).</li>
+ * </ul>
+ * A subclass overriding {@link #buildContext}, {@link #releaseContext} and {@link #isContextReleasable}, handed
+ * out by a {@code ScriptProcessorFactory} of its own, is the place for it;
+ * {@link org.rulii.script.graaljs.GraalJsScriptProcessor} is the worked example.
+ *
  * @author Max Arulananthan
  * @since 1.2
  * @see JSR223Script
