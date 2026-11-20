@@ -28,7 +28,6 @@ import org.rulii.ruleset.RuleSet;
 
 import java.util.*;
 import java.util.function.Predicate;
-import java.util.regex.Pattern;
 
 /**
  * Utility class to provide convenience methods for Rules.
@@ -40,7 +39,6 @@ public final class RuleUtils {
 
     public static final String TAB              = "\t";
     public static final String NAME_REGEX       = "[a-zA-Z$_][a-zA-Z0-9$_]*";
-    private static final Pattern NAME_PATTERN   = Pattern.compile(NAME_REGEX);
     private static final int MAX_SUMMARY_SIZE   = 80;
 
     private RuleUtils() {
@@ -66,13 +64,26 @@ public final class RuleUtils {
     }
 
     /**
-     * Determines whether the given name is "valid" Name. It needs to follow the following regex ^[a-zA-Z][a-zA-Z0-9]*?$
+     * Determines whether the given name is "valid" Name: it must match {@link #NAME_REGEX} in full.
      *
      * @param name desired Rule Name.
      * @return true if the name is valid; false otherwise.
      */
     public static boolean isValidName(String name) {
-        return name != null && !name.trim().isEmpty() && NAME_PATTERN.matcher(name).matches();
+        // NAME_REGEX by hand: a name is checked for every Binding that is created, and a regex match costs a
+        // Matcher each time.
+        if (name == null || name.isEmpty() || !isNameStart(name.charAt(0))) return false;
+
+        for (int i = 1; i < name.length(); i++) {
+            char c = name.charAt(i);
+            if (!isNameStart(c) && !(c >= '0' && c <= '9')) return false;
+        }
+
+        return true;
+    }
+
+    private static boolean isNameStart(char c) {
+        return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '$' || c == '_';
     }
 
     /**

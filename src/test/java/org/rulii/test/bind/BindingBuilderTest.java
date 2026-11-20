@@ -20,6 +20,7 @@ package org.rulii.test.bind;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.rulii.bind.*;
+import org.rulii.util.RuleUtils;
 import org.rulii.util.TypeReference;
 
 import java.lang.reflect.Type;
@@ -445,5 +446,21 @@ public class BindingBuilderTest {
 
         Assertions.assertTrue(binding.toString().contains("Computed Value"), binding.toString());
         Assertions.assertTrue(binding.getSummary().contains("Computed Value"), binding.getSummary());
+    }
+
+    @Test
+    public void testInvalidBindingName_isRefusedWithTheNameAndTheRule() {
+        IllegalArgumentException refused = Assertions.assertThrows(IllegalArgumentException.class,
+                () -> Binding.builder().with("not valid"));
+        Assertions.assertEquals("Invalid Binding name [not valid]. It must adhere to [" + RuleUtils.NAME_REGEX + "]",
+                refused.getMessage());
+
+        Assertions.assertThrows(IllegalArgumentException.class, () -> Binding.builder().with((String) null));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> Binding.builder().with(""));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> Binding.builder().with("9lives", Integer.class));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> Bindings.builder().standard().bind("my-name", 1));
+
+        // A name that is allowed builds as before.
+        Assertions.assertEquals("$total_2", Binding.builder().with("$total_2", Integer.class).value(1).build().getName());
     }
 }

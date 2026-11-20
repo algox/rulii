@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
 import static org.rulii.model.condition.Conditions.condition;
 
@@ -85,6 +86,29 @@ public class RuleUtilsTest {
         Assertions.assertFalse(RuleUtils.isValidName("1rule"));
         Assertions.assertFalse(RuleUtils.isValidName("my rule"));
         Assertions.assertFalse(RuleUtils.isValidName("my-rule"));
+    }
+
+    @Test
+    public void testIsValidName_agreesWithTheNameRegex() {
+        // isValidName checks NAME_REGEX by hand; the two must say the same of every name.
+        Pattern pattern = Pattern.compile(RuleUtils.NAME_REGEX);
+
+        // Every character on its own, after a valid start, before a valid rest and in the middle.
+        for (int c = 0; c <= Character.MAX_VALUE; c++) {
+            char ch = (char) c;
+
+            for (String name : new String[] {String.valueOf(ch), "a" + ch, ch + "a1", "_" + ch + "9"}) {
+                if (pattern.matcher(name).matches() != RuleUtils.isValidName(name)) {
+                    Assertions.fail("isValidName disagrees with NAME_REGEX on a name with the character U+"
+                            + Integer.toHexString(c) + " [" + name + "]");
+                }
+            }
+        }
+
+        for (String name : new String[] {"a", "Z", "$", "_", "a$_9", "Z9z", "camelCase", "snake_case_2", "$$", "__",
+                "9", "9a", " a", "a ", "a b", "a\n", "\na", "a\r\n", "\t", "a.b", "a-b", "a#", "été", "aé"}) {
+            Assertions.assertEquals(pattern.matcher(name).matches(), RuleUtils.isValidName(name), "[" + name + "]");
+        }
     }
 
     // =========================================================================

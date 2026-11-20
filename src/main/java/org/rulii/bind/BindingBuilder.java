@@ -54,8 +54,11 @@ public final class BindingBuilder {
      */
     BindingBuilder(String name) {
         super();
-        Assert.isTrue(RuleUtils.isValidName(name), "Invalid Binding name [" + name
-                + "]. It must adhere to [" + RuleUtils.NAME_REGEX + "]");
+        // The message is built only when the name is refused, not for every Binding.
+        if (!RuleUtils.isValidName(name)) {
+            throw new IllegalArgumentException("Invalid Binding name [" + name
+                    + "]. It must adhere to [" + RuleUtils.NAME_REGEX + "]");
+        }
         this.name = name;
     }
 
