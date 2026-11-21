@@ -27,6 +27,7 @@ import org.rulii.lib.spring.util.Assert;
 import org.rulii.model.UnrulyException;
 import org.rulii.model.function.Function;
 import org.rulii.rule.ClassBasedRuleBuilder;
+import org.rulii.rule.RuleExecutionStatus;
 
 import java.math.BigDecimal;
 import java.util.Collections;
@@ -92,7 +93,43 @@ public abstract class ValueValidationRule extends ValidationRule {
         if (ruleContext == null) throw new UnrulyException("RuleContext not defined.");
         if (ruleViolations == null) throw new UnrulyException("RuleViolations not defined. Please define org.rulii.validation.RuleViolations binding and try again.");
 
-        Object value = getValue(ruleContext);
+        ruleViolations.add(buildViolation(ruleContext, getValue(ruleContext)));
+    }
+
+    /**
+     * Decides a value the way a run of this rule decides the value it reads, without running the rule: no value
+     * function, no parameter matching, no trace. A null value is {@code SKIPPED} unless the rule fails on null
+     * ({@link #isFailOnNull()}), in which case the rule decides; a value of a type the rule does not support
+     * ({@link #isSupported(Class)}) is {@code SKIPPED}; any other value is {@code PASS} or {@code FAIL} as
+     * {@link #isValid(RuleContext, Object)} has it. Nothing is reported: a caller that gets {@code FAIL} builds the
+     * violation with {@link #buildViolation(RuleContext, Object)}.
+     *
+     * <p>For callers that already hold the value and run many rules against it, such as a bean validator. It is
+     * the rule's own decision only when the rule class leaves {@link #checkType(RuleContext)},
+     * {@link #isValid(RuleContext)} and {@link #otherwise(RuleContext, RuleViolations)} as they are defined here.</p>
+     *
+     * @param ruleContext the context the rule would run in; never null.
+     * @param value the value to decide; may be null.
+     * @return {@code PASS}, {@code FAIL} or {@code SKIPPED}; never {@code ERROR}, a failing check throws.
+     * @since 2.3
+     */
+    public RuleExecutionStatus check(RuleContext ruleContext, Object value) {
+        if (value == null ? !failOnNull : !isSupported(value.getClass())) return RuleExecutionStatus.SKIPPED;
+        return isValid(ruleContext, value) ? RuleExecutionStatus.PASS : RuleExecutionStatus.FAIL;
+    }
+
+    /**
+     * Builds the violation this rule reports for a value that failed it: the validated value as the first
+     * parameter, the parameters configured on the builder, then whatever the rule adds
+     * ({@link #customizeViolation(RuleContext, RuleViolationBuilder)}), with the message resolved through the
+     * given context. This is what {@link #otherwise(RuleContext, RuleViolations)} adds to the collector.
+     *
+     * @param ruleContext the context the rule runs in; never null.
+     * @param value the value that failed.
+     * @return the violation; never null.
+     * @since 2.3
+     */
+    public RuleViolation buildViolation(RuleContext ruleContext, Object value) {
         RuleViolationBuilder builder = RuleViolation.builder().with(this);
         // The validated value is always the first parameter; a configured parameter of the same name is dropped.
         builder.param(getValueName(), value);
@@ -100,7 +137,7 @@ public abstract class ValueValidationRule extends ValidationRule {
             if (!parameter.getKey().equals(getValueName())) builder.param(parameter.getKey(), parameter.getValue());
         }
         customizeViolation(ruleContext, builder);
-        ruleViolations.add(builder.build(ruleContext));
+        return builder.build(ruleContext);
     }
 
     /**
