@@ -172,13 +172,13 @@ public class RuleFlowTest {
     @Test
     public void testOptionalParam_defaultApplied() {
         Function<Integer> defaultDiscount = function((RuleContext ctx) -> 5);
-        RuleFlow<RuleContext> flow = RuleFlow.builder()
+        RuleFlow<Integer> flow = RuleFlow.builder()
                 .name("defaultParamFlow")
                 .param("discount", Integer.class, defaultDiscount)
+                .returning(function((Integer discount) -> discount))
                 .build();
 
-        RuleContext ctx = flow.run();
-        assertEquals(Integer.valueOf(5), ctx.getBindings().getValue("discount"));
+        assertEquals(Integer.valueOf(5), flow.run());
     }
 
     @Test

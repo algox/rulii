@@ -52,8 +52,9 @@ public abstract class RuleFlowExecutionStrategyTemplate<T> implements RuleFlowEx
     }
 
     /**
-     * Validates all declared input parameters against the current bindings.
-     * Throws {@link UnrulyException} if a required parameter is missing or has the wrong type.
+     * Validates all declared input parameters against the current bindings, before the flow's
+     * scope is created. Throws {@link UnrulyException} if a required parameter is missing or has
+     * the wrong type.
      *
      * @param ruleFlow the flow whose parameters to check; must not be null.
      * @param ruleContext the active context; must not be null.
@@ -65,8 +66,8 @@ public abstract class RuleFlowExecutionStrategyTemplate<T> implements RuleFlowEx
 
     /**
      * Validates a single input parameter against the current bindings, throwing if a required
-     * parameter is missing or has the wrong type, and applying the default value function when
-     * an optional parameter's binding is absent or {@code null}.
+     * parameter is missing or has the wrong type. Default values are applied separately, by
+     * {@link #applyDefaultValues}, once the flow's scope exists.
      *
      * @param parameter the parameter to check; must not be null.
      * @param ruleFlow the flow whose parameter this is; must not be null.
@@ -78,9 +79,51 @@ public abstract class RuleFlowExecutionStrategyTemplate<T> implements RuleFlowEx
         if (parameter.required() && (binding == null || (binding.getValue() != null && !binding.isAssignable(parameter.type()))))
             throw new UnrulyException("RuleFlow [" + ruleFlow.getName() + "] requires input parameter ["
                     + parameter.name() + "] type [" + parameter.type() + "]");
+    }
 
-        if (parameter.defaultValue() != null && (binding == null || binding.getValue() == null))
-            ruleContext.getBindings().bind(parameter.name(), parameter.defaultValue().apply(ruleContext));
+    /**
+     * Applies the default value of every optional input parameter whose binding is absent or
+     * {@code null}, in declaration order, so a default can read the ones before it. Called with
+     * the flow's scope current: a default is bound in that scope and goes with it, so it never
+     * reaches the caller's bindings and is evaluated again on every run.
+     *
+     * @param ruleFlow the flow whose parameters to apply; must not be null.
+     * @param ruleContext the active context; must not be null.
+     * @since 2.3
+     */
+    protected void applyDefaultValues(RuleFlow<?> ruleFlow, RuleContext ruleContext) {
+        ruleFlow.getInputParameters()
+                .forEach(p -> applyDefaultValue(p, ruleFlow, ruleContext));
+    }
+
+    /**
+     * Binds the default value of one input parameter in the current scope when the parameter
+     * has a default and its binding is absent or {@code null}.
+     *
+     * @param parameter the parameter; must not be null.
+     * @param ruleFlow the flow whose parameter this is; must not be null.
+     * @param ruleContext the active context; must not be null.
+     * @throws UnrulyException naming the flow and the parameter, with the failure as its cause,
+     *         when the default value cannot be evaluated.
+     * @since 2.3
+     */
+    protected void applyDefaultValue(InputParameter<?> parameter, RuleFlow<?> ruleFlow, RuleContext ruleContext) {
+        if (parameter.defaultValue() == null) return;
+
+        Binding<?> binding = ruleContext.getBindings().getBinding(parameter.name());
+
+        if (binding == null || binding.getValue() == null) {
+            Object value;
+
+            try {
+                value = parameter.defaultValue().apply(ruleContext);
+            } catch (RuntimeException e) {
+                throw new UnrulyException("RuleFlow [" + ruleFlow.getName() + "] could not evaluate the default value of input parameter ["
+                        + parameter.name() + "] type [" + parameter.type() + "]", e);
+            }
+
+            ruleContext.getBindings().bind(parameter.name(), value);
+        }
     }
 
     /**

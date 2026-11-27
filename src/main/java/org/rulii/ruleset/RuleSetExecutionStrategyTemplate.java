@@ -62,7 +62,7 @@ public abstract class RuleSetExecutionStrategyTemplate<T> implements RuleSetExec
     /**
      * Checks the input parameter based on the provided InputParameter, RuleSet, and RuleContext.
      * Throws UnrulyException if the required parameter is missing or if the specified type does not match.
-     * Sets the default value if specified and the binding is null.
+     * Default values are applied separately, by {@link #applyDefaultValues}, once the RuleSet's scope exists.
      *
      * @param parameter    the InputParameter to check (must not be null)
      * @param ruleSet      the RuleSet associated with the parameter (must not be null)
@@ -75,10 +75,49 @@ public abstract class RuleSetExecutionStrategyTemplate<T> implements RuleSetExec
         if (parameter.required() && (binding == null || (binding.getValue() != null && !binding.isAssignable(parameter.type()))))
             throw new UnrulyException("RuleSet [" + ruleSet.getName() + "] requires input parameter ["
                     + parameter.name() + "] type [" + parameter.type() + "]");
+    }
 
-        // Set the default value
-        if (parameter.defaultValue() != null && (binding == null || binding.getValue() == null)) {
-            ruleContext.getBindings().bind(parameter.name(), parameter.defaultValue().apply(ruleContext));
+    /**
+     * Applies the default value of every optional input parameter whose binding is absent or {@code null},
+     * in declaration order, so a default can read the ones before it. Called with the RuleSet's scope
+     * current: a default is bound in that scope and goes with it, so it never reaches the caller's
+     * bindings and is evaluated again on every run.
+     *
+     * @param ruleSet     the RuleSet whose parameters to apply (must not be null).
+     * @param ruleContext the RuleContext containing the runtime context information (must not be null).
+     * @since 2.3
+     */
+    protected void  applyDefaultValues(RuleSet<?> ruleSet, RuleContext ruleContext) {
+        ruleSet.getInputParameters().forEach(parameter -> applyDefaultValue(parameter, ruleSet, ruleContext));
+    }
+
+    /**
+     * Binds the default value of one input parameter in the current scope when the parameter has a
+     * default and its binding is absent or {@code null}.
+     *
+     * @param parameter   the InputParameter (must not be null)
+     * @param ruleSet     the RuleSet associated with the parameter (must not be null)
+     * @param ruleContext the RuleContext containing the runtime context information (must not be null)
+     * @throws UnrulyException naming the RuleSet and the parameter, with the failure as its cause, when the
+     *         default value cannot be evaluated.
+     * @since 2.3
+     */
+    protected void applyDefaultValue(InputParameter<?> parameter, RuleSet<?> ruleSet, RuleContext ruleContext) {
+        if (parameter.defaultValue() == null) return;
+
+        Binding<?> binding = ruleContext.getBindings().getBinding(parameter.name());
+
+        if (binding == null || binding.getValue() == null) {
+            Object value;
+
+            try {
+                value = parameter.defaultValue().apply(ruleContext);
+            } catch (RuntimeException e) {
+                throw new UnrulyException("RuleSet [" + ruleSet.getName() + "] could not evaluate the default value of input parameter ["
+                        + parameter.name() + "] type [" + parameter.type() + "]", e);
+            }
+
+            ruleContext.getBindings().bind(parameter.name(), value);
         }
     }
 

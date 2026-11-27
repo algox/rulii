@@ -47,6 +47,13 @@ public class DefaultRuleSetExecutionStrategy<T> extends RuleSetExecutionStrategy
         checkInputParameters(ruleSet, ruleContext);
         // Create a new Scope for the RuleSet to use
         NamedScope ruleSetScope = createRuleSetScope(ruleSet, ruleContext, ruleSetStatus);
+        // Apply the default values inside it; a failing default is an input failure: no events, no scope left behind
+        try {
+            applyDefaultValues(ruleSet, ruleContext);
+        } catch (Throwable e) {
+            removeRuleSetScope(ruleContext, ruleSetScope);
+            throw e;
+        }
 
         try {
             ruleContext.getTracer().fireOnRuleSetStart(ruleSet, ruleSetScope);

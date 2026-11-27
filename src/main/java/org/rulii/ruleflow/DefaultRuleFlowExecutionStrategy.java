@@ -30,7 +30,9 @@ import org.rulii.ruleflow.command.RuleFlowCommand;
  * <ol>
  *   <li>{@code checkInputParameters()} — throws if invalid; no scope is created and no tracer
  *       events fire in this case.</li>
- *   <li>Flow scope is pushed.</li>
+ *   <li>Flow scope is pushed; {@code applyDefaultValues()} binds the defaults of absent optional
+ *       parameters in it. A failing default removes the scope again and propagates, with no
+ *       tracer events.</li>
  *   <li>{@code fireOnRuleFlowStart} — listeners are notified.</li>
  *   <li>Commands are iterated; {@code fireOnRuleFlowCommandExecuted} fires after each one
  *       that completes normally. A command whose failure the flow-level handler matches fires
@@ -67,6 +69,14 @@ class DefaultRuleFlowExecutionStrategy<T> extends RuleFlowExecutionStrategyTempl
 
         RulingOrder<T> order = (RulingOrder<T>) ruleFlow;
         NamedScope ruleFlowScope = createFlowScope(ruleFlow, ruleContext);
+
+        try {
+            applyDefaultValues(ruleFlow, ruleContext);
+        } catch (Throwable e) {
+            // A failing default is an input failure: no events, and no scope left behind.
+            removeFlowScope(ruleContext, ruleFlowScope);
+            throw e;
+        }
 
         try {
             ruleContext.getTracer().fireOnRuleFlowStart(ruleFlow, ruleFlowScope);
