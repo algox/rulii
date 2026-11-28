@@ -1,6 +1,6 @@
 # Changelog
 
-## [2.3.0] (unreleased)
+## [2.3.0]
 
 #### Scripting
 - A scripting language can opt out of the script-text resolver. `ScriptProcessorFactory.resolvesScriptText()` (new, default `true`) says whether the resolver set with `ScriptProcessorManager.setScriptTextResolver` is applied to that language's source text before it is compiled; `Script.builder().with(language, script)` asks the factory and hands the text to the compiler as written when the answer is `false`. `ElScriptProcessorFactory` answers `false`, because `${...}` is Jakarta Expression Language's own syntax. This fixes a Jakarta EL script written as `${...}` (an `@Expr` or `@Bind(expr = ...)` of rulii-bean-validation, a script built in code, an XML rule script) failing under rulii-spring's default settings with `PlaceholderResolutionException`, since its resolver took the expression for a Spring property placeholder; `${...}` and `#{...}` now both work there. Behaviour change: a property placeholder inside a `jakarta-el` script is no longer resolved (`#{ctx.total > ${discount.cap}}` was in 2.2.0); pass the value in as a binding. Every other language, and every factory that does not override the method, is unchanged, as are `setScriptTextResolver`, `clearScriptTextResolver` and `resolveScriptText`.

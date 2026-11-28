@@ -25,7 +25,7 @@
 
 ## Quick Start
 
-Add `org.rulii:rulii:2.2.0` to your build ([Maven and Gradle](#getting-started)), then write a rule and run it:
+Add `org.rulii:rulii:2.3.0` to your build ([Maven and Gradle](#getting-started)), then write a rule and run it:
 
 ```java
 import org.rulii.rule.Rule;
@@ -115,13 +115,13 @@ The full story, and how rulii compares with plain Java, Drools, Easy Rules and H
 <dependency>
     <groupId>org.rulii</groupId>
     <artifactId>rulii</artifactId>
-    <version>2.2.0</version>
+    <version>2.3.0</version>
 </dependency>
 ```
 
 **Gradle**
 ```groovy
-implementation 'org.rulii:rulii:2.2.0'
+implementation 'org.rulii:rulii:2.3.0'
 ```
 
 **Using more than one rulii library?** Import the [rulii-bom](https://github.com/algox/rulii-bom) once and
